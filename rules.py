@@ -303,6 +303,7 @@ class DuplicateGpUnits(base.TreeRule):
 
     leaf_nodes = set()
     children = dict()
+    defined_gpunits = set()
 
     def check(self):
         root = self.election_tree.getroot()
@@ -319,6 +320,7 @@ class DuplicateGpUnits(base.TreeRule):
             if "objectId" not in gpunit.attrib:
                 continue
             object_id = gpunit.attrib["objectId"]
+            self.defined_gpunits.add(object_id)
             composing_ids = self.get_composing_gpunits(gpunit)
             if composing_ids is None:
                 self.leaf_nodes.add(object_id)
@@ -358,7 +360,7 @@ class DuplicateGpUnits(base.TreeRule):
             non_leaf_nodes = set()
             are_leaf_nodes = set()
             for composing_id in composing_ids:
-                if composing_id in self.leaf_nodes:
+                if composing_id in self.leaf_nodes or composing_id not in self.defined_gpunits:
                     are_leaf_nodes.add(composing_id)
                 elif composing_id in self.children:
                     non_leaf_nodes.add(composing_id)
