@@ -137,25 +137,25 @@ class HungarianStyleNotation(base.BaseRule):
     """
 
     elements_prefix = {
-        "BallotMeasureContest": "bmc_",
-        "BallotMeasureSelection": "bms_",
-        "BallotStyle": "bs_",
-        "Candidate": "can_",
-        "CandidateContest": "cc_",
-        "CandidateSelection": "cs_",
-        "Coalition": "coa_",
-        "ContactInformation": "ci_",
-        "Hours": "hours_",
-        "Office": "off_",
-        "OfficeGroup": "og_",
-        "Party": "par_",
-        "PartyContest": "pc_",
-        "PartySelection": "ps_",
-        "Person": "per_",
-        "ReportingDevice": "rd_",
-        "ReportingUnit": "ru_",
-        "RetentionContest": "rc_",
-        "Schedule": "sched_",
+        "BallotMeasureContest": "bmc",
+        "BallotMeasureSelection": "bms",
+        "BallotStyle": "bs",
+        "Candidate": "can",
+        "CandidateContest": "cc",
+        "CandidateSelection": "cs",
+        "Coalition": "coa",
+        "ContactInformation": "ci",
+        "Hours": "hours",
+        "Office": "off",
+        "OfficeGroup": "og",
+        "Party": "par",
+        "PartyContest": "pc",
+        "PartySelection": "ps",
+        "Person": "per",
+        "ReportingDevice": "rd",
+        "ReportingUnit": "ru",
+        "RetentionContest": "rc",
+        "Schedule": "sched",
     }
 
     def elements(self):
@@ -460,11 +460,10 @@ def main():
         registry = base.RulesRegistry(
             election_file = options.election_file, schema_file = options.xsd,
             rule_classes_to_check = rule_classes_to_check)
-        errors = registry.check_rules(detailed=options.d)
-        if errors > 0:
-            return 1  # TODO other error codes?
-        else:
-            return 0
+        found_errors = registry.check_rules()
+        registry.print_exceptions(options.d)
+        # TODO other error codes?
+        return found_errors
 
 if __name__ == "__main__":
     main()

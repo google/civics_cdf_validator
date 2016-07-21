@@ -117,8 +117,7 @@ class RulesRegistry(SchemaHandler):
     exceptions = {}
     exception_counts = {}
     exception_rule_counts = {}
-    error_counter = {}
-    warning_counter = {}
+    total_count = 0
 
     def __init__(self, election_file, schema_file, rule_classes_to_check):
         self.election_file = election_file
@@ -158,9 +157,12 @@ class RulesRegistry(SchemaHandler):
                     error_count = len(exception.error_log)
                 self.exception_counts[e_type] += error_count
                 self.exception_rule_counts[e_type][rule.__class__] += error_count
+                self.total_count += error_count
 
     def print_exceptions(self, detailed):
-        found_errors = 0
+        if self.total_count == 0:
+            print "Validation completed with no warnings/errors."
+            return
         # Descend from most severe to least severe issues.
         for e_type in [ElectionError, ElectionWarning, ElectionInfo]:
             suffix = ""
@@ -168,7 +170,6 @@ class RulesRegistry(SchemaHandler):
                 continue
             elif self.exception_counts[e_type] > 1:
                 suffix = "s"
-            found_errors = 1
             e_type_name = e_type.description
             print "{0:6d} {1} message{2} found".format(
                 self.exception_counts[e_type], e_type_name, suffix)
@@ -192,10 +193,8 @@ class RulesRegistry(SchemaHandler):
                                         error.line, error.message.encode("utf-8"))
                         else:
                             print "        %s" % exception
-        if found_errors == 0:
-             print "Validation completed with no warnings/errors."
 
-    def check_rules(self, detailed):
+    def check_rules(self):
         """Checks all rules.
 
         Returns:
@@ -225,8 +224,7 @@ class RulesRegistry(SchemaHandler):
                     element_rule.check(element)
                 except ElectionException as e:
                     self.exception_handler(element_rule, e)
-        self.print_exceptions(detailed)
-        if not self.exceptions:
+        if self.total_count == 0:
             return 0
         else:
             return 1
