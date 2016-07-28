@@ -29,18 +29,17 @@ setup(
     version='0.1',
     author='Miano Njoka',
     author_email='election-results-xml-validator@google.com',
-    maintainer='gTech Partners',
+    maintainer='Google gTech Partners',
     maintainer_email='election-results-xml-validator@google.com',
-    license='Proprietary',
+    license='Apache License',
     description='Checks that an elections file follows best practices',
-    long_description='election_results_xml_validator is a script that checks'
-        'if a NIST 1500-100 election results feed follows best practices and'
-        'outputs errors, warnings and info messages for common issues',
+    long_description='election_results_xml_validator is a script that checks '
+        'if a NIST 1500-100 election results feed follows best practices and '
+        'outputs errors, warnings and info messages for common issues.',
     install_requires=[
         'lxml>=3.3.4',
         'pycountry>=1.20',
         'requests>=2.10',
     ],
     entry_points=ENTRY_POINTS,
-    #TODO(miano) test_suite='election_results_xml_validator.rules_test'
 )
