@@ -16,7 +16,7 @@ limitations under the License.
 Setup script for validator that checks for NIST 1500-100 best practices.
 """
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 ENTRY_POINTS = {
     'console_scripts': [
@@ -26,7 +26,7 @@ ENTRY_POINTS = {
 
 setup(
     name='election_results_xml_validator',
-    version='0.1',
+    version='0.2.0',
     author='Miano Njoka',
     author_email='election-results-xml-validator@google.com',
     maintainer='Google gTech Partners',
@@ -36,10 +36,14 @@ setup(
     long_description='election_results_xml_validator is a script that checks '
         'if a NIST 1500-100 election results feed follows best practices and '
         'outputs errors, warnings and info messages for common issues.',
+	url='https://github.com/google/election_results_xml_validator',
     install_requires=[
         'lxml>=3.3.4',
         'pycountry>=1.20',
         'requests>=2.10',
     ],
     entry_points=ENTRY_POINTS,
+    #py_modules=['rules', 'base'],
+    package_dir={'election_results_xml_validator': ''},
+    packages=['election_results_xml_validator'],
 )
