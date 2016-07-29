@@ -1,5 +1,5 @@
 election_results_xml_validator is a script that checks if a NIST 1500-100
-election results feed follows best practices andand outputs errors, warnings and
+election results feed follows best practices and outputs errors, warnings and
 info messages for common issues
 
 This is not an official Google product.
@@ -43,7 +43,7 @@ election_results_xml_validator validate election_file.xml --xsd nist.xsd -iSchem
 
 Or choose to exclude a rule using the -e flag
 
-election_results_xml_validator check election_file.xml --xsd nist.xsd -eSchema
+election_results_xml_validator check election_file.xml --xsd nist.xsd -e Schema
 
 By default, the script only shows a summary of issues found. You can get a
 detailed report by adding the -d flag
