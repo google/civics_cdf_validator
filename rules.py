@@ -282,20 +282,19 @@ class GpUnitOcdId(ElectoralDistrictOcdId):
         self.ocds = self._get_ocd_data()
 
     def elements(self):
-        return ["GpUnit"]
+        return ["ReportingUnit"]
 
     def check(self, element):
-        if self.get_element_class(element) == "ReportingUnit":
-            gpunit_type = element.find("Type")
-            if gpunit_type.text in self.districts:
-                for extern_id in element.iter("ExternalIdentifier"):
-                    id_type = extern_id.find("Type")
-                    if id_type is not None and id_type.text == "ocd-id":
-                        value = extern_id.find("Value")
-                        if value.text not in self.ocds:
-                            raise base.ElectionWarning(
-                                "The OCD ID %s defined on line %d is not "
-                                "valid" % (value.text, value.sourceline))
+        gpunit_type = element.find("Type")
+        if gpunit_type.text in self.districts:
+            for extern_id in element.iter("ExternalIdentifier"):
+                id_type = extern_id.find("Type")
+                if id_type is not None and id_type.text == "ocd-id":
+                    value = extern_id.find("Value")
+                    if value.text not in self.ocds:
+                        raise base.ElectionWarning(
+                        "The OCD ID %s defined on line %d is not "
+                        "valid" % (value.text, value.sourceline))
 
 
 class DuplicateGpUnits(base.TreeRule):
