@@ -26,7 +26,7 @@ ENTRY_POINTS = {
 
 setup(
     name='election_results_xml_validator',
-    version='0.2.0',
+    version='0.2.1',
     author='Miano Njoka',
     author_email='election-results-xml-validator@google.com',
     maintainer='Google gTech Partners',
