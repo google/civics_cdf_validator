@@ -248,6 +248,9 @@ class ElectoralDistrictOcdId(base.BaseRule):
     def check(self, element):
         if element.getparent().tag != "Contest":
             return
+        contest_id = element.getparent().get("objectId")
+        if not contest_id:
+            return
         valid_ocd_id = False
         referenced_gpunit = None
         for gpunit in self.gpunits:
@@ -257,18 +260,21 @@ class ElectoralDistrictOcdId(base.BaseRule):
                     id_type = extern_id.find("Type")
                     if id_type is not None and id_type.text == "ocd-id":
                         value = extern_id.find("Value")
+                        if value is None or not hasattr(value, 'text'):
+                            continue
                         if value.text in self.ocds:
                             valid_ocd_id = True
         if referenced_gpunit is None:
             raise base.ElectionError(
-                "Line %d. The ElectoralDistrictId Element does not refer to a "
-                "GpUnit. Every ElectoralDistrictId MUST reference a GpUnit" % (
-                    element.sourceline))
+                "Line %d. The ElectoralDistrictId element for contest %s does "
+                "not refer to a GpUnit. Every ElectoralDistrictId MUST "
+                "reference a GpUnit" % (element.sourceline, contest_id))
         if not valid_ocd_id and referenced_gpunit is not None:
             raise base.ElectionError(
-                "Line %d. The ElectoralDistrictId element refers to GpUnit on "
-                "line %d that does not have a valid OCD ID" % (
-                    element.sourceline, referenced_gpunit.sourceline))
+                "Line %d. The ElectoralDistrictId element for contest %s "
+                "refers to GpUnit %s on line %d that does not have a valid OCD "
+                "ID" % (element.sourceline, contest_id, element.text,
+                        referenced_gpunit.sourceline))
 
 
 class GpUnitOcdId(ElectoralDistrictOcdId):
@@ -285,16 +291,21 @@ class GpUnitOcdId(ElectoralDistrictOcdId):
         return ["ReportingUnit"]
 
     def check(self, element):
+        gpunit_id = element.get("objectId")
+        if not gpunit_id:
+            return
         gpunit_type = element.find("Type")
         if gpunit_type.text in self.districts:
             for extern_id in element.iter("ExternalIdentifier"):
                 id_type = extern_id.find("Type")
                 if id_type is not None and id_type.text == "ocd-id":
                     value = extern_id.find("Value")
+                    if value is None or not hasattr(value, "text"):
+                        continue
                     if value.text not in self.ocds:
                         raise base.ElectionWarning(
-                        "The OCD ID %s defined on line %d is not "
-                        "valid" % (value.text, value.sourceline))
+                        "The OCD ID %s in GpUnit %s defined on line %d is not "
+                        "valid" % (value.text, gpunit_id, value.sourceline))
 
 
 class DuplicateGpUnits(base.TreeRule):
