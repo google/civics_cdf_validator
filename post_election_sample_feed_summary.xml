@@ -1,0 +1,1776 @@
+<ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Election>
+    <BallotStyleCollection>
+      
+      <BallotStyle objectId="bs00000">
+        <GpUnitIds>ru_pre00000 ru_pre99999 ru_pre90139 ru_pre90666 ru_pre91781sp0001 ru_pre92175</GpUnitIds>
+        
+        <OrderedContest>
+          <ContestId>cc20002</ContestId>
+        </OrderedContest>
+        
+        <OrderedContest>
+          <ContestId>cc20003</ContestId>
+          <OrderedBallotSelectionIds>cs10961 cs10962 cs10963</OrderedBallotSelectionIds>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20004</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20005</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20025</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20355</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20449</ContestId>
+        </OrderedContest>
+        
+        <OrderedContest>
+          <ContestId>bmc30001</ContestId>
+        </OrderedContest>
+        
+        <OrderedContest>
+          <ContestId>rc40001</ContestId>
+        </OrderedContest>
+      </BallotStyle>
+      <BallotStyle objectId="bs00001">
+        <GpUnitIds>ru_pre91918 ru_pre92065</GpUnitIds>
+        <OrderedContest>
+          <ContestId>cc20002</ContestId>
+        </OrderedContest>
+        
+        <OrderedContest>
+          <ContestId>cc20003</ContestId>
+          <OrderedBallotSelectionIds>cs10962 cs10963 cs10961</OrderedBallotSelectionIds>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20004</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20005</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20033</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20350</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20473</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>bmc30001</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>rc40001</ContestId>
+        </OrderedContest>
+      </BallotStyle>
+      <BallotStyle objectId="bs00002">
+        <GpUnitIds>ru_pre90348sp0000 ru_pre90348sp0001 ru_pre92306</GpUnitIds>
+        <OrderedContest>
+          <ContestId>cc20002</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20003</ContestId>
+          <OrderedBallotSelectionIds>cs10963 cs10961 cs10962</OrderedBallotSelectionIds>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20004</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20005</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20024</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20305</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20476</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>bmc30001</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>rc40001</ContestId>
+        </OrderedContest>
+      </BallotStyle>
+      <BallotStyle objectId="bs00003">
+        <GpUnitIds>ru_pre90183 ru_pre90614 ru_pre90994sp0001 ru_pre91089sp0000 ru_pre91089sp0001
+        ru_pre92140 ru_pre92353</GpUnitIds>
+        <OrderedContest>
+          <ContestId>cc20002</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20003</ContestId>
+          <OrderedBallotSelectionIds>cs10961 cs10962 cs10963</OrderedBallotSelectionIds>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20004</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20005</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20100</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>bmc30001</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>rc40001</ContestId>
+        </OrderedContest>
+      </BallotStyle>
+      <BallotStyle objectId="bs00004">
+        <GpUnitIds>ru_pre92087 ru_pre92145</GpUnitIds>
+        <OrderedContest>
+          <ContestId>cc20003</ContestId>
+          <OrderedBallotSelectionIds>cs10962 cs10963 cs10961</OrderedBallotSelectionIds>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20004</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20005</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20024</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>bmc30001</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>rc40001</ContestId>
+        </OrderedContest>
+      </BallotStyle>
+      <BallotStyle objectId="bs00005">
+        <GpUnitIds>ru_pre90994sp0000</GpUnitIds>
+        <OrderedContest>
+          <ContestId>cc20002</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20003</ContestId>
+          <OrderedBallotSelectionIds>cs10963 cs10961 cs10962</OrderedBallotSelectionIds>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20004</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20005</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20025</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>bmc30001</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>rc40001</ContestId>
+        </OrderedContest>
+      </BallotStyle>
+      <BallotStyle objectId="bs00006">
+        <GpUnitIds>ru_pre92360 ru_pre92426</GpUnitIds>
+        <OrderedContest>
+          <ContestId>cc20002</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20003</ContestId>
+          <OrderedBallotSelectionIds>cs10961 cs10962 cs10963</OrderedBallotSelectionIds>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20004</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20005</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20024</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20350</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20473</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>bmc30001</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>rc40001</ContestId>
+        </OrderedContest>
+      </BallotStyle>
+      <BallotStyle objectId="bs00007">
+        <GpUnitIds>ru_pre91298</GpUnitIds>
+        <OrderedContest>
+          <ContestId>cc20002</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20003</ContestId>
+          <OrderedBallotSelectionIds>cs10962 cs10963 cs10961</OrderedBallotSelectionIds>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20004</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20005</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20100</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20355</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20449</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>bmc30001</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>rc40001</ContestId>
+        </OrderedContest>
+      </BallotStyle>
+      <BallotStyle objectId="bs00008">
+        <GpUnitIds>ru_pre91781sp0000</GpUnitIds>
+        <OrderedContest>
+          <ContestId>cc20002</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20003</ContestId>
+          <OrderedBallotSelectionIds>cs10963 cs10961 cs10962</OrderedBallotSelectionIds>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20004</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20005</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20025</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20100</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20355</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20449</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>bmc30001</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>rc40001</ContestId>
+        </OrderedContest>
+      </BallotStyle>
+      <BallotStyle objectId="bs00009">
+        <GpUnitIds>ru_pre90929 ru_pre92171sp0000 ru_pre92171sp0001 ru_pre92320</GpUnitIds>
+        <OrderedContest>
+          <ContestId>cc20002</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20003</ContestId>
+          <OrderedBallotSelectionIds>cs10961 cs10962 cs10963</OrderedBallotSelectionIds>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20004</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20005</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20100</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20262</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>bmc30001</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>rc40001</ContestId>
+        </OrderedContest>
+      </BallotStyle>
+      <BallotStyle objectId="bs00010">
+        <GpUnitIds>ru_pre90111 ru_pre91602</GpUnitIds>
+        <OrderedContest>
+          <ContestId>cc20002</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20003</ContestId>
+          <OrderedBallotSelectionIds>cs10962 cs10963 cs10961</OrderedBallotSelectionIds>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20004</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20005</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20025</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20305</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20476</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>bmc30001</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>rc40001</ContestId>
+        </OrderedContest>
+      </BallotStyle>
+      <BallotStyle objectId="bs00011">
+        <GpUnitIds>ru_pre91999</GpUnitIds>
+        <OrderedContest>
+          <ContestId>cc20002</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20003</ContestId>
+          <OrderedBallotSelectionIds>cs10963 cs10961 cs10962</OrderedBallotSelectionIds>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20004</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20005</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20025</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>cc20262</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>bmc30001</ContestId>
+        </OrderedContest>
+        <OrderedContest>
+          <ContestId>rc40001</ContestId>
+        </OrderedContest>
+      </BallotStyle>
+    </BallotStyleCollection>
+    <CandidateCollection>
+      <Candidate objectId="can10861a">
+        <BallotName>
+          <Text language="en">Barack H. Obama</Text>
+        </BallotName>
+        <FileDate>2015-06-01</FileDate>
+        
+        <PartyId>par0003</PartyId>
+        <PersonId>per10861a</PersonId>
+      </Candidate>
+      <Candidate objectId="can10861b">
+        <BallotName>
+          <Text language="en">Joseph R. Biden</Text>
+        </BallotName>
+        <PartyId>par0003</PartyId>
+        <PersonId>per10861b</PersonId>
+      </Candidate>
+
+      <Candidate objectId="can10862a">
+        <BallotName>
+          <Text language="en">Mitt Romney</Text>
+        </BallotName>
+        <PartyId>par0001</PartyId>
+        <PersonId>per10862a</PersonId>
+      </Candidate>
+      <Candidate objectId="can10862b">
+        <BallotName>
+          <Text language="en">Paul Ryan</Text>
+        </BallotName>
+        <PartyId>par0001</PartyId>
+        <PersonId>per10862b</PersonId>
+      </Candidate>
+      <Candidate objectId="can10961">
+        <BallotName>
+          <Text language="en">Ken T. Cuccinelli II</Text>
+        </BallotName>
+        <PartyId>par0001</PartyId>
+        <PersonId>per10961</PersonId>
+      </Candidate>
+      <Candidate objectId="can10962">
+        <BallotName>
+          <Text language="en">Robert C. Sarvis</Text>
+        </BallotName>
+        <PartyId>par0002</PartyId>
+        <PersonId>per10962</PersonId>
+      </Candidate>
+      <Candidate objectId="can10963">
+        <BallotName>
+          <Text language="en">Terry R. McAuliffe</Text>
+        </BallotName>
+        <PartyId>par0003</PartyId>
+        <PersonId>per10963</PersonId>
+      </Candidate>
+      <Candidate objectId="can10966">
+        <BallotName>
+          <Text language="en">Ralph S. Northam</Text>
+        </BallotName>
+        <PartyId>par0003</PartyId>
+        <PersonId>per10966</PersonId>
+      </Candidate>
+      <Candidate objectId="can10967">
+        <BallotName>
+          <Text language="en">E. W. Jackson</Text>
+        </BallotName>
+        <PartyId>par0001</PartyId>
+        <PersonId>per10967</PersonId>
+      </Candidate>
+      <Candidate objectId="can10964">
+        <BallotName>
+          <Text language="en">Mark D. Obenshain</Text>
+        </BallotName>
+        <PartyId>par0001</PartyId>
+        <PersonId>per10964</PersonId>
+      </Candidate>
+      <Candidate objectId="can10965">
+        <BallotName>
+          <Text language="en">Mark R. Herring</Text>
+        </BallotName>
+        <PartyId>par0003</PartyId>
+        <PersonId>per10965</PersonId>
+      </Candidate>
+      <Candidate objectId="can14444">
+        <BallotName>
+          <Text language="en">Cleo E. Powell</Text>
+        </BallotName>
+        <PersonId>per14444</PersonId>
+      </Candidate>
+      <Candidate objectId="can10422">
+        <BallotName>
+          <Text language="en">R. Steven /Steve/ Landes</Text>
+        </BallotName>
+        <PartyId>par0001</PartyId>
+        <PersonId>per10422</PersonId>
+      </Candidate>
+      <Candidate objectId="can10388">
+        <BallotName>
+          <Text language="en">David J. Toscano</Text>
+        </BallotName>
+        <PartyId>par0003</PartyId>
+        <PersonId>per10388</PersonId>
+      </Candidate>
+      <Candidate objectId="can10466">
+        <BallotName>
+          <Text language="en">C. Matt Fariss</Text>
+        </BallotName>
+        <PartyId>par0001</PartyId>
+        <PersonId>per10466</PersonId>
+      </Candidate>
+      <Candidate objectId="can10438">
+        <BallotName>
+          <Text language="en">Robert B. Bell III</Text>
+        </BallotName>
+        
+        <PartyId>par0006</PartyId>
+        <PersonId>per10438</PersonId>
+      </Candidate>
+      <Candidate objectId="can10079">
+        <BallotName>
+          <Text language="en">Jane D. Dittmar</Text>
+        </BallotName>
+        <PartyId>par0003</PartyId>
+        <PersonId>per10079</PersonId>
+      </Candidate>
+      <Candidate objectId="can10080">
+        <BallotName>
+          <Text language="en">C. L. /Cindi/ Burket</Text>
+        </BallotName>
+        <PartyId>par0001</PartyId>
+        <PersonId>per10080</PersonId>
+      </Candidate>
+      <Candidate objectId="can10075">
+        <BallotName>
+          <Text language="en">Diantha H. McKeel</Text>
+        </BallotName>
+        <PartyId>par0004</PartyId>
+        <PersonId>per10075</PersonId>
+      </Candidate>
+      <Candidate objectId="can10076">
+        <BallotName>
+          <Text language="en">B. Phillip Seay</Text>
+        </BallotName>
+        <PartyId>par0004</PartyId>
+        <PersonId>per10076</PersonId>
+      </Candidate>
+      <Candidate objectId="can10073">
+        <BallotName>
+          <Text language="en">Liz A. Palmer</Text>
+        </BallotName>
+        <PartyId>par0003</PartyId>
+        <PersonId>per10073</PersonId>
+      </Candidate>
+      <Candidate objectId="can10074">
+        <BallotName>
+          <Text language="en">Duane E. Snow</Text>
+        </BallotName>
+        <PartyId>par0001</PartyId>
+        <PersonId>per10074</PersonId>
+      </Candidate>
+      <Candidate objectId="can10077">
+        <BallotName>
+          <Text language="en">Rodney S. Thomas</Text>
+        </BallotName>
+        <PartyId>par0001</PartyId>
+        <PersonId>per10077</PersonId>
+      </Candidate>
+      <Candidate objectId="can10078">
+        <BallotName>
+          <Text language="en">J. L. /Brad/ Sheffield</Text>
+        </BallotName>
+        <PartyId>par0003</PartyId>
+        <PersonId>per10078</PersonId>
+      </Candidate>
+      <Candidate objectId="can10214">
+        <BallotName>
+          <Text language="en">Pamela R. Moynihan</Text>
+        </BallotName>
+        <PartyId>par0004</PartyId>
+        <PersonId>per10214</PersonId>
+      </Candidate>
+      <Candidate objectId="can10215">
+        <BallotName>
+          <Text language="en">Eric J. Strucko</Text>
+        </BallotName>
+        <PartyId>par0004</PartyId>
+        <PersonId>per10215</PersonId>
+      </Candidate>
+      <Candidate objectId="can10213">
+        <BallotName>
+          <Text language="en">K. L.  /Kate/ Acuff</Text>
+        </BallotName>
+        <PartyId>par0004</PartyId>
+        <PersonId>per10213</PersonId>
+      </Candidate>
+    </CandidateCollection>
+    <ContestCollection>
+      <Contest objectId="cc20002" xsi:type="CandidateContest">
+        
+        <BallotSelection objectId="cs10861" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>absentee</Type><Count>3394</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>early</Type><Count>3775</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>election-day</Type><Count>5054</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>total</Type><Count>12223</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10861a can10861b</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs10862" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>absentee</Type><Count>8103</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>early</Type><Count>7757</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>election-day</Type><Count>2626</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>total</Type><Count>18486</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10862a can10862b</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">President and Vice-President of the United States</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <Name>President and Vice-President</Name>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off9999a off9999b</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+
+      <Contest objectId="cc20003" xsi:type="CandidateContest">
+        
+        <BallotSelection objectId="cs10961" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>absentee</Type><Count>6618</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>early</Type><Count>4143</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>election-day</Type><Count>3498</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>total</Type><Count>14259</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10961</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs10962" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>absentee</Type><Count>1120</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>early</Type><Count>3819</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>election-day</Type><Count>9524</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>total</Type><Count>14463</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10962</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs10963" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>absentee</Type><Count>5583</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>early</Type><Count>136</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>election-day</Type><Count>6734</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>total</Type><Count>12453</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10963</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Governor of Virginia</Text>
+        </BallotTitle>
+        
+        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <HasRotation>true</HasRotation>
+        <Name>Governor</Name>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off0000</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+
+      
+      <Contest objectId="cc20004" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs10966" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>absentee</Type><Count>6555</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>early</Type><Count>5086</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>election-day</Type><Count>5496</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>total</Type><Count>17137</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10966</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs10967" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>absentee</Type><Count>3317</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>early</Type><Count>2208</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>election-day</Type><Count>6530</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>total</Type><Count>12055</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10967</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Lieutenant Governor of Virginia</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <Name>Lieutenant Governor</Name>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off0001</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+
+      <Contest objectId="cc20005" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs10964" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>absentee</Type><Count>563</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>early</Type><Count>3623</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>election-day</Type><Count>8516</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>total</Type><Count>12702</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10964</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs10965" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>absentee</Type><Count>2748</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>early</Type><Count>4047</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>election-day</Type><Count>5069</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>total</Type><Count>11864</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10965</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Attorney General</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <Name>Attorney General</Name>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off20005</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+
+      
+      <Contest objectId="cc20024" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs10422" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0150</GpUnitId><Type>absentee</Type><Count>3181</Count></VoteCounts><VoteCounts><GpUnitId>ru0150</GpUnitId><Type>early</Type><Count>3075</Count></VoteCounts><VoteCounts><GpUnitId>ru0150</GpUnitId><Type>election-day</Type><Count>4986</Count></VoteCounts><VoteCounts><GpUnitId>ru0150</GpUnitId><Type>total</Type><Count>11242</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10422</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Member House of Delegates</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0150</ElectoralDistrictId>
+        <Name>Member House of Delegates</Name>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off20024</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+
+      <Contest objectId="cc20025" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs10388" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0311</GpUnitId><Type>absentee</Type><Count>2773</Count></VoteCounts><VoteCounts><GpUnitId>ru0311</GpUnitId><Type>early</Type><Count>2938</Count></VoteCounts><VoteCounts><GpUnitId>ru0311</GpUnitId><Type>election-day</Type><Count>1203</Count></VoteCounts><VoteCounts><GpUnitId>ru0311</GpUnitId><Type>total</Type><Count>6914</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10388</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Member House of Delegates</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0311</ElectoralDistrictId>
+        <Name>Member House of Delegates</Name>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off20025</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+
+      <Contest objectId="cc20033" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs10466" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0107</GpUnitId><Type>absentee</Type><Count>4797</Count></VoteCounts><VoteCounts><GpUnitId>ru0107</GpUnitId><Type>early</Type><Count>434</Count></VoteCounts><VoteCounts><GpUnitId>ru0107</GpUnitId><Type>election-day</Type><Count>207</Count></VoteCounts><VoteCounts><GpUnitId>ru0107</GpUnitId><Type>total</Type><Count>5438</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10466</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Member House of Delegates</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0107</ElectoralDistrictId>
+        <Name>Member House of Delegates</Name>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off20033</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+
+      
+      <Contest objectId="cc20100" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs10438" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0076</GpUnitId><Type>absentee</Type><Count>563</Count></VoteCounts><VoteCounts><GpUnitId>ru0076</GpUnitId><Type>early</Type><Count>4133</Count></VoteCounts><VoteCounts><GpUnitId>ru0076</GpUnitId><Type>election-day</Type><Count>1315</Count></VoteCounts><VoteCounts><GpUnitId>ru0076</GpUnitId><Type>total</Type><Count>6011</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10438</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Member House of Delegates</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0076</ElectoralDistrictId>
+        <Name>Member House of Delegates</Name>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off20100</OfficeIds>
+        
+        <PrimaryPartyIds>par0005</PrimaryPartyIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+
+      <Contest objectId="cc20262" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs10079" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0103</GpUnitId><Type>absentee</Type><Count>1870</Count></VoteCounts><VoteCounts><GpUnitId>ru0103</GpUnitId><Type>early</Type><Count>2136</Count></VoteCounts><VoteCounts><GpUnitId>ru0103</GpUnitId><Type>election-day</Type><Count>7503</Count></VoteCounts><VoteCounts><GpUnitId>ru0103</GpUnitId><Type>total</Type><Count>11509</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10079</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs10080" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0103</GpUnitId><Type>absentee</Type><Count>3656</Count></VoteCounts><VoteCounts><GpUnitId>ru0103</GpUnitId><Type>early</Type><Count>6887</Count></VoteCounts><VoteCounts><GpUnitId>ru0103</GpUnitId><Type>election-day</Type><Count>9796</Count></VoteCounts><VoteCounts><GpUnitId>ru0103</GpUnitId><Type>total</Type><Count>20339</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10080</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Member Board of Supervisors</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0103</ElectoralDistrictId>
+        <Name>Member Board of Supervisors</Name>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off20262</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+
+      <Contest objectId="cc20305" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs10075" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0054</GpUnitId><Type>absentee</Type><Count>1842</Count></VoteCounts><VoteCounts><GpUnitId>ru0054</GpUnitId><Type>early</Type><Count>7673</Count></VoteCounts><VoteCounts><GpUnitId>ru0054</GpUnitId><Type>election-day</Type><Count>2174</Count></VoteCounts><VoteCounts><GpUnitId>ru0054</GpUnitId><Type>total</Type><Count>11689</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10075</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs10076" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0054</GpUnitId><Type>absentee</Type><Count>7412</Count></VoteCounts><VoteCounts><GpUnitId>ru0054</GpUnitId><Type>early</Type><Count>2074</Count></VoteCounts><VoteCounts><GpUnitId>ru0054</GpUnitId><Type>election-day</Type><Count>8017</Count></VoteCounts><VoteCounts><GpUnitId>ru0054</GpUnitId><Type>total</Type><Count>17503</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10076</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Member Board of Supervisors</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0054</ElectoralDistrictId>
+        <Name>Member Board of Supervisors</Name>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off20305</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+
+      <Contest objectId="cc20350" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs10073" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0030</GpUnitId><Type>absentee</Type><Count>3570</Count></VoteCounts><VoteCounts><GpUnitId>ru0030</GpUnitId><Type>early</Type><Count>7785</Count></VoteCounts><VoteCounts><GpUnitId>ru0030</GpUnitId><Type>election-day</Type><Count>9789</Count></VoteCounts><VoteCounts><GpUnitId>ru0030</GpUnitId><Type>total</Type><Count>21144</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10073</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs10074" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0030</GpUnitId><Type>absentee</Type><Count>8081</Count></VoteCounts><VoteCounts><GpUnitId>ru0030</GpUnitId><Type>early</Type><Count>1666</Count></VoteCounts><VoteCounts><GpUnitId>ru0030</GpUnitId><Type>election-day</Type><Count>2703</Count></VoteCounts><VoteCounts><GpUnitId>ru0030</GpUnitId><Type>total</Type><Count>12450</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10074</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Member Board of Supervisors</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0030</ElectoralDistrictId>
+        <Name>Member Board of Supervisors</Name>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off20350</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+
+      <Contest objectId="cc20355" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs10077" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0081</GpUnitId><Type>absentee</Type><Count>4055</Count></VoteCounts><VoteCounts><GpUnitId>ru0081</GpUnitId><Type>early</Type><Count>2226</Count></VoteCounts><VoteCounts><GpUnitId>ru0081</GpUnitId><Type>election-day</Type><Count>6341</Count></VoteCounts><VoteCounts><GpUnitId>ru0081</GpUnitId><Type>total</Type><Count>12622</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10077</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs10078" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0081</GpUnitId><Type>absentee</Type><Count>1149</Count></VoteCounts><VoteCounts><GpUnitId>ru0081</GpUnitId><Type>early</Type><Count>8347</Count></VoteCounts><VoteCounts><GpUnitId>ru0081</GpUnitId><Type>election-day</Type><Count>6748</Count></VoteCounts><VoteCounts><GpUnitId>ru0081</GpUnitId><Type>total</Type><Count>16244</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10078</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Member Board of Supervisors</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0081</ElectoralDistrictId>
+        <Name>Member Board of Supervisors</Name>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off20355</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+
+      <Contest objectId="cc20449" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs10214" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0081</GpUnitId><Type>absentee</Type><Count>9547</Count></VoteCounts><VoteCounts><GpUnitId>ru0081</GpUnitId><Type>early</Type><Count>1210</Count></VoteCounts><VoteCounts><GpUnitId>ru0081</GpUnitId><Type>election-day</Type><Count>3699</Count></VoteCounts><VoteCounts><GpUnitId>ru0081</GpUnitId><Type>total</Type><Count>14456</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10214</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Member School Board</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0081</ElectoralDistrictId>
+        <Name>Member School Board</Name>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off20449</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+
+      <Contest objectId="cc20473" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs10215" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0030</GpUnitId><Type>absentee</Type><Count>8705</Count></VoteCounts><VoteCounts><GpUnitId>ru0030</GpUnitId><Type>early</Type><Count>9205</Count></VoteCounts><VoteCounts><GpUnitId>ru0030</GpUnitId><Type>election-day</Type><Count>9954</Count></VoteCounts><VoteCounts><GpUnitId>ru0030</GpUnitId><Type>total</Type><Count>27864</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10215</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Member School Board</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0030</ElectoralDistrictId>
+        <Name>Member School Board</Name>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off20473</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+
+      <Contest objectId="cc20476" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs10213" xsi:type="CandidateSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0054</GpUnitId><Type>absentee</Type><Count>2271</Count></VoteCounts><VoteCounts><GpUnitId>ru0054</GpUnitId><Type>early</Type><Count>7621</Count></VoteCounts><VoteCounts><GpUnitId>ru0054</GpUnitId><Type>election-day</Type><Count>6514</Count></VoteCounts><VoteCounts><GpUnitId>ru0054</GpUnitId><Type>total</Type><Count>16406</Count></VoteCounts></VoteCountsCollection><CandidateIds>can10213</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Member School Board</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0054</ElectoralDistrictId>
+        <Name>Member School Board</Name>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off20476</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+
+      <Contest objectId="bmc30001" xsi:type="BallotMeasureContest">
+        
+        <BallotSelection objectId="bms30001a" xsi:type="BallotMeasureSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>absentee</Type><Count>2667</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>early</Type><Count>1757</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>election-day</Type><Count>5314</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>total</Type><Count>9738</Count></VoteCounts></VoteCountsCollection><Selection label="bms30001at">
+            <Text language="en">Yes</Text>
+            <Text language="es">Sí</Text>
+          </Selection>
+        </BallotSelection>
+        <BallotSelection objectId="bms30001b" xsi:type="BallotMeasureSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>absentee</Type><Count>4066</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>early</Type><Count>559</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>election-day</Type><Count>2178</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>total</Type><Count>6803</Count></VoteCounts></VoteCountsCollection><Selection label="bms30001bt">
+            <Text language="en">No</Text>
+            <Text language="es">No</Text>
+          </Selection>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">State of the State</Text>
+          <Text language="es">Estado del Estado.</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <Name>Referendum on Virginia</Name>
+        <ConStatement label="bmc30001con">
+          <Text language="en">This is no good.</Text>
+          <Text language="es">Esto no es bueno.</Text>
+        </ConStatement>
+        <EffectOfAbstain label="bmc30001abs">
+          <Text language="en">Nothing will happen.</Text>
+          <Text language="es">Nada pasará.</Text>
+        </EffectOfAbstain>
+        <ProStatement label="bmc30001pro">
+          <Text language="en">Everything will be great.</Text>
+          <Text language="es">Todo va a estar bien.</Text>
+        </ProStatement>
+        <Type>referendum</Type>
+      </Contest>
+
+      
+      <Contest objectId="rc40001" xsi:type="RetentionContest">
+        
+        <BallotSelection objectId="bms40001a" xsi:type="BallotMeasureSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>absentee</Type><Count>1296</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>early</Type><Count>1007</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>election-day</Type><Count>5249</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>total</Type><Count>7552</Count></VoteCounts></VoteCountsCollection><Selection label="bms40001at">
+            <Text language="en">Yes</Text>
+            <Text language="es">Sí</Text>
+          </Selection>
+        </BallotSelection>
+        <BallotSelection objectId="bms40001b" xsi:type="BallotMeasureSelection">
+          <VoteCountsCollection><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>absentee</Type><Count>2600</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>early</Type><Count>8621</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>election-day</Type><Count>2552</Count></VoteCounts><VoteCounts><GpUnitId>ru0002</GpUnitId><Type>total</Type><Count>13773</Count></VoteCounts></VoteCountsCollection><Selection label="bms40001bt">
+            <Text language="en">No</Text>
+            <Text language="es">No</Text>
+          </Selection>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Retention of Supreme Court Justice</Text>
+          <Text language="es">La retención de juez de la Corte Suprema</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <Name>Judicial Retention, Supreme Court</Name>
+        <CandidateId>can14444</CandidateId>
+        <OfficeId>off20006</OfficeId>
+      </Contest>
+    </ContestCollection>
+    
+    <CountStatus>
+      <Status>completed</Status>
+      <Type>early</Type>
+    </CountStatus>
+    <CountStatus>
+      <Status>in-process</Status>
+      <Type>election-day</Type>
+    </CountStatus>
+    <ElectionScopeId>ru0002</ElectionScopeId>
+    <Name>
+      <Text language="en">2013 Virginia General Election</Text>
+    </Name>
+    <StartDate>2013-11-05</StartDate>
+    <EndDate>2013-11-05</EndDate>
+    <Type>general</Type>
+  </Election>
+  
+  <Format>summary-contest</Format>
+  <GeneratedDate>2013-11-05T14:25:28</GeneratedDate>
+  <GpUnitCollection>
+    
+    <GpUnit objectId="ru0002" xsi:type="ReportingUnit">
+      <ComposingGpUnitIds>ru_pre90111 ru_pre90139 ru_pre90183 ru_pre90348sp0000 ru_pre90348sp0001
+      ru_pre90614 ru_pre90666 ru_pre90929 ru_pre90994sp0000 ru_pre90994sp0001 ru_pre91089sp0000
+      ru_pre91089sp0001 ru_pre91298 ru_pre91602 ru_pre91781sp0000 ru_pre91781sp0001 ru_pre91918
+      ru_pre91999 ru_pre92065 ru_pre92087 ru_pre92140 ru_pre92145 ru_pre92171sp0000 ru_pre92171sp0001
+      ru_pre92175 ru_pre92306 ru_pre92320 ru_pre92353 ru_pre92360 ru_pre92426
+      ru_preXXXXX</ComposingGpUnitIds>
+      
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>fips</Type>
+          <Value>51</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>Virginia</Name>
+      <ElectionAdministration>
+        <ContactInformation label="ci60000">
+          <AddressLine>Washington Building First Floor</AddressLine>
+          <AddressLine>1100 Bank Street</AddressLine>
+          <AddressLine>Richmond, VA 23219</AddressLine>
+          <Name>State Board of Elections</Name>
+        </ContactInformation>
+      </ElectionAdministration>
+      <Type>state</Type>
+    </GpUnit>
+    <GpUnit objectId="ru0001" xsi:type="ReportingUnit">
+      <ComposingGpUnitIds>ru_pre90111 ru_pre90139 ru_pre90183 ru_pre90348sp0000 ru_pre90348sp0001
+      ru_pre90614 ru_pre90666 ru_pre90929 ru_pre90994sp0000 ru_pre90994sp0001 ru_pre91089sp0000
+      ru_pre91089sp0001 ru_pre91298 ru_pre91602 ru_pre91781sp0000 ru_pre91781sp0001 ru_pre91918
+      ru_pre91999 ru_pre92065 ru_pre92087 ru_pre92140 ru_pre92145 ru_pre92171sp0000 ru_pre92171sp0001
+      ru_pre92175 ru_pre92306 ru_pre92320 ru_pre92353 ru_pre92360 ru_pre92426</ComposingGpUnitIds>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>fips</Type>
+          <Value>51003</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>Albemarle County</Name>
+      <ElectionAdministration>
+        <ContactInformation label="ci60001">
+          <AddressLine>1600 5TH STREET</AddressLine>
+          <AddressLine>CHARLOTTESVILLE, VA 22902</AddressLine>
+          <Name>ALBEMARLE COUNTY VOTER REGISTRATION</Name>
+          <Schedule>
+            <Hours>
+              <StartTime>08:30:00-05:00</StartTime>
+              <EndTime>17:00:00-05:00</EndTime>
+            </Hours>
+          </Schedule>
+        </ContactInformation>
+        <ElectionOfficialPersonIds>per50001</ElectionOfficialPersonIds>
+      </ElectionAdministration>
+      <Type>county</Type>
+    </GpUnit>
+    <GpUnit objectId="ru0150" xsi:type="ReportingUnit">
+      <ComposingGpUnitIds>ru_pre90348sp0000 ru_pre90348sp0001 ru_pre92087 ru_pre92145 ru_pre92306
+      ru_pre92360 ru_pre92426</ComposingGpUnitIds>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/sldl:25</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>House of Delegates District - 025</Name>
+      <Number>25</Number>
+      <Type>state-house</Type>
+    </GpUnit>
+    <GpUnit objectId="ru0311" xsi:type="ReportingUnit">
+      <ComposingGpUnitIds>ru_pre90111 ru_pre90139 ru_pre90666 ru_pre90994sp0000 ru_pre91602
+      ru_pre91781sp0000 ru_pre91781sp0001 ru_pre91999 ru_pre92175</ComposingGpUnitIds>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/sldl:57</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>House of Delegates District - 057</Name>
+      <Number>57</Number>
+      <Type>state-house</Type>
+    </GpUnit>
+    <GpUnit objectId="ru0076" xsi:type="ReportingUnit">
+      <ComposingGpUnitIds>ru_pre90183 ru_pre90614 ru_pre90929 ru_pre90994sp0001 ru_pre91089sp0000
+      ru_pre91089sp0001 ru_pre91298 ru_pre91781sp0000 ru_pre92140 ru_pre92171sp0000 ru_pre92171sp0001
+      ru_pre92320 ru_pre92353</ComposingGpUnitIds>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/sldl:58</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>House of Delegates District - 058</Name>
+      <Number>58</Number>
+      <Type>state-house</Type>
+    </GpUnit>
+    <GpUnit objectId="ru0107" xsi:type="ReportingUnit">
+      <ComposingGpUnitIds>ru_pre91918 ru_pre92065</ComposingGpUnitIds>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/sldl:59</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>House of Delegates District - 059</Name>
+      <Number>59</Number>
+      <Type>state-house</Type>
+    </GpUnit>
+    <GpUnit objectId="ru0030" xsi:type="ReportingUnit">
+      <ComposingGpUnitIds>ru_pre91918 ru_pre92065 ru_pre92360 ru_pre92426</ComposingGpUnitIds>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/council_district:samuel_miller</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>SAMUEL MILLER DISTRICT</Name>
+      <Number>3</Number>
+      <Type>county-council</Type>
+    </GpUnit>
+    <GpUnit objectId="ru0054" xsi:type="ReportingUnit">
+      <ComposingGpUnitIds>ru_pre90111 ru_pre90348sp0000 ru_pre90348sp0001 ru_pre91602
+      ru_pre92306</ComposingGpUnitIds>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/council_district:jack_jouett</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>JACK JOUETT DISTRICT</Name>
+      <Number>2</Number>
+      <Type>county-council</Type>
+    </GpUnit>
+    <GpUnit objectId="ru0081" xsi:type="ReportingUnit">
+      <ComposingGpUnitIds>ru_pre90139 ru_pre90666 ru_pre91298 ru_pre91781sp0000 ru_pre91781sp0001
+      ru_pre92175</ComposingGpUnitIds>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/council_district:rio</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>RIO DISTRICT</Name>
+      <Number>1</Number>
+      <Type>county-council</Type>
+    </GpUnit>
+    <GpUnit objectId="ru0103" xsi:type="ReportingUnit">
+      <ComposingGpUnitIds>ru_pre90929 ru_pre91999 ru_pre92171sp0000 ru_pre92171sp0001
+      ru_pre92320</ComposingGpUnitIds>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/council_district:scottsville</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>SCOTTSVILLE DISTRICT</Name>
+      <Number>4</Number>
+      <Type>county-council</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_preXXXXX" xsi:type="ReportingUnit">
+      
+      <Name>PLACEHOLDER -- REPRESENTS REST OF STATE OF VIRGINIA</Name>
+      <Type>precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre00000" xsi:type="ReportingUnit">
+      <Name>0000 - COUNTY-WIDE EARLY VOTING CENTER</Name>
+      <Number>0000</Number>
+      <Type>ballot-batch</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre99999" xsi:type="ReportingUnit">
+      <Name>9999 - PERMANENT MAIL-IN</Name>
+      <Number>9999</Number>
+      <Type>ballot-batch</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre90111" xsi:type="ReportingUnit">
+      <Name>203 - GEORGETOWN</Name>
+      <Number>0203</Number>
+      <Type>precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre90139" xsi:type="ReportingUnit">
+      <Name>103 - BRANCHLANDS</Name>
+      <Number>0103</Number>
+      <Type>precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre90183" xsi:type="ReportingUnit">
+      <Name>602 - FREE UNION</Name>
+      <Number>0602</Number>
+      <Type>precinct</Type>
+    </GpUnit>
+    
+    <GpUnit objectId="ru_pre90348sp0000" xsi:type="ReportingUnit">
+      <Name>201 - JACK JOUETT</Name>
+      <Number>0201</Number>
+      <Type>split-precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre90348sp0001" xsi:type="ReportingUnit">
+      <Name>201 - JACK JOUETT</Name>
+      <Number>0201</Number>
+      <Type>split-precinct</Type>
+    </GpUnit>
+    
+    <GpUnit objectId="ru_pre90614" xsi:type="ReportingUnit">
+      <Name>503 - HOLLYMEAD</Name>
+      <Number>0503</Number>
+      <Type>precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre90666" xsi:type="ReportingUnit">
+      <Name>105 - DUNLORA</Name>
+      <Number>0105</Number>
+      <Type>precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre90929" xsi:type="ReportingUnit">
+      <Name>406 - STONE ROBINSON</Name>
+      <Number>0406</Number>
+      <Type>precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre90994sp0000" xsi:type="ReportingUnit">
+      <Name>504 - FREE BRIDGE</Name>
+      <Number>0504</Number>
+      <Type>split-precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre90994sp0001" xsi:type="ReportingUnit">
+      <Name>504 - FREE BRIDGE</Name>
+      <Number>0504</Number>
+      <Type>split-precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre91089sp0000" xsi:type="ReportingUnit">
+      <Name>502 - STONY POINT</Name>
+      <Number>0502</Number>
+      <Type>split-precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre91089sp0001" xsi:type="ReportingUnit">
+      <Name>502 - STONY POINT</Name>
+      <Number>0502</Number>
+      <Type>split-precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre91298" xsi:type="ReportingUnit">
+      <Name>106 - NORTHSIDE</Name>
+      <Number>0106</Number>
+      <Type>precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre91602" xsi:type="ReportingUnit">
+      <Name>202 - UNIVERSITY HALL</Name>
+      <Number>0202</Number>
+      <Type>precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre91781sp0000" xsi:type="ReportingUnit">
+      <Name>101 - WOODBROOK</Name>
+      <Number>0101</Number>
+      <Type>split-precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre91781sp0001" xsi:type="ReportingUnit">
+      <Name>101 - WOODBROOK</Name>
+      <Number>0101</Number>
+      <Type>split-precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre91918" xsi:type="ReportingUnit">
+      <Name>302 - RED HILL</Name>
+      <Number>0302</Number>
+      <Type>precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre91999" xsi:type="ReportingUnit">
+      <Name>405 - CALE</Name>
+      <Number>0405</Number>
+      <Type>precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre92065" xsi:type="ReportingUnit">
+      <Name>305 - COUNTRY GREEN</Name>
+      <Number>0305</Number>
+      <Type>precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre92087" xsi:type="ReportingUnit">
+      <Name>604 - BROWNSVILLE</Name>
+      <Number>0604</Number>
+      <Type>precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre92140" xsi:type="ReportingUnit">
+      <Name>501 - KESWICK</Name>
+      <Number>0501</Number>
+      <Type>precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre92145" xsi:type="ReportingUnit">
+      <Name>601 - CROZET</Name>
+      <Number>0601</Number>
+      <Type>precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre92171sp0000" xsi:type="ReportingUnit">
+      <Name>401 - SCOTTSVILLE</Name>
+      <Number>0401</Number>
+      <Type>split-precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre92171sp0001" xsi:type="ReportingUnit">
+      <Name>401 - SCOTTSVILLE</Name>
+      <Number>0401</Number>
+      <Type>split-precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre92175" xsi:type="ReportingUnit">
+      <Name>104 - AGNOR-HURT</Name>
+      <Number>0104</Number>
+      <Type>precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre92306" xsi:type="ReportingUnit">
+      <Name>204 - BELFIELD</Name>
+      <Number>0204</Number>
+      <Type>precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre92320" xsi:type="ReportingUnit">
+      <Name>402 - MONTICELLO</Name>
+      <Number>0402</Number>
+      <Type>precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre92353" xsi:type="ReportingUnit">
+      <Name>603 - EARLYSVILLE</Name>
+      <Number>0603</Number>
+      <Type>precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre92360" xsi:type="ReportingUnit">
+      <Name>301 - IVY</Name>
+      <Number>0301</Number>
+      <Type>precinct</Type>
+    </GpUnit>
+    <GpUnit objectId="ru_pre92426" xsi:type="ReportingUnit">
+      <Name>304 - EAST IVY</Name>
+      <Number>0304</Number>
+      <Type>precinct</Type>
+    </GpUnit>
+  </GpUnitCollection>
+  <Issuer>Commonwealth of Virginia</Issuer>
+  <IssuerAbbreviation>VA</IssuerAbbreviation>
+  <OfficeCollection>
+    <Office objectId="off9999a">
+      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">President</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off9999b">
+      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Vice President</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off0000">
+      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Governor</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off0001">
+      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Lieutenant Governor</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20005">
+      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Attorney General</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20006">
+      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>false</IsPartisan>
+      <Name>
+        <Text language="en">Justice, Supreme Court of Virginia</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    
+    <Office objectId="off20024">
+      <ElectoralDistrictId>ru0150</ElectoralDistrictId>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member House of Delegates</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20025">
+      <ElectoralDistrictId>ru0311</ElectoralDistrictId>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member House of Delegates</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20033">
+      <ElectoralDistrictId>ru0107</ElectoralDistrictId>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member House of Delegates</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20100">
+      <ElectoralDistrictId>ru0076</ElectoralDistrictId>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member House of Delegates</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    
+    <Office objectId="off20262">
+      <ElectoralDistrictId>ru0103</ElectoralDistrictId>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member Board of Supervisors</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20305">
+      <ElectoralDistrictId>ru0054</ElectoralDistrictId>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member Board of Supervisors</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20350">
+      <ElectoralDistrictId>ru0030</ElectoralDistrictId>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member Board of Supervisors</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20355">
+      <ElectoralDistrictId>ru0081</ElectoralDistrictId>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member Board of Supervisors</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    
+    <Office objectId="off20449">
+      <ElectoralDistrictId>ru0081</ElectoralDistrictId>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member School Board</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20473">
+      <ElectoralDistrictId>ru0030</ElectoralDistrictId>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member School Board</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20476">
+      <ElectoralDistrictId>ru0054</ElectoralDistrictId>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member School Board</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+  </OfficeCollection>
+  <PartyCollection>
+    
+    <Party objectId="par0001">
+      <Abbreviation>REP</Abbreviation>
+      <Color>e91d0e</Color>
+      <Name>
+        <Text language="en">Republican</Text>
+      </Name>
+    </Party>
+    <Party objectId="par0002">
+      <Abbreviation>LIB</Abbreviation>
+      <Color>f5f500</Color>
+      <Name>
+        <Text language="en">Libertarian</Text>
+      </Name>
+    </Party>
+    <Party objectId="par0003">
+      <Abbreviation>DEM</Abbreviation>
+      <Color>232066</Color>
+      <Name>
+        <Text language="en">Democratic</Text>
+      </Name>
+    </Party>
+    <Party objectId="par0004">
+      <Abbreviation>IND</Abbreviation>
+      <Name>
+        <Text language="en">Independent</Text>
+      </Name>
+    </Party>
+    <Party objectId="par0005">
+      <Abbreviation>VN</Abbreviation>
+      <Name>
+        <Text language="en">Voter Nominated</Text>
+      </Name>
+    </Party>
+    <Party objectId="par0006">
+      <Abbreviation>PPN</Abbreviation>
+      <Name>
+        <Text language="en">Party Preference: None</Text>
+      </Name>
+    </Party>
+  </PartyCollection>
+  <PersonCollection>
+    <Person objectId="per50001">
+      <ContactInformation label="ci60002">
+        <Email>rwashburne@albemarle.org</Email>
+        <Phone>4349724173</Phone>
+      </ContactInformation>
+      <FirstName>RICHARD</FirstName>
+      <LastName>WASHBURNE</LastName>
+      <MiddleName>J.</MiddleName>
+      <Nickname>JAKE</Nickname>
+      <Title>
+        <Text language="en">General Registrar Physical</Text>
+      </Title>
+    </Person>
+    <Person objectId="per10861a">
+      <ContactInformation label="ci10861a">
+        <AddressLine>1600 Pennsylvania Ave</AddressLine>
+        <AddressLine>Washington, DC 20006</AddressLine>
+        <Email>president@whitehouse.gov</Email>
+        <Phone>202-456-1111</Phone>
+        <Phone annotation="TDD">202-456-6213</Phone>
+        <Uri>http://www.whitehouse.gov</Uri>
+        <Uri>https://www.facebook.com/WhiteHouse</Uri>
+        <Uri>https://twitter.com/WhiteHouse</Uri>
+      </ContactInformation>
+      <FirstName>Barack</FirstName>
+      <LastName>Obama</LastName>
+      <MiddleName>H.</MiddleName>
+    </Person>
+    <Person objectId="per10861b">
+      <FirstName>Joseph</FirstName>
+      <LastName>Biden</LastName>
+      <MiddleName>R.</MiddleName>
+    </Person>
+    <Person objectId="per10862a">
+      <ContactInformation label="ci10862a">
+        <AddressLine>Post Office Box 149756</AddressLine>
+        <AddressLine>Boston, MA 02114-9756</AddressLine>
+        <Email>info@mittromney.com</Email>
+        <Uri>http://www.mittromney.com</Uri>
+      </ContactInformation>
+      <FirstName>Willard</FirstName>
+      <LastName>Romney</LastName>
+      <MiddleName>Mitt</MiddleName>
+    </Person>
+    <Person objectId="per10862b">
+      <FirstName>Paul</FirstName>
+      <LastName>Ryan</LastName>
+      <MiddleName>D.</MiddleName>
+    </Person>
+    <Person objectId="per10961">
+      <ContactInformation label="ci10961">
+        <AddressLine>10560 Main St, Ste 218</AddressLine>
+        <AddressLine>Fairfax, VA 22030</AddressLine>
+        <Email>ken@cuccinelli.com</Email>
+        <Phone>8047863808</Phone>
+        <Uri>http://www.cuccinelli.com</Uri>
+      </ContactInformation>
+      <FirstName>Ken</FirstName>
+      <LastName>Cuccinelli</LastName>
+      <MiddleName>T.</MiddleName>
+      <Suffix>II</Suffix>
+    </Person>
+    <Person objectId="per10962">
+      <ContactInformation label="ci10962">
+        <AddressLine>PO Box 224</AddressLine>
+        <AddressLine>Annandale, VA 22003</AddressLine>
+        <Email>info@robertsarvis.com</Email>
+        <Uri>http://www.robertsarvis.com</Uri>
+      </ContactInformation>
+      <FirstName>Robert</FirstName>
+      <LastName>Sarvis</LastName>
+      <MiddleName>C.</MiddleName>
+    </Person>
+    <Person objectId="per10963">
+      <ContactInformation label="ci10963">
+        <AddressLine>1601 N. Kent St., Suite 900</AddressLine>
+        <AddressLine>Arlington, VA 22209</AddressLine>
+        <Email>info@terrymcauliffe.com</Email>
+        <Phone>7038227604</Phone>
+        <Uri>http://www.terrymcauliffe.com</Uri>
+      </ContactInformation>
+      <FirstName>Terry</FirstName>
+      <LastName>McAuliffe</LastName>
+      <MiddleName>R.</MiddleName>
+    </Person>
+    <Person objectId="per10966">
+      <ContactInformation label="ci10966">
+        <AddressLine>PO Box 597</AddressLine>
+        <AddressLine>Richmond, VA 23218</AddressLine>
+        <Email>ralph@ralphnortham.com</Email>
+        <Phone>7576954188</Phone>
+        <Uri>http://www.northamforlg.com</Uri>
+      </ContactInformation>
+      <FirstName>Ralph</FirstName>
+      <LastName>Northam</LastName>
+      <MiddleName>S.</MiddleName>
+    </Person>
+    <Person objectId="per10967">
+      <ContactInformation label="ci10967">
+        <AddressLine>Jackson for Lt. Governor</AddressLine>
+        <AddressLine>PO Box 15003</AddressLine>
+        <AddressLine>Chesapeake, VA 23328</AddressLine>
+        <Email>jackson@jacksonforlg.com</Email>
+        <Phone>7578024246</Phone>
+        <Uri>http://www.jacksonforlg.com</Uri>
+      </ContactInformation>
+      <FirstName>E.</FirstName>
+      <LastName>Jackson</LastName>
+      <MiddleName>W.</MiddleName>
+    </Person>
+    <Person objectId="per10964">
+      <ContactInformation label="ci10964">
+        <AddressLine>PO Box 555</AddressLine>
+        <AddressLine>Harrisonburg, VA 228030555</AddressLine>
+        <Email>campaign@markobenshain.com</Email>
+        <Phone>5404371451</Phone>
+        <Uri>http://www.markobenshain.com</Uri>
+      </ContactInformation>
+      <FirstName>Mark</FirstName>
+      <LastName>Obenshain</LastName>
+      <MiddleName>D.</MiddleName>
+    </Person>
+    <Person objectId="per10965">
+      <ContactInformation label="ci10965">
+        <AddressLine>PO Box 6201</AddressLine>
+        <AddressLine>Leesburg, VA 201787428</AddressLine>
+        <Email>kevin@herringforag.com</Email>
+        <Phone>7036699090</Phone>
+        <Uri>http://www.herringforag.com</Uri>
+      </ContactInformation>
+      <FirstName>Mark</FirstName>
+      <LastName>Herring</LastName>
+      <MiddleName>R.</MiddleName>
+    </Person>
+    <Person objectId="per14444">
+      <FirstName>Cleo</FirstName>
+      <LastName>Powell</LastName>
+      <MiddleName>E.</MiddleName>
+    </Person>
+    <Person objectId="per10422">
+      <ContactInformation label="ci10422">
+        <AddressLine>PO Box 12</AddressLine>
+        <AddressLine>Verona, VA 24482</AddressLine>
+        <Email>steve@stevelandes.com</Email>
+        <Phone>5402555335</Phone>
+        <Uri>http://www.stevelandes.com</Uri>
+      </ContactInformation>
+      <FirstName>R.</FirstName>
+      <LastName>Landes</LastName>
+      <MiddleName>Steven</MiddleName>
+      <Nickname>Steve</Nickname>
+    </Person>
+    <Person objectId="per10388">
+      <ContactInformation label="ci10388">
+        <AddressLine>PO Box 283</AddressLine>
+        <AddressLine>Charlottesville, VA 22902</AddressLine>
+        <Email>david@davidtoscano.com</Email>
+        <Phone>4342201660</Phone>
+        <Uri>http://www.davidtoscano.com</Uri>
+      </ContactInformation>
+      <FirstName>David</FirstName>
+      <LastName>Toscano</LastName>
+      <MiddleName>J.</MiddleName>
+    </Person>
+    <Person objectId="per10466">
+      <ContactInformation label="ci10466">
+        <AddressLine>243-B Livestock Rd</AddressLine>
+        <AddressLine>Rustburg, VA 24588</AddressLine>
+        <Email>friendsofmattfariss@gmail.com</Email>
+        <Phone>4348615929</Phone>
+        <Uri>http://www.mattfariss.com</Uri>
+      </ContactInformation>
+      <FirstName>C.</FirstName>
+      <LastName>Fariss</LastName>
+      <MiddleName>Matt</MiddleName>
+    </Person>
+    <Person objectId="per10438">
+      <ContactInformation label="ci10438">
+        <AddressLine>2309 Finch Court</AddressLine>
+        <AddressLine>Charlottesville, VA 22911</AddressLine>
+        <Email>robbellgop@aol.com</Email>
+        <Uri>http://www.delegaterobbell.com</Uri>
+      </ContactInformation>
+      <FirstName>Robert</FirstName>
+      <LastName>Bell</LastName>
+      <MiddleName>B.</MiddleName>
+      <Suffix>III</Suffix>
+    </Person>
+    <Person objectId="per10079">
+      <ContactInformation label="ci10079">
+        <AddressLine>1365 Tattersall Ct</AddressLine>
+        <AddressLine>Keswick, VA 229479169</AddressLine>
+        <Email>Jane4supervisor@gmail.com</Email>
+        <Phone>4349842100</Phone>
+        <Uri>http://www.Jane4supervisor.com</Uri>
+      </ContactInformation>
+      <FirstName>Jane</FirstName>
+      <LastName>Dittmar</LastName>
+      <MiddleName>D.</MiddleName>
+    </Person>
+    <Person objectId="per10080">
+      <ContactInformation label="ci10080">
+        <AddressLine>PO Box 318</AddressLine>
+        <AddressLine>Free Union, VA 229400318</AddressLine>
+        <Email>cincha@aol.com</Email>
+        <Phone>4342494564</Phone>
+        <Uri>http://www.cindiburket.com</Uri>
+      </ContactInformation>
+      <FirstName>C.</FirstName>
+      <LastName>Burket</LastName>
+      <MiddleName>L.</MiddleName>
+      <Nickname>Cindi</Nickname>
+    </Person>
+    <Person objectId="per10075">
+      <ContactInformation label="ci10075">
+        <AddressLine>103 Smithfield Ct</AddressLine>
+        <AddressLine>Charlottesville, VA 229012252</AddressLine>
+        <Email>diantha.mckeel@embarqmail.com</Email>
+        <Phone>4342439071</Phone>
+      </ContactInformation>
+      <FirstName>Diantha</FirstName>
+      <LastName>McKeel</LastName>
+      <MiddleName>H.</MiddleName>
+    </Person>
+    <Person objectId="per10076">
+      <ContactInformation label="ci10076">
+        <AddressLine>2305 Fairway Ln</AddressLine>
+        <AddressLine>Charlottesville, VA 229015022</AddressLine>
+        <Email>bps43@comcast.net</Email>
+        <Phone>4349898368</Phone>
+      </ContactInformation>
+      <FirstName>B.</FirstName>
+      <LastName>Seay</LastName>
+      <MiddleName>Phillip</MiddleName>
+    </Person>
+    <Person objectId="per10073">
+      <ContactInformation label="ci10073">
+        <AddressLine>PO Box 315</AddressLine>
+        <AddressLine>Ivy, VA 229450315</AddressLine>
+        <Email>Liz@LizPalmerforSupervisor.com</Email>
+        <Phone>4349891595</Phone>
+        <Uri>http://LizPalmerforSupervisor.com</Uri>
+      </ContactInformation>
+      <FirstName>Liz</FirstName>
+      <LastName>Palmer</LastName>
+      <MiddleName>A.</MiddleName>
+    </Person>
+    <Person objectId="per10074">
+      <ContactInformation label="ci10074">
+        <AddressLine>905 Leigh Way</AddressLine>
+        <AddressLine>Charlottesville, VA 229017749</AddressLine>
+        <Email>duanesnow@gmail.com</Email>
+        <Phone>4342953682</Phone>
+        <Uri>http://snowforsupervisor.com</Uri>
+      </ContactInformation>
+      <FirstName>Duane</FirstName>
+      <LastName>Snow</LastName>
+      <MiddleName>E.</MiddleName>
+    </Person>
+    <Person objectId="per10077">
+      <ContactInformation label="ci10077">
+        <AddressLine>104 Dover Ct</AddressLine>
+        <AddressLine>Charlottesville, VA 229011012</AddressLine>
+        <Email>rodney@charlottesvillepress.com</Email>
+        <Phone>4349781290</Phone>
+        <Uri>http://www.RodneyThomas2013.com</Uri>
+      </ContactInformation>
+      <FirstName>Rodney</FirstName>
+      <LastName>Thomas</LastName>
+      <MiddleName>S.</MiddleName>
+    </Person>
+    <Person objectId="per10078">
+      <ContactInformation label="ci10078">
+        <AddressLine>844 Belvedere Blvd</AddressLine>
+        <AddressLine>Charlottesville, VA 229013201</AddressLine>
+        <Email>bsheffield@andaregroup.com</Email>
+        <Phone>4349895562</Phone>
+        <Uri>http://www.bradsheffield2013.com</Uri>
+      </ContactInformation>
+      <FirstName>J.</FirstName>
+      <LastName>Sheffield</LastName>
+      <MiddleName>L.</MiddleName>
+      <Nickname>Brad</Nickname>
+    </Person>
+    <Person objectId="per10214">
+      <ContactInformation label="ci10214">
+        <AddressLine>3974 Deepwoods Rd</AddressLine>
+        <AddressLine>Earlysville, VA 229369776</AddressLine>
+        <Email>prpmoynihan@comcast.net</Email>
+        <Phone>4349734464</Phone>
+      </ContactInformation>
+      <FirstName>Pamela</FirstName>
+      <LastName>Moynihan</LastName>
+      <MiddleName>R.</MiddleName>
+    </Person>
+    <Person objectId="per10215">
+      <ContactInformation label="ci10215">
+        <AddressLine>1029 Tilman Rd</AddressLine>
+        <AddressLine>Charlottesville, VA 229016336</AddressLine>
+        <Email>ejs6j@virginia.edu</Email>
+        <Phone>4349806199</Phone>
+      </ContactInformation>
+      <FirstName>Eric</FirstName>
+      <LastName>Strucko</LastName>
+      <MiddleName>J.</MiddleName>
+    </Person>
+    <Person objectId="per10213">
+      <ContactInformation label="ci10213">
+        <AddressLine>2210 Camargo Dr</AddressLine>
+        <AddressLine>Charlottesville, VA 229018827</AddressLine>
+        <Email>klacuff@earthlink.net</Email>
+        <Phone>4349796333</Phone>
+      </ContactInformation>
+      <FirstName>K.</FirstName>
+      <LastName>Acuff</LastName>
+      <MiddleName>L.</MiddleName>
+      <Nickname>Kate</Nickname>
+    </Person>
+  </PersonCollection>
+  <SequenceStart>1</SequenceStart>
+  <SequenceEnd>1</SequenceEnd>
+  <Status>unofficial-partial</Status>
+  <VendorApplicationId>Hand-Generated v0.1</VendorApplicationId>
+</ElectionReport>
