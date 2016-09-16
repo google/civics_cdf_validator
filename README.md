@@ -39,7 +39,7 @@ election_results_xml_validator validate election_file.xml --xsd nist.xsd
 
 You can choose to only check one rule by using the -i flag
 
-election_results_xml_validator validate election_file.xml --xsd nist.xsd -iSchema
+election_results_xml_validator validate election_file.xml --xsd nist.xsd -i Schema
 
 Or choose to exclude a rule using the -e flag
 
