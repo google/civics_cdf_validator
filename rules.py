@@ -18,9 +18,12 @@ limitations under the License.
 import argparse
 import io
 import os.path
+import hashlib
+from datetime import datetime
 import pycountry
 import requests
 from lxml import etree
+from github import Github
 from election_results_xml_validator import base
 
 
@@ -216,31 +219,84 @@ class ElectoralDistrictOcdId(base.BaseRule):
     _OCDID_URL = (
         "https://raw.github.com/opencivicdata/ocd-division-ids/master/identifiers/country-us.csv"
     )
-
+    github_repo = None
+    
     def __init__(self, election_tree, schema_file):
         super(ElectoralDistrictOcdId, self).__init__(election_tree, schema_file)
+        g = Github()
+        self.github_repo = g.get_repo("opencivicdata/ocd-division-ids")
         self.ocds = self._get_ocd_data()
         self.gpunits = []
         for gpunit in self.election_tree.iterfind("//GpUnit"):
             self.gpunits.append(gpunit)
+            
+    def _get_latest_commit_date(self):
+        """Returns the latest commit date to country-us.csv."""
+        latest_commit_date = None
+        latest_commit = self.github_repo.get_commits(
+            path="/identifiers/country-us.csv")[0]
+        latest_commit_date = latest_commit.commit.committer.date
+        return latest_commit_date
+        
+    def _get_latest_file_blob_sha(self):
+        """Returns the gihub blob sha of country-us.csv."""
+        blob_sha = None
+        dir_contents = self.github_repo.get_dir_contents("identifiers")
+        for content_file in dir_contents:
+            if content_file.name == "country-us.csv":
+                blob_sha = content_file.sha
+                break
+        return blob_sha
+
+    def _download_data(self, file_path):
+        """Makes a request to Github to download the file."""
+        r = requests.get(self._OCDID_URL)
+        with io.open(file_path, "wb") as fd:
+            for chunk in r.iter_content():
+                fd.write(chunk)
+
+    def _verify_data(self, file_path):
+        """Compares blob sha to gihub sha and returns set of ocd id codes
+        if the file is valid
+        """
+        file_sha1 = hashlib.sha1()
+        ocd_id_codes = set()
+        file_info = os.stat(file_path)
+        #github calculates the blob sha like this
+        #sha1("blob "+filesize+"\0"+data)
+        file_sha1.update(b"blob %d\0" % file_info.st_size)
+        with io.open(file_path, mode="rb") as fd:
+            for line in fd:
+                file_sha1.update(line)
+                if line is not "":
+                    ocd_id_codes.add(line.split(",")[0])
+        latest_file_sha = self._get_latest_file_blob_sha()
+        if latest_file_sha != file_sha1.hexdigest():
+            return None
+        else:
+            return ocd_id_codes
 
     def _get_ocd_data(self):
-        """Checks if OCD file is in the curent directory, dowloads it if not."""
+        """Checks if OCD file is in ~/cache, downloads it if not."""
         cache_directory = os.path.expanduser("~/.cache")
         countries_file = cache_directory + "/country-us.csv"
         if not os.path.exists(countries_file):
             if not os.path.exists(cache_directory):
                 os.makedirs(cache_directory)
-            ocd_file = io.open(countries_file, "w")
-            data = requests.get(self._OCDID_URL).text
-            ocd_file.write(data)
-            ocd_file.close()
+            self._download_data(countries_file)
         else:
-            ocd_file = io.open(countries_file, "r")
-            data = ocd_file.read()
-            ocd_file.close()
-        # TODO: Break this statement up into something more readable
-        return [l.split(",")[0] for l in data.split("\n") if l is not ""]
+            last_mod_date = datetime.fromtimestamp(
+                os.path.getmtime(countries_file))
+            latest_github_commit_date = self._get_latest_commit_date()
+            if last_mod_date < latest_github_commit_date:
+                self._download_data(countries_file)
+        ocd_data = self._verify_data(countries_file)
+        if not ocd_data:
+            raise base.ElectionError("Could not successfully download "
+                 "OCD ID data files. Please try downloading the file "
+                 "country-us.csv manually and place it in ~/.cache") 
+        else:
+            return ocd_data
 
     def elements(self):
         return ["ElectoralDistrictId"]
@@ -279,14 +335,13 @@ class GpUnitOcdId(ElectoralDistrictOcdId):
 
     def __init__(self, election_tree, schema_file):
         super(GpUnitOcdId, self).__init__(election_tree, schema_file)
-        self.ocds = self._get_ocd_data()
 
     def elements(self):
         return ["ReportingUnit"]
 
     def check(self, element):
         gpunit_type = element.find("Type")
-        if gpunit_type.text in self.districts:
+        if gpunit_type is not None and gpunit_type.text in self.districts:
             for extern_id in element.iter("ExternalIdentifier"):
                 id_type = extern_id.find("Type")
                 if id_type is not None and id_type.text == "ocd-id":
