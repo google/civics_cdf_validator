@@ -1,4 +1,3 @@
-# pylint: disable=bad-indentation
 """
 Copyright 2016 Google Inc. All Rights Reserved.
 
@@ -24,7 +23,7 @@ import pycountry
 import requests
 from lxml import etree
 from github import Github
-from election_results_xml_validator import base
+from . import base
 
 
 
@@ -46,8 +45,11 @@ def valid_rules(parser, arg):
     if invalid_rules:
         parser.error("The rule(s) %s do not exist" % ", ".join(invalid_rules))
     else:
-        # TODO: Split this into something more readable
-        return [x for x in arg.strip().split(",") if x]
+        result = []
+        for rule in arg.strip().split(","):
+            if rule:
+                result.append(rule)
+        return result
 
 
 def arg_parser():
@@ -73,6 +75,9 @@ def arg_parser():
         required=False, type=lambda x: valid_rules(parser, x))
     parser_validate.add_argument(
         "-d", help="Display detailed error log. Defaults to aggregated",
+        action="store_true", required=False)
+    parser_validate.add_argument(
+        "-o", help="Skip OCD ID file download/verification. Defaults to false",
         action="store_true", required=False)
     subparsers.add_parser("list")
     return parser
@@ -118,10 +123,10 @@ class OptionalAndEmpty(base.BaseRule):
             return
         self.previous = element
         if ((element.text is None or element.text.strip() == "") and
-            not len(element)):
+                not len(element)):
             raise base.ElectionWarning(
-                    "Line %d. %s optional element included although it "
-                    "is empty" % (element.sourceline, element.tag))
+                "Line %d. %s optional element included although it "
+                "is empty" % (element.sourceline, element.tag))
 
 class Encoding(base.TreeRule):
     """Checks that the file provided uses UTF-8 encoding."""
@@ -194,7 +199,7 @@ class LanguageCode(base.BaseRule):
             return
         elem_lang = element.get("language")
         if (not elem_lang or elem_lang not in self.languages or
-            elem_lang.strip() == ""):
+                elem_lang.strip() == ""):
             raise base.ElectionError(
                 "Line %d. %s is not a valid ISO 639 language code "% (
                     element.sourceline, elem_lang))
@@ -216,34 +221,38 @@ class ElectoralDistrictOcdId(base.BaseRule):
     """
     ocds = []
     gpunits = []
-    _OCDID_URL = (
-        "https://raw.github.com/opencivicdata/ocd-division-ids/master/identifiers/country-us.csv"
-    )
+    CACHE_DIR = "~/.cache"
+    GITHUB_REPO = "opencivicdata/ocd-division-ids"
+    GITHUB_DIR = "identifiers"
+    GITHUB_FILE = "country-us.csv"
+    _OCDID_URL = "https://raw.github.com/{0}/master/{1}/{2}".format(
+        GITHUB_REPO, GITHUB_DIR, GITHUB_FILE)
+    validate_ocd_file = True
     github_repo = None
-    
+
     def __init__(self, election_tree, schema_file):
         super(ElectoralDistrictOcdId, self).__init__(election_tree, schema_file)
         g = Github()
-        self.github_repo = g.get_repo("opencivicdata/ocd-division-ids")
+        self.github_repo = g.get_repo(self.GITHUB_REPO)
         self.ocds = self._get_ocd_data()
         self.gpunits = []
         for gpunit in self.election_tree.iterfind("//GpUnit"):
             self.gpunits.append(gpunit)
-            
+
     def _get_latest_commit_date(self):
         """Returns the latest commit date to country-us.csv."""
         latest_commit_date = None
         latest_commit = self.github_repo.get_commits(
-            path="/identifiers/country-us.csv")[0]
+            path="{0}/{1}".format(self.GITHUB_DIR, self.GITHUB_FILE))[0]
         latest_commit_date = latest_commit.commit.committer.date
         return latest_commit_date
-        
+
     def _get_latest_file_blob_sha(self):
         """Returns the gihub blob sha of country-us.csv."""
         blob_sha = None
-        dir_contents = self.github_repo.get_dir_contents("identifiers")
+        dir_contents = self.github_repo.get_dir_contents(self.GITHUB_DIR)
         for content_file in dir_contents:
-            if content_file.name == "country-us.csv":
+            if content_file.name == self.GITHUB_FILE:
                 blob_sha = content_file.sha
                 break
         return blob_sha
@@ -272,14 +281,15 @@ class ElectoralDistrictOcdId(base.BaseRule):
                     ocd_id_codes.add(line.split(",")[0])
         latest_file_sha = self._get_latest_file_blob_sha()
         if latest_file_sha != file_sha1.hexdigest():
-            return None
+            return False
         else:
-            return ocd_id_codes
+            return True
 
     def _get_ocd_data(self):
         """Checks if OCD file is in ~/cache, downloads it if not."""
-        cache_directory = os.path.expanduser("~/.cache")
-        countries_file = cache_directory + "/country-us.csv"
+        cache_directory = os.path.expanduser(self.CACHE_DIR)
+        countries_file = "{0}/{1}".format(cache_directory, self.GITHUB_FILE)
+        valid = True
         if not os.path.exists(countries_file):
             if not os.path.exists(cache_directory):
                 os.makedirs(cache_directory)
@@ -290,13 +300,19 @@ class ElectoralDistrictOcdId(base.BaseRule):
             latest_github_commit_date = self._get_latest_commit_date()
             if last_mod_date < latest_github_commit_date:
                 self._download_data(countries_file)
-        ocd_data = self._verify_data(countries_file)
-        if not ocd_data:
-            raise base.ElectionError("Could not successfully download "
-                 "OCD ID data files. Please try downloading the file "
-                 "country-us.csv manually and place it in ~/.cache") 
-        else:
-            return ocd_data
+        if self.validate_ocd_file:
+            valid = self._verify_data(countries_file)
+        if not valid:
+            raise base.ElectionError(
+                "Could not successfully download OCD ID data files. "
+                "Please try downloading the file country-us.csv manually and "
+                "place it in ~/.cache")
+        ocd_id_codes = set()
+        with io.open(countries_file, mode="rb") as fd:
+            for line in fd:
+                if line is not "":
+                    ocd_id_codes.add(line.split(",")[0])
+        return ocd_id_codes
 
     def elements(self):
         return ["ElectoralDistrictId"]
@@ -330,8 +346,11 @@ class ElectoralDistrictOcdId(base.BaseRule):
 class GpUnitOcdId(ElectoralDistrictOcdId):
     """Any GpUnit that is a geographic district SHOULD have a valid OCD-ID."""
 
-    districts = ["borough", "city", "county", "municipality","state", "town",
-                "township", "village"]
+    districts = [
+        "borough", "city", "county", "municipality", "state", "town",
+        "township", "village"
+    ]
+    validate_ocd_file = True
 
     def __init__(self, election_tree, schema_file):
         super(GpUnitOcdId, self).__init__(election_tree, schema_file)
@@ -348,8 +367,8 @@ class GpUnitOcdId(ElectoralDistrictOcdId):
                     value = extern_id.find("Value")
                     if value.text not in self.ocds:
                         raise base.ElectionWarning(
-                        "The OCD ID %s defined on line %d is not "
-                        "valid" % (value.text, value.sourceline))
+                            "The OCD ID %s defined on line %d is not "
+                            "valid" % (value.text, value.sourceline))
 
 
 class DuplicateGpUnits(base.TreeRule):
@@ -367,7 +386,7 @@ class DuplicateGpUnits(base.TreeRule):
         if collection is None:
             return
         self.process_gpunit_collection(collection)
-        self.find_duplicates(collection)
+        self.find_duplicates()
 
     def process_gpunit_collection(self, collection):
         for gpunit in collection:
@@ -383,7 +402,7 @@ class DuplicateGpUnits(base.TreeRule):
         for gpunit in collection:
             self.process_one_gpunit(gpunit)
 
-    def find_duplicates(self, collection):
+    def find_duplicates(self):
         tags = dict()
         for object_id in self.children:
             sorted_children = " ".join(sorted(self.children[object_id]))
@@ -432,7 +451,7 @@ class DuplicateGpUnits(base.TreeRule):
                     print "Non-leaf node %s has no children" % (middle_node)
                     continue
                 for node in self.children[middle_node]:
-                   composing_ids.add(node)
+                    composing_ids.add(node)
                 composing_ids.remove(middle_node)
 
     def get_composing_gpunits(self, gpunit):
@@ -506,14 +525,21 @@ def main():
             rules_to_check = options.i
         elif options.e:
             rules_to_check = [x.__name__ for x in _RULES
-                                 if x.__name__ not in options.e]
+                              if x.__name__ not in options.e]
         else:
             rules_to_check = [x.__name__ for x in _RULES]
+        rule_options = {}
+        if options.o:
+            rule_options.setdefault("ElectoralDistrictOcdId", []).append(
+                base.RuleOption("validate_ocd_file", False))
+            rule_options.setdefault("GpUnitOcdId", []).append(
+                base.RuleOption("validate_ocd_file", False))
         rule_classes_to_check = [x for x in _RULES
-                                     if x.__name__ in rules_to_check]
+                                 if x.__name__ in rules_to_check]
         registry = base.RulesRegistry(
-            election_file = options.election_file, schema_file = options.xsd,
-            rule_classes_to_check = rule_classes_to_check)
+            election_file=options.election_file, schema_file=options.xsd,
+            rule_classes_to_check=rule_classes_to_check,
+            rule_options=rule_options)
         found_errors = registry.check_rules()
         registry.print_exceptions(options.d)
         # TODO other error codes?

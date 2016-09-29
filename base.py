@@ -99,6 +99,15 @@ class BaseRule(SchemaHandler):
         """Given an element, check whether it implements best practices."""
         raise NotImplementedError
 
+    def set_option(self, option):
+        """Used to set commandline options for the rule.
+
+        The rule must have the option_name attribute, otherwise raise an
+        exception.
+        """
+
+        setattr(self, option.option_name, option.option_value)
+
 
 class TreeRule(BaseRule):
     """Rule that checks entire tree."""
@@ -106,6 +115,14 @@ class TreeRule(BaseRule):
     def elements(self):
         return ["tree"]
 
+class RuleOption(object):
+    class_name = None
+    option_name = None
+    option_value = None
+
+    def __init__(self, option_name, option_value):
+        self.option_name = option_name
+        self.option_value = option_value
 
 class RulesRegistry(SchemaHandler):
     """Registry of rules and the elements they check"""
@@ -113,16 +130,19 @@ class RulesRegistry(SchemaHandler):
     election_file = None
     schema_file = None
     rule_classes_to_check = None
+    rule_options = []
     registry = {}
     exceptions = {}
     exception_counts = {}
     exception_rule_counts = {}
     total_count = 0
 
-    def __init__(self, election_file, schema_file, rule_classes_to_check):
+    def __init__(self, election_file, schema_file, rule_classes_to_check,
+            rule_options):
         self.election_file = election_file
         self.schema_file = schema_file
         self.rule_classes_to_check = rule_classes_to_check
+        self.rule_options = rule_options
         for e_type in [ElectionError, ElectionWarning, ElectionInfo]:
             self.exceptions[e_type] = dict()
             self.exception_counts[e_type] = 0
@@ -139,6 +159,9 @@ class RulesRegistry(SchemaHandler):
         """
         for rule in self.rule_classes_to_check:
             rule_instance = rule(election_tree, self.schema_file)
+            if rule.__name__ in self.rule_options.keys():
+                for option in self.rule_options[rule.__name__]:
+                    rule_instance.set_option(option)
             for element in rule_instance.elements():
                 if element in self.registry:
                     self.registry[element].append(rule_instance)
@@ -175,9 +198,9 @@ class RulesRegistry(SchemaHandler):
                 self.exception_counts[e_type], e_type_name, suffix)
             # Within the error severity, sort from most common to least common.
             for rule_class in sorted(
-                self.exceptions[e_type].keys(),
-                key=lambda rclass: self.exception_rule_counts[e_type][rclass],
-                reverse=True):
+                    self.exceptions[e_type].keys(),
+                    key=lambda rclass: self.exception_rule_counts[e_type][rclass],
+                    reverse=True):
                 rule_class_name = rule_class.__name__
                 rule_count = self.exception_rule_counts[e_type][rule_class]
                 rule_suffix = ""
@@ -188,9 +211,9 @@ class RulesRegistry(SchemaHandler):
                 if detailed:
                     for exception in self.exceptions[e_type][rule_class]:
                         if hasattr(exception, "error_log"):
-                             for error in exception.error_log:
-                                    print "        %d: %s" % (
-                                        error.line, error.message.encode("utf-8"))
+                            for error in exception.error_log:
+                                print "        %d: %s" % (
+                                    error.line, error.message.encode("utf-8"))
                         else:
                             print "        %s" % exception
 
