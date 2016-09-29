@@ -23,7 +23,7 @@ import pycountry
 import requests
 from lxml import etree
 from github import Github
-from . import base
+from election_results_xml_validator import base
 
 
 
