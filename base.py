@@ -105,7 +105,8 @@ class BaseRule(SchemaHandler):
         The rule must have the option_name attribute, otherwise raise an
         exception.
         """
-
+        if not hasattr(self, option.option_name):
+            raise ElectionException("Invalid attribute set")
         setattr(self, option.option_name, option.option_value)
 
 

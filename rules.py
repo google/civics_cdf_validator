@@ -18,6 +18,7 @@ import argparse
 import io
 import os.path
 import hashlib
+from shutil import copyfile
 from datetime import datetime
 import pycountry
 import requests
@@ -77,7 +78,8 @@ def arg_parser():
         "-d", help="Display detailed error log. Defaults to aggregated",
         action="store_true", required=False)
     parser_validate.add_argument(
-        "-o", help="Skip OCD ID file download/verification. Defaults to false",
+        "-g", help="Skip check to see if there is a new OCD ID file on Github."
+        "Defaults to True",
         action="store_true", required=False)
     subparsers.add_parser("list")
     return parser
@@ -227,7 +229,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
     GITHUB_FILE = "country-us.csv"
     _OCDID_URL = "https://raw.github.com/{0}/master/{1}/{2}".format(
         GITHUB_REPO, GITHUB_DIR, GITHUB_FILE)
-    validate_ocd_file = True
+    check_github = True
     github_repo = None
 
     def __init__(self, election_tree, schema_file):
@@ -260,9 +262,17 @@ class ElectoralDistrictOcdId(base.BaseRule):
     def _download_data(self, file_path):
         """Makes a request to Github to download the file."""
         r = requests.get(self._OCDID_URL)
-        with io.open(file_path, "wb") as fd:
+        with io.open("{0}.tmp".format(file_path), "wb") as fd:
             for chunk in r.iter_content():
                 fd.write(chunk)
+        valid = self._verify_data("{0}.tmp".format(file_path))
+        if not valid:
+            raise base.ElectionError(
+                "Could not successfully download OCD ID data files. "
+                "Please try downloading the file country-us.csv manually and "
+                "place it in ~/.cache")
+        else:
+            copyfile("{0}.tmp".format(file_path), file_path)
 
     def _verify_data(self, file_path):
         """Compares blob sha to gihub sha and returns set of ocd id codes
@@ -289,24 +299,18 @@ class ElectoralDistrictOcdId(base.BaseRule):
         """Checks if OCD file is in ~/cache, downloads it if not."""
         cache_directory = os.path.expanduser(self.CACHE_DIR)
         countries_file = "{0}/{1}".format(cache_directory, self.GITHUB_FILE)
-        valid = True
+        
         if not os.path.exists(countries_file):
             if not os.path.exists(cache_directory):
                 os.makedirs(cache_directory)
             self._download_data(countries_file)
         else:
-            last_mod_date = datetime.fromtimestamp(
-                os.path.getmtime(countries_file))
-            latest_github_commit_date = self._get_latest_commit_date()
-            if last_mod_date < latest_github_commit_date:
-                self._download_data(countries_file)
-        if self.validate_ocd_file:
-            valid = self._verify_data(countries_file)
-        if not valid:
-            raise base.ElectionError(
-                "Could not successfully download OCD ID data files. "
-                "Please try downloading the file country-us.csv manually and "
-                "place it in ~/.cache")
+            if self.check_github:
+                last_mod_date = datetime.fromtimestamp(
+                    os.path.getmtime(countries_file))
+                latest_github_commit_date = self._get_latest_commit_date()
+                if last_mod_date < latest_github_commit_date:
+                    self._download_data(countries_file)
         ocd_id_codes = set()
         with io.open(countries_file, mode="rb") as fd:
             for line in fd:
@@ -529,11 +533,11 @@ def main():
         else:
             rules_to_check = [x.__name__ for x in _RULES]
         rule_options = {}
-        if options.o:
+        if options.g:
             rule_options.setdefault("ElectoralDistrictOcdId", []).append(
-                base.RuleOption("validate_ocd_file", False))
+                base.RuleOption("check_github", False))
             rule_options.setdefault("GpUnitOcdId", []).append(
-                base.RuleOption("validate_ocd_file", False))
+                base.RuleOption("check_github", False))
         rule_classes_to_check = [x for x in _RULES
                                  if x.__name__ in rules_to_check]
         registry = base.RulesRegistry(
