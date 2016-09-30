@@ -371,8 +371,9 @@ class GpUnitOcdId(ElectoralDistrictOcdId):
                     value = extern_id.find("Value")
                     if value.text not in self.ocds:
                         raise base.ElectionWarning(
-                            "The OCD ID %s defined on line %d is not "
-                            "valid" % (value.text, value.sourceline))
+                            "The OCD ID %s in GpUnit %s defined on line %d is "
+                            "not valid" % (
+                                value.text, gpunit_id, value.sourceline))
 
 
 class DuplicateGpUnits(base.TreeRule):
