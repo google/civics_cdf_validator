@@ -41,9 +41,9 @@ setup(
         'lxml>=3.3.4',
         'pycountry>=1.20',
         'requests>=2.10',
+        'pygithub>=1.28'
     ],
     entry_points=ENTRY_POINTS,
-    #py_modules=['rules', 'base'],
     package_dir={'election_results_xml_validator': ''},
     packages=['election_results_xml_validator'],
 )
