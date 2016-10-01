@@ -84,6 +84,7 @@ def arg_parser():
     subparsers.add_parser("list")
     return parser
 
+
 class Schema(base.TreeRule):
     """Checks if election file validates against the provided schema."""
 
@@ -101,9 +102,12 @@ class Schema(base.TreeRule):
         except etree.DocumentInvalid as e:
             valid_xml = False
         if not valid_xml:
-            error_log = schema.error_log
-            raise base.ElectionSchemaError(
-                "The election file didn't validate against schema.", error_log)
+            errors = []
+            for error in schema.error_log:
+                errors.append(
+                    base.ErrorLogEntry(error.line, error.message.encode("utf-8")))
+            raise base.ElectionTreeError(
+                "The election file didn't validate against schema.", errors)
 
 
 class OptionalAndEmpty(base.BaseRule):
@@ -206,6 +210,7 @@ class LanguageCode(base.BaseRule):
                 "Line %d. %s is not a valid ISO 639 language code "% (
                     element.sourceline, elem_lang))
 
+
 class EmptyText(base.BaseRule):
     """Check that Text elements are not empty."""
 
@@ -217,6 +222,73 @@ class EmptyText(base.BaseRule):
             raise base.ElectionWarning(
                 "Line %d. %s is empty"% (
                     element.sourceline, element.tag))
+
+
+class DuplicateID(base.TreeRule):
+    """Check that the file does not contain duplicate object IDs
+    """
+    def check(self):
+        all_object_ids = set()
+        error_log = []
+        for event, element in etree.iterwalk(
+                self.election_tree, events=("end",)):
+            if "objectId" not in element.attrib:
+                continue
+            else:
+                obj_id = element.get("objectId")
+                if not obj_id:
+                    continue
+                if obj_id in all_object_ids:
+                    error_line = element.sourceline
+                    error_message = "{0} is a duplicate object ID".format(
+                        obj_id)
+                    error_log.append(base.ErrorLogEntry(
+                        error_line, error_message))
+                else:
+                    all_object_ids.add(obj_id)
+        if error_log:
+            raise base.ElectionTreeError(
+                "The Election File contains duplicate object IDs", error_log)
+
+
+class ValidIDREF(base.BaseRule):
+    """Check that every field of type IDREF actually references a value that
+    exists in a field of type ID.
+    """
+
+    all_object_ids = set()
+
+    def __init__(self, election_tree, schema_file):
+        super(ValidIDREF, self).__init__(election_tree, schema_file)
+        for event, element in etree.iterwalk(
+                self.election_tree, events=("end",)):
+            if "objectId" not in element.attrib:
+                continue
+            else:
+                obj_id = element.get("objectId")
+                if not obj_id:
+                    continue
+                else:
+                    self.all_object_ids.add(obj_id)
+
+    def elements(self):
+        schema_tree = etree.parse(self.schema_file)
+        eligible_elements = []
+        for event, element in etree.iterwalk(schema_tree):
+            tag = self.strip_schema_ns(element)
+            if (tag and tag == "element" and
+                    element.get("type") in ("xs:IDREF", "xs:IDREFS")):
+                eligible_elements.append(element.get("name"))
+        return eligible_elements
+
+    def check(self, element):
+        if element.text:
+            id_references = element.text.split(" ")
+            for id_ref in id_references:
+                if id_ref not in self.all_object_ids:
+                    raise base.ElectionError(
+                        "Line %d. %s is not a valid IDREF." % (
+                            element.sourceline, id_ref))
 
 class ElectoralDistrictOcdId(base.BaseRule):
     """GpUnit refered to by Contest.ElectoralDistrictId MUST have a valid OCD-ID.
@@ -299,7 +371,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
         """Checks if OCD file is in ~/cache, downloads it if not."""
         cache_directory = os.path.expanduser(self.CACHE_DIR)
         countries_file = "{0}/{1}".format(cache_directory, self.GITHUB_FILE)
-        
+
         if not os.path.exists(countries_file):
             if not os.path.exists(cache_directory):
                 os.makedirs(cache_directory)
@@ -523,7 +595,9 @@ _RULES = [
     ElectoralDistrictOcdId,
     GpUnitOcdId,
     DuplicateGpUnits,
-    OtherType
+    OtherType,
+    DuplicateID,
+    ValidIDREF
 ]
 
 

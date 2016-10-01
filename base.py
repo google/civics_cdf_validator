@@ -18,6 +18,9 @@ from lxml import etree
 
 class ElectionException(Exception):
     """Base class for all the errors in this script."""
+    error_message = None
+    description = None
+    error_log = []
 
     def __init__(self, message):
         super(ElectionException, self).__init__()
@@ -34,13 +37,11 @@ class ElectionError(ElectionException):
     description = "Error"
 
 
-class ElectionSchemaError(ElectionError):
-    """Special exception for schema errors."""
-
-    description = "Schema Error"
+class ElectionTreeError(ElectionError):
+    """Special exception for Tree Rules."""
 
     def __init__(self, message, error_log):
-        super(ElectionSchemaError, self).__init__(message)
+        super(ElectionTreeError, self).__init__(message)
         self.error_log = error_log
 
 
@@ -56,6 +57,15 @@ class ElectionInfo(ElectionException):
     practices."""
 
     description = "Info"
+
+
+class ErrorLogEntry(object):
+    line = None
+    message = None
+
+    def __init__(self, line, message):
+        self.line = line
+        self.message =  message
 
 
 class SchemaHandler(object):
@@ -115,6 +125,9 @@ class TreeRule(BaseRule):
 
     def elements(self):
         return ["tree"]
+        
+    def check(self):
+        """Checks entire tree"""
 
 class RuleOption(object):
     class_name = None
@@ -177,7 +190,7 @@ class RulesRegistry(SchemaHandler):
                     self.exception_rule_counts[e_type][rule.__class__] = 0
                 self.exceptions[e_type][rule.__class__].append(exception)
                 error_count = 1
-                if hasattr(exception, "error_log"):
+                if exception.error_log:
                     error_count = len(exception.error_log)
                 self.exception_counts[e_type] += error_count
                 self.exception_rule_counts[e_type][rule.__class__] += error_count
@@ -211,12 +224,12 @@ class RulesRegistry(SchemaHandler):
                     rule_count, rule_class_name, e_type_name, rule_suffix)
                 if detailed:
                     for exception in self.exceptions[e_type][rule_class]:
-                        if hasattr(exception, "error_log"):
+                        if exception.error_log:
                             for error in exception.error_log:
-                                print "        %d: %s" % (
-                                    error.line, error.message.encode("utf-8"))
+                                print " "*14+"Line {0}: {1}".format(
+                                    error.line, error.message)
                         else:
-                            print "        %s" % exception
+                            print " "*14+"{0}".format(exception)
 
     def check_rules(self):
         """Checks all rules.
