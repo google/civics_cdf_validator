@@ -283,7 +283,7 @@ class ValidIDREF(base.BaseRule):
 
     def check(self, element):
         if element.text:
-            id_references = element.text.split(" ")
+            id_references = element.text.split()
             for id_ref in id_references:
                 if id_ref not in self.all_object_ids:
                     raise base.ElectionError(
