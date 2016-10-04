@@ -26,7 +26,7 @@ ENTRY_POINTS = {
 
 setup(
     name='election_results_xml_validator',
-    version='0.2.2',
+    version='0.2.3',
     author='Miano Njoka',
     author_email='election-results-xml-validator@google.com',
     maintainer='Google gTech Partners',
@@ -36,7 +36,7 @@ setup(
     long_description='election_results_xml_validator is a script that checks '
         'if a NIST 1500-100 election results feed follows best practices and '
         'outputs errors, warnings and info messages for common issues.',
-	url='https://github.com/google/election_results_xml_validator',
+    url='https://github.com/google/election_results_xml_validator',
     install_requires=[
         'lxml>=3.3.4',
         'pycountry>=1.20',
