@@ -583,6 +583,69 @@ class OtherType(base.BaseRule):
                         element.sourceline, element.tag))
 
 
+class PartisanPrimary(base.BaseRule):
+    """Partisan elections should link to the correct political party. 
+    
+    For a NIST Election element of Election type primary, partisan-primary-open, 
+    or partisan-primary-closed, the Contests in that ContestCollection should 
+    have a PrimartyPartyIds that is present and non-empty.
+    """
+    election_type = None
+    
+    def __init__(self, election_tree, schema_file):
+        super(PartisanPrimary, self).__init__(election_tree, schema_file)
+        #There can only be one election element in a file
+        election_elem = self.election_tree.find("Election")
+        election_type_elem = election_elem.find("Type")
+        if election_type_elem is not None:
+            self.election_type = election_type_elem.text.strip()
+
+    def elements(self):
+        #only check contest elements if this is a partisan election
+        if self.election_type and self.election_type in (
+            "primary", "partisan-primary-open", "partisan-primary-closed"):
+            return ["CandidateContest"]
+        else:
+            return []
+
+    def check(self, element):
+        primary_party_ids = element.find("PrimaryPartyIds")
+        if (primary_party_ids is None or not primary_party_ids.text 
+                or not primary_party_ids.text.strip()):
+            raise base.ElectionError(
+                "Line %d. Election is of ElectionType %s but PrimaryPartyIds "
+                "is not present or is empty" % (
+                    primary_party_ids.sourceline, self.election_type))
+
+
+class UniqueLabel(base.BaseRule):
+    """Labels should be unique within a file.
+    """
+    labels = set()
+
+    def elements(self):
+        schema_tree = etree.parse(self.schema_file)
+        eligible_elements = []
+        for event, element in etree.iterwalk(schema_tree):
+            tag = self.strip_schema_ns(element)
+            if tag == "element":
+                elem_type = element.get("type", None)
+                if elem_type and elem_type == "InternationalizedText":
+                    if element.get("name") not in eligible_elements:
+                        eligible_elements.append(element.get("name"))
+        return eligible_elements
+
+    def check(self, element):
+        element_label = element.get("label", None)
+        if element_label:
+            if element_label in self.labels:
+                raise base.ElectionError(
+                    "Line %d. Duplicate label '%s'. Label already defined earlier"
+                     % (element.sourceline, element_label))
+            else:
+                self.labels.add(element_label)
+
+
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
 _RULES = [
@@ -597,7 +660,9 @@ _RULES = [
     DuplicateGpUnits,
     OtherType,
     DuplicateID,
-    ValidIDREF
+    ValidIDREF,
+    UniqueLabel,
+    PartisanPrimary
 ]
 
 
