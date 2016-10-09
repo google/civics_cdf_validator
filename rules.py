@@ -618,6 +618,31 @@ class PartisanPrimary(base.BaseRule):
                     primary_party_ids.sourceline, self.election_type))
 
 
+class PartisanPrimaryHeuristic(PartisanPrimary):
+    """Attempts to identify partisan primaries not marked up as such.
+    """
+    #add other strings that imply this is a primary contest
+    party_text = ["(DEM)", "(REP)"]
+
+    def elements(self):
+        if not self.election_type or self.election_type not in (
+            "primary", "partisan-primary-open", "partisan-primary-closed"):
+            return ["CandidateContest"]
+        else:
+            return []
+
+    def check(self, element):
+        contest_name = element.find("Name")
+        if contest_name is not None and contest_name.text is not None:
+            c_name = contest_name.text.replace(" ", "")
+            for p_text in self.party_text:
+                if p_text in c_name:
+                    raise base.ElectionWarning("Line %d. Name of contest - %s, "
+                    "contains text that implies it is a partisan primary "
+                    "but is not marked up as such." % (
+                        element.sourceline, contest_name.text))
+
+
 class UniqueLabel(base.BaseRule):
     """Labels should be unique within a file.
     """
@@ -662,7 +687,8 @@ _RULES = [
     DuplicateID,
     ValidIDREF,
     UniqueLabel,
-    PartisanPrimary
+    PartisanPrimary,
+    PartisanPrimaryHeuristic
 ]
 
 
