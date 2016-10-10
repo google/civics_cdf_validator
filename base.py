@@ -196,12 +196,23 @@ class RulesRegistry(SchemaHandler):
                 self.exception_rule_counts[e_type][rule.__class__] += error_count
                 self.total_count += error_count
 
-    def print_exceptions(self, detailed):
+    def print_exceptions(self, log_level):
+        """Print exceptions in decreasing order of severity.
+        
+        log_level is an integer
+        0 - No detailed messages
+        1 - Errors only
+        2 - Errors and Warnings
+        3 - Errors, Warnings and Info messages
+        """
         if self.total_count == 0:
             print "Validation completed with no warnings/errors."
             return
+        if log_level > 3:
+            log_level = 3
         # Descend from most severe to least severe issues.
-        for e_type in [ElectionError, ElectionWarning, ElectionInfo]:
+        exception_types = [ElectionError, ElectionWarning, ElectionInfo]
+        for e_type in exception_types:
             suffix = ""
             if self.exception_counts[e_type] == 0:
                 continue
@@ -222,14 +233,15 @@ class RulesRegistry(SchemaHandler):
                     rule_suffix = "s"
                 print "{0:10d} {1} {2} message{3}".format(
                     rule_count, rule_class_name, e_type_name, rule_suffix)
-                if detailed:
-                    for exception in self.exceptions[e_type][rule_class]:
-                        if exception.error_log:
-                            for error in exception.error_log:
-                                print " "*14+"Line {0}: {1}".format(
-                                    error.line, error.message)
-                        else:
-                            print " "*14+"{0}".format(exception)
+                if log_level > 0:
+                    if e_type in exception_types[0:log_level]:
+                        for exception in self.exceptions[e_type][rule_class]:
+                            if exception.error_log:
+                                for error in exception.error_log:
+                                    print " "*14+"Line {0}: {1}".format(
+                                        error.line, error.message)
+                            else:
+                                print " "*14+"{0}".format(exception)
 
     def check_rules(self):
         """Checks all rules.

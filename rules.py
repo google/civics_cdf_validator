@@ -74,9 +74,9 @@ def arg_parser():
     group.add_argument(
         "-e", help="Comma separated list of rules to be excluded.",
         required=False, type=lambda x: valid_rules(parser, x))
-    parser_validate.add_argument(
-        "-d", help="Display detailed error log. Defaults to aggregated",
-        action="store_true", required=False)
+    parser_validate.add_argument("--verbose", "-v", action="count", 
+        help="Display log messages. Increase number of v's for more verbosity", 
+        required=False)
     parser_validate.add_argument(
         "-g", help="Skip check to see if there is a new OCD ID file on Github."
         "Defaults to True",
@@ -722,7 +722,7 @@ def main():
             rule_classes_to_check=rule_classes_to_check,
             rule_options=rule_options)
         found_errors = registry.check_rules()
-        registry.print_exceptions(options.d)
+        registry.print_exceptions(options.verbose)
         # TODO other error codes?
         return found_errors
 
