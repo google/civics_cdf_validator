@@ -622,7 +622,7 @@ class PartisanPrimaryHeuristic(PartisanPrimary):
     """Attempts to identify partisan primaries not marked up as such.
     """
     #add other strings that imply this is a primary contest
-    party_text = ["(DEM)", "(REP)"]
+    party_text = ["(dem)", "(rep)", "(lib)"]
 
     def elements(self):
         if not self.election_type or self.election_type not in (
@@ -634,7 +634,7 @@ class PartisanPrimaryHeuristic(PartisanPrimary):
     def check(self, element):
         contest_name = element.find("Name")
         if contest_name is not None and contest_name.text is not None:
-            c_name = contest_name.text.replace(" ", "")
+            c_name = contest_name.text.replace(" ", "").lower()
             for p_text in self.party_text:
                 if p_text in c_name:
                     raise base.ElectionWarning("Line %d. Name of contest - %s, "
