@@ -27,8 +27,9 @@ from github import Github
 from election_results_xml_validator import base
 
 
+_VALID_SEVERITIES = ["Error", "Warning", "Info"]
 
-def valid_file(parser, arg):
+def validate_file(parser, arg):
     """Check that the files provided exist."""
     if not os.path.exists(arg):
         parser.error("The file %s doesn't exist" % arg)
@@ -36,22 +37,32 @@ def valid_file(parser, arg):
         return arg
 
 
-def valid_rules(parser, arg):
+def validate_rules(parser, arg):
     """Check that the listed rules exist"""
     invalid_rules = []
     rule_names = [x.__name__ for x in _RULES]
-    for rule in arg.strip().split(","):
+    input_rules = arg.strip().split(",")
+    for rule in input_rules:
         if rule and rule not in rule_names:
             invalid_rules.append(rule)
     if invalid_rules:
         parser.error("The rule(s) %s do not exist" % ", ".join(invalid_rules))
     else:
-        result = []
-        for rule in arg.strip().split(","):
-            if rule:
-                result.append(rule)
-        return result
+        return input_rules
 
+
+def validate_severity(parser, arg):
+    """Check that the severity levels provided are correct"""
+    
+    invalid_severities = []
+    input_severities = arg.strip().split(",")
+    for severity in input_severities:
+        if severity and severity not in _VALID_SEVERITIES:
+            invalid_severities.append(severity)
+    if invalid_severities:
+        parser.error("Invalid severity. Options are Error, Warning or Info")
+    else:
+        return input_severities
 
 def arg_parser():
     """Parser for command line arguments."""
@@ -63,19 +74,23 @@ def arg_parser():
     parser_validate = subparsers.add_parser("validate")
     parser_validate.add_argument(
         "-x", "--xsd", help="NIST Voting Program XSD file path", required=True,
-        metavar="xsd_file", type=lambda x: valid_file(parser, x))
+        metavar="xsd_file", type=lambda x: validate_file(parser, x))
     parser_validate.add_argument(
         "election_file", help="XML election file to be validated",
-        metavar="election_file", type=lambda x: valid_file(parser, x))
+        metavar="election_file", type=lambda x: validate_file(parser, x))
     group = parser_validate.add_mutually_exclusive_group(required=False)
     group.add_argument(
         "-i", help="Comma separated list of rules to be validated.",
-        required=False, type=lambda x: valid_rules(parser, x))
+        required=False, type=lambda x: validate_rules(parser, x))
     group.add_argument(
         "-e", help="Comma separated list of rules to be excluded.",
-        required=False, type=lambda x: valid_rules(parser, x))
-    parser_validate.add_argument("--verbose", "-v", action="count", 
-        help="Display log messages. Increase number of v's for more verbosity", 
+        required=False, type=lambda x: validate_rules(parser, x))
+    parser_validate.add_argument("--verbose", "-v", action="store_true", 
+        help="Print out detailed log messages. Defaults to False", 
+        required=False)
+    parser_validate.add_argument("--severity", "-s",
+        type=lambda x: validate_severity(parser, x), 
+        help="Comma separated issue severity - Error, Warning or Info", 
         required=False)
     parser_validate.add_argument(
         "-g", help="Skip check to see if there is a new OCD ID file on Github."
@@ -722,7 +737,12 @@ def main():
             rule_classes_to_check=rule_classes_to_check,
             rule_options=rule_options)
         found_errors = registry.check_rules()
-        registry.print_exceptions(options.verbose)
+        #if not provided, print all severity levels
+        if not options.severity:
+            severity = _VALID_SEVERITIES
+        else:
+            severity = options.severity
+        registry.print_exceptions(severity, options.verbose)
         # TODO other error codes?
         return found_errors
 
