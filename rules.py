@@ -27,8 +27,7 @@ from github import Github
 from election_results_xml_validator import base
 
 
-
-def valid_file(parser, arg):
+def validate_file(parser, arg):
     """Check that the files provided exist."""
     if not os.path.exists(arg):
         parser.error("The file %s doesn't exist" % arg)
@@ -36,22 +35,28 @@ def valid_file(parser, arg):
         return arg
 
 
-def valid_rules(parser, arg):
+def validate_rules(parser, arg):
     """Check that the listed rules exist"""
     invalid_rules = []
     rule_names = [x.__name__ for x in _RULES]
-    for rule in arg.strip().split(","):
+    input_rules = arg.strip().split(",")
+    for rule in input_rules:
         if rule and rule not in rule_names:
             invalid_rules.append(rule)
     if invalid_rules:
         parser.error("The rule(s) %s do not exist" % ", ".join(invalid_rules))
     else:
-        result = []
-        for rule in arg.strip().split(","):
-            if rule:
-                result.append(rule)
-        return result
+        return input_rules
 
+
+def validate_severity(parser, arg):
+    """Check that the severity level provided is correct"""
+
+    _VALID_SEVERITIES = {'info': 0, 'warning': 1, 'error': 2}
+    if arg.strip().lower() not in _VALID_SEVERITIES:
+        parser.error("Invalid severity. Options are error, warning, or info")
+    else:
+        return _VALID_SEVERITIES[arg.strip().lower()]
 
 def arg_parser():
     """Parser for command line arguments."""
@@ -63,20 +68,24 @@ def arg_parser():
     parser_validate = subparsers.add_parser("validate")
     parser_validate.add_argument(
         "-x", "--xsd", help="NIST Voting Program XSD file path", required=True,
-        metavar="xsd_file", type=lambda x: valid_file(parser, x))
+        metavar="xsd_file", type=lambda x: validate_file(parser, x))
     parser_validate.add_argument(
         "election_file", help="XML election file to be validated",
-        metavar="election_file", type=lambda x: valid_file(parser, x))
+        metavar="election_file", type=lambda x: validate_file(parser, x))
     group = parser_validate.add_mutually_exclusive_group(required=False)
     group.add_argument(
         "-i", help="Comma separated list of rules to be validated.",
-        required=False, type=lambda x: valid_rules(parser, x))
+        required=False, type=lambda x: validate_rules(parser, x))
     group.add_argument(
         "-e", help="Comma separated list of rules to be excluded.",
-        required=False, type=lambda x: valid_rules(parser, x))
-    parser_validate.add_argument(
-        "-d", help="Display detailed error log. Defaults to aggregated",
-        action="store_true", required=False)
+        required=False, type=lambda x: validate_rules(parser, x))
+    parser_validate.add_argument("--verbose", "-v", action="store_true",
+        help="Print out detailed log messages. Defaults to False",
+        required=False)
+    parser_validate.add_argument("--severity", "-s",
+        type=lambda x: validate_severity(parser, x),
+        help="Minimum issue severity level - error, warning or info",
+        required=False)
     parser_validate.add_argument(
         "-g", help="Skip check to see if there is a new OCD ID file on Github."
         "Defaults to True",
@@ -583,6 +592,94 @@ class OtherType(base.BaseRule):
                         element.sourceline, element.tag))
 
 
+class PartisanPrimary(base.BaseRule):
+    """Partisan elections should link to the correct political party.
+
+    For a NIST Election element of Election type primary, partisan-primary-open,
+    or partisan-primary-closed, the Contests in that ContestCollection should
+    have a PrimartyPartyIds that is present and non-empty.
+    """
+    election_type = None
+
+    def __init__(self, election_tree, schema_file):
+        super(PartisanPrimary, self).__init__(election_tree, schema_file)
+        #There can only be one election element in a file
+        election_elem = self.election_tree.find("Election")
+        election_type_elem = election_elem.find("Type")
+        if election_type_elem is not None:
+            self.election_type = election_type_elem.text.strip()
+
+    def elements(self):
+        #only check contest elements if this is a partisan election
+        if self.election_type and self.election_type in (
+            "primary", "partisan-primary-open", "partisan-primary-closed"):
+            return ["CandidateContest"]
+        else:
+            return []
+
+    def check(self, element):
+        primary_party_ids = element.find("PrimaryPartyIds")
+        if (primary_party_ids is None or not primary_party_ids.text
+                or not primary_party_ids.text.strip()):
+            raise base.ElectionError(
+                "Line %d. Election is of ElectionType %s but PrimaryPartyIds "
+                "is not present or is empty" % (
+                    primary_party_ids.sourceline, self.election_type))
+
+
+class PartisanPrimaryHeuristic(PartisanPrimary):
+    """Attempts to identify partisan primaries not marked up as such.
+    """
+    #add other strings that imply this is a primary contest
+    party_text = ["(dem)", "(rep)", "(lib)"]
+
+    def elements(self):
+        if not self.election_type or self.election_type not in (
+            "primary", "partisan-primary-open", "partisan-primary-closed"):
+            return ["CandidateContest"]
+        else:
+            return []
+
+    def check(self, element):
+        contest_name = element.find("Name")
+        if contest_name is not None and contest_name.text is not None:
+            c_name = contest_name.text.replace(" ", "").lower()
+            for p_text in self.party_text:
+                if p_text in c_name:
+                    raise base.ElectionWarning("Line %d. Name of contest - %s, "
+                    "contains text that implies it is a partisan primary "
+                    "but is not marked up as such." % (
+                        element.sourceline, contest_name.text))
+
+
+class UniqueLabel(base.BaseRule):
+    """Labels should be unique within a file.
+    """
+    labels = set()
+
+    def elements(self):
+        schema_tree = etree.parse(self.schema_file)
+        eligible_elements = []
+        for event, element in etree.iterwalk(schema_tree):
+            tag = self.strip_schema_ns(element)
+            if tag == "element":
+                elem_type = element.get("type", None)
+                if elem_type and elem_type == "InternationalizedText":
+                    if element.get("name") not in eligible_elements:
+                        eligible_elements.append(element.get("name"))
+        return eligible_elements
+
+    def check(self, element):
+        element_label = element.get("label", None)
+        if element_label:
+            if element_label in self.labels:
+                raise base.ElectionError(
+                    "Line %d. Duplicate label '%s'. Label already defined earlier"
+                     % (element.sourceline, element_label))
+            else:
+                self.labels.add(element_label)
+
+
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
 _RULES = [
@@ -597,7 +694,10 @@ _RULES = [
     DuplicateGpUnits,
     OtherType,
     DuplicateID,
-    ValidIDREF
+    ValidIDREF,
+    UniqueLabel,
+    PartisanPrimary,
+    PartisanPrimaryHeuristic
 ]
 
 
@@ -631,7 +731,7 @@ def main():
             rule_classes_to_check=rule_classes_to_check,
             rule_options=rule_options)
         found_errors = registry.check_rules()
-        registry.print_exceptions(options.d)
+        registry.print_exceptions(options.severity, options.verbose)
         # TODO other error codes?
         return found_errors
 

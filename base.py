@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from collections import OrderedDict
 from lxml import etree
 
 class ElectionException(Exception):
@@ -125,7 +126,7 @@ class TreeRule(BaseRule):
 
     def elements(self):
         return ["tree"]
-        
+
     def check(self):
         """Checks entire tree"""
 
@@ -150,6 +151,7 @@ class RulesRegistry(SchemaHandler):
     exception_counts = {}
     exception_rule_counts = {}
     total_count = 0
+    _SEVERITIES = [ ElectionInfo, ElectionWarning, ElectionError ]
 
     def __init__(self, election_file, schema_file, rule_classes_to_check,
             rule_options):
@@ -196,12 +198,17 @@ class RulesRegistry(SchemaHandler):
                 self.exception_rule_counts[e_type][rule.__class__] += error_count
                 self.total_count += error_count
 
-    def print_exceptions(self, detailed):
+    def print_exceptions(self, severity, verbose):
+        """Print exceptions in decreasing order of severity."""
+        if not severity:
+            severity = 0
+        elif severity > len(self._SEVERITIES):
+            severity = len(self._SEVERITIES) - 1
+        exception_types = self._SEVERITIES[severity:]
         if self.total_count == 0:
             print "Validation completed with no warnings/errors."
             return
-        # Descend from most severe to least severe issues.
-        for e_type in [ElectionError, ElectionWarning, ElectionInfo]:
+        for e_type in reversed(exception_types):
             suffix = ""
             if self.exception_counts[e_type] == 0:
                 continue
@@ -222,7 +229,7 @@ class RulesRegistry(SchemaHandler):
                     rule_suffix = "s"
                 print "{0:10d} {1} {2} message{3}".format(
                     rule_count, rule_class_name, e_type_name, rule_suffix)
-                if detailed:
+                if verbose:
                     for exception in self.exceptions[e_type][rule_class]:
                         if exception.error_log:
                             for error in exception.error_log:
