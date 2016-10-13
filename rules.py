@@ -27,8 +27,6 @@ from github import Github
 from election_results_xml_validator import base
 
 
-_VALID_SEVERITIES = ["Error", "Warning", "Info"]
-
 def validate_file(parser, arg):
     """Check that the files provided exist."""
     if not os.path.exists(arg):
@@ -52,17 +50,13 @@ def validate_rules(parser, arg):
 
 
 def validate_severity(parser, arg):
-    """Check that the severity levels provided are correct"""
-    
-    invalid_severities = []
-    input_severities = arg.strip().split(",")
-    for severity in input_severities:
-        if severity and severity not in _VALID_SEVERITIES:
-            invalid_severities.append(severity)
-    if invalid_severities:
-        parser.error("Invalid severity. Options are Error, Warning or Info")
+    """Check that the severity level provided is correct"""
+
+    _VALID_SEVERITIES = {'info': 0, 'warning': 1, 'error': 2}
+    if arg.strip().lower() not in _VALID_SEVERITIES:
+        parser.error("Invalid severity. Options are error, warning, or info")
     else:
-        return input_severities
+        return _VALID_SEVERITIES[arg.strip().lower()]
 
 def arg_parser():
     """Parser for command line arguments."""
@@ -85,12 +79,12 @@ def arg_parser():
     group.add_argument(
         "-e", help="Comma separated list of rules to be excluded.",
         required=False, type=lambda x: validate_rules(parser, x))
-    parser_validate.add_argument("--verbose", "-v", action="store_true", 
-        help="Print out detailed log messages. Defaults to False", 
+    parser_validate.add_argument("--verbose", "-v", action="store_true",
+        help="Print out detailed log messages. Defaults to False",
         required=False)
     parser_validate.add_argument("--severity", "-s",
-        type=lambda x: validate_severity(parser, x), 
-        help="Comma separated issue severity - Error, Warning or Info", 
+        type=lambda x: validate_severity(parser, x),
+        help="Minimum issue severity level - error, warning or info",
         required=False)
     parser_validate.add_argument(
         "-g", help="Skip check to see if there is a new OCD ID file on Github."
@@ -599,14 +593,14 @@ class OtherType(base.BaseRule):
 
 
 class PartisanPrimary(base.BaseRule):
-    """Partisan elections should link to the correct political party. 
-    
-    For a NIST Election element of Election type primary, partisan-primary-open, 
-    or partisan-primary-closed, the Contests in that ContestCollection should 
+    """Partisan elections should link to the correct political party.
+
+    For a NIST Election element of Election type primary, partisan-primary-open,
+    or partisan-primary-closed, the Contests in that ContestCollection should
     have a PrimartyPartyIds that is present and non-empty.
     """
     election_type = None
-    
+
     def __init__(self, election_tree, schema_file):
         super(PartisanPrimary, self).__init__(election_tree, schema_file)
         #There can only be one election element in a file
@@ -625,7 +619,7 @@ class PartisanPrimary(base.BaseRule):
 
     def check(self, element):
         primary_party_ids = element.find("PrimaryPartyIds")
-        if (primary_party_ids is None or not primary_party_ids.text 
+        if (primary_party_ids is None or not primary_party_ids.text
                 or not primary_party_ids.text.strip()):
             raise base.ElectionError(
                 "Line %d. Election is of ElectionType %s but PrimaryPartyIds "
@@ -737,12 +731,7 @@ def main():
             rule_classes_to_check=rule_classes_to_check,
             rule_options=rule_options)
         found_errors = registry.check_rules()
-        #if not provided, print all severity levels
-        if not options.severity:
-            severity = _VALID_SEVERITIES
-        else:
-            severity = options.severity
-        registry.print_exceptions(severity, options.verbose)
+        registry.print_exceptions(options.severity, options.verbose)
         # TODO other error codes?
         return found_errors
 

@@ -126,7 +126,7 @@ class TreeRule(BaseRule):
 
     def elements(self):
         return ["tree"]
-        
+
     def check(self):
         """Checks entire tree"""
 
@@ -151,6 +151,7 @@ class RulesRegistry(SchemaHandler):
     exception_counts = {}
     exception_rule_counts = {}
     total_count = 0
+    _SEVERITIES = [ ElectionInfo, ElectionWarning, ElectionError ]
 
     def __init__(self, election_file, schema_file, rule_classes_to_check,
             rule_options):
@@ -199,19 +200,15 @@ class RulesRegistry(SchemaHandler):
 
     def print_exceptions(self, severity, verbose):
         """Print exceptions in decreasing order of severity."""
-        exception_types = []
-        severity_mapping = OrderedDict([
-            ("Error", ElectionError),
-            ("Warning", ElectionWarning),
-            ("Info", ElectionInfo)]
-        )
-        for s_key in severity_mapping.keys():
-            if s_key in severity:
-                exception_types.append(severity_mapping[s_key])
+        if not severity:
+            severity = 0
+        elif severity > len(self._SEVERITIES):
+            severity = len(self._SEVERITIES) - 1
+        exception_types = self._SEVERITIES[severity:]
         if self.total_count == 0:
             print "Validation completed with no warnings/errors."
             return
-        for e_type in exception_types:
+        for e_type in reversed(exception_types):
             suffix = ""
             if self.exception_counts[e_type] == 0:
                 continue
