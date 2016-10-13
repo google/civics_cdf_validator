@@ -53,6 +53,6 @@ detailed report by adding the -v flag
 
   ``election_results_xml_validator validate election_file.xml --xsd nist.xsd -v``
 
-The severity level of messages to be printed can be selected by using the -s flag. The three supported severities in descending order are Error, Warning and Info. Higher severities are included when Warning or Info are selected e.g Error messages will be included when the Warning severity is selected.
+The severity level of messages to be printed can be selected by using the -s flag. The three supported severities in descending order are Error, Warning, and Info. Higher severities are included when Warning or Info are selected e.g., Error messages will be included when the Warning severity is selected.
 
   ``election_results_xml_validator validate election_file.xml --xsd nist.xsd -v -s Warning``
