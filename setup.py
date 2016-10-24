@@ -15,8 +15,17 @@ limitations under the License.
 
 Setup script for validator that checks for NIST 1500-100 best practices.
 """
-
+import sys
 from setuptools import setup, find_packages
+
+# if the version of python installed is less than 2.7.9
+# install pyopenssl. Fixes issue #31
+if (sys.version_info[0] == 2 and sys.version_info[1] <= 7):
+    requests_version = 'requests[security]'
+    if (sys.version_info[1] == 7 and sys.version_info[2] >=  9):
+        requests_version = 'requests'
+else:
+    requests_version = 'requests'
 
 ENTRY_POINTS = {
     'console_scripts': [
@@ -40,7 +49,7 @@ setup(
     install_requires=[
         'lxml>=3.3.4',
         'pycountry>=1.20',
-        'requests>=2.10',
+        '%s>=2.10' % requests_version,
         'pygithub>=1.28'
     ],
     entry_points=ENTRY_POINTS,
