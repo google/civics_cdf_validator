@@ -680,31 +680,6 @@ class UniqueLabel(base.BaseRule):
                 self.labels.add(element_label)
 
 
-class ReusedCandidate(base.BaseRule):
-    """Candidate should be referred to by only one contest.
-
-    A Candidate object should only ever be referenced from one contest. If a Person
-    is running in multiple Contests, then that Person is a Candidate several times over,
-    but a Candida(te|cy) can't span contests.
-    """
-    seen_candidates = []
-
-    def elements(self):
-        return ["CandidateSelection"]
-
-    def check(self, element):
-        candidate_ids  = element.find("CandidateIds")
-        if candidate_ids is None:
-          return
-        for candidate_id in candidate_ids.text.split():
-            if candidate_id in self.seen_candidates:
-                raise base.ElectionError(
-                    "Line %d. Candidate %s is already associated with another contest"
-                    % (candidate_ids.sourceline, candidate_id))
-            else:
-                self.seen_candidates.append(candidate_id)
-
-
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
 _RULES = [
@@ -722,8 +697,7 @@ _RULES = [
     ValidIDREF,
     UniqueLabel,
     PartisanPrimary,
-    PartisanPrimaryHeuristic,
-    ReusedCandidate
+    PartisanPrimaryHeuristic
 ]
 
 
