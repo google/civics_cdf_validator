@@ -318,7 +318,6 @@ class ElectoralDistrictOcdId(base.BaseRule):
         g = Github()
         self.github_repo = g.get_repo(self.GITHUB_REPO)
         self.ocds = self._get_ocd_data()
-        self.gpunits = []
         for gpunit in self.election_tree.iterfind("//GpUnit"):
             self.gpunits.append(gpunit)
 
@@ -410,12 +409,14 @@ class ElectoralDistrictOcdId(base.BaseRule):
             return
         valid_ocd_id = False
         referenced_gpunit = None
+        external_ids = []
         for gpunit in self.gpunits:
             if gpunit.get("objectId", None) == element.text:
                 referenced_gpunit = gpunit
-                for extern_id in gpunit.iter("ExternalIdentifier"):
+                external_ids = gpunit.findall(".//ExternalIdentifier")
+                for extern_id in external_ids:
                     id_type = extern_id.find("Type")
-                    if id_type is not None and id_type.text == "ocd-id":
+                    if id_type is not None and id_type.text.lower() == "ocd-id":
                         value = extern_id.find("Value")
                         if value is None or not hasattr(value, 'text'):
                             continue
@@ -426,6 +427,12 @@ class ElectoralDistrictOcdId(base.BaseRule):
                 "Line %d. The ElectoralDistrictId element for contest %s does "
                 "not refer to a GpUnit. Every ElectoralDistrictId MUST "
                 "reference a GpUnit" % (element.sourceline, contest_id))
+        if referenced_gpunit is not None and not external_ids:
+            raise base.ElectionError(
+                "Line %d. The GpUnit %s on line %d referenced by contest %s "
+                "does not have any external identifiers" % 
+                    (element.sourceline, element.text,
+                    referenced_gpunit.sourceline, contest_id))
         if not valid_ocd_id and referenced_gpunit is not None:
             raise base.ElectionError(
                 "Line %d. The ElectoralDistrictId element for contest %s "
