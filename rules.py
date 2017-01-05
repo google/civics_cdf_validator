@@ -416,12 +416,19 @@ class ElectoralDistrictOcdId(base.BaseRule):
                 external_ids = gpunit.findall(".//ExternalIdentifier")
                 for extern_id in external_ids:
                     id_type = extern_id.find("Type")
-                    if id_type is not None and id_type.text.lower() == "ocd-id":
+                    if id_type is not None and id_type.text == "ocd-id":
                         value = extern_id.find("Value")
                         if value is None or not hasattr(value, 'text'):
                             continue
                         if value.text in self.ocds:
                             valid_ocd_id = True
+                    if (id_type is not None and id_type.text != "ocd-id" and 
+                        id_type.text.lower() == "ocd-id"):
+                        raise base.ElectionError(
+                            "Line %d. The External Identifier case is incorrect"
+                            ". Should be ocd-id and not %s" % (
+                                id_type.sourceline, id_type.text)
+                        )
         if referenced_gpunit is None:
             raise base.ElectionError(
                 "Line %d. The ElectoralDistrictId element for contest %s does "
