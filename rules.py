@@ -79,10 +79,12 @@ def arg_parser():
     group.add_argument(
         "-e", help="Comma separated list of rules to be excluded.",
         required=False, type=lambda x: validate_rules(parser, x))
-    parser_validate.add_argument("--verbose", "-v", action="store_true",
+    parser_validate.add_argument(
+        "--verbose", "-v", action="store_true",
         help="Print out detailed log messages. Defaults to False",
         required=False)
-    parser_validate.add_argument("--severity", "-s",
+    parser_validate.add_argument(
+        "--severity", "-s",
         type=lambda x: validate_severity(parser, x),
         help="Minimum issue severity level - error, warning or info",
         required=False)
@@ -319,7 +321,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
         self.github_repo = g.get_repo(self.GITHUB_REPO)
         self.ocds = self._get_ocd_data()
         self.gpunits = []
-        for gpunit in self.election_tree.iterfind("//GpUnit"):
+        for gpunit in self.get_elements_by_class(self.election_tree, "GpUnit"):
             self.gpunits.append(gpunit)
 
     def _get_latest_commit_date(self):
@@ -530,7 +532,8 @@ class DuplicateGpUnits(base.TreeRule):
             non_leaf_nodes = set()
             are_leaf_nodes = set()
             for composing_id in composing_ids:
-                if composing_id in self.leaf_nodes or composing_id not in self.defined_gpunits:
+                if (composing_id in self.leaf_nodes or
+                        composing_id not in self.defined_gpunits):
                     are_leaf_nodes.add(composing_id)
                 elif composing_id in self.children:
                     non_leaf_nodes.add(composing_id)
@@ -612,7 +615,7 @@ class PartisanPrimary(base.BaseRule):
     def elements(self):
         #only check contest elements if this is a partisan election
         if self.election_type and self.election_type in (
-            "primary", "partisan-primary-open", "partisan-primary-closed"):
+                "primary", "partisan-primary-open", "partisan-primary-closed"):
             return ["CandidateContest"]
         else:
             return []
@@ -635,7 +638,7 @@ class PartisanPrimaryHeuristic(PartisanPrimary):
 
     def elements(self):
         if not self.election_type or self.election_type not in (
-            "primary", "partisan-primary-open", "partisan-primary-closed"):
+                "primary", "partisan-primary-open", "partisan-primary-closed"):
             return ["CandidateContest"]
         else:
             return []
@@ -646,10 +649,11 @@ class PartisanPrimaryHeuristic(PartisanPrimary):
             c_name = contest_name.text.replace(" ", "").lower()
             for p_text in self.party_text:
                 if p_text in c_name:
-                    raise base.ElectionWarning("Line %d. Name of contest - %s, "
-                    "contains text that implies it is a partisan primary "
-                    "but is not marked up as such." % (
-                        element.sourceline, contest_name.text))
+                    raise base.ElectionWarning(
+                        "Line %d. Name of contest - %s, "
+                        "contains text that implies it is a partisan primary "
+                        "but is not marked up as such." % (
+                            element.sourceline, contest_name.text))
 
 
 class UniqueLabel(base.BaseRule):
@@ -674,36 +678,37 @@ class UniqueLabel(base.BaseRule):
         if element_label:
             if element_label in self.labels:
                 raise base.ElectionError(
-                    "Line %d. Duplicate label '%s'. Label already defined earlier"
-                     % (element.sourceline, element_label))
+                    "Line %d. Duplicate label '%s'. Label already defined"
+                    % (element.sourceline, element_label))
             else:
                 self.labels.add(element_label)
 
 
-class ReusedCandidate(base.BaseRule):
+class ReusedCandidate(base.TreeRule):
     """Candidate should be referred to by only one contest.
 
-    A Candidate object should only ever be referenced from one contest. If a Person
-    is running in multiple Contests, then that Person is a Candidate several times over,
-    but a Candida(te|cy) can't span contests.
+    A Candidate object should only ever be referenced from one contest. If a
+    Person is running in multiple Contests, then that Person is a Candidate
+    several times over, but a Candida(te|cy) can't span contests.
     """
-    seen_candidates = []
+    seen_candidates = {} # mapping of candidates and contests
 
-    def elements(self):
-        return ["CandidateSelection"]
-
-    def check(self, element):
-        candidate_ids  = element.find("CandidateIds")
-        if candidate_ids is None:
-          return
-        for candidate_id in candidate_ids.text.split():
-            if candidate_id in self.seen_candidates:
+    def check(self):
+        contests = self.get_elements_by_class(self.election_tree, "CandidateSelection")
+        for contest in contests:
+            contest_id = contest.get("objectId", None)
+            candidate_ids = contest.find("CandidateIds")
+            if candidate_ids is None:
+                break
+            for candidate_id in candidate_ids.text.split():
+                if contest_id:
+                    self.seen_candidates.setdefault(candidate_id, []).append(contest_id)
+        for cand_id, cont_ids in self.seen_candidates.iteritems():
+            if len(cont_ids) > 1:
                 raise base.ElectionError(
-                    "Line %d. Candidate %s is already associated with another contest"
-                    % (candidate_ids.sourceline, candidate_id))
-            else:
-                self.seen_candidates.append(candidate_id)
-
+                    "A Candidate object should only ever be referenced from one"
+                    " contest. Candidate %s is referenced by %s" % (
+                        cand_id, ", ".join(cont_ids)))
 
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
