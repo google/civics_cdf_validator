@@ -706,24 +706,27 @@ class ReusedCandidate(base.TreeRule):
     Person is running in multiple Contests, then that Person is a Candidate
     several times over, but a Candida(te|cy) can't span contests.
     """
-    seen_candidates = {} # mapping of candidates and contests
+    seen_candidates = {} # mapping of candidates and candidate selections
 
     def check(self):
-        contests = self.get_elements_by_class(self.election_tree, "CandidateSelection")
-        for contest in contests:
-            contest_id = contest.get("objectId", None)
-            candidate_ids = contest.find("CandidateIds")
+        candidate_selections = self.get_elements_by_class(
+            self.election_tree, "CandidateSelection")
+        for candidate_selection in candidate_selections:
+            candidate_selection_id = candidate_selection.get("objectId", None)
+            candidate_ids = candidate_selection.find("CandidateIds")
             if candidate_ids is None:
                 break
             for candidate_id in candidate_ids.text.split():
-                if contest_id:
-                    self.seen_candidates.setdefault(candidate_id, []).append(contest_id)
-        for cand_id, cont_ids in self.seen_candidates.iteritems():
-            if len(cont_ids) > 1:
+                if candidate_selection_id:
+                    self.seen_candidates.setdefault(
+                        candidate_id, []).append(candidate_selection_id)
+        for cand_id, cand_select_ids in self.seen_candidates.iteritems():
+            if len(cand_select_ids) > 1:
                 raise base.ElectionError(
                     "A Candidate object should only ever be referenced from one"
-                    " contest. Candidate %s is referenced by %s" % (
-                        cand_id, ", ".join(cont_ids)))
+                    " CandidateSelection. Candidate %s is referenced by the "
+                    "following CandidateSelections :- %s" % (
+                        cand_id, ", ".join(cand_select_ids)))
 
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
