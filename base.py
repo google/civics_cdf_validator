@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from collections import OrderedDict
 from lxml import etree
 
 class ElectionException(Exception):
@@ -66,7 +65,7 @@ class ErrorLogEntry(object):
 
     def __init__(self, line, message):
         self.line = line
-        self.message =  message
+        self.message = message
 
 
 class SchemaHandler(object):
@@ -74,6 +73,7 @@ class SchemaHandler(object):
     _XSCHEMA_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
     _XSCHEMA_INSTANCE_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
     _TYPE_ATTRIB = "{%s}type" % (_XSCHEMA_INSTANCE_NAMESPACE)
+
 
     def get_element_class(self, element):
         """Return the class of the element"""
@@ -93,6 +93,15 @@ class SchemaHandler(object):
             return tag[len("{%s}" % self._XSCHEMA_NAMESPACE):]
         return tag
 
+    def get_elements_by_class(self, element, element_name):
+        """Searches for all tags under element of type element_name"""
+        # find all the tags that match element_name
+        elements = element.findall(".//" + element_name)
+        # next find all elements where the type is element_name
+        elements += element.xpath(
+            ".//*[@xsi:type ='%s']" % (element_name),
+            namespaces={"xsi": self._XSCHEMA_INSTANCE_NAMESPACE})
+        return elements
 
 class BaseRule(SchemaHandler):
     """Base class for rules."""
@@ -151,10 +160,10 @@ class RulesRegistry(SchemaHandler):
     exception_counts = {}
     exception_rule_counts = {}
     total_count = 0
-    _SEVERITIES = [ ElectionInfo, ElectionWarning, ElectionError ]
+    _SEVERITIES = [ElectionInfo, ElectionWarning, ElectionError]
 
     def __init__(self, election_file, schema_file, rule_classes_to_check,
-            rule_options):
+                 rule_options):
         self.election_file = election_file
         self.schema_file = schema_file
         self.rule_classes_to_check = rule_classes_to_check
