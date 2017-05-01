@@ -205,8 +205,9 @@ class LanguageCode(base.BaseRule):
 
     def __init__(self, election_tree, schema_file):
         super(LanguageCode, self).__init__(election_tree, schema_file)
-        self.languages = [getattr(language, 'iso639_1_code', None)
-                          for language in pycountry.languages]
+        for language in pycountry.languages:
+        	if hasattr(language, 'alpha_2'):
+        		self.languages.append(language.alpha_2)
 
     def elements(self):
         return ["Text"]
@@ -724,8 +725,8 @@ class ReusedCandidate(base.TreeRule):
             if len(cand_select_ids) > 1:
                 raise base.ElectionError(
                     "A Candidate object should only ever be referenced from one"
-                    " CandidateSelection. Candidate %s is referenced by the "
-                    "following CandidateSelections :- %s" % (
+                    " CandidateSelection. Candidate %s is referenced by the"
+                    " following CandidateSelections :- %s" % (
                         cand_id, ", ".join(cand_select_ids)))
 
 # To add new rules, create a new class, inherit the base rule
