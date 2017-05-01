@@ -35,7 +35,7 @@ ENTRY_POINTS = {
 
 setup(
     name='election_results_xml_validator',
-    version='0.2.4',
+    version='0.2.5',
     author='Miano Njoka',
     author_email='election-results-xml-validator@google.com',
     maintainer='Google gTech Partners',
@@ -48,7 +48,7 @@ setup(
     url='https://github.com/google/election_results_xml_validator',
     install_requires=[
         'lxml>=3.3.4',
-        'pycountry>=1.20',
+        'pycountry>=17.01.08',
         '%s>=2.10' % requests_version,
         'pygithub>=1.28'
     ],
