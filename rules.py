@@ -20,7 +20,7 @@ import os.path
 import hashlib
 from shutil import copyfile
 from datetime import datetime
-import pycountry
+import language_tags
 import requests
 from lxml import etree
 from github import Github
@@ -201,14 +201,6 @@ class HungarianStyleNotation(base.BaseRule):
 class LanguageCode(base.BaseRule):
     """Check that Text elements have a valid language code."""
 
-    languages = []
-
-    def __init__(self, election_tree, schema_file):
-        super(LanguageCode, self).__init__(election_tree, schema_file)
-        for language in pycountry.languages:
-        	if hasattr(language, 'alpha_2'):
-        		self.languages.append(language.alpha_2)
-
     def elements(self):
         return ["Text"]
 
@@ -216,11 +208,9 @@ class LanguageCode(base.BaseRule):
         if "language" not in element.attrib:
             return
         elem_lang = element.get("language")
-        if (not elem_lang or elem_lang not in self.languages or
-                elem_lang.strip() == ""):
+        if (not elem_lang or elem_lang.strip() == "" or not language_tags.tags.check(elem_lang)):
             raise base.ElectionError(
-                "Line %d. %s is not a valid ISO 639 language code "% (
-                    element.sourceline, elem_lang))
+                "Line %d. %s is not a valid language code" % (element.sourceline, elem_lang))
 
 
 class EmptyText(base.BaseRule):
