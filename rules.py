@@ -58,6 +58,7 @@ def validate_severity(parser, arg):
     else:
         return _VALID_SEVERITIES[arg.strip().lower()]
 
+
 def arg_parser():
     """Parser for command line arguments."""
 
@@ -145,6 +146,7 @@ class OptionalAndEmpty(base.BaseRule):
                 "Line %d. %s optional element included although it "
                 "is empty" % (element.sourceline, element.tag))
 
+
 class Encoding(base.TreeRule):
     """Checks that the file provided uses UTF-8 encoding."""
 
@@ -222,7 +224,7 @@ class EmptyText(base.BaseRule):
     def check(self, element):
         if element.text is not None and element.text.strip() == "":
             raise base.ElectionWarning(
-                "Line %d. %s is empty"% (
+                "Line %d. %s is empty" % (
                     element.sourceline, element.tag))
 
 
@@ -260,8 +262,8 @@ class ValidIDREF(base.BaseRule):
 
     all_object_ids = set()
 
-    def __init__(self, election_tree, schema_file):
-        super(ValidIDREF, self).__init__(election_tree, schema_file)
+    def __init__(self, election_tree, schema_file, default_namespace):
+        super(ValidIDREF, self).__init__(election_tree, schema_file, default_namespace)
         for event, element in etree.iterwalk(
                 self.election_tree, events=("end",)):
             if "objectId" not in element.attrib:
@@ -292,9 +294,9 @@ class ValidIDREF(base.BaseRule):
                         "Line %d. %s is not a valid IDREF." % (
                             element.sourceline, id_ref))
 
+
 class ElectoralDistrictOcdId(base.BaseRule):
-    """GpUnit refered to by Contest.ElectoralDistrictId MUST have a valid OCD-ID.
-    """
+    """GpUnit refered to by Contest.ElectoralDistrictId MUST have a valid OCD-ID"""
     ocds = []
     gpunits = []
     CACHE_DIR = "~/.cache"
@@ -306,8 +308,8 @@ class ElectoralDistrictOcdId(base.BaseRule):
     check_github = True
     github_repo = None
 
-    def __init__(self, election_tree, schema_file):
-        super(ElectoralDistrictOcdId, self).__init__(election_tree, schema_file)
+    def __init__(self, election_tree, schema_file, default_namespace):
+        super(ElectoralDistrictOcdId, self).__init__(election_tree, schema_file, default_namespace)
         g = Github()
         self.github_repo = g.get_repo(self.GITHUB_REPO)
         self.ocds = self._get_ocd_data()
@@ -355,8 +357,8 @@ class ElectoralDistrictOcdId(base.BaseRule):
         file_sha1 = hashlib.sha1()
         ocd_id_codes = set()
         file_info = os.stat(file_path)
-        #github calculates the blob sha like this
-        #sha1("blob "+filesize+"\0"+data)
+        # github calculates the blob sha like this:
+        # sha1("blob "+filesize+"\0"+data)
         file_sha1.update(b"blob %d\0" % file_info.st_size)
         with io.open(file_path, mode="rb") as fd:
             for line in fd:
@@ -407,11 +409,14 @@ class ElectoralDistrictOcdId(base.BaseRule):
         for gpunit in self.gpunits:
             if gpunit.get("objectId", None) == element.text:
                 referenced_gpunit = gpunit
-                external_ids = gpunit.findall(".//ExternalIdentifier")
+                external_ids = gpunit.findall('.//default:ExternalIdentifier',
+                                              namespaces={'default': self.default_namespace})
                 for extern_id in external_ids:
-                    id_type = extern_id.find("Type")
+                    id_type = extern_id.find('.//default:Type',
+                                             namespaces={'default': self.default_namespace})
                     if id_type is not None and id_type.text == "ocd-id":
-                        value = extern_id.find("Value")
+                        value = extern_id.find('.//default:Value',
+                                               namespaces={'default': self.default_namespace})
                         if value is None or not hasattr(value, 'text'):
                             continue
                         if value.text in self.ocds:
@@ -451,8 +456,8 @@ class GpUnitOcdId(ElectoralDistrictOcdId):
     ]
     validate_ocd_file = True
 
-    def __init__(self, election_tree, schema_file):
-        super(GpUnitOcdId, self).__init__(election_tree, schema_file)
+    def __init__(self, election_tree, schema_file, default_namespace):
+        super(GpUnitOcdId, self).__init__(election_tree, schema_file, default_namespace)
 
     def elements(self):
         return ["ReportingUnit"]
@@ -461,12 +466,15 @@ class GpUnitOcdId(ElectoralDistrictOcdId):
         gpunit_id = element.get("objectId")
         if not gpunit_id:
             return
-        gpunit_type = element.find("Type")
+        gpunit_type = element.find('.//default:Type',
+                                   namespaces={'default': self.default_namespace})
         if gpunit_type is not None and gpunit_type.text in self.districts:
             for extern_id in element.iter("ExternalIdentifier"):
-                id_type = extern_id.find("Type")
+                id_type = extern_id.find('.//default:Type',
+                                         namespaces={'default': self.default_namespace})
                 if id_type is not None and id_type.text == "ocd-id":
-                    value = extern_id.find("Value")
+                    value = extern_id.find('.//default:Value',
+                                           namespaces={'default': self.default_namespace})
                     if value is None or not hasattr(value, "text"):
                         continue
                     if value.text not in self.ocds:
@@ -487,7 +495,8 @@ class DuplicateGpUnits(base.TreeRule):
         root = self.election_tree.getroot()
         if root is None:
             return
-        collection = root.find("GpUnitCollection")
+        collection = root.find('.//default:GpUnitCollection',
+                               namespaces={'default': self.default_namespace})
         if collection is None:
             return
         self.process_gpunit_collection(collection)
@@ -561,7 +570,8 @@ class DuplicateGpUnits(base.TreeRule):
                 composing_ids.remove(middle_node)
 
     def get_composing_gpunits(self, gpunit):
-        composing = gpunit.find("ComposingGpUnitIds")
+        composing = gpunit.find('.//default:ComposingGpUnitIds',
+                                namespaces={'default': self.default_namespace})
         if composing is None or composing.text is None:
             return None
         composing_ids = composing.text.split()
@@ -591,9 +601,11 @@ class OtherType(base.BaseRule):
         return eligible_elements
 
     def check(self, element):
-        type_element = element.find("Type")
+        type_element = element.find('.//default:Type',
+                                    namespaces={'default': self.default_namespace})
         if type_element is not None and type_element.text == "other":
-            other_type_element = element.find("OtherType")
+            other_type_element = element.find('.//default:OtherType',
+                                              namespaces={'default': self.default_namespace})
             if other_type_element is None:
                 raise base.ElectionError(
                     "Line %d. Type on element %s is set to 'other' but "
@@ -610,16 +622,18 @@ class PartisanPrimary(base.BaseRule):
     """
     election_type = None
 
-    def __init__(self, election_tree, schema_file):
-        super(PartisanPrimary, self).__init__(election_tree, schema_file)
-        #There can only be one election element in a file
-        election_elem = self.election_tree.find("Election")
-        election_type_elem = election_elem.find("Type")
+    def __init__(self, election_tree, schema_file, default_namespace):
+        super(PartisanPrimary, self).__init__(election_tree, schema_file, default_namespace)
+        # There can only be one election element in a file
+        election_elem = self.election_tree.find('.//default:Election',
+                                                namespaces={'default': self.default_namespace})
+        election_type_elem = election_elem.find('.//default:Type',
+                                                namespaces={'default': self.default_namespace})
         if election_type_elem is not None:
             self.election_type = election_type_elem.text.strip()
 
     def elements(self):
-        #only check contest elements if this is a partisan election
+        # only check contest elements if this is a partisan election
         if self.election_type and self.election_type in (
                 "primary", "partisan-primary-open", "partisan-primary-closed"):
             return ["CandidateContest"]
@@ -627,7 +641,8 @@ class PartisanPrimary(base.BaseRule):
             return []
 
     def check(self, element):
-        primary_party_ids = element.find("PrimaryPartyIds")
+        primary_party_ids = element.find('.//default:PrimaryPartyIds',
+                                         namespaces={'default': self.default_namespace})
         if (primary_party_ids is None or not primary_party_ids.text
                 or not primary_party_ids.text.strip()):
             raise base.ElectionError(
@@ -639,7 +654,7 @@ class PartisanPrimary(base.BaseRule):
 class PartisanPrimaryHeuristic(PartisanPrimary):
     """Attempts to identify partisan primaries not marked up as such.
     """
-    #add other strings that imply this is a primary contest
+    # add other strings that imply this is a primary contest
     party_text = ["(dem)", "(rep)", "(lib)"]
 
     def elements(self):
@@ -650,7 +665,8 @@ class PartisanPrimaryHeuristic(PartisanPrimary):
             return []
 
     def check(self, element):
-        contest_name = element.find("Name")
+        contest_name = element.find('.//default:Name',
+                                    namespaces={'default': self.default_namespace})
         if contest_name is not None and contest_name.text is not None:
             c_name = contest_name.text.replace(" ", "").lower()
             for p_text in self.party_text:
@@ -697,14 +713,15 @@ class ReusedCandidate(base.TreeRule):
     Person is running in multiple Contests, then that Person is a Candidate
     several times over, but a Candida(te|cy) can't span contests.
     """
-    seen_candidates = {} # mapping of candidates and candidate selections
+    seen_candidates = {}  # mapping of candidates and candidate selections
 
     def check(self):
         candidate_selections = self.get_elements_by_class(
             self.election_tree, "CandidateSelection")
         for candidate_selection in candidate_selections:
             candidate_selection_id = candidate_selection.get("objectId", None)
-            candidate_ids = candidate_selection.find("CandidateIds")
+            candidate_ids = candidate_selection.find('.//default:CandidateIds',
+                                                     namespaces={'default': self.default_namespace})
             if candidate_ids is None:
                 break
             for candidate_id in candidate_ids.text.split():
@@ -767,7 +784,8 @@ def main():
         rule_classes_to_check = [x for x in _RULES
                                  if x.__name__ in rules_to_check]
         registry = base.RulesRegistry(
-            election_file=options.election_file, schema_file=options.xsd,
+            election_file=options.election_file,
+            schema_file=options.xsd,
             rule_classes_to_check=rule_classes_to_check,
             rule_options=rule_options)
         found_errors = registry.check_rules()

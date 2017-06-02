@@ -16,6 +16,7 @@ limitations under the License.
 
 from lxml import etree
 
+
 class ElectionException(Exception):
     """Base class for all the errors in this script."""
     error_message = None
@@ -74,13 +75,16 @@ class SchemaHandler(object):
     _XSCHEMA_INSTANCE_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
     _TYPE_ATTRIB = "{%s}type" % (_XSCHEMA_INSTANCE_NAMESPACE)
 
+    def __init__(self, default_namespace):
+        super(SchemaHandler, self).__init__()
+        self.default_namespace = default_namespace
 
     def get_element_class(self, element):
         """Return the class of the element"""
         if element is None:
             return None
         if self._TYPE_ATTRIB not in element.attrib:
-            return element.tag
+            return self.strip_schema_ns(element)
         return element.attrib[self._TYPE_ATTRIB]
 
     def strip_schema_ns(self, element):
@@ -90,24 +94,27 @@ class SchemaHandler(object):
             # Comment tags return a function
             return None
         if tag.startswith("{%s}" % self._XSCHEMA_NAMESPACE):
-            return tag[len("{%s}" % self._XSCHEMA_NAMESPACE):]
+            tag = tag[len("{%s}" % self._XSCHEMA_NAMESPACE):]
+        if tag.startswith("{%s}" % self.default_namespace):
+            tag = tag[len("{%s}" % self.default_namespace):]
         return tag
 
     def get_elements_by_class(self, element, element_name):
         """Searches for all tags under element of type element_name"""
         # find all the tags that match element_name
-        elements = element.findall(".//" + element_name)
+        elements = element.findall('.//' + element_name)
         # next find all elements where the type is element_name
         elements += element.xpath(
             ".//*[@xsi:type ='%s']" % (element_name),
-            namespaces={"xsi": self._XSCHEMA_INSTANCE_NAMESPACE})
+            namespaces={'xsi': self._XSCHEMA_INSTANCE_NAMESPACE})
         return elements
+
 
 class BaseRule(SchemaHandler):
     """Base class for rules."""
 
-    def __init__(self, election_tree, schema_file):
-        super(BaseRule, self).__init__()
+    def __init__(self, election_tree, schema_file, default_namespace):
+        super(BaseRule, self).__init__(default_namespace)
         self.election_tree = election_tree
         self.schema_file = schema_file
 
@@ -139,6 +146,7 @@ class TreeRule(BaseRule):
     def check(self):
         """Checks entire tree"""
 
+
 class RuleOption(object):
     class_name = None
     option_name = None
@@ -147,6 +155,7 @@ class RuleOption(object):
     def __init__(self, option_name, option_value):
         self.option_name = option_name
         self.option_value = option_value
+
 
 class RulesRegistry(SchemaHandler):
     """Registry of rules and the elements they check"""
@@ -182,8 +191,13 @@ class RulesRegistry(SchemaHandler):
         Args:
             election_tree: election tree to be checked
         """
+
+        # find default namespace, if any
+        root = election_tree.getroot()
+        self.default_namespace = root.nsmap.get(None, '')
+
         for rule in self.rule_classes_to_check:
-            rule_instance = rule(election_tree, self.schema_file)
+            rule_instance = rule(election_tree, self.schema_file, self.default_namespace)
             if rule.__name__ in self.rule_options.keys():
                 for option in self.rule_options[rule.__name__]:
                     rule_instance.set_option(option)
@@ -281,4 +295,3 @@ class RulesRegistry(SchemaHandler):
             return 0
         else:
             return 1
-
