@@ -38,7 +38,8 @@ The validate command has 2 required arguments:
 
 The command to validate the election file against all the rules in the file is
 
-  ``election_results_xml_validator validate election_file.xml --xsd nist.xsd``
+  ``election_results_xml_validator validate election_file.xml --xsd nist.xsd`` OR
+  ``election_results_xml_validator validate election_file.xml -x nist.xsd``
 
 One can choose to only validate one or more comma separated rules by using the -i flag
 
@@ -49,10 +50,6 @@ Or choose to exclude one or more comma separated rules using the -e flag
   ``election_results_xml_validator validate election_file.xml --xsd nist.xsd -e Schema``
 
 By default, the script only shows a summary of issues found. You can get a
-detailed report by adding the -v flag
+detailed report by adding the -d flag
 
-  ``election_results_xml_validator validate election_file.xml --xsd nist.xsd -v``
-
-The severity level of messages to be printed can be selected by using the -s flag. The three supported severities in descending order are Error, Warning, and Info. Higher severities are included when Warning or Info are selected e.g., Error messages will be included when the Warning severity is selected.
-
-  ``election_results_xml_validator validate election_file.xml --xsd nist.xsd -v -s Warning``
+  ``election_results_xml_validator validate election_file.xml --xsd nist.xsd -d``
