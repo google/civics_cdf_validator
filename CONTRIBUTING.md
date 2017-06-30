@@ -46,9 +46,9 @@ the one above, the
     1. if working on a schema bug/feature, the resulting XSD and sample feed XML still validate
         1. You can use http://www.utilities-online.info/xsdvalidation/ to do this validation online, or
         2. If you have the [xmllint](http://xmlsoft.org/xmllint.html) tool installed, please run
-           `xmllint --nonet --xinclude --noout --schema nist_1500_100_spec.xsd pre_election_sample_feed.xml`
+           `xmllint --nonet --xinclude --noout --schema election_data_spec.xsd pre_election_sample_feed.xml`
         3. If you have the [Jing](http://www.thaiopensource.com/relaxng/jing.html) validator
-           installed, please run `jing nist_1500_100_spec.xsd pre_election_sample_feed.xml`
+           installed, please run `jing election_data_spec.xsd pre_election_sample_feed.xml`
 3. Once it's done and tested, create a pull request to move it into the current working branch.
 4. At that point, some discussion might happen. In order to get approval for the
    pull request, you will need approval from one representative from Google

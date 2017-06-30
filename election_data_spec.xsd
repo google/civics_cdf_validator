@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Version 1.0-50, January 11, 2016, NIST Election Results CDF Specification,
-     National Institute of Standards and Technology -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="unqualified" version="1.0">
     <!-- ========== Roots ========== -->
     <xs:element name="ElectionReport" type="ElectionReport" />

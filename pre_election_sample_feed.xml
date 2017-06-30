@@ -704,7 +704,7 @@
 
       <!--
            This is an example of a "Top-Two" or "Louisiana primary" in which
-           candidates from all parties compete against each other. In NIST, we use
+           candidates from all parties compete against each other. Here, we use
            the "Voter-Nominated" party in the PrimaryPartyIds field to show that the
            contest itself is non-partisan, even if the candidates themselves are.
         -->

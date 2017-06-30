@@ -53,7 +53,7 @@ class ElectionWarning(ElectionException):
 
 
 class ElectionInfo(ElectionException):
-    """Information that user needs to know about following NIST best
+    """Information that user needs to know about following XML best
     practices."""
 
     description = "Info"
