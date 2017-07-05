@@ -67,7 +67,7 @@ def arg_parser():
     subparsers = parser.add_subparsers(dest="cmd")
     parser_validate = subparsers.add_parser("validate")
     parser_validate.add_argument(
-        "-x", "--xsd", help="NIST Voting Program XSD file path", required=True,
+        "-x", "--xsd", help="Common Data Format XSD file path", required=True,
         metavar="xsd_file", type=lambda x: validate_file(parser, x))
     parser_validate.add_argument(
         "election_file", help="XML election file to be validated",
@@ -604,7 +604,7 @@ class OtherType(base.BaseRule):
 class PartisanPrimary(base.BaseRule):
     """Partisan elections should link to the correct political party.
 
-    For a NIST Election element of Election type primary, partisan-primary-open,
+    For an Election element of Election type primary, partisan-primary-open,
     or partisan-primary-closed, the Contests in that ContestCollection should
     have a PrimartyPartyIds that is present and non-empty.
     """

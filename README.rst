@@ -1,6 +1,6 @@
-``election_results_xml_validator`` is a script that checks if a NIST 1500-100
-election results feed follows best practices and outputs errors, warnings and
-info messages for common issues
+``election_results_xml_validator`` is a script that checks if an election data
+feed follows best practices and outputs errors, warnings and info messages for
+common issues
 
 This is not an official Google product.
 
@@ -34,22 +34,22 @@ Validate a file
 The validate command has 2 required arguments:
 
   * the election file to be validated
-  * the NIST XSD file to validate against
+  * the XSD file to validate against
 
 The command to validate the election file against all the rules in the file is
 
-  ``election_results_xml_validator validate election_file.xml --xsd nist.xsd`` OR
-  ``election_results_xml_validator validate election_file.xml -x nist.xsd``
+  ``election_results_xml_validator validate election_file.xml --xsd election_data_spec.xsd`` OR
+  ``election_results_xml_validator validate election_file.xml -x election_data_spec.xsd``
 
 One can choose to only validate one or more comma separated rules by using the -i flag
 
-  ``election_results_xml_validator validate election_file.xml --xsd nist.xsd -i Schema``
+  ``election_results_xml_validator validate election_file.xml --xsd election_data_spec.xsd -i Schema``
 
 Or choose to exclude one or more comma separated rules using the -e flag
 
-  ``election_results_xml_validator validate election_file.xml --xsd nist.xsd -e Schema``
+  ``election_results_xml_validator validate election_file.xml --xsd election_data_spec.xsd -e Schema``
 
 By default, the script only shows a summary of issues found. You can get a
-detailed report by adding the -d flag
+verbose report by adding the -v flag
 
-  ``election_results_xml_validator validate election_file.xml --xsd nist.xsd -d``
+  ``election_results_xml_validator validate election_file.xml --xsd election_data_spec.xsd -v``

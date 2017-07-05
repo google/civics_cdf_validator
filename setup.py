@@ -13,7 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Setup script for validator that checks for NIST 1500-100 best practices.
+Setup script for validator that checks for election common data best
+practices.
 """
 import sys
 from setuptools import setup, find_packages
@@ -43,8 +44,8 @@ setup(
     license='Apache License',
     description='Checks that an elections file follows best practices',
     long_description='election_results_xml_validator is a script that checks '
-        'if a NIST 1500-100 election results feed follows best practices and '
-        'outputs errors, warnings and info messages for common issues.',
+        'if a election data feed follows best practices and outputs errors, '
+        'warnings and info messages for common issues.',
     url='https://github.com/google/election_results_xml_validator',
     install_requires=[
         'lxml>=3.3.4',
