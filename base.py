@@ -129,7 +129,10 @@ class BaseRule(SchemaHandler):
             raise ElectionException("Invalid attribute set")
         setattr(self, option.option_name, option.option_value)
 
-
+    def setup(self):
+        """Perform any rule specific setup before checking."""
+        
+        
 class TreeRule(BaseRule):
     """Rule that checks entire tree."""
 
@@ -187,6 +190,7 @@ class RulesRegistry(SchemaHandler):
             if rule.__name__ in self.rule_options.keys():
                 for option in self.rule_options[rule.__name__]:
                     rule_instance.set_option(option)
+            rule_instance.setup()
             for element in rule_instance.elements():
                 if element in self.registry:
                     self.registry[element].append(rule_instance)

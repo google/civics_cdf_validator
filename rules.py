@@ -50,13 +50,24 @@ def validate_rules(parser, arg):
 
 
 def validate_severity(parser, arg):
-    """Check that the severity level provided is correct"""
+    """Check that the severity level provided is correct."""
 
     _VALID_SEVERITIES = {'info': 0, 'warning': 1, 'error': 2}
     if arg.strip().lower() not in _VALID_SEVERITIES:
         parser.error("Invalid severity. Options are error, warning, or info")
     else:
         return _VALID_SEVERITIES[arg.strip().lower()]
+
+
+def validate_country_codes(parser, arg):
+    """Check that the supplied 2 country code is correct."""
+    country_codes = _OCD_ID_CONFIG.keys()
+    if arg.strip().lower() not in country_codes:
+        parser.error("Invalid country code. Available codes are: %s" %
+            ", ".join(country_codes))
+    else:
+        return arg.strip().lower()
+
 
 def arg_parser():
     """Parser for command line arguments."""
@@ -92,6 +103,9 @@ def arg_parser():
         "-g", help="Skip check to see if there is a new OCD ID file on Github."
         "Defaults to True",
         action="store_true", required=False)
+    parser_validate.add_argument(
+        "-c", help="Two letter country code for OCD IDs.", metavar="country",
+        type=lambda x: validate_country_codes(parser, x), required=True)
     subparsers.add_parser("list")
     return parser
 
@@ -298,44 +312,44 @@ class ElectoralDistrictOcdId(base.BaseRule):
     ocds = []
     gpunits = []
     CACHE_DIR = "~/.cache"
-    GITHUB_REPO = "opencivicdata/ocd-division-ids"
-    GITHUB_DIR = "identifiers"
-    GITHUB_FILE = "country-us.csv"
-    _OCDID_URL = "https://raw.github.com/{0}/master/{1}/{2}".format(
-        GITHUB_REPO, GITHUB_DIR, GITHUB_FILE)
     check_github = True
     github_repo = None
+    ocd_id_config = None
 
     def __init__(self, election_tree, schema_file):
         super(ElectoralDistrictOcdId, self).__init__(election_tree, schema_file)
-        g = Github()
-        self.github_repo = g.get_repo(self.GITHUB_REPO)
-        self.ocds = self._get_ocd_data()
         self.gpunits = []
         for gpunit in self.get_elements_by_class(self.election_tree, "GpUnit"):
             self.gpunits.append(gpunit)
+
+    def setup(self):
+        g = Github()
+        self.github_repo = g.get_repo(self.ocd_id_config.github_repo)
+        self.ocds = self._get_ocd_data()
 
     def _get_latest_commit_date(self):
         """Returns the latest commit date to country-us.csv."""
         latest_commit_date = None
         latest_commit = self.github_repo.get_commits(
-            path="{0}/{1}".format(self.GITHUB_DIR, self.GITHUB_FILE))[0]
+            path="{0}/{1}".format(self.ocd_id_config.github_dir,
+            self.ocd_id_config.github_file))[0]
         latest_commit_date = latest_commit.commit.committer.date
         return latest_commit_date
 
     def _get_latest_file_blob_sha(self):
         """Returns the gihub blob sha of country-us.csv."""
         blob_sha = None
-        dir_contents = self.github_repo.get_dir_contents(self.GITHUB_DIR)
+        dir_contents = self.github_repo.get_dir_contents(
+            self.ocd_id_config.github_dir)
         for content_file in dir_contents:
-            if content_file.name == self.GITHUB_FILE:
+            if content_file.name == self.ocd_id_config.github_file:
                 blob_sha = content_file.sha
                 break
         return blob_sha
 
     def _download_data(self, file_path):
         """Makes a request to Github to download the file."""
-        r = requests.get(self._OCDID_URL)
+        r = requests.get(self.ocd_id_config.get_ocdid_url())
         with io.open("{0}.tmp".format(file_path), "wb") as fd:
             for chunk in r.iter_content():
                 fd.write(chunk)
@@ -372,8 +386,8 @@ class ElectoralDistrictOcdId(base.BaseRule):
     def _get_ocd_data(self):
         """Checks if OCD file is in ~/cache, downloads it if not."""
         cache_directory = os.path.expanduser(self.CACHE_DIR)
-        countries_file = "{0}/{1}".format(cache_directory, self.GITHUB_FILE)
-
+        countries_file = "{0}/{1}".format(cache_directory,
+            self.ocd_id_config.github_file)
         if not os.path.exists(countries_file):
             if not os.path.exists(cache_directory):
                 os.makedirs(cache_directory)
@@ -741,6 +755,32 @@ _RULES = [
 ]
 
 
+class GithubConfig(object):
+    """Stores Github repo configuration for an ocd id file."""
+    
+    def __init__(self, github_repo, github_dir, github_file):
+        self.github_repo = github_repo
+        self.github_dir = github_dir
+        self.github_file = github_file
+    
+    def get_ocdid_url(self):
+        return "https://raw.github.com/{0}/master/{1}/{2}".format(
+            self.github_repo, self.github_dir, self.github_file)
+
+
+def get_ocd_id_config():
+    CONFIG_FILE = "ocd_id_config.csv"
+    configs = {}
+    with io.open(CONFIG_FILE, mode="rb") as fd:
+        header_line = next(fd)
+        for line in fd:
+            config_row = line.split(",")
+            #first column is the country code, rest is the github info
+            configs[config_row[0]] = GithubConfig(*config_row[1:])
+    return configs
+
+_OCD_ID_CONFIG = get_ocd_id_config()
+
 def main():
     p = arg_parser()
     options = p.parse_args()
@@ -764,6 +804,11 @@ def main():
                 base.RuleOption("check_github", False))
             rule_options.setdefault("GpUnitOcdId", []).append(
                 base.RuleOption("check_github", False))
+        if options.c:
+            rule_options.setdefault("ElectoralDistrictOcdId", []).append(
+                base.RuleOption("ocd_id_config", _OCD_ID_CONFIG[options.c]))
+            rule_options.setdefault("GpUnitOcdId", []).append(
+                base.RuleOption("ocd_id_config", _OCD_ID_CONFIG[options.c]))
         rule_classes_to_check = [x for x in _RULES
                                  if x.__name__ in rules_to_check]
         registry = base.RulesRegistry(
