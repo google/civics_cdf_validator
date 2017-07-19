@@ -684,7 +684,6 @@ class CoalitionParties(base.TreeRule):
 
     def check(self):
         coalitions = self.get_elements_by_class(self.election_tree, "Coalition")
-        print coalitions
         for coalition in coalitions:
             party_id = coalition.find("PartyIds")
             if (party_id is None or not party_id.text or
