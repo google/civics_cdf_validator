@@ -759,19 +759,6 @@ _RULES = [
 ]
 
 
-class GithubConfig(object):
-    """Stores Github repo configuration for an ocd id file."""
-    
-    def __init__(self, github_repo, github_dir, github_file):
-        self.github_repo = github_repo
-        self.github_dir = github_dir
-        self.github_file = github_file
-    
-    def get_ocdid_url(self):
-        return "https://raw.github.com/{0}/master/{1}/{2}".format(
-            self.github_repo, self.github_dir, self.github_file)
-
-
 def main():
     p = arg_parser()
     options = p.parse_args()
