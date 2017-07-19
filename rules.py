@@ -353,7 +353,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
     def _download_data(self, file_path):
         """Makes a request to Github to download the file."""
         ocdid_url = "https://raw.github.com/{0}/master/{1}/{2}".format(
-     -        self.GITHUB_REPO, self.GITHUB_DIR, self.github_file)
+            self.GITHUB_REPO, self.GITHUB_DIR, self.github_file)
         r = requests.get(ocdid_url)
         with io.open("{0}.tmp".format(file_path), "wb") as fd:
             for chunk in r.iter_content():
