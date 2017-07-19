@@ -144,6 +144,7 @@
             <xs:enumeration value="city-council" />
             <xs:enumeration value="combined-precinct" />
             <xs:enumeration value="congressional" />
+            <xs:enumeration value="country" />
             <xs:enumeration value="county" />
             <xs:enumeration value="county-council" />
             <xs:enumeration value="drop-box" />
