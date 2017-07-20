@@ -689,8 +689,8 @@ class CoalitionParties(base.TreeRule):
             if (party_id is None or not party_id.text or
                 not party_id.text.strip()):
                 raise base.ElectionError(
-                    "Line %d. Coalitions must define PartyIDs" %
-                    coalition.sourceline)
+                    "Line %d. Coalition %s must define PartyIDs" %
+                    (coalition.sourceline, coalition.get("objectId", None)))
                     
 class UniqueLabel(base.BaseRule):
     """Labels should be unique within a file.
