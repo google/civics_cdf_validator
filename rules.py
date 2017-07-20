@@ -362,7 +362,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
         if not valid:
             raise base.ElectionError(
                 "Could not successfully download OCD ID data files. "
-                "Please try downloading the file country-us.csv manually and "
+                "Please try downloading the file manually and "
                 "place it in ~/.cache")
         else:
             copyfile("{0}.tmp".format(file_path), file_path)
@@ -679,7 +679,19 @@ class PartisanPrimaryHeuristic(PartisanPrimary):
                         "but is not marked up as such." % (
                             element.sourceline, contest_name.text))
 
+class CoalitionParties(base.TreeRule):
+    """Coaltions should always define the Party IDs."""
 
+    def check(self):
+        coalitions = self.get_elements_by_class(self.election_tree, "Coalition")
+        for coalition in coalitions:
+            party_id = coalition.find("PartyIds")
+            if (party_id is None or not party_id.text or
+                not party_id.text.strip()):
+                raise base.ElectionError(
+                    "Line %d. Coalition %s must define PartyIDs" %
+                    (coalition.sourceline, coalition.get("objectId", None)))
+                    
 class UniqueLabel(base.BaseRule):
     """Labels should be unique within a file.
     """
@@ -755,7 +767,8 @@ _RULES = [
     UniqueLabel,
     PartisanPrimary,
     PartisanPrimaryHeuristic,
-    ReusedCandidate
+    ReusedCandidate,
+    CoalitionParties
 ]
 
 
