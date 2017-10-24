@@ -222,6 +222,8 @@
         </BallotTitle>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
         <Name>President and Vice-President</Name>
+        <SubUnitsReported>21</SubUnitsReported>
+        <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
@@ -307,6 +309,8 @@
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
         <HasRotation>true</HasRotation>
         <Name>Governor</Name>
+        <SubUnitsReported>21</SubUnitsReported>
+        <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
@@ -366,6 +370,8 @@
         </BallotTitle>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
         <Name>Lieutenant Governor</Name>
+        <SubUnitsReported>21</SubUnitsReported>
+        <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
@@ -425,6 +431,8 @@
         </BallotTitle>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
         <Name>Attorney General</Name>
+        <SubUnitsReported>21</SubUnitsReported>
+        <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
@@ -459,6 +467,8 @@
         </BallotTitle>
         <ElectoralDistrictId>ru0150</ElectoralDistrictId>
         <Name>Member House of Delegates</Name>
+        <SubUnitsReported>5</SubUnitsReported>
+        <TotalSubUnits>7</TotalSubUnits>
         <NumberElected>1</NumberElected>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
@@ -493,6 +503,8 @@
         </BallotTitle>
         <ElectoralDistrictId>ru0311</ElectoralDistrictId>
         <Name>Member House of Delegates</Name>
+        <SubUnitsReported>6</SubUnitsReported>
+        <TotalSubUnits>9</TotalSubUnits>
         <NumberElected>1</NumberElected>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
@@ -527,6 +539,8 @@
         </BallotTitle>
         <ElectoralDistrictId>ru0107</ElectoralDistrictId>
         <Name>Member House of Delegates</Name>
+        <SubUnitsReported>2</SubUnitsReported>
+        <TotalSubUnits>2</TotalSubUnits>
         <NumberElected>1</NumberElected>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
@@ -561,6 +575,8 @@
         </BallotTitle>
         <ElectoralDistrictId>ru0076</ElectoralDistrictId>
         <Name>Member House of Delegates</Name>
+        <SubUnitsReported>7</SubUnitsReported>
+        <TotalSubUnits>13</TotalSubUnits>
         <NumberElected>1</NumberElected>
         <PrimaryPartyIds>par0005</PrimaryPartyIds>
         <VotesAllowed>1</VotesAllowed>
@@ -621,6 +637,8 @@
         </BallotTitle>
         <ElectoralDistrictId>ru0103</ElectoralDistrictId>
         <Name>Member Board of Supervisors</Name>
+        <SubUnitsReported>3</SubUnitsReported>
+        <TotalSubUnits>5</TotalSubUnits>
         <NumberElected>1</NumberElected>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
@@ -680,6 +698,8 @@
         </BallotTitle>
         <ElectoralDistrictId>ru0054</ElectoralDistrictId>
         <Name>Member Board of Supervisors</Name>
+        <SubUnitsReported>3</SubUnitsReported>
+        <TotalSubUnits>5</TotalSubUnits>
         <NumberElected>1</NumberElected>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
@@ -739,6 +759,8 @@
         </BallotTitle>
         <ElectoralDistrictId>ru0030</ElectoralDistrictId>
         <Name>Member Board of Supervisors</Name>
+        <SubUnitsReported>4</SubUnitsReported>
+        <TotalSubUnits>4</TotalSubUnits>
         <NumberElected>1</NumberElected>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
@@ -798,6 +820,8 @@
         </BallotTitle>
         <ElectoralDistrictId>ru0081</ElectoralDistrictId>
         <Name>Member Board of Supervisors</Name>
+        <SubUnitsReported>4</SubUnitsReported>
+        <TotalSubUnits>6</TotalSubUnits>
         <NumberElected>1</NumberElected>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
@@ -832,6 +856,8 @@
         </BallotTitle>
         <ElectoralDistrictId>ru0081</ElectoralDistrictId>
         <Name>Member School Board</Name>
+        <SubUnitsReported>4</SubUnitsReported>
+        <TotalSubUnits>6</TotalSubUnits>
         <NumberElected>1</NumberElected>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
@@ -866,6 +892,8 @@
         </BallotTitle>
         <ElectoralDistrictId>ru0030</ElectoralDistrictId>
         <Name>Member School Board</Name>
+        <SubUnitsReported>4</SubUnitsReported>
+        <TotalSubUnits>4</TotalSubUnits>
         <NumberElected>1</NumberElected>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
@@ -900,6 +928,8 @@
         </BallotTitle>
         <ElectoralDistrictId>ru0054</ElectoralDistrictId>
         <Name>Member School Board</Name>
+        <SubUnitsReported>3</SubUnitsReported>
+        <TotalSubUnits>5</TotalSubUnits>
         <NumberElected>1</NumberElected>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
@@ -966,6 +996,8 @@
         </BallotTitle>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
         <Name>Referendum on Virginia</Name>
+        <SubUnitsReported>21</SubUnitsReported>
+        <TotalSubUnits>31</TotalSubUnits>
         <ConStatement label="bmc30001con">
           <Text language="en">This is no good.</Text>
           <Text language="es">Esto no es bueno.</Text>
@@ -1043,6 +1075,8 @@
         </BallotTitle>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
         <Name>Judicial Retention, Supreme Court</Name>
+        <SubUnitsReported>21</SubUnitsReported>
+        <TotalSubUnits>31</TotalSubUnits>
         <CandidateId>can14444</CandidateId>
       </Contest>
     </ContestCollection>
