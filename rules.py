@@ -774,12 +774,15 @@ class ProperBallotSelection(base.BaseRule):
                 self.con_sel_mapping[c])
         for selection in selections:
             selection_tag = self.get_element_class(selection)
+            contest_id = element.get("objectId", None)
+            selection_id = selection.get("objectId", None)
             if (selection_tag != self.con_sel_mapping[tag]):
                 raise base.ElectionError(
-                    "Line %d. The Contest does not contain the right "
-                    "BallotSelections. %s must have a %s but contains a %s" % (
-                        element.sourceline, tag, self.con_sel_mapping[tag],
-                        selection_tag))
+                    "Line %d. The Contest %s does not contain the right "
+                    "BallotSelection. %s must have a %s but contains a "
+                    "%s, %s" % (
+                        element.sourceline, contest_id, tag,
+                        self.con_sel_mapping[tag], selection_tag, selection_id))
 
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
