@@ -749,6 +749,43 @@ class ReusedCandidate(base.TreeRule):
                     " following CandidateSelections :- %s" % (
                         cand_id, ", ".join(cand_select_ids)))
 
+
+class ProperBallotSelection(base.BaseRule):
+    """BallotSelections should be correct for that type of contest.
+    
+    Ensure that the BallotSelection elements in a CandidateContest are 
+    CandidateSelections, PartyContests have PartySelections, etc, etc.
+    """
+    
+    con_sel_mapping = {
+        "BallotMeasureContest":"BallotMeasureSelection",
+        "CandidateContest":"CandidateSelection",
+        "PartyContest":"PartySelection",
+        "RetentionContest":"BallotMeasureSelection"
+    }
+    
+    def elements(self):
+        return self.con_sel_mapping.keys()
+    
+    def check(self, element):
+        tag = self.get_element_class(element)
+        selections = []
+        for c in self.con_sel_mapping.keys():
+            selections += self.get_elements_by_class(element,
+                self.con_sel_mapping[c])
+        for selection in selections:
+            selection_tag = self.get_element_class(selection)
+            contest_id = element.get("objectId", None)
+            selection_id = selection.get("objectId", None)
+            if (selection_tag != self.con_sel_mapping[tag]):
+                raise base.ElectionError(
+                    "Line %d. The Contest %s does not contain the right "
+                    "BallotSelection. %s must have a %s but contains a "
+                    "%s, %s" % (
+                        element.sourceline, contest_id, tag,
+                        self.con_sel_mapping[tag], selection_tag, selection_id))
+
+
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
 _RULES = [
@@ -768,7 +805,8 @@ _RULES = [
     PartisanPrimary,
     PartisanPrimaryHeuristic,
     ReusedCandidate,
-    CoalitionParties
+    CoalitionParties,
+    ProperBallotSelection
 ]
 
 
