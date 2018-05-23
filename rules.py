@@ -730,6 +730,7 @@ class ReusedCandidate(base.TreeRule):
     seen_candidates = {} # mapping of candidates and candidate selections
 
     def check(self):
+        error_log = []
         candidate_selections = self.get_elements_by_class(
             self.election_tree, "CandidateSelection")
         for candidate_selection in candidate_selections:
@@ -743,11 +744,14 @@ class ReusedCandidate(base.TreeRule):
                         candidate_id, []).append(candidate_selection_id)
         for cand_id, cand_select_ids in self.seen_candidates.iteritems():
             if len(cand_select_ids) > 1:
-                raise base.ElectionError(
-                    "A Candidate object should only ever be referenced from one"
-                    " CandidateSelection. Candidate %s is referenced by the"
-                    " following CandidateSelections :- %s" % (
-                        cand_id, ", ".join(cand_select_ids)))
+                error_message = "A Candidate object should only ever be " \
+                    "referenced from one CandidateSelection. Candidate %s is " \
+                    "referenced by the following CandidateSelections :- %s" % (
+                        cand_id, ", ".join(cand_select_ids))
+                error_log.append(base.ErrorLogEntry(None, error_message))
+        if error_log:
+            raise base.ElectionTreeError(
+                "The Election File contains reused Candidates", error_log)
 
 
 class ProperBallotSelection(base.BaseRule):
@@ -786,7 +790,7 @@ class ProperBallotSelection(base.BaseRule):
                         self.con_sel_mapping[tag], selection_tag, selection_id))
 
 
-class NoReusedCandidate(base.TreeRule):
+class CandidateNotReferenced(base.TreeRule):
     """Candidate should have AT LEAST one contest they are referred to.
 
     A Candidate object that has no contests attached to them should be picked up
@@ -844,7 +848,7 @@ _RULES = [
     ReusedCandidate,
     CoalitionParties,
     ProperBallotSelection,
-    NoReusedCandidate
+    CandidateNotReferenced
 ]
 
 
