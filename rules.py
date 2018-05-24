@@ -785,6 +785,75 @@ class ProperBallotSelection(base.BaseRule):
                         element.sourceline, contest_id, tag,
                         self.con_sel_mapping[tag], selection_tag, selection_id))
 
+class DuplicateContestNames(base.TreeRule):
+    """Check that the file contains unique ContestNames.
+	Add Warning if duplicate ContestName found.
+    """
+    names_lines={}
+    error_log = []
+    def check(self):
+        for event, element in etree.iterwalk(
+            self.election_tree):
+            if(element.tag!='Contest'):
+                continue
+            else:
+                name=element.find("Name")
+                if name.text is not None and name.text!="":
+                    self.names_lines.setdefault(name.text,[]).append(name.sourceline)
+        for _name,_lines in self.names_lines.iteritems():
+            if(len(_lines)>1):
+                for line in _lines:
+                    error_message="'{0}' is a duplicate contest name".format(_name)
+                    self.error_log.append(base.ErrorLogEntry(line, error_message))
+        if self.error_log:
+            raise base.ElectionTreeError(
+            "The Election File contains duplicate contest names.", self.error_log)
+
+class CheckIdentifiers(base.TreeRule):
+    """Check that the NIST objects in the feed has an '<ExternalIdentifier>' block.
+	Add error message if the block is missing.
+    """
+    identifier_values={}
+    error_log=[]
+    NIST_objects=('Candidate','Contest','Party')
+    def check(self):
+        for event, element in etree.iterwalk(
+            self.election_tree):
+            if element.tag not in self.NIST_objects:
+                continue
+            else:
+                NIST_obj=element.tag
+                object_id=element.get('objectId')
+                ExternalIdentifiers=element.find("ExternalIdentifiers")
+                if ExternalIdentifiers is None:
+                    error_message="Missing <ExternalIdentifiers> tag/block in {0} with ID {1}.".format(NIST_obj,object_id)
+                    self.error_log.append(base.ErrorLogEntry(
+                            element.sourceline, error_message))
+                else:
+                    Identifier=ExternalIdentifiers.find("ExternalIdentifier")
+                    if Identifier is None:
+                        error_message="Missing <ExternalIdentifier> tag/block in {0} with ID {1}.".format(NIST_obj,object_id)
+                        self.error_log.append(base.ErrorLogEntry(ExternalIdentifiers.sourceline, error_message))
+                    else:
+                        Type=Identifier.find("Type")
+                        OtherType=Identifier.find("OtherType")
+                        Value=Identifier.find("Value")
+                        if Value is None or Value.text is None:
+                            error_message="Missing <Value> tag/block and its value in {0} with ID {1}".format(NIST_obj,object_id)
+                            self.error_log.append(base.ErrorLogEntry(Identifier.sourceline, error_message))
+                        else:
+                            if Value.text != object_id:
+                                error_message="{0} ObjectId and <Value> {1} Mismatched. Should be same in {2}.".format(object_id,Value.text,NIST_obj)
+                                self.error_log.append(base.ErrorLogEntry(Value.sourceline, error_message))
+                            self.identifier_values.setdefault(Value.text,[]).append(Value.sourceline)
+        for _id,_lines in self.identifier_values.iteritems():
+            if(len(_lines)>1):
+            for line in _lines:
+                error_message="'{0}' is a duplicate Identifier Value".format(_id)
+                self.error_log.append(base.ErrorLogEntry(line, error_message))
+        if self.error_log:
+            raise base.ElectionTreeError(
+            "The Election File contains duplicate contest names.", self.error_log)
 
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
@@ -806,7 +875,9 @@ _RULES = [
     PartisanPrimaryHeuristic,
     ReusedCandidate,
     CoalitionParties,
-    ProperBallotSelection
+    ProperBallotSelection,
+    CheckIdentifiers,
+    DuplicateContestNames
 ]
 
 
