@@ -246,8 +246,11 @@ class RulesRegistry(SchemaHandler):
                     for exception in self.exceptions[e_type][rule_class]:
                         if exception.error_log:
                             for error in exception.error_log:
-                                print " "*14+"Line {0}: {1}".format(
-                                    error.line, error.message)
+                                if error.line is not None:
+                                    print " "*14+"Line {0}: {1}".format(
+                                        error.line, error.message)
+                                else:
+                                    print " "*14+"{0}".format(error.message)
                         else:
                             print " "*14+"{0}".format(exception)
 

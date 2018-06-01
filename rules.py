@@ -730,6 +730,7 @@ class ReusedCandidate(base.TreeRule):
     seen_candidates = {} # mapping of candidates and candidate selections
 
     def check(self):
+        error_log = []
         candidate_selections = self.get_elements_by_class(
             self.election_tree, "CandidateSelection")
         for candidate_selection in candidate_selections:
@@ -743,11 +744,14 @@ class ReusedCandidate(base.TreeRule):
                         candidate_id, []).append(candidate_selection_id)
         for cand_id, cand_select_ids in self.seen_candidates.iteritems():
             if len(cand_select_ids) > 1:
-                raise base.ElectionError(
-                    "A Candidate object should only ever be referenced from one"
-                    " CandidateSelection. Candidate %s is referenced by the"
-                    " following CandidateSelections :- %s" % (
-                        cand_id, ", ".join(cand_select_ids)))
+                error_message = "A Candidate object should only ever be " \
+                    "referenced from one CandidateSelection. Candidate %s is " \
+                    "referenced by the following CandidateSelections :- %s" % (
+                        cand_id, ", ".join(cand_select_ids))
+                error_log.append(base.ErrorLogEntry(None, error_message))
+        if error_log:
+            raise base.ElectionTreeError(
+                "The Election File contains reused Candidates", error_log)
 
 
 class ProperBallotSelection(base.BaseRule):
@@ -786,6 +790,43 @@ class ProperBallotSelection(base.BaseRule):
                         self.con_sel_mapping[tag], selection_tag, selection_id))
 
 
+class CandidateNotReferenced(base.TreeRule):
+    """Candidate should have AT LEAST one contest they are referred to.
+
+    A Candidate object that has no contests attached to them should be picked up
+    within this class and returned to the user as an error."""
+    
+    cand_to_cand_selection = {} # mapping of candidates to cand_selection
+    
+    def check(self):
+        error_log = []
+        candidates = self.get_elements_by_class(self.election_tree, "Candidate")
+        for candidate in candidates:
+            cand_id = candidate.get("objectId", None)
+            self.cand_to_cand_selection[cand_id] = []
+            
+        candidate_selections = self.get_elements_by_class(
+            self.election_tree, "CandidateSelection")
+        for candidate_selection in candidate_selections:
+            candidate_selection_id = candidate_selection.get("objectId", None)
+            candidate_ids = candidate_selection.find("CandidateIds")
+            if candidate_ids is None or candidate_selection_id is None:
+                break
+            for candidate_id in candidate_ids.text.split():
+                    self.cand_to_cand_selection.setdefault(
+                        candidate_id, []).append(candidate_selection_id)
+                    
+        for cand_id, cand_select_ids in self.cand_to_cand_selection.iteritems():
+            if len(cand_select_ids) == 0:
+                error_message = "A Candidate object should be referenced from one" \
+                    " CandidateSelection. Candidate {0} is not referenced by any" \
+                    " CandidateSelections".format(cand_id)
+                error_log.append(base.ErrorLogEntry(
+                    None, error_message))
+        if error_log:
+            raise base.ElectionTreeError(
+                "The Election File contains unreferenced Candidates", error_log)
+                
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
 _RULES = [
@@ -806,7 +847,8 @@ _RULES = [
     PartisanPrimaryHeuristic,
     ReusedCandidate,
     CoalitionParties,
-    ProperBallotSelection
+    ProperBallotSelection,
+    CandidateNotReferenced
 ]
 
 
