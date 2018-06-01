@@ -60,8 +60,11 @@ def validate_severity(parser, arg):
 
 
 def validate_country_codes(parser, arg):
-    """Check that the supplied 2 country code is correct."""
-    country_codes = ["us", "de"]
+    """Check that the supplied 2 country code is correct.
+
+    The repo is at https://github.com/opencivicdata/ocd-division-ids
+    """
+    country_codes = ["au", "ca", "cl", "de", "fi", "in", "nz", "mx", "ua", "us"]
     if arg.strip().lower() not in country_codes:
         parser.error("Invalid country code. Available codes are: %s" %
             ", ".join(country_codes))
