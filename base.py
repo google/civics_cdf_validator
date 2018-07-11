@@ -16,6 +16,7 @@ limitations under the License.
 
 from lxml import etree
 
+
 class ElectionException(Exception):
     """Base class for all the errors in this script."""
     error_message = None
@@ -74,7 +75,6 @@ class SchemaHandler(object):
     _XSCHEMA_INSTANCE_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
     _TYPE_ATTRIB = "{%s}type" % (_XSCHEMA_INSTANCE_NAMESPACE)
 
-
     def get_element_class(self, element):
         """Return the class of the element"""
         if element is None:
@@ -102,6 +102,7 @@ class SchemaHandler(object):
             ".//*[@xsi:type ='%s']" % (element_name),
             namespaces={"xsi": self._XSCHEMA_INSTANCE_NAMESPACE})
         return elements
+
 
 class BaseRule(SchemaHandler):
     """Base class for rules."""
@@ -131,8 +132,8 @@ class BaseRule(SchemaHandler):
 
     def setup(self):
         """Perform any rule specific setup before checking."""
-        
-        
+
+
 class TreeRule(BaseRule):
     """Rule that checks entire tree."""
 
@@ -142,6 +143,7 @@ class TreeRule(BaseRule):
     def check(self):
         """Checks entire tree"""
 
+
 class RuleOption(object):
     class_name = None
     option_name = None
@@ -150,6 +152,7 @@ class RuleOption(object):
     def __init__(self, option_name, option_value):
         self.option_name = option_name
         self.option_value = option_value
+
 
 class RulesRegistry(SchemaHandler):
     """Registry of rules and the elements they check"""
@@ -247,12 +250,12 @@ class RulesRegistry(SchemaHandler):
                         if exception.error_log:
                             for error in exception.error_log:
                                 if error.line is not None:
-                                    print " "*14+"Line {0}: {1}".format(
+                                    print " " * 14 + "Line {0}: {1}".format(
                                         error.line, error.message)
                                 else:
-                                    print " "*14+"{0}".format(error.message)
+                                    print " " * 14 + "{0}".format(error.message)
                         else:
-                            print " "*14+"{0}".format(exception)
+                            print " " * 14 + "{0}".format(exception)
 
     def check_rules(self):
         """Checks all rules.
@@ -288,4 +291,3 @@ class RulesRegistry(SchemaHandler):
             return 0
         else:
             return 1
-

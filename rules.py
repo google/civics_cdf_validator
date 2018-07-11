@@ -67,7 +67,7 @@ def validate_country_codes(parser, arg):
     country_codes = ["au", "ca", "cl", "de", "fi", "in", "nz", "mx", "ua", "us"]
     if arg.strip().lower() not in country_codes:
         parser.error("Invalid country code. Available codes are: %s" %
-            ", ".join(country_codes))
+                     ", ".join(country_codes))
     else:
         return arg.strip().lower()
 
@@ -108,7 +108,7 @@ def arg_parser():
         action="store_true", required=False)
     parser_validate.add_argument(
         "-c", help="Two letter country code for OCD IDs.", metavar="country",
-        type=lambda x: validate_country_codes(parser, x), required=False, 
+        type=lambda x: validate_country_codes(parser, x), required=False,
         default="us")
     subparsers.add_parser("list")
     return parser
@@ -162,6 +162,7 @@ class OptionalAndEmpty(base.BaseRule):
             raise base.ElectionWarning(
                 "Line %d. %s optional element included although it "
                 "is empty" % (element.sourceline, element.tag))
+
 
 class Encoding(base.TreeRule):
     """Checks that the file provided uses UTF-8 encoding."""
@@ -240,13 +241,14 @@ class EmptyText(base.BaseRule):
     def check(self, element):
         if element.text is not None and element.text.strip() == "":
             raise base.ElectionWarning(
-                "Line %d. %s is empty"% (
+                "Line %d. %s is empty" % (
                     element.sourceline, element.tag))
 
 
 class DuplicateID(base.TreeRule):
     """Check that the file does not contain duplicate object IDs
     """
+
     def check(self):
         all_object_ids = set()
         error_log = []
@@ -309,6 +311,7 @@ class ValidIDREF(base.BaseRule):
                     raise base.ElectionError(
                         "Line %d. %s is not a valid IDREF." % (
                             element.sourceline, id_ref))
+
 
 class ElectoralDistrictOcdId(base.BaseRule):
     """GpUnit refered to by Contest.ElectoralDistrictId MUST have a valid OCD-ID.
@@ -377,7 +380,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
         file_sha1 = hashlib.sha1()
         ocd_id_codes = set()
         file_info = os.stat(file_path)
-        #github calculates the blob sha like this
+        # github calculates the blob sha like this
         #sha1("blob "+filesize+"\0"+data)
         file_sha1.update(b"blob %d\0" % file_info.st_size)
         with io.open(file_path, mode="rb") as fd:
@@ -437,8 +440,8 @@ class ElectoralDistrictOcdId(base.BaseRule):
                             continue
                         if value.text in self.ocds:
                             valid_ocd_id = True
-                    if (id_type is not None and id_type.text != "ocd-id" and 
-                        id_type.text.lower() == "ocd-id"):
+                    if (id_type is not None and id_type.text != "ocd-id" and
+                            id_type.text.lower() == "ocd-id"):
                         raise base.ElectionError(
                             "Line %d. The External Identifier case is incorrect"
                             ". Should be ocd-id and not %s" % (
@@ -452,9 +455,9 @@ class ElectoralDistrictOcdId(base.BaseRule):
         if referenced_gpunit is not None and not external_ids:
             raise base.ElectionError(
                 "Line %d. The GpUnit %s on line %d referenced by contest %s "
-                "does not have any external identifiers" % 
-                    (element.sourceline, element.text,
-                    referenced_gpunit.sourceline, contest_id))
+                "does not have any external identifiers" %
+                (element.sourceline, element.text,
+                 referenced_gpunit.sourceline, contest_id))
         if not valid_ocd_id and referenced_gpunit is not None:
             raise base.ElectionError(
                 "Line %d. The ElectoralDistrictId element for contest %s "
@@ -633,14 +636,14 @@ class PartisanPrimary(base.BaseRule):
 
     def __init__(self, election_tree, schema_file):
         super(PartisanPrimary, self).__init__(election_tree, schema_file)
-        #There can only be one election element in a file
+        # There can only be one election element in a file
         election_elem = self.election_tree.find("Election")
         election_type_elem = election_elem.find("Type")
         if election_type_elem is not None:
             self.election_type = election_type_elem.text.strip()
 
     def elements(self):
-        #only check contest elements if this is a partisan election
+        # only check contest elements if this is a partisan election
         if self.election_type and self.election_type in (
                 "primary", "partisan-primary-open", "partisan-primary-closed"):
             return ["CandidateContest"]
@@ -660,7 +663,7 @@ class PartisanPrimary(base.BaseRule):
 class PartisanPrimaryHeuristic(PartisanPrimary):
     """Attempts to identify partisan primaries not marked up as such.
     """
-    #add other strings that imply this is a primary contest
+    # add other strings that imply this is a primary contest
     party_text = ["(dem)", "(rep)", "(lib)"]
 
     def elements(self):
@@ -682,6 +685,7 @@ class PartisanPrimaryHeuristic(PartisanPrimary):
                         "but is not marked up as such." % (
                             element.sourceline, contest_name.text))
 
+
 class CoalitionParties(base.TreeRule):
     """Coaltions should always define the Party IDs."""
 
@@ -690,11 +694,12 @@ class CoalitionParties(base.TreeRule):
         for coalition in coalitions:
             party_id = coalition.find("PartyIds")
             if (party_id is None or not party_id.text or
-                not party_id.text.strip()):
+                    not party_id.text.strip()):
                 raise base.ElectionError(
                     "Line %d. Coalition %s must define PartyIDs" %
                     (coalition.sourceline, coalition.get("objectId", None)))
-                    
+
+
 class UniqueLabel(base.BaseRule):
     """Labels should be unique within a file.
     """
@@ -730,7 +735,7 @@ class ReusedCandidate(base.TreeRule):
     Person is running in multiple Contests, then that Person is a Candidate
     several times over, but a Candida(te|cy) can't span contests.
     """
-    seen_candidates = {} # mapping of candidates and candidate selections
+    seen_candidates = {}  # mapping of candidates and candidate selections
 
     def check(self):
         error_log = []
@@ -759,27 +764,27 @@ class ReusedCandidate(base.TreeRule):
 
 class ProperBallotSelection(base.BaseRule):
     """BallotSelections should be correct for that type of contest.
-    
+
     Ensure that the BallotSelection elements in a CandidateContest are 
     CandidateSelections, PartyContests have PartySelections, etc, etc.
     """
-    
+
     con_sel_mapping = {
-        "BallotMeasureContest":"BallotMeasureSelection",
-        "CandidateContest":"CandidateSelection",
-        "PartyContest":"PartySelection",
-        "RetentionContest":"BallotMeasureSelection"
+        "BallotMeasureContest": "BallotMeasureSelection",
+        "CandidateContest": "CandidateSelection",
+        "PartyContest": "PartySelection",
+        "RetentionContest": "BallotMeasureSelection"
     }
-    
+
     def elements(self):
         return self.con_sel_mapping.keys()
-    
+
     def check(self, element):
         tag = self.get_element_class(element)
         selections = []
         for c in self.con_sel_mapping.keys():
             selections += self.get_elements_by_class(element,
-                self.con_sel_mapping[c])
+                                                     self.con_sel_mapping[c])
         for selection in selections:
             selection_tag = self.get_element_class(selection)
             contest_id = element.get("objectId", None)
@@ -798,16 +803,16 @@ class CandidateNotReferenced(base.TreeRule):
 
     A Candidate object that has no contests attached to them should be picked up
     within this class and returned to the user as an error."""
-    
-    cand_to_cand_selection = {} # mapping of candidates to cand_selection
-    
+
+    cand_to_cand_selection = {}  # mapping of candidates to cand_selection
+
     def check(self):
         error_log = []
         candidates = self.get_elements_by_class(self.election_tree, "Candidate")
         for candidate in candidates:
             cand_id = candidate.get("objectId", None)
             self.cand_to_cand_selection[cand_id] = []
-            
+
         candidate_selections = self.get_elements_by_class(
             self.election_tree, "CandidateSelection")
         for candidate_selection in candidate_selections:
@@ -816,9 +821,9 @@ class CandidateNotReferenced(base.TreeRule):
             if candidate_ids is None or candidate_selection_id is None:
                 break
             for candidate_id in candidate_ids.text.split():
-                    self.cand_to_cand_selection.setdefault(
-                        candidate_id, []).append(candidate_selection_id)
-                    
+                self.cand_to_cand_selection.setdefault(
+                    candidate_id, []).append(candidate_selection_id)
+
         for cand_id, cand_select_ids in self.cand_to_cand_selection.iteritems():
             if len(cand_select_ids) == 0:
                 error_message = "A Candidate object should be referenced from one" \
@@ -829,7 +834,8 @@ class CandidateNotReferenced(base.TreeRule):
         if error_log:
             raise base.ElectionTreeError(
                 "The Election File contains unreferenced Candidates", error_log)
-                
+
+
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
 _RULES = [
@@ -893,6 +899,7 @@ def main():
         registry.print_exceptions(options.severity, options.verbose)
         # TODO other error codes?
         return found_errors
+
 
 if __name__ == "__main__":
     main()
