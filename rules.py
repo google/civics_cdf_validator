@@ -867,6 +867,51 @@ class DuplicateContestNames(base.TreeRule):
                 "The Election File contains duplicate contest names.", error_log)
 
 
+class CheckIdentifiers(base.TreeRule):
+    """Check that the NIST objects in the feed has an '<ExternalIdentifier>' block.
+        Add error message if the block is missing."""
+
+    def check(self):
+        identifier_values = {}
+        error_log = []
+        nist_objects = ("Candidate", "Contest", "Party")
+        for event, element in etree.iterwalk(self.election_tree):
+            nist_obj = self.strip_schema_ns(element)
+            if nist_obj not in nist_objects:
+                continue
+            object_id = element.get("objectId")
+            external_identifiers = element.find("ExternalIdentifiers")
+            if external_identifiers is None:
+                error_message = "{0} {1} is missing a stable ExternalIdentifier".format(
+                    nist_obj, object_id)
+                error_log.append(base.ErrorLogEntry(
+                    element.sourceline, error_message))
+                continue
+            identifier = external_identifiers.find("ExternalIdentifier")
+            if identifier is None:
+                error_message = "{0} {1} is missing a stable ExternalIdentifier".format(
+                    nist_obj, object_id)
+                error_log.append(base.ErrorLogEntry(
+                    element.sourceline, error_message))
+                continue
+            value = identifier.find("Value")
+            if value is None or not value.text:
+                error_message = "{0} {1} is missing a stable ExternalIdentifier".format(
+                    nist_obj, object_id)
+                error_log.append(base.ErrorLogEntry(
+                    element.sourceline, error_message))
+                continue
+            identifier_values.setdefault(value.text, []).append(object_id)
+        for value_text, obj_ids in identifier_values.iteritems():
+            if len(obj_ids) > 1:
+                error_message = "Stable ExternalIdentifier '{0}' is a used for following {1} objectIds: {2}".format(
+                                value_text, len(obj_ids), ", ".join(obj_ids))
+                error_log.append(base.ErrorLogEntry(None, error_message))
+        if error_log:
+            raise base.ElectionTreeError(
+                "The Election File has following issues with the identifiers.", error_log)
+
+
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
 _RULES = [
@@ -889,6 +934,7 @@ _RULES = [
     CoalitionParties,
     ProperBallotSelection,
     CandidateNotReferenced,
+    CheckIdentifiers,
     DuplicateContestNames
 ]
 
