@@ -835,6 +835,37 @@ class CandidateNotReferenced(base.TreeRule):
             raise base.ElectionTreeError(
                 "The Election File contains unreferenced Candidates", error_log)
 
+class DuplicateContestNames(base.TreeRule):
+    """Check that the file contains unique ContestNames.
+        Add Warning if duplicate ContestName found."""
+
+    def check(self):
+        name_contest_id = {}  # Mapping for <Name> and its Contest ObjectId.
+        error_log = []
+        for event, element in etree.iterwalk(self.election_tree):
+            tag = self.strip_schema_ns(element)
+            if tag != "Contest":
+                continue
+            object_id = element.get("objectId", None)
+            name = element.find("Name")
+            if name is None or not name.text:
+                error_message = "Contest {0} is missing a <Name> ".format(
+                    object_id)
+                error_log.append(base.ErrorLogEntry(
+                    element.sourceline, error_message))
+                continue
+            name_contest_id.setdefault(name.text, []).append(object_id)
+            """Add names and its objectId as key and list of values.
+		Ideally 1 objectId. If duplicates are found, then list of multiple objectIds."""
+        for name, contests in name_contest_id.iteritems():
+            if len(contests) > 1:
+                error_message = ("Contest name '{0}' appears in following {1} contests: {2}".format(
+                    name, len(contests), ", ".join(contests)))
+                error_log.append(base.ErrorLogEntry(None, error_message))
+        if error_log:
+            raise base.ElectionTreeError(
+                "The Election File contains duplicate contest names.", error_log)
+
 
 class CheckIdentifiers(base.TreeRule):
     """Check that the NIST objects in the feed has an '<ExternalIdentifier>' block.
@@ -903,7 +934,8 @@ _RULES = [
     CoalitionParties,
     ProperBallotSelection,
     CandidateNotReferenced,
-    CheckIdentifiers
+    CheckIdentifiers,
+    DuplicateContestNames
 ]
 
 
