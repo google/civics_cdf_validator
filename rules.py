@@ -911,28 +911,6 @@ class CheckIdentifiers(base.TreeRule):
             raise base.ElectionTreeError(
                 "The Election File has following issues with the identifiers.", error_log)
 
-class CandidatesMissingPartyData(base.TreeRule):
-    """Each Candidate should have party data associated with them.
-
-    A Candidate object that has no PartyId attached to them should be picked up
-    within this class and returned to the user as a warning."""
-
-    def check(self):
-        error_ids = []
-        party_ids = self.get_elements_by_class(self.election_tree, "Party")
-        all_party_ids = [par.get("objectId")
-                         for par in party_ids if par.get("objectId")]
-
-        candidates = self.get_elements_by_class(self.election_tree, "Candidate")
-        candidate_to_party_id = {cand.get("objectId"): cand.find(
-            "PartyId").text for cand in candidates if cand.get("objectId")}
-
-        for cand, party_id in candidate_to_party_id.iteritems():
-            if not party_id or party_id not in all_party_ids:
-            	error_ids.append(cand)
-        if error_ids:
-            raise base.ElectionWarning(
-                "Following are the Candidates missing party data: " + ", ".join(error_ids))
 
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
@@ -957,8 +935,7 @@ _RULES = [
     ProperBallotSelection,
     CandidateNotReferenced,
     CheckIdentifiers,
-    DuplicateContestNames,
-    CandidatesMissingPartyData
+    DuplicateContestNames
 ]
 
 
