@@ -911,6 +911,38 @@ class CheckIdentifiers(base.TreeRule):
             raise base.ElectionTreeError(
                 "The Election File has following issues with the identifiers.", error_log)
 
+class AllCaps(base.TreeRule):
+    """The Name elements in Candidates, Contests and Person elements should not be in all uppercase.
+
+    If the name elements in Candidates, Contests and Person elements are in uppercase, 
+    the list of bojectIds of those elements will be returned to the user as a warning."""
+
+    def check(self):
+        warning_ids = []
+        candidates = self.get_elements_by_class(self.election_tree, "Candidate")
+        contests = self.get_elements_by_class(
+            self.election_tree, "CandidateContest")
+        person = self.get_elements_by_class(self.election_tree, "Person")
+        for candidate in candidates:
+            ballot_name = candidate.find("BallotName")
+            if ballot_name.find("Text") is not None:
+                name = ballot_name.find("Text").text
+                if name is not None and name == name.upper():
+                    warning_ids.append(candidate.get("objectId"))
+        for contest in contests:
+            name = contest.find("Name")
+            if name is not None and name.text:
+                if name.text == name.text.upper():
+                    warning_ids.append(contest.get("objectId"))
+        for per in person:
+            full_name = per.find("FullName")
+            if full_name.find("Text") is not None:
+                name = full_name.find("Text").text
+                if name and name == name.upper():
+                    warning_ids.append(per.get("objectId"))
+        if warning_ids:
+            raise base.ElectionWarning(
+                "Following are the elements with names in all upper case: " + ", ".join(warning_ids))
 
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
@@ -935,7 +967,8 @@ _RULES = [
     ProperBallotSelection,
     CandidateNotReferenced,
     CheckIdentifiers,
-    DuplicateContestNames
+    DuplicateContestNames,
+    AllCaps
 ]
 
 
