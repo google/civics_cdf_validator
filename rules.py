@@ -911,22 +911,27 @@ class CheckIdentifiers(base.TreeRule):
             raise base.ElectionTreeError(
                 "The Election File has following issues with the identifiers.", error_log)
 
-class CandidatesMissingPartyData(base.TreeRule):
+class CandidatesMissingPartyData(base.BaseRule):
     """Each Candidate should have party data associated with them.
 
     A Candidate object that has no PartyId attached to them should be picked up
     within this class and returned to the user as a warning."""
 
-    def check(self):
-        error_ids = []
-        candidates = self.get_elements_by_class(self.election_tree, "Candidate")
-        for candidate in candidates:
-            party_id = candidate.find("PartyId")
-            if party_id is None or not party_id.text:
-                error_ids.append(candidate.get("objectId"))
-        if error_ids:
+    def elements(self):
+        schema_tree = etree.parse(self.schema_file)
+        eligible_elements = []
+        for event, element in etree.iterwalk(schema_tree):
+            tag = self.strip_schema_ns(element)
+            if tag and tag == "complexType" and element.get("name") == "Candidate":
+                eligible_elements.append(element.get("name"))
+        return eligible_elements
+
+    def check(self, element):
+        party_id = element.find("PartyId")
+        if party_id is None or not party_id.text:
             raise base.ElectionWarning(
-                "Following are the Candidates missing party data: " + ", ".join(error_ids))
+                "Line %d. Candidate %s is missing party data" % (
+                    element.sourceline, element.get("objectId")))
 
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
