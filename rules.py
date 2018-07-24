@@ -919,15 +919,11 @@ class CandidatesMissingPartyData(base.TreeRule):
 
     def check(self):
         error_ids = []
-        party_ids = self.get_elements_by_class(self.election_tree, "Party")
-        all_party_ids = [par.get("objectId")
-                         for par in party_ids if par.get("objectId")]
         candidates = self.get_elements_by_class(self.election_tree, "Candidate")
-        candidate_to_party_id = {cand.get("objectId"): cand.find(
-            "PartyId").text for cand in candidates if cand.get("objectId")}
-        for cand, party_id in candidate_to_party_id.iteritems():
-            if not party_id or party_id not in all_party_ids:
-                error_ids.append(cand)
+        for candidate in candidates:
+            party_id = candidate.find("PartyId")
+            if party_id is None or not party_id.text:
+                error_ids.append(candidate.get("objectId"))
         if error_ids:
             raise base.ElectionWarning(
                 "Following are the Candidates missing party data: " + ", ".join(error_ids))
