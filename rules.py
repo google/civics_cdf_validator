@@ -918,20 +918,13 @@ class CandidatesMissingPartyData(base.BaseRule):
     within this class and returned to the user as a warning."""
 
     def elements(self):
-        schema_tree = etree.parse(self.schema_file)
-        eligible_elements = []
-        for event, element in etree.iterwalk(schema_tree):
-            tag = self.strip_schema_ns(element)
-            if tag and tag == "complexType" and element.get("name") == "Candidate":
-                eligible_elements.append(element.get("name"))
-        return eligible_elements
+        return ["Candidate"]
 
     def check(self, element):
         party_id = element.find("PartyId")
         if party_id is None or not party_id.text:
-            raise base.ElectionWarning(
-                "Line %d. Candidate %s is missing party data" % (
-                    element.sourceline, element.get("objectId")))
+            raise base.ElectionWarning("Line %d: Candidate %s is missing party data" % (
+                element.sourceline, element.get("objectId")))
 
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
