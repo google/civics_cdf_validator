@@ -916,17 +916,10 @@ class AllCaps(base.BaseRule):
     """The Name elements in Candidates, Contests and Person elements should not be in all uppercase.
 
     If the name elements in Candidates, Contests and Person elements are in uppercase, 
-    the list of bojectIds of those elements will be returned to the user as a warning."""
+    the list of objectIds of those elements will be returned to the user as a warning."""
 
     def elements(self):
-        schema_tree = etree.parse(self.schema_file)
-        required_elements = ["Candidate", "CandidateContest", "Person"]
-        eligible_elements = []
-        for event, element in etree.iterwalk(schema_tree):
-            tag = self.strip_schema_ns(element)
-            if tag and tag == "complexType" and element.get("name") in required_elements:
-                eligible_elements.append(element.get("name"))
-        return eligible_elements
+        return ["Candidate", "CandidateContest", "Person"]
 
     def check(self, element):
         object_id = element.get("objectId")
