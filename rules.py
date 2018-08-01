@@ -911,6 +911,20 @@ class CheckIdentifiers(base.TreeRule):
             raise base.ElectionTreeError(
                 "The Election File has following issues with the identifiers.", error_log)
 
+class CandidatesMissingPartyData(base.BaseRule):
+    """Each Candidate should have party data associated with them.
+
+    A Candidate object that has no PartyId attached to them should be picked up
+    within this class and returned to the user as a warning."""
+
+    def elements(self):
+        return ["Candidate"]
+
+    def check(self, element):
+        party_id = element.find("PartyId")
+        if party_id is None or not party_id.text:
+            raise base.ElectionWarning("Line %d: Candidate %s is missing party data" % (
+                element.sourceline, element.get("objectId")))
 
 class AllCaps(base.BaseRule):
     """The Name elements in Candidates, Contests and Person elements should not be in all uppercase.
@@ -970,6 +984,7 @@ _RULES = [
     CandidateNotReferenced,
     CheckIdentifiers,
     DuplicateContestNames,
+    CandidatesMissingPartyData,
     AllCaps
 ]
 
