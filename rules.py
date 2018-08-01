@@ -926,6 +926,40 @@ class CandidatesMissingPartyData(base.BaseRule):
             raise base.ElectionWarning("Line %d: Candidate %s is missing party data" % (
                 element.sourceline, element.get("objectId")))
 
+class AllCaps(base.BaseRule):
+    """The Name elements in Candidates, Contests and Person elements should not be in all uppercase.
+
+    If the name elements in Candidates, Contests and Person elements are in uppercase, 
+    the list of objectIds of those elements will be returned to the user as a warning."""
+
+    def elements(self):
+        return ["Candidate", "CandidateContest", "Person"]
+
+    def check(self, element):
+        object_id = element.get("objectId")
+        if element.tag == "Candidate":
+            ballot_name = element.find("BallotName")
+            if ballot_name.find("Text") is not None:
+                name = ballot_name.find("Text").text
+                if name is not None and name == name.upper():
+                    raise base.ElectionWarning("Line %d. Candidate %s has name in all upper case letters." % (
+                        element.sourceline, object_id))
+        elif element.tag == "Contest":
+            name_element = element.find("Name")
+            if name_element is not None:
+                name = name_element.text
+                if name is not None and name == name.upper():
+                    raise base.ElectionWarning("Line %d. Contest %s has name in all upper case letters." % (
+                        element.sourceline, object_id))
+        else:
+            full_name = element.find("FullName")
+            if full_name.find("Text") is not None:
+                name = full_name.find("Text").text
+                if name is not None and name == name.upper():
+                    raise base.ElectionWarning("Line %d. Person %s has name in all upper case letters." % (
+                        element.sourceline, object_id))
+
+
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
 _RULES = [
@@ -950,7 +984,8 @@ _RULES = [
     CandidateNotReferenced,
     CheckIdentifiers,
     DuplicateContestNames,
-    CandidatesMissingPartyData
+    CandidatesMissingPartyData,
+    AllCaps
 ]
 
 
