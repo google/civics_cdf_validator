@@ -911,6 +911,20 @@ class CheckIdentifiers(base.TreeRule):
             raise base.ElectionTreeError(
                 "The Election File has following issues with the identifiers.", error_log)
 
+class CandidatesMissingPartyData(base.BaseRule):
+    """Each Candidate should have party data associated with them.
+
+    A Candidate object that has no PartyId attached to them should be picked up
+    within this class and returned to the user as a warning."""
+
+    def elements(self):
+        return ["Candidate"]
+
+    def check(self, element):
+        party_id = element.find("PartyId")
+        if party_id is None or not party_id.text:
+            raise base.ElectionWarning("Line %d: Candidate %s is missing party data" % (
+                element.sourceline, element.get("objectId")))
 
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
@@ -935,7 +949,8 @@ _RULES = [
     ProperBallotSelection,
     CandidateNotReferenced,
     CheckIdentifiers,
-    DuplicateContestNames
+    DuplicateContestNames,
+    CandidatesMissingPartyData
 ]
 
 
