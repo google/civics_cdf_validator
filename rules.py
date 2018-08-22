@@ -86,6 +86,9 @@ def arg_parser():
     parser_validate.add_argument(
         "election_file", help="XML election file to be validated",
         metavar="election_file", type=lambda x: validate_file(parser, x))
+    parser_validate.add_argument(
+        "-l", "--lf", help="Local ocd-id csv file path", required=False,
+        metavar="csv_file", type=lambda x: validate_file(parser, x))
     group = parser_validate.add_mutually_exclusive_group(required=False)
     group.add_argument(
         "-i", help="Comma separated list of rules to be validated.",
@@ -324,6 +327,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
     check_github = True
     github_repo = None
     github_file = None
+    local_file = None
     country_code = None
 
     def __init__(self, election_tree, schema_file):
@@ -334,8 +338,11 @@ class ElectoralDistrictOcdId(base.BaseRule):
 
     def setup(self):
         g = Github()
-        self.github_file = "country-%s.csv" % self.country_code
-        self.github_repo = g.get_repo(self.GITHUB_REPO)
+        if self.local_file:
+            self.github_file = self.local_file
+        else:
+            self.github_file = "country-%s.csv" % self.country_code
+            self.github_repo = g.get_repo(self.GITHUB_REPO)
         self.ocds = self._get_ocd_data()
 
     def _get_latest_commit_date(self):
@@ -396,19 +403,22 @@ class ElectoralDistrictOcdId(base.BaseRule):
 
     def _get_ocd_data(self):
         """Checks if OCD file is in ~/cache, downloads it if not."""
-        cache_directory = os.path.expanduser(self.CACHE_DIR)
-        countries_file = "{0}/{1}".format(cache_directory, self.github_file)
-        if not os.path.exists(countries_file):
-            if not os.path.exists(cache_directory):
-                os.makedirs(cache_directory)
-            self._download_data(countries_file)
+        if self.local_file:
+            countries_file = self.local_file
         else:
-            if self.check_github:
-                last_mod_date = datetime.fromtimestamp(
-                    os.path.getmtime(countries_file))
-                latest_github_commit_date = self._get_latest_commit_date()
-                if last_mod_date < latest_github_commit_date:
-                    self._download_data(countries_file)
+            cache_directory = os.path.expanduser(self.CACHE_DIR)
+            countries_file = "{0}/{1}".format(cache_directory, self.github_file)
+            if not os.path.exists(countries_file):
+                if not os.path.exists(cache_directory):
+                    os.makedirs(cache_directory)
+                self._download_data(countries_file)
+            else:
+                if self.check_github:
+                    last_mod_date = datetime.fromtimestamp(
+                        os.path.getmtime(countries_file))
+                    latest_github_commit_date = self._get_latest_commit_date()
+                    if last_mod_date < latest_github_commit_date:
+                        self._download_data(countries_file)
         ocd_id_codes = set()
         with io.open(countries_file, mode="rb") as fd:
             for line in fd:
@@ -967,6 +977,11 @@ def main():
                 base.RuleOption("country_code", options.c))
             rule_options.setdefault("GpUnitOcdId", []).append(
                 base.RuleOption("country_code", options.c))
+        if options.lf:
+            rule_options.setdefault("ElectoralDistrictOcdId", []).append(
+                base.RuleOption("local_file", options.lf))
+            rule_options.setdefault("GpUnitOcdId", []).append(
+                base.RuleOption("local_file", options.lf))
         rule_classes_to_check = [x for x in _RULES
                                  if x.__name__ in rules_to_check]
         registry = base.RulesRegistry(
