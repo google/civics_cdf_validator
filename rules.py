@@ -64,7 +64,7 @@ def validate_country_codes(parser, arg):
 
     The repo is at https://github.com/opencivicdata/ocd-division-ids
     """
-    country_codes = ["au", "ca", "cl", "de", "fi", "in", "nz", "mx", "ua", "us"]
+    country_codes = ["au", "ca", "cl", "de", "fi", "in", "nz", "mx", "ua", "us", "br"]
     if arg.strip().lower() not in country_codes:
         parser.error("Invalid country code. Available codes are: %s" %
                      ", ".join(country_codes))
@@ -87,7 +87,7 @@ def arg_parser():
         "election_file", help="XML election file to be validated",
         metavar="election_file", type=lambda x: validate_file(parser, x))
     parser_validate.add_argument(
-        "-l", "--lf", help="Local ocd-id csv file path", required=False,
+        "--ocdid_file", help="Local ocd-id csv file path", required=False,
         metavar="csv_file", type=lambda x: validate_file(parser, x))
     group = parser_validate.add_mutually_exclusive_group(required=False)
     group.add_argument(
@@ -337,10 +337,8 @@ class ElectoralDistrictOcdId(base.BaseRule):
             self.gpunits.append(gpunit)
 
     def setup(self):
-        g = Github()
-        if self.local_file:
-            self.github_file = self.local_file
-        else:
+        if not self.local_file:
+            g = Github()
             self.github_file = "country-%s.csv" % self.country_code
             self.github_repo = g.get_repo(self.GITHUB_REPO)
         self.ocds = self._get_ocd_data()
@@ -402,10 +400,13 @@ class ElectoralDistrictOcdId(base.BaseRule):
             return True
 
     def _get_ocd_data(self):
-        """Checks if OCD file is in ~/cache, downloads it if not."""
+    	"""Returns a list of OCD-ID codes. This list is populated using
+    	either a local file or a downloaded file from GitHub
+	"""
         if self.local_file:
             countries_file = self.local_file
         else:
+            """Checks if OCD file is in ~/cache, downloads it if not."""
             cache_directory = os.path.expanduser(self.CACHE_DIR)
             countries_file = "{0}/{1}".format(cache_directory, self.github_file)
             if not os.path.exists(countries_file):
@@ -977,11 +978,11 @@ def main():
                 base.RuleOption("country_code", options.c))
             rule_options.setdefault("GpUnitOcdId", []).append(
                 base.RuleOption("country_code", options.c))
-        if options.lf:
+        if options.ocdid_file:
             rule_options.setdefault("ElectoralDistrictOcdId", []).append(
-                base.RuleOption("local_file", options.lf))
+                base.RuleOption("local_file", options.ocdid_file))
             rule_options.setdefault("GpUnitOcdId", []).append(
-                base.RuleOption("local_file", options.lf))
+                base.RuleOption("local_file", options.ocdid_file))
         rule_classes_to_check = [x for x in _RULES
                                  if x.__name__ in rules_to_check]
         registry = base.RulesRegistry(
