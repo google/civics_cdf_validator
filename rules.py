@@ -1010,50 +1010,6 @@ class ValidEnumerations(base.BaseRule):
                             element.sourceline, element.tag, other_type_element.text))
 
 
-class GpUnitsCycleCheck(base.TreeRule):
-    """Check that GpUnits form a tree
-     Return error if cycle is found"""
-    nodes = {}
-    visited = {}
-    error_object = None
-    
-    def check(self):
-        for event, element in etree.iterwalk(self.election_tree):
-            tag = self.strip_schema_ns(element)
-            if tag == "GpUnit":
-                object_id = element.get("objectId", None)
-                self.visited[object_id] = False
-                composing_gp_unit = element.find("ComposingGpUnitIds")
-                if composing_gp_unit is not None:
-            	    	composing_gp_unit_ids = composing_gp_unit.text.split()
-                    for gpunit_id in composing_gp_unit_ids:
-                        self.visited[gpunit_id] = False
-                        self.nodes.setdefault(object_id, []).append(gpunit_id)
-                        self.nodes.setdefault(gpunit_id, []).append(object_id)
-                else:
-                    self.nodes.setdefault(object_id, [])
-        if self.is_cyclic() and self.error_object:
-            raise base.ElectionError(
-                "The GpUnits in the Election File contains cycle:"
-                " ObjectId {0} is causing it.".format(self.error_object))
-     def check_cycle(self,current_node,parent):
-    	self.visited[current_node] = True
-        for child in self.nodes[current_node]:
-            if self.visited[child] is False:
-                if self.check_cycle(child,current_node):
-                    return True
-            if parent != child:
-                self.error_object = current_node
-                return True
-        return False
-     def is_cyclic(self):
-        for node in self.nodes:
-            if self.visited[node] is False:
-                if self.check_cycle(node, None) is True:
-                    return True
-        return False
-
-
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
 _RULES = [
@@ -1080,8 +1036,7 @@ _RULES = [
     DuplicateContestNames,
     CandidatesMissingPartyData,
     AllCaps,
-    ValidEnumerations,
-    GpUnitsCycleCheck
+    ValidEnumerations
 ]
 
 
