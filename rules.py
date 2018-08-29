@@ -64,7 +64,7 @@ def validate_country_codes(parser, arg):
 
     The repo is at https://github.com/opencivicdata/ocd-division-ids
     """
-    country_codes = ["au", "ca", "cl", "de", "fi", "in", "nz", "mx", "ua", "us"]
+    country_codes = ["au", "ca", "cl", "de", "fi", "in", "nz", "mx", "ua", "us", "br"]
     if arg.strip().lower() not in country_codes:
         parser.error("Invalid country code. Available codes are: %s" %
                      ", ".join(country_codes))
@@ -86,6 +86,9 @@ def arg_parser():
     parser_validate.add_argument(
         "election_file", help="XML election file to be validated",
         metavar="election_file", type=lambda x: validate_file(parser, x))
+    parser_validate.add_argument(
+        "--ocdid_file", help="Local ocd-id csv file path", required=False,
+        metavar="csv_file", type=lambda x: validate_file(parser, x))
     group = parser_validate.add_mutually_exclusive_group(required=False)
     group.add_argument(
         "-i", help="Comma separated list of rules to be validated.",
@@ -324,6 +327,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
     check_github = True
     github_repo = None
     github_file = None
+    local_file = None
     country_code = None
 
     def __init__(self, election_tree, schema_file):
@@ -333,9 +337,10 @@ class ElectoralDistrictOcdId(base.BaseRule):
             self.gpunits.append(gpunit)
 
     def setup(self):
-        g = Github()
-        self.github_file = "country-%s.csv" % self.country_code
-        self.github_repo = g.get_repo(self.GITHUB_REPO)
+        if not self.local_file:
+            g = Github()
+            self.github_file = "country-%s.csv" % self.country_code
+            self.github_repo = g.get_repo(self.GITHUB_REPO)
         self.ocds = self._get_ocd_data()
 
     def _get_latest_commit_date(self):
@@ -395,20 +400,26 @@ class ElectoralDistrictOcdId(base.BaseRule):
             return True
 
     def _get_ocd_data(self):
-        """Checks if OCD file is in ~/cache, downloads it if not."""
-        cache_directory = os.path.expanduser(self.CACHE_DIR)
-        countries_file = "{0}/{1}".format(cache_directory, self.github_file)
-        if not os.path.exists(countries_file):
-            if not os.path.exists(cache_directory):
-                os.makedirs(cache_directory)
-            self._download_data(countries_file)
+    	"""Returns a list of OCD-ID codes. This list is populated using
+    	either a local file or a downloaded file from GitHub
+	"""
+        if self.local_file:
+            countries_file = self.local_file
         else:
-            if self.check_github:
-                last_mod_date = datetime.fromtimestamp(
-                    os.path.getmtime(countries_file))
-                latest_github_commit_date = self._get_latest_commit_date()
-                if last_mod_date < latest_github_commit_date:
-                    self._download_data(countries_file)
+            """Checks if OCD file is in ~/cache, downloads it if not."""
+            cache_directory = os.path.expanduser(self.CACHE_DIR)
+            countries_file = "{0}/{1}".format(cache_directory, self.github_file)
+            if not os.path.exists(countries_file):
+                if not os.path.exists(cache_directory):
+                    os.makedirs(cache_directory)
+                self._download_data(countries_file)
+            else:
+                if self.check_github:
+                    last_mod_date = datetime.fromtimestamp(
+                        os.path.getmtime(countries_file))
+                    latest_github_commit_date = self._get_latest_commit_date()
+                    if last_mod_date < latest_github_commit_date:
+                        self._download_data(countries_file)
         ocd_id_codes = set()
         with io.open(countries_file, mode="rb") as fd:
             for line in fd:
@@ -960,6 +971,45 @@ class AllCaps(base.BaseRule):
                         element.sourceline, object_id))
 
 
+class ValidEnumerations(base.BaseRule):
+    """Valid enumerations should not be encoded as 'OtherType'. 
+
+    Elements that have valid enumerations should not be included 
+    as 'OtherType'. Instead, the corresponding <Type> field 
+    should include the actual valid enumeration value."""
+
+    valid_enumerations = []
+
+    def elements(self):
+        schema_tree = etree.parse(self.schema_file)
+        eligible_elements = []
+        for element in schema_tree.iter():
+            tag = self.strip_schema_ns(element)
+            if tag == "enumeration":
+                elem_val = element.get("value", None)
+                if elem_val and elem_val != "other":
+                    self.valid_enumerations.append(elem_val)
+            elif tag == "complexType":
+                for elem in element.iter():
+                    tag = self.strip_schema_ns(elem)
+                    if tag == "element":
+                        elem_name = elem.get("name", None)
+                        if elem_name and element.get("name") and elem_name == "OtherType":
+                            eligible_elements.append(element.get("name"))
+        return eligible_elements
+
+    def check(self, element):
+        type_element = element.find("Type")
+        if type_element is not None and type_element.text == "other":
+            other_type_element = element.find("OtherType")
+            if other_type_element is not None:
+                if other_type_element.text in self.valid_enumerations:
+                    raise base.ElectionError(
+                        "Line %d. Type of element %s is set to 'other' even though "
+                        "'%s' is a valid enumeration" % (
+                            element.sourceline, element.tag, other_type_element.text))
+
+
 class GpUnitsCycleCheck(base.TreeRule):
     """Check that GpUnits form a tree
      Return error if cycle is found"""
@@ -1030,6 +1080,7 @@ _RULES = [
     DuplicateContestNames,
     CandidatesMissingPartyData,
     AllCaps,
+    ValidEnumerations,
     GpUnitsCycleCheck
 ]
 
@@ -1062,6 +1113,11 @@ def main():
                 base.RuleOption("country_code", options.c))
             rule_options.setdefault("GpUnitOcdId", []).append(
                 base.RuleOption("country_code", options.c))
+        if options.ocdid_file:
+            rule_options.setdefault("ElectoralDistrictOcdId", []).append(
+                base.RuleOption("local_file", options.ocdid_file))
+            rule_options.setdefault("GpUnitOcdId", []).append(
+                base.RuleOption("local_file", options.ocdid_file))
         rule_classes_to_check = [x for x in _RULES
                                  if x.__name__ in rules_to_check]
         registry = base.RulesRegistry(
