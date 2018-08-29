@@ -1012,7 +1012,7 @@ class ValidEnumerations(base.BaseRule):
 
 class GpUnitsCycleCheck(base.TreeRule):
     """Check that GpUnits form a tree
-     Return error if cycle is found"""
+    Return error if cycle is found"""
     nodes = {}
     visited = {}
     error_object = None
@@ -1025,7 +1025,7 @@ class GpUnitsCycleCheck(base.TreeRule):
                 self.visited[object_id] = False
                 composing_gp_unit = element.find("ComposingGpUnitIds")
                 if composing_gp_unit is not None:
-            	    	composing_gp_unit_ids = composing_gp_unit.text.split()
+            	    composing_gp_unit_ids = composing_gp_unit.text.split()
                     for gpunit_id in composing_gp_unit_ids:
                         self.visited[gpunit_id] = False
                         self.nodes.setdefault(object_id, []).append(gpunit_id)
@@ -1036,8 +1036,9 @@ class GpUnitsCycleCheck(base.TreeRule):
             raise base.ElectionError(
                 "The GpUnits in the Election File contains cycle:"
                 " ObjectId {0} is causing it.".format(self.error_object))
-     def check_cycle(self,current_node,parent):
-    	self.visited[current_node] = True
+     
+    def check_cycle(self,current_node,parent):
+        self.visited[current_node] = True
         for child in self.nodes[current_node]:
             if self.visited[child] is False:
                 if self.check_cycle(child,current_node):
@@ -1046,7 +1047,8 @@ class GpUnitsCycleCheck(base.TreeRule):
                 self.error_object = current_node
                 return True
         return False
-     def is_cyclic(self):
+     
+    def is_cyclic(self):
         for node in self.nodes:
             if self.visited[node] is False:
                 if self.check_cycle(node, None) is True:
