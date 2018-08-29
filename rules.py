@@ -912,6 +912,45 @@ class CheckIdentifiers(base.TreeRule):
                 "The Election File has following issues with the identifiers.", error_log)
 
 
+class ValidEnumerations(base.BaseRule):
+    """Valid enumerations should not be encoded as 'OtherType'. 
+
+    Elements that have valid enumerations should not be included 
+    as 'OtherType'. Instead, the corresponding <Type> field 
+    should include the actual valid enumeration value."""
+
+    valid_enumerations = []
+
+    def elements(self):
+        schema_tree = etree.parse(self.schema_file)
+        eligible_elements = []
+        for element in schema_tree.iter():
+            tag = self.strip_schema_ns(element)
+            if tag == "enumeration":
+                elem_val = element.get("value", None)
+                if elem_val and elem_val != "other":
+                    self.valid_enumerations.append(elem_val)
+            elif tag == "complexType":
+                for elem in element.iter():
+                    tag = self.strip_schema_ns(elem)
+                    if tag == "element":
+                        elem_name = elem.get("name", None)
+                        if elem_name and element.get("name") and elem_name == "OtherType":
+                            eligible_elements.append(element.get("name"))
+        return eligible_elements
+
+    def check(self, element):
+        type_element = element.find("Type")
+        if type_element is not None and type_element.text == "other":
+            other_type_element = element.find("OtherType")
+            if other_type_element is not None:
+                if other_type_element.text in self.valid_enumerations:
+                    raise base.ElectionError(
+                        "Line %d. Type of element %s is set to 'other' even though "
+                        "'%s' is a valid enumeration" % (
+                            element.sourceline, element.tag, other_type_element.text))
+
+
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
 _RULES = [
@@ -935,7 +974,8 @@ _RULES = [
     ProperBallotSelection,
     CandidateNotReferenced,
     CheckIdentifiers,
-    DuplicateContestNames
+    DuplicateContestNames,
+    ValidEnumerations
 ]
 
 
