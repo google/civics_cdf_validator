@@ -911,6 +911,54 @@ class CheckIdentifiers(base.TreeRule):
             raise base.ElectionTreeError(
                 "The Election File has following issues with the identifiers.", error_log)
 
+class CandidatesMissingPartyData(base.BaseRule):
+    """Each Candidate should have party data associated with them.
+
+    A Candidate object that has no PartyId attached to them should be picked up
+    within this class and returned to the user as a warning."""
+
+    def elements(self):
+        return ["Candidate"]
+
+    def check(self, element):
+        party_id = element.find("PartyId")
+        if party_id is None or not party_id.text:
+            raise base.ElectionWarning("Line %d: Candidate %s is missing party data" % (
+                element.sourceline, element.get("objectId")))
+
+class AllCaps(base.BaseRule):
+    """The Name elements in Candidates, Contests and Person elements should not be in all uppercase.
+
+    If the name elements in Candidates, Contests and Person elements are in uppercase, 
+    the list of objectIds of those elements will be returned to the user as a warning."""
+
+    def elements(self):
+        return ["Candidate", "CandidateContest", "Person"]
+
+    def check(self, element):
+        object_id = element.get("objectId")
+        if element.tag == "Candidate":
+            ballot_name = element.find("BallotName")
+            if ballot_name.find("Text") is not None:
+                name = ballot_name.find("Text").text
+                if name is not None and name == name.upper():
+                    raise base.ElectionWarning("Line %d. Candidate %s has name in all upper case letters." % (
+                        element.sourceline, object_id))
+        elif element.tag == "Contest":
+            name_element = element.find("Name")
+            if name_element is not None:
+                name = name_element.text
+                if name is not None and name == name.upper():
+                    raise base.ElectionWarning("Line %d. Contest %s has name in all upper case letters." % (
+                        element.sourceline, object_id))
+        else:
+            full_name = element.find("FullName")
+            if full_name.find("Text") is not None:
+                name = full_name.find("Text").text
+                if name is not None and name == name.upper():
+                    raise base.ElectionWarning("Line %d. Person %s has name in all upper case letters." % (
+                        element.sourceline, object_id))
+
 
 class ValidEnumerations(base.BaseRule):
     """Valid enumerations should not be encoded as 'OtherType'. 
@@ -975,6 +1023,8 @@ _RULES = [
     CandidateNotReferenced,
     CheckIdentifiers,
     DuplicateContestNames,
+    CandidatesMissingPartyData,
+    AllCaps,
     ValidEnumerations
 ]
 
