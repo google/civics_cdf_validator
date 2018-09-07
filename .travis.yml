@@ -1,0 +1,13 @@
+language: python
+python:
+  - "2.7"
+  - "3.5"
+  - "3.6"
+# command to install dependencies
+install:
+  - pip install .
+# command to run tests
+script:
+  - election_results_xml_validator list
+  - election_results_xml_validator validate post_election_sample_feed_precincts.xml --xsd election_data_spec.xsd
+  - election_results_xml_validator validate post_election_sample_feed_summary.xml --xsd election_data_spec.xsd
