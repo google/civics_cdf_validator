@@ -403,7 +403,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
     def _get_ocd_data(self):
         """Returns a list of OCD-ID codes. This list is populated using
         either a local file or a downloaded file from GitHub
-    """
+        """
         if self.local_file:
             countries_file = self.local_file
         else:
@@ -425,7 +425,8 @@ class ElectoralDistrictOcdId(base.BaseRule):
         with io.open(countries_file, mode="rb") as fd:
             for line in fd:
                 if line is not "":
-                    ocd_id_codes.add(line.split(b",")[0])
+                    # TODO use a CSV Reader
+                    ocd_id_codes.add(line.split(b",")[0])  
         return ocd_id_codes
 
     def elements(self):
@@ -868,7 +869,8 @@ class DuplicateContestNames(base.TreeRule):
                 continue
             name_contest_id.setdefault(name.text, []).append(object_id)
             """Add names and its objectId as key and list of values.
-        Ideally 1 objectId. If duplicates are found, then list of multiple objectIds."""
+            Ideally 1 objectId. If duplicates are found, then list of multiple
+            objectIds."""
         for name, contests in name_contest_id.items():
             if len(contests) > 1:
                 error_message = ("Contest name '{0}' appears in following {1} contests: {2}".format(
