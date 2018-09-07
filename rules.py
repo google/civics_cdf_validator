@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import print_function
 
 import argparse
 import io
@@ -392,7 +393,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
             for line in fd:
                 file_sha1.update(line)
                 if line is not "":
-                    ocd_id_codes.add(line.split(",")[0])
+                    ocd_id_codes.add(line.split(b",")[0])
         latest_file_sha = self._get_latest_file_blob_sha()
         if latest_file_sha != file_sha1.hexdigest():
             return False
@@ -400,9 +401,9 @@ class ElectoralDistrictOcdId(base.BaseRule):
             return True
 
     def _get_ocd_data(self):
-    	"""Returns a list of OCD-ID codes. This list is populated using
-    	either a local file or a downloaded file from GitHub
-	"""
+        """Returns a list of OCD-ID codes. This list is populated using
+        either a local file or a downloaded file from GitHub
+        """
         if self.local_file:
             countries_file = self.local_file
         else:
@@ -424,7 +425,8 @@ class ElectoralDistrictOcdId(base.BaseRule):
         with io.open(countries_file, mode="rb") as fd:
             for line in fd:
                 if line is not "":
-                    ocd_id_codes.add(line.split(",")[0])
+                    # TODO use a CSV Reader
+                    ocd_id_codes.add(line.split(b",")[0])  
         return ocd_id_codes
 
     def elements(self):
@@ -589,7 +591,7 @@ class DuplicateGpUnits(base.TreeRule):
             for middle_node in non_leaf_nodes:
                 if middle_node not in self.children:
                     # TODO: Figure out error
-                    print "Non-leaf node %s has no children" % (middle_node)
+                    print("Non-leaf node {} has no children".format(middle_node))
                     continue
                 for node in self.children[middle_node]:
                     composing_ids.add(node)
@@ -761,7 +763,7 @@ class ReusedCandidate(base.TreeRule):
                 if candidate_selection_id:
                     self.seen_candidates.setdefault(
                         candidate_id, []).append(candidate_selection_id)
-        for cand_id, cand_select_ids in self.seen_candidates.iteritems():
+        for cand_id, cand_select_ids in self.seen_candidates.items():
             if len(cand_select_ids) > 1:
                 error_message = "A Candidate object should only ever be " \
                     "referenced from one CandidateSelection. Candidate %s is " \
@@ -835,7 +837,7 @@ class CandidateNotReferenced(base.TreeRule):
                 self.cand_to_cand_selection.setdefault(
                     candidate_id, []).append(candidate_selection_id)
 
-        for cand_id, cand_select_ids in self.cand_to_cand_selection.iteritems():
+        for cand_id, cand_select_ids in self.cand_to_cand_selection.items():
             if len(cand_select_ids) == 0:
                 error_message = "A Candidate object should be referenced from one" \
                     " CandidateSelection. Candidate {0} is not referenced by any" \
@@ -867,8 +869,9 @@ class DuplicateContestNames(base.TreeRule):
                 continue
             name_contest_id.setdefault(name.text, []).append(object_id)
             """Add names and its objectId as key and list of values.
-		Ideally 1 objectId. If duplicates are found, then list of multiple objectIds."""
-        for name, contests in name_contest_id.iteritems():
+            Ideally 1 objectId. If duplicates are found, then list of multiple
+            objectIds."""
+        for name, contests in name_contest_id.items():
             if len(contests) > 1:
                 error_message = ("Contest name '{0}' appears in following {1} contests: {2}".format(
                     name, len(contests), ", ".join(contests)))
@@ -913,7 +916,7 @@ class CheckIdentifiers(base.TreeRule):
                     element.sourceline, error_message))
                 continue
             identifier_values.setdefault(value.text, []).append(object_id)
-        for value_text, obj_ids in identifier_values.iteritems():
+        for value_text, obj_ids in identifier_values.items():
             if len(obj_ids) > 1:
                 error_message = "Stable ExternalIdentifier '{0}' is a used for following {1} objectIds: {2}".format(
                                 value_text, len(obj_ids), ", ".join(obj_ids))
@@ -1044,9 +1047,9 @@ def main():
     p = arg_parser()
     options = p.parse_args()
     if options.cmd == "list":
-        print "Available rules are :"
+        print("Available rules are :")
         for rule in _RULES:
-            print "\t", rule.__name__, " - ", rule.__doc__.split("\n")[0]
+            print("\t" + rule.__name__ + " - " + rule.__doc__.split("\n")[0])
         return
     elif options.cmd == "validate":
         rules_to_check = []
