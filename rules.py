@@ -953,25 +953,30 @@ class AllCaps(base.BaseRule):
         object_id = element.get("objectId")
         if element.tag == "Candidate":
             ballot_name = element.find("BallotName")
-            if ballot_name.find("Text") is not None:
-                name = ballot_name.find("Text").text
-                if name is not None and name == name.upper():
-                    raise base.ElectionWarning("Line %d. Candidate %s has name in all upper case letters." % (
-                        element.sourceline, object_id))
+            if ballot_name is not None:
+                if ballot_name.find("Text") is not None:
+                    name = ballot_name.find("Text").text
+                    if name is not None and name == name.upper():
+                        raise base.ElectionWarning(
+                            "Line %d. Candidate %s has name in all upper case letters." % (
+                            element.sourceline, object_id))
         elif element.tag == "Contest":
             name_element = element.find("Name")
             if name_element is not None:
                 name = name_element.text
                 if name is not None and name == name.upper():
-                    raise base.ElectionWarning("Line %d. Contest %s has name in all upper case letters." % (
+                    raise base.ElectionWarning(
+                        "Line %d. Contest %s has name in all upper case letters." % (
                         element.sourceline, object_id))
         else:
             full_name = element.find("FullName")
-            if full_name.find("Text") is not None:
-                name = full_name.find("Text").text
-                if name is not None and name == name.upper():
-                    raise base.ElectionWarning("Line %d. Person %s has name in all upper case letters." % (
-                        element.sourceline, object_id))
+            if full_name is not None:
+                if full_name.find("Text") is not None:
+                    name = full_name.find("Text").text
+                    if name is not None and name == name.upper():
+                        raise base.ElectionWarning(
+                            "Line %d. Person %s has name in all upper case letters." % (
+                            element.sourceline, object_id))
 
 
 class ValidEnumerations(base.BaseRule):
