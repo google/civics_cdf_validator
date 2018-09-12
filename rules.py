@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import print_function
 
 import argparse
 import io
@@ -64,7 +65,7 @@ def validate_country_codes(parser, arg):
 
     The repo is at https://github.com/opencivicdata/ocd-division-ids
     """
-    country_codes = ["au", "ca", "cl", "de", "fi", "in", "nz", "mx", "ua", "us"]
+    country_codes = ["au", "ca", "cl", "de", "fi", "in", "nz", "mx", "ua", "us", "br"]
     if arg.strip().lower() not in country_codes:
         parser.error("Invalid country code. Available codes are: %s" %
                      ", ".join(country_codes))
@@ -86,6 +87,9 @@ def arg_parser():
     parser_validate.add_argument(
         "election_file", help="XML election file to be validated",
         metavar="election_file", type=lambda x: validate_file(parser, x))
+    parser_validate.add_argument(
+        "--ocdid_file", help="Local ocd-id csv file path", required=False,
+        metavar="csv_file", type=lambda x: validate_file(parser, x))
     group = parser_validate.add_mutually_exclusive_group(required=False)
     group.add_argument(
         "-i", help="Comma separated list of rules to be validated.",
@@ -324,6 +328,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
     check_github = True
     github_repo = None
     github_file = None
+    local_file = None
     country_code = None
 
     def __init__(self, election_tree, schema_file):
@@ -333,9 +338,10 @@ class ElectoralDistrictOcdId(base.BaseRule):
             self.gpunits.append(gpunit)
 
     def setup(self):
-        g = Github()
-        self.github_file = "country-%s.csv" % self.country_code
-        self.github_repo = g.get_repo(self.GITHUB_REPO)
+        if not self.local_file:
+            g = Github()
+            self.github_file = "country-%s.csv" % self.country_code
+            self.github_repo = g.get_repo(self.GITHUB_REPO)
         self.ocds = self._get_ocd_data()
 
     def _get_latest_commit_date(self):
@@ -387,7 +393,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
             for line in fd:
                 file_sha1.update(line)
                 if line is not "":
-                    ocd_id_codes.add(line.split(",")[0])
+                    ocd_id_codes.add(line.split(b",")[0])
         latest_file_sha = self._get_latest_file_blob_sha()
         if latest_file_sha != file_sha1.hexdigest():
             return False
@@ -395,25 +401,32 @@ class ElectoralDistrictOcdId(base.BaseRule):
             return True
 
     def _get_ocd_data(self):
-        """Checks if OCD file is in ~/cache, downloads it if not."""
-        cache_directory = os.path.expanduser(self.CACHE_DIR)
-        countries_file = "{0}/{1}".format(cache_directory, self.github_file)
-        if not os.path.exists(countries_file):
-            if not os.path.exists(cache_directory):
-                os.makedirs(cache_directory)
-            self._download_data(countries_file)
+        """Returns a list of OCD-ID codes. This list is populated using
+        either a local file or a downloaded file from GitHub
+        """
+        if self.local_file:
+            countries_file = self.local_file
         else:
-            if self.check_github:
-                last_mod_date = datetime.fromtimestamp(
-                    os.path.getmtime(countries_file))
-                latest_github_commit_date = self._get_latest_commit_date()
-                if last_mod_date < latest_github_commit_date:
-                    self._download_data(countries_file)
+            """Checks if OCD file is in ~/cache, downloads it if not."""
+            cache_directory = os.path.expanduser(self.CACHE_DIR)
+            countries_file = "{0}/{1}".format(cache_directory, self.github_file)
+            if not os.path.exists(countries_file):
+                if not os.path.exists(cache_directory):
+                    os.makedirs(cache_directory)
+                self._download_data(countries_file)
+            else:
+                if self.check_github:
+                    last_mod_date = datetime.fromtimestamp(
+                        os.path.getmtime(countries_file))
+                    latest_github_commit_date = self._get_latest_commit_date()
+                    if last_mod_date < latest_github_commit_date:
+                        self._download_data(countries_file)
         ocd_id_codes = set()
         with io.open(countries_file, mode="rb") as fd:
             for line in fd:
                 if line is not "":
-                    ocd_id_codes.add(line.split(",")[0])
+                    # TODO use a CSV Reader
+                    ocd_id_codes.add(line.split(b",")[0])  
         return ocd_id_codes
 
     def elements(self):
@@ -578,7 +591,7 @@ class DuplicateGpUnits(base.TreeRule):
             for middle_node in non_leaf_nodes:
                 if middle_node not in self.children:
                     # TODO: Figure out error
-                    print "Non-leaf node %s has no children" % (middle_node)
+                    print("Non-leaf node {} has no children".format(middle_node))
                     continue
                 for node in self.children[middle_node]:
                     composing_ids.add(node)
@@ -750,7 +763,7 @@ class ReusedCandidate(base.TreeRule):
                 if candidate_selection_id:
                     self.seen_candidates.setdefault(
                         candidate_id, []).append(candidate_selection_id)
-        for cand_id, cand_select_ids in self.seen_candidates.iteritems():
+        for cand_id, cand_select_ids in self.seen_candidates.items():
             if len(cand_select_ids) > 1:
                 error_message = "A Candidate object should only ever be " \
                     "referenced from one CandidateSelection. Candidate %s is " \
@@ -824,7 +837,7 @@ class CandidateNotReferenced(base.TreeRule):
                 self.cand_to_cand_selection.setdefault(
                     candidate_id, []).append(candidate_selection_id)
 
-        for cand_id, cand_select_ids in self.cand_to_cand_selection.iteritems():
+        for cand_id, cand_select_ids in self.cand_to_cand_selection.items():
             if len(cand_select_ids) == 0:
                 error_message = "A Candidate object should be referenced from one" \
                     " CandidateSelection. Candidate {0} is not referenced by any" \
@@ -856,8 +869,9 @@ class DuplicateContestNames(base.TreeRule):
                 continue
             name_contest_id.setdefault(name.text, []).append(object_id)
             """Add names and its objectId as key and list of values.
-		Ideally 1 objectId. If duplicates are found, then list of multiple objectIds."""
-        for name, contests in name_contest_id.iteritems():
+            Ideally 1 objectId. If duplicates are found, then list of multiple
+            objectIds."""
+        for name, contests in name_contest_id.items():
             if len(contests) > 1:
                 error_message = ("Contest name '{0}' appears in following {1} contests: {2}".format(
                     name, len(contests), ", ".join(contests)))
@@ -902,7 +916,7 @@ class CheckIdentifiers(base.TreeRule):
                     element.sourceline, error_message))
                 continue
             identifier_values.setdefault(value.text, []).append(object_id)
-        for value_text, obj_ids in identifier_values.iteritems():
+        for value_text, obj_ids in identifier_values.items():
             if len(obj_ids) > 1:
                 error_message = "Stable ExternalIdentifier '{0}' is a used for following {1} objectIds: {2}".format(
                                 value_text, len(obj_ids), ", ".join(obj_ids))
@@ -910,6 +924,93 @@ class CheckIdentifiers(base.TreeRule):
         if error_log:
             raise base.ElectionTreeError(
                 "The Election File has following issues with the identifiers.", error_log)
+
+class CandidatesMissingPartyData(base.BaseRule):
+    """Each Candidate should have party data associated with them.
+
+    A Candidate object that has no PartyId attached to them should be picked up
+    within this class and returned to the user as a warning."""
+
+    def elements(self):
+        return ["Candidate"]
+
+    def check(self, element):
+        party_id = element.find("PartyId")
+        if party_id is None or not party_id.text:
+            raise base.ElectionWarning("Line %d: Candidate %s is missing party data" % (
+                element.sourceline, element.get("objectId")))
+
+class AllCaps(base.BaseRule):
+    """The Name elements in Candidates, Contests and Person elements should not be in all uppercase.
+
+    If the name elements in Candidates, Contests and Person elements are in uppercase, 
+    the list of objectIds of those elements will be returned to the user as a warning."""
+
+    def elements(self):
+        return ["Candidate", "CandidateContest", "Person"]
+
+    def check(self, element):
+        object_id = element.get("objectId")
+        if element.tag == "Candidate":
+            ballot_name = element.find("BallotName")
+            if ballot_name.find("Text") is not None:
+                name = ballot_name.find("Text").text
+                if name is not None and name == name.upper():
+                    raise base.ElectionWarning("Line %d. Candidate %s has name in all upper case letters." % (
+                        element.sourceline, object_id))
+        elif element.tag == "Contest":
+            name_element = element.find("Name")
+            if name_element is not None:
+                name = name_element.text
+                if name is not None and name == name.upper():
+                    raise base.ElectionWarning("Line %d. Contest %s has name in all upper case letters." % (
+                        element.sourceline, object_id))
+        else:
+            full_name = element.find("FullName")
+            if full_name.find("Text") is not None:
+                name = full_name.find("Text").text
+                if name is not None and name == name.upper():
+                    raise base.ElectionWarning("Line %d. Person %s has name in all upper case letters." % (
+                        element.sourceline, object_id))
+
+
+class ValidEnumerations(base.BaseRule):
+    """Valid enumerations should not be encoded as 'OtherType'. 
+
+    Elements that have valid enumerations should not be included 
+    as 'OtherType'. Instead, the corresponding <Type> field 
+    should include the actual valid enumeration value."""
+
+    valid_enumerations = []
+
+    def elements(self):
+        schema_tree = etree.parse(self.schema_file)
+        eligible_elements = []
+        for element in schema_tree.iter():
+            tag = self.strip_schema_ns(element)
+            if tag == "enumeration":
+                elem_val = element.get("value", None)
+                if elem_val and elem_val != "other":
+                    self.valid_enumerations.append(elem_val)
+            elif tag == "complexType":
+                for elem in element.iter():
+                    tag = self.strip_schema_ns(elem)
+                    if tag == "element":
+                        elem_name = elem.get("name", None)
+                        if elem_name and element.get("name") and elem_name == "OtherType":
+                            eligible_elements.append(element.get("name"))
+        return eligible_elements
+
+    def check(self, element):
+        type_element = element.find("Type")
+        if type_element is not None and type_element.text == "other":
+            other_type_element = element.find("OtherType")
+            if other_type_element is not None:
+                if other_type_element.text in self.valid_enumerations:
+                    raise base.ElectionError(
+                        "Line %d. Type of element %s is set to 'other' even though "
+                        "'%s' is a valid enumeration" % (
+                            element.sourceline, element.tag, other_type_element.text))
 
 
 # To add new rules, create a new class, inherit the base rule
@@ -935,7 +1036,10 @@ _RULES = [
     ProperBallotSelection,
     CandidateNotReferenced,
     CheckIdentifiers,
-    DuplicateContestNames
+    DuplicateContestNames,
+    CandidatesMissingPartyData,
+    AllCaps,
+    ValidEnumerations
 ]
 
 
@@ -943,9 +1047,9 @@ def main():
     p = arg_parser()
     options = p.parse_args()
     if options.cmd == "list":
-        print "Available rules are :"
+        print("Available rules are :")
         for rule in _RULES:
-            print "\t", rule.__name__, " - ", rule.__doc__.split("\n")[0]
+            print("\t" + rule.__name__ + " - " + rule.__doc__.split("\n")[0])
         return
     elif options.cmd == "validate":
         rules_to_check = []
@@ -967,6 +1071,11 @@ def main():
                 base.RuleOption("country_code", options.c))
             rule_options.setdefault("GpUnitOcdId", []).append(
                 base.RuleOption("country_code", options.c))
+        if options.ocdid_file:
+            rule_options.setdefault("ElectoralDistrictOcdId", []).append(
+                base.RuleOption("local_file", options.ocdid_file))
+            rule_options.setdefault("GpUnitOcdId", []).append(
+                base.RuleOption("local_file", options.ocdid_file))
         rule_classes_to_check = [x for x in _RULES
                                  if x.__name__ in rules_to_check]
         registry = base.RulesRegistry(

@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import print_function
 
 from lxml import etree
 
@@ -222,7 +223,7 @@ class RulesRegistry(SchemaHandler):
             severity = len(self._SEVERITIES) - 1
         exception_types = self._SEVERITIES[severity:]
         if self.total_count == 0:
-            print "Validation completed with no warnings/errors."
+            print("Validation completed with no warnings/errors.")
             return
         for e_type in reversed(exception_types):
             suffix = ""
@@ -231,8 +232,8 @@ class RulesRegistry(SchemaHandler):
             elif self.exception_counts[e_type] > 1:
                 suffix = "s"
             e_type_name = e_type.description
-            print "{0:6d} {1} message{2} found".format(
-                self.exception_counts[e_type], e_type_name, suffix)
+            print("{0:6d} {1} message{2} found".format(
+                self.exception_counts[e_type], e_type_name, suffix))
             # Within the error severity, sort from most common to least common.
             for rule_class in sorted(
                     self.exceptions[e_type].keys(),
@@ -243,19 +244,19 @@ class RulesRegistry(SchemaHandler):
                 rule_suffix = ""
                 if rule_count > 1:
                     rule_suffix = "s"
-                print "{0:10d} {1} {2} message{3}".format(
-                    rule_count, rule_class_name, e_type_name, rule_suffix)
+                print("{0:10d} {1} {2} message{3}".format(
+                    rule_count, rule_class_name, e_type_name, rule_suffix))
                 if verbose:
                     for exception in self.exceptions[e_type][rule_class]:
                         if exception.error_log:
                             for error in exception.error_log:
                                 if error.line is not None:
-                                    print " " * 14 + "Line {0}: {1}".format(
-                                        error.line, error.message)
+                                    print(" " * 14 + "Line {0}: {1}".format(
+                                        error.line, error.message))
                                 else:
-                                    print " " * 14 + "{0}".format(error.message)
+                                    print(" " * 14 + "{0}".format(error.message))
                         else:
-                            print " " * 14 + "{0}".format(exception)
+                            print(" " * 14 + "{0}".format(exception))
 
     def check_rules(self):
         """Checks all rules.
@@ -270,7 +271,7 @@ class RulesRegistry(SchemaHandler):
         try:
             election_tree = etree.parse(self.election_file)
         except etree.LxmlError as e:
-            print "Fatal Error. XML file could not be parsed. %s" % e
+            print("Fatal Error. XML file could not be parsed. {}".format(e))
             return 1
         self.register_rules(election_tree)
         for rule in self.registry.get("tree", []):
