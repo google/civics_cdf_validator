@@ -1,5 +1,5 @@
 """
-Copyright 2016 Google Inc. All Rights Reserved.
+Copyright 2018 Google Inc. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -37,14 +37,14 @@ ENTRY_POINTS = {
 setup(
     name='election_results_xml_validator',
     version='0.2.9.1',
-    author='Miano Njoka',
+    author='Google Civics',
     author_email='election-results-xml-validator@google.com',
-    maintainer='Google gTech Partners',
+    maintainer='gVelocity Civics',
     maintainer_email='election-results-xml-validator@google.com',
     license='Apache License',
-    description='Checks that an elections file follows best practices',
+    description='Checks if an election feed follows best practices',
     long_description='election_results_xml_validator is a script that checks '
-        'if a election data feed follows best practices and outputs errors, '
+        'if an election data feed follows best practices and outputs errors, '
         'warnings and info messages for common issues.',
     url='https://github.com/google/election_results_xml_validator',
     install_requires=[
