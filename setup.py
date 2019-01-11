@@ -56,4 +56,5 @@ setup(
     entry_points=ENTRY_POINTS,
     package_dir={'election_results_xml_validator': ''},
     packages=['election_results_xml_validator'],
+    test_suite='validator_tests'
 )
