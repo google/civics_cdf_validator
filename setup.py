@@ -36,7 +36,7 @@ ENTRY_POINTS = {
 
 setup(
     name='election_results_xml_validator',
-    version='0.2.9.1',
+    version='0.2.9.3',
     author='Google Civics',
     author_email='election-results-xml-validator@google.com',
     maintainer='gVelocity Civics',
