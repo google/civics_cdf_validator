@@ -41,15 +41,15 @@ The command to validate the election file against all the rules in the file is
   ``election_results_xml_validator validate election_file.xml --xsd election_data_spec.xsd`` OR
   ``election_results_xml_validator validate election_file.xml -x election_data_spec.xsd``
 
-One can choose to only validate one or more comma separated rules by using the -i flag
+One can choose to only validate one or more comma separated rules by using the ``-i`` flag
 
   ``election_results_xml_validator validate election_file.xml --xsd election_data_spec.xsd -i Schema``
 
-Or choose to exclude one or more comma separated rules using the -e flag
+Or choose to exclude one or more comma separated rules using the ``-e`` flag
 
   ``election_results_xml_validator validate election_file.xml --xsd election_data_spec.xsd -e Schema``
 
 By default, the script only shows a summary of issues found. You can get a
-verbose report by adding the -v flag
+verbose report by adding the ``-v`` flag
 
   ``election_results_xml_validator validate election_file.xml --xsd election_data_spec.xsd -v``
