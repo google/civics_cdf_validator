@@ -1095,6 +1095,8 @@ def main():
                 base.RuleOption("local_file", options.ocdid_file))
         rule_classes_to_check = [x for x in _RULES
                                  if x.__name__ in rules_to_check]
+        if type(options.election_file) is str:
+            options.election_file = options.election_file.split(",")
         for each_file in options.election_file:
             print("\n--- Results after validating file: %s ---" % each_file)
             registry = base.RulesRegistry(
