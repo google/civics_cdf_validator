@@ -28,12 +28,15 @@ from github import Github
 from election_results_xml_validator import base
 
 
-def validate_file(parser, arg):
+def validate_files(parser, arg):
     """Check that the files provided exist."""
-    if not os.path.exists(arg):
-        parser.error("The file %s doesn't exist" % arg)
-    else:
-        return arg
+    input_files = arg.strip().split(",")
+    if len(input_files) == 1:
+        return arg.strip()
+    for each_file in input_files:
+        if not os.path.exists(each_file):
+            parser.error("The file %s doesn't exist" % each_file)
+    return input_files
 
 
 def validate_rules(parser, arg):
@@ -83,13 +86,13 @@ def arg_parser():
     parser_validate = subparsers.add_parser("validate")
     parser_validate.add_argument(
         "-x", "--xsd", help="Common Data Format XSD file path", required=True,
-        metavar="xsd_file", type=lambda x: validate_file(parser, x))
+        metavar="xsd_file", type=lambda x: validate_files(parser, x))
     parser_validate.add_argument(
         "election_file", help="XML election file to be validated",
-        metavar="election_file", type=lambda x: validate_file(parser, x))
+        metavar="election_file", type=lambda x: validate_files(parser, x))
     parser_validate.add_argument(
         "--ocdid_file", help="Local ocd-id csv file path", required=False,
-        metavar="csv_file", type=lambda x: validate_file(parser, x))
+        metavar="csv_file", type=lambda x: validate_files(parser, x))
     group = parser_validate.add_mutually_exclusive_group(required=False)
     group.add_argument(
         "-i", help="Comma separated list of rules to be validated.",
@@ -1092,13 +1095,15 @@ def main():
                 base.RuleOption("local_file", options.ocdid_file))
         rule_classes_to_check = [x for x in _RULES
                                  if x.__name__ in rules_to_check]
-        registry = base.RulesRegistry(
-            election_file=options.election_file, schema_file=options.xsd,
-            rule_classes_to_check=rule_classes_to_check,
-            rule_options=rule_options)
-        found_errors = registry.check_rules()
-        registry.print_exceptions(options.severity, options.verbose)
-        # TODO other error codes?
+        for each_file in options.election_file:
+            print("\n--- Results after validating file: %s ---" % each_file)
+            registry = base.RulesRegistry(
+                election_file=each_file, schema_file=options.xsd,
+                rule_classes_to_check=rule_classes_to_check,
+                rule_options=rule_options)
+            found_errors = registry.check_rules()
+            registry.print_exceptions(options.severity, options.verbose)
+            # TODO other error codes?
         return found_errors
 
 
