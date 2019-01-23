@@ -6,162 +6,352 @@
         <BallotName>
           <Text language="en">Barack H. Obama</Text>
         </BallotName>
-        <FileDate>2015-06-01</FileDate>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-obama</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <FileDate>2013-06-01</FileDate>
         <PartyId>par0003</PartyId>
       </Candidate>
       <Candidate objectId="can10861b">
         <BallotName>
           <Text language="en">Joseph R. Biden</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-biden</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0003</PartyId>
       </Candidate>
       <Candidate objectId="can10862a">
         <BallotName>
           <Text language="en">Mitt Romney</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-romney</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0001</PartyId>
       </Candidate>
       <Candidate objectId="can10862b">
         <BallotName>
           <Text language="en">Paul Ryan</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-ryan</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0001</PartyId>
       </Candidate>
       <Candidate objectId="can10961">
         <BallotName>
           <Text language="en">Ken T. Cuccinelli II</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-cuccinelli</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0001</PartyId>
       </Candidate>
       <Candidate objectId="can10962">
         <BallotName>
           <Text language="en">Robert C. Sarvis</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-sarvis</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0002</PartyId>
       </Candidate>
       <Candidate objectId="can10963">
         <BallotName>
           <Text language="en">Terry R. McAuliffe</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-mcauliffe</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0003</PartyId>
       </Candidate>
       <Candidate objectId="can10966">
         <BallotName>
           <Text language="en">Ralph S. Northam</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-northam</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0003</PartyId>
       </Candidate>
       <Candidate objectId="can10967">
         <BallotName>
           <Text language="en">E. W. Jackson</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-jackson</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0001</PartyId>
       </Candidate>
       <Candidate objectId="can10964">
         <BallotName>
           <Text language="en">Mark D. Obenshain</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-obenshain</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0001</PartyId>
       </Candidate>
       <Candidate objectId="can10965">
         <BallotName>
           <Text language="en">Mark R. Herring</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-herring</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0003</PartyId>
       </Candidate>
       <Candidate objectId="can14444">
         <BallotName>
           <Text language="en">Cleo E. Powell</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-powell</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>par0003</PartyId>
       </Candidate>
       <Candidate objectId="can10422">
         <BallotName>
           <Text language="en">R. Steven /Steve/ Landes</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-landes</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0001</PartyId>
       </Candidate>
       <Candidate objectId="can10388">
         <BallotName>
           <Text language="en">David J. Toscano</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-toscano</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0003</PartyId>
       </Candidate>
       <Candidate objectId="can10466">
         <BallotName>
           <Text language="en">C. Matt Fariss</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-fariss</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0001</PartyId>
       </Candidate>
       <Candidate objectId="can10438">
         <BallotName>
           <Text language="en">Robert B. Bell III</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-bell</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0006</PartyId>
       </Candidate>
       <Candidate objectId="can10079">
         <BallotName>
           <Text language="en">Jane D. Dittmar</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-dittmar</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0003</PartyId>
       </Candidate>
       <Candidate objectId="can10080">
         <BallotName>
           <Text language="en">C. L. /Cindi/ Burket</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-burket</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0001</PartyId>
       </Candidate>
       <Candidate objectId="can10075">
         <BallotName>
           <Text language="en">Diantha H. McKeel</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-mckeel</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0004</PartyId>
       </Candidate>
       <Candidate objectId="can10076">
         <BallotName>
           <Text language="en">B. Phillip Seay</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-seay</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0004</PartyId>
       </Candidate>
       <Candidate objectId="can10073">
         <BallotName>
           <Text language="en">Liz A. Palmer</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-palmer</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0003</PartyId>
       </Candidate>
       <Candidate objectId="can10074">
         <BallotName>
           <Text language="en">Duane E. Snow</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-snow</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0001</PartyId>
       </Candidate>
       <Candidate objectId="can10077">
         <BallotName>
           <Text language="en">Rodney S. Thomas</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-thomas</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0001</PartyId>
       </Candidate>
       <Candidate objectId="can10078">
         <BallotName>
           <Text language="en">J. L. /Brad/ Sheffield</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-sheffield</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0003</PartyId>
       </Candidate>
       <Candidate objectId="can10214">
         <BallotName>
           <Text language="en">Pamela R. Moynihan</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-moynihan</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0004</PartyId>
       </Candidate>
       <Candidate objectId="can10215">
         <BallotName>
           <Text language="en">Eric J. Strucko</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-strucko</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0004</PartyId>
       </Candidate>
       <Candidate objectId="can10213">
         <BallotName>
           <Text language="en">K. L.  /Kate/ Acuff</Text>
         </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-acuff</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <PartyId>par0004</PartyId>
       </Candidate>
     </CandidateCollection>
@@ -1021,6 +1211,13 @@
           <Text language="en">President and Vice-President of the United States</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-us1-country-us</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <Name>President and Vice-President</Name>
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
@@ -2307,6 +2504,13 @@
           <Text language="en">Governor of Virginia</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-va1-country-us</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <HasRotation>true</HasRotation>
         <Name>Governor</Name>
         <SubUnitsReported>21</SubUnitsReported>
@@ -3169,6 +3373,13 @@
           <Text language="en">Lieutenant Governor of Virginia</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-lieutenant-governor</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <Name>Lieutenant Governor</Name>
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
@@ -4030,6 +4241,13 @@
           <Text language="en">Attorney General</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-attorney-general</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <Name>Attorney General</Name>
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
@@ -4143,10 +4361,17 @@
           <CandidateIds>can10422</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">Member House of Delegates</Text>
+          <Text language="en">Member House of Delegates District - 025</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0150</ElectoralDistrictId>
-        <Name>Member House of Delegates</Name>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-va4-country-us</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>Member House of Delegates District - 025</Name>
         <SubUnitsReported>5</SubUnitsReported>
         <TotalSubUnits>7</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -4279,10 +4504,17 @@
           <CandidateIds>can10388</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">Member House of Delegates</Text>
+          <Text language="en">Member House of Delegates District - 057</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0311</ElectoralDistrictId>
-        <Name>Member House of Delegates</Name>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-va5-country-us</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>Member House of Delegates District - 057</Name>
         <SubUnitsReported>6</SubUnitsReported>
         <TotalSubUnits>9</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -4335,10 +4567,17 @@
           <CandidateIds>can10466</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">Member House of Delegates</Text>
+          <Text language="en">Member House of Delegates District - 059</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0107</ElectoralDistrictId>
-        <Name>Member House of Delegates</Name>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-va6-country-us</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>Member House of Delegates District - 059</Name>
         <SubUnitsReported>2</SubUnitsReported>
         <TotalSubUnits>2</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -4491,10 +4730,17 @@
           <CandidateIds>can10438</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">Member House of Delegates</Text>
+          <Text language="en">Member House of Delegates District - 058</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0076</ElectoralDistrictId>
-        <Name>Member House of Delegates</Name>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-va7-country-us</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>Member House of Delegates District - 058</Name>
         <SubUnitsReported>7</SubUnitsReported>
         <TotalSubUnits>13</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -4633,10 +4879,17 @@
           <CandidateIds>can10080</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">Member Board of Supervisors</Text>
+          <Text language="en">Member Board of Supervisors - Scottsville</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0103</ElectoralDistrictId>
-        <Name>Member Board of Supervisors</Name>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-va8-country-us</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>Member Board of Supervisors - Scottsville</Name>
         <SubUnitsReported>3</SubUnitsReported>
         <TotalSubUnits>5</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -4774,10 +5027,17 @@
           <CandidateIds>can10076</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">Member Board of Supervisors</Text>
+          <Text language="en">Member Board of Supervisors - Jack Jouett</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0054</ElectoralDistrictId>
-        <Name>Member Board of Supervisors</Name>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-va9-country-us</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>Member Board of Supervisors - Jack Jouett</Name>
         <SubUnitsReported>3</SubUnitsReported>
         <TotalSubUnits>5</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -4955,10 +5215,17 @@
           <CandidateIds>can10074</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">Member Board of Supervisors</Text>
+          <Text language="en">Member Board of Supervisors - Samuel Miller</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0030</ElectoralDistrictId>
-        <Name>Member Board of Supervisors</Name>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-va10-country-us</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>Member Board of Supervisors - Samuel Miller</Name>
         <SubUnitsReported>4</SubUnitsReported>
         <TotalSubUnits>4</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -5136,10 +5403,17 @@
           <CandidateIds>can10078</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">Member Board of Supervisors</Text>
+          <Text language="en">Member Board of Supervisors - Rio</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0081</ElectoralDistrictId>
-        <Name>Member Board of Supervisors</Name>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-va11-country-us</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>Member Board of Supervisors - Rio</Name>
         <SubUnitsReported>4</SubUnitsReported>
         <TotalSubUnits>6</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -5232,10 +5506,17 @@
           <CandidateIds>can10214</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">Member School Board</Text>
+          <Text language="en">Member School Board - Rio</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0081</ElectoralDistrictId>
-        <Name>Member School Board</Name>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-va12-country-us</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>Member School Board - Rio</Name>
         <SubUnitsReported>4</SubUnitsReported>
         <TotalSubUnits>6</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -5325,13 +5606,20 @@
               <Count>8111</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10215</CandidateIds>
+          <CandidateIds>can10215 can14444</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">Member School Board</Text>
+          <Text language="en">Member School Board - Samuel Miller</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0030</ElectoralDistrictId>
-        <Name>Member School Board</Name>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-va13-country-us</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>Member School Board - Samuel Miller</Name>
         <SubUnitsReported>4</SubUnitsReported>
         <TotalSubUnits>4</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -5404,10 +5692,17 @@
           <CandidateIds>can10213</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">Member School Board</Text>
+          <Text language="en">Member School Board - Jack Jouett</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0054</ElectoralDistrictId>
-        <Name>Member School Board</Name>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-va14-country-us</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>Member School Board - Jack Jouett</Name>
         <SubUnitsReported>3</SubUnitsReported>
         <TotalSubUnits>5</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -5839,7 +6134,6 @@
           </VoteCountsCollection>
           <Selection label="bms30001at">
             <Text language="en">Yes</Text>
-            <Text language="es">S&#xED;</Text>
           </Selection>
         </BallotSelection>
         <BallotSelection objectId="bms30001b" xsi:type="BallotMeasureSelection">
@@ -6267,28 +6561,30 @@
           </VoteCountsCollection>
           <Selection label="bms30001bt">
             <Text language="en">No</Text>
-            <Text language="es">No</Text>
           </Selection>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">State of the State</Text>
-          <Text language="es">Estado del Estado.</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-va15-country-us</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <Name>Referendum on Virginia</Name>
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
         <ConStatement label="bmc30001con">
           <Text language="en">This is no good.</Text>
-          <Text language="es">Esto no es bueno.</Text>
         </ConStatement>
         <EffectOfAbstain label="bmc30001abs">
           <Text language="en">Nothing will happen.</Text>
-          <Text language="es">Nada pasar&#xE1;.</Text>
         </EffectOfAbstain>
         <ProStatement label="bmc30001pro">
           <Text language="en">Everything will be great.</Text>
-          <Text language="es">Todo va a estar bien.</Text>
         </ProStatement>
         <Type>referendum</Type>
       </Contest>
@@ -6718,7 +7014,6 @@
           </VoteCountsCollection>
           <Selection label="bms40001at">
             <Text language="en">Yes</Text>
-            <Text language="es">S&#xED;</Text>
           </Selection>
         </BallotSelection>
         <BallotSelection objectId="bms40001b" xsi:type="BallotMeasureSelection">
@@ -7146,14 +7441,19 @@
           </VoteCountsCollection>
           <Selection label="bms40001bt">
             <Text language="en">No</Text>
-            <Text language="es">No</Text>
           </Selection>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">Retention of Supreme Court Justice</Text>
-          <Text language="es">La retenci&#xF3;n de juez de la Corte Suprema</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-va16-country-us</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
         <Name>Judicial Retention, Supreme Court</Name>
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
@@ -7500,6 +7800,13 @@
     <Party objectId="par0001">
       <Abbreviation>REP</Abbreviation>
       <Color>e91d0e</Color>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>vageneral-pty-2013-republican</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <Name>
         <Text language="en">Republican</Text>
       </Name>
@@ -7507,6 +7814,13 @@
     <Party objectId="par0002">
       <Abbreviation>LIB</Abbreviation>
       <Color>f5f500</Color>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>vageneral-pty-2013-libertarian</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <Name>
         <Text language="en">Libertarian</Text>
       </Name>
@@ -7514,24 +7828,52 @@
     <Party objectId="par0003">
       <Abbreviation>DEM</Abbreviation>
       <Color>232066</Color>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>vageneral-pty-2013-democratic</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <Name>
         <Text language="en">Democratic</Text>
       </Name>
     </Party>
     <Party objectId="par0004">
       <Abbreviation>IND</Abbreviation>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>vageneral-pty-2013-independent</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <Name>
         <Text language="en">Independent</Text>
       </Name>
     </Party>
     <Party objectId="par0005">
       <Abbreviation>VN</Abbreviation>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>vageneral-pty-2013-nominated</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <Name>
         <Text language="en">Voter Nominated</Text>
       </Name>
     </Party>
     <Party objectId="par0006">
       <Abbreviation>PPN</Abbreviation>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>vageneral-pty-2013-none</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <Name>
         <Text language="en">Party Preference: None</Text>
       </Name>
