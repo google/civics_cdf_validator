@@ -115,6 +115,10 @@ def arg_parser():
         "-c", help="Two letter country code for OCD IDs.", metavar="country",
         type=lambda x: validate_country_codes(parser, x), required=False,
         default="us")
+    parser_validate.add_argument(
+        "--required_languages",
+        help="Comma Separated Language Code for which to validate against.",
+        default="en")
     subparsers.add_parser("list")
     return parser
 
@@ -1027,6 +1031,58 @@ class ValidEnumerations(base.BaseRule):
                         "'%s' is a valid enumeration" % (
                             element.sourceline, element.tag, other_type_element.text))
 
+class RequiredLanguages(base.BaseRule):
+    """Rule for validating comma separated languages.
+
+     This rule also validates whether en is the only language
+     present or not if the flag is unset. The default is en.
+     """
+    required_languages = None
+
+    def elements(self):
+        schema_tree = etree.parse(self.schema_file)
+        eligible_elements = []
+        for element in schema_tree.iterfind(
+            "{%s}complexType" % self._XSCHEMA_NAMESPACE):
+            for elem in element.iter():
+                tag = self.strip_schema_ns(elem)
+                if tag != "element":
+                    continue
+                elem_name = elem.get("type", None)
+                if (elem_name and elem_name == "InternationalizedText" and
+                    elem.get("name") not in eligible_elements):
+                    eligible_elements.append(elem.get("name"))
+        return eligible_elements
+
+    def check(self, element):
+        comparison_languages = {}
+        has_text = False
+        error_log = []
+        for req_lang in self.required_languages.split(","):
+            comparison_languages[req_lang] = False
+        for text_element in element.findall("Text"):
+            if text_element is not None:
+                has_text = True
+                lang_code = text_element.attrib["language"]
+                if lang_code in comparison_languages:
+                    comparison_languages[lang_code] = True
+                else:
+                    error_message = ("Line %d. Language Code %s is not"
+                                     " in the required list of languages: %s") % (
+                                         element.sourceline, lang_code, ", ".join(
+                                             self.required_languages.split(",")))
+                    error_log.append(base.ErrorLogEntry(None, error_message))
+        if has_text:
+            for lang, found in comparison_languages.items():
+                if found:
+                    continue
+                error_message = ("Line %d. Specified Language Code '%s' is not found "
+                                 "within <%s>") % (element.sourceline, lang, element.tag)
+                error_log.append(base.ErrorLogEntry(None, error_message))
+        if error_log:
+            raise base.ElectionTreeError(
+                "The Election File has the following localization issues:",
+                error_log)
 
 class ValidateOcdidLowerCase(base.BaseRule):
     """Validate if the ocd-ids are all lower case.
@@ -1083,7 +1139,8 @@ _RULES = [
     CandidatesMissingPartyData,
     AllCaps,
     ValidEnumerations,
-    ValidateOcdidLowerCase
+    ValidateOcdidLowerCase,
+    RequiredLanguages
 ]
 
 
@@ -1120,6 +1177,9 @@ def main():
                 base.RuleOption("local_file", options.ocdid_file))
             rule_options.setdefault("GpUnitOcdId", []).append(
                 base.RuleOption("local_file", options.ocdid_file))
+        if options.required_languages:
+            rule_options.setdefault("RequiredLanguages", []).append(
+                base.RuleOption("required_languages", options.required_languages))
         rule_classes_to_check = [x for x in _RULES
                                  if x.__name__ in rules_to_check]
         registry = base.RulesRegistry(

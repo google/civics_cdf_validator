@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<Election>
+<CandidateCollection>
+<Candidate objectId='can-br-abreu'>
+	<BallotName><Text language='en'>Katia Abreu</Text><!-- <Text language='pt'>Katia Abreu</Text> --></BallotName>
+	<ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>brgeneral-cand-2018-br-abreu</Value></ExternalIdentifier></ExternalIdentifiers>
+	<IsIncumbent>0</IsIncumbent>
+	<PartyId>par-pdt</PartyId>
+	<PersonId>per-br-abreu</PersonId>
+	<PreElectionStatus>qualified</PreElectionStatus>
+</Candidate>
+</CandidateCollection>
+<ContestCollection>
+<Contest xsi:type="CandidateContest" objectId="cc-br1-pres-br">
+	<Abbreviation>BR1-PRES-COUNTRY-BR</Abbreviation>
+<BallotSelection xsi:type="CandidateSelection" objectId="cs-br1-abreu">
+	<SequenceOrder>9</SequenceOrder>
+	<VoteCountsCollection>
+	<VoteCounts><Type>total</Type><Count>0</Count></VoteCounts>
+	</VoteCountsCollection>
+	<CandidateIds>can-br-abreu</CandidateIds>
+</BallotSelection>
+	<CountStatus><Status>unknown</Status><Type>election-day</Type></CountStatus>
+	<ElectoralDistrictId>ru-country-br</ElectoralDistrictId>
+	<ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>brgeneral-cont-2018-br1-country-br</Value></ExternalIdentifier></ExternalIdentifiers>
+	<Name>Presidential election, round 1, 2018</Name>
+	<SubUnitsReported>0</SubUnitsReported>
+	<SummaryCounts><BallotsCast>0</BallotsCast><BallotsRejected>0</BallotsRejected><Undervotes>0</Undervotes></SummaryCounts>
+	<TotalSubUnits>1</TotalSubUnits>
+	<VoteVariation>1-of-m</VoteVariation>
+	<NumberElected>1</NumberElected>
+	<VotesAllowed>1</VotesAllowed>
+</Contest>
+</ContestCollection>
+        <CountStatus><Status>not-processed</Status><Type>early</Type></CountStatus>
+	<ElectionScopeId>ru-country-br</ElectionScopeId>
+        <Name><Text language="en">Brazil General Election</Text><Text language="pt">Brazil General Election</Text></Name>
+        <StartDate>2018-10-07</StartDate>
+        <EndDate>2018-10-08</EndDate>
+        <Type>general</Type>
+</Election>
+<Format>summary-contest</Format>
+<GeneratedDate>2018-09-04T14:37:59+01:00</GeneratedDate>
+<GpUnitCollection>
+<GpUnit xsi:type='ReportingUnit' objectId='ru-country-br'>
+	<ExternalIdentifiers>
+	<ExternalIdentifier><Type>ocd-id</Type><Value>ocd-division/country:us</Value></ExternalIdentifier> <!-- Modified country:br to 'us' to avoid non-feature specific errors/warnings -->
+	<ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>brgeneral-zon-2018-country-br</Value></ExternalIdentifier>
+	</ExternalIdentifiers>
+	<Name>Brazil</Name>
+	<Type>country</Type>
+</GpUnit>
+</GpUnitCollection>
+<Issuer>Tribunal Superior Eleitoral (TSE) via Reuters</Issuer>
+<IssuerAbbreviation></IssuerAbbreviation>
+<OfficeCollection>
+<Office objectId='off-br1-bra'>
+	<ElectoralDistrictId>ru-country-br</ElectoralDistrictId>
+	<Name><Text language="en">President</Text><!-- <Text language="pt">Presidente</Text> --></Name>
+	<Term><Type>full-term</Type></Term>
+</Office>
+<Office objectId='off-br1-brb'>
+	<ElectoralDistrictId>ru-country-br</ElectoralDistrictId>
+	<Name><Text language="en">Vice President</Text><Text language="pt">Vicepresidente</Text></Name>
+	<Term><Type>full-term</Type></Term>
+</Office>
+</OfficeCollection>
+<PartyCollection>
+<Party objectId='par-pdt'>
+        <Abbreviation>PDT</Abbreviation>
+        <Color>ea2619</Color>
+	<ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>brgeneral-pty-2018-pdt</Value></ExternalIdentifier></ExternalIdentifiers>
+        <LogoUri>https://ele.fingerpost.co.uk/fip-pages/ele/brazil/2018pty/VALE_LOGO_PDT.jpg</LogoUri>
+        <Name><Text language="en">Democratic Labour Party</Text><Text language="pt">Partido Democrático Trabalhista</Text></Name>
+</Party>
+</PartyCollection>
+<PersonCollection>
+<Person objectId='per-br-abreu'>
+	<ContactInformation><Uri>https://pt.wikipedia.org/wiki/K%C3%A1tia_Abreu</Uri></ContactInformation>
+	<DateOfBirth>1962-02-02</DateOfBirth>
+	<FullName><Text language="en">Katia Regina De Abreu</Text><!-- <Text language="pt">Katia Regina De Abreu</Text> --></FullName>
+	<Gender>FEMALE</Gender>
+</Person>
+</PersonCollection>
+        <SequenceStart>1</SequenceStart>
+        <SequenceEnd>1</SequenceEnd>
+        <Status>unofficial-partial</Status>
+        <VendorApplicationId>FIP election_nist 04j</VendorApplicationId>
+</ElectionReport>
