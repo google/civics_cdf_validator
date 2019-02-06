@@ -7,7 +7,7 @@
           <Text language="en">Barack H. Obama</Text>
         </BallotName>
         <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>vageneral-cand-2013-va-obama</Value></ExternalIdentifier></ExternalIdentifiers>
-        <FileDate>2015-06-01</FileDate>
+        <FileDate>2013-06-01</FileDate>
         <PartyId>par0003</PartyId>
       </Candidate>
       <Candidate objectId="can10861b">
@@ -3199,7 +3199,7 @@
           <Text language="en">Lieutenant Governor of Virginia</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
-        <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>vageneral-cont-2013-va2-country-us</Value></ExternalIdentifier></ExternalIdentifiers>
+        <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>vageneral-cont-2013-lieutenant-governor</Value></ExternalIdentifier></ExternalIdentifiers>
         <Name>Lieutenant Governor</Name>
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
@@ -4061,7 +4061,7 @@
           <Text language="en">Attorney General</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
-        <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>vageneral-cont-2013-va3-country-us</Value></ExternalIdentifier></ExternalIdentifiers>
+        <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>vageneral-cont-2013-attorney-general</Value></ExternalIdentifier></ExternalIdentifiers>
         <Name>Attorney General</Name>
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
