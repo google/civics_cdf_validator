@@ -495,11 +495,11 @@
           <CandidateIds>can10422</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">Member House of Delegates District - 025</Text>
+          <Text language="en">Member House of Delegates District - 0150</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0150</ElectoralDistrictId>
         <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>vageneral-cont-2013-va4-country-us</Value></ExternalIdentifier></ExternalIdentifiers>
-        <Name>Member House of Delegates District - 025</Name>
+        <Name>Member House of Delegates District - 0150</Name>
         <SubUnitsReported>5</SubUnitsReported>
         <TotalSubUnits>7</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -532,11 +532,11 @@
           <CandidateIds>can10388</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">Member House of Delegates District - 057</Text>
+          <Text language="en">Member House of Delegates District - 0311</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0311</ElectoralDistrictId>
         <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>vageneral-cont-2013-va5-country-us</Value></ExternalIdentifier></ExternalIdentifiers>
-        <Name>Member House of Delegates District - 057</Name>
+        <Name>Member House of Delegates District - 0311</Name>
         <SubUnitsReported>6</SubUnitsReported>
         <TotalSubUnits>9</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -569,11 +569,11 @@
           <CandidateIds>can10466</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">Member House of Delegates District - 059</Text>
+          <Text language="en">Member House of Delegates District - 0107</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0107</ElectoralDistrictId>
         <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>vageneral-cont-2013-va6-country-us</Value></ExternalIdentifier></ExternalIdentifiers>
-        <Name>Member House of Delegates District - 059</Name>
+        <Name>Member House of Delegates District - 0107</Name>
         <SubUnitsReported>2</SubUnitsReported>
         <TotalSubUnits>2</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -606,11 +606,11 @@
           <CandidateIds>can10438</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">Member House of Delegates District - 058</Text>
+          <Text language="en">Member House of Delegates District - 0076</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0076</ElectoralDistrictId>
         <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>vageneral-cont-2013-va7-country-us</Value></ExternalIdentifier></ExternalIdentifiers>
-        <Name>Member House of Delegates District - 058</Name>
+        <Name>Member House of Delegates District - 0076</Name>
         <SubUnitsReported>7</SubUnitsReported>
         <TotalSubUnits>13</TotalSubUnits>
         <NumberElected>1</NumberElected>
