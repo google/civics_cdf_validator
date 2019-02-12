@@ -567,6 +567,7 @@
         <xs:sequence>
             <xs:element maxOccurs="unbounded" minOccurs="0" name="ContactInformation" type="ContactInformation" />
             <xs:element minOccurs="0" name="DateOfBirth" type="xs:date" />
+	    <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
             <xs:element minOccurs="0" name="FirstName" type="xs:string" />
             <xs:element minOccurs="0" name="FullName" type="InternationalizedText" />
             <xs:element minOccurs="0" name="Gender" type="xs:string" />
