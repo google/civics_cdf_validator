@@ -209,7 +209,7 @@
                     <xs:element minOccurs="0" name="ConStatement" type="InternationalizedText" />
                     <xs:element minOccurs="0" name="EffectOfAbstain" type="InternationalizedText" />
                     <xs:element minOccurs="0" name="FullText" type="InternationalizedText" />
-                    <xs:element minOccurs="0" name="InfoUri" type="xs:anyURI" />
+                    <xs:element minOccurs="0" name="InfoUri" type="AnnotatedUri" />
                     <xs:element minOccurs="0" name="PassageThreshold" type="InternationalizedText" />
                     <xs:element minOccurs="0" name="ProStatement" type="InternationalizedText" />
                     <xs:element minOccurs="0" name="SummaryText" type="InternationalizedText" />
@@ -245,7 +245,7 @@
         <xs:sequence>
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
             <xs:element name="GpUnitIds" type="xs:IDREFS" />
-            <xs:element maxOccurs="unbounded" minOccurs="0" name="ImageUri" type="xs:anyURI" />
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="ImageUri" type="AnnotatedUri" />
             <xs:element maxOccurs="unbounded" minOccurs="0" name="OrderedContest" type="OrderedContest" />
             <xs:element minOccurs="0" name="PartyIds" type="xs:IDREFS" />
         </xs:sequence>
@@ -317,7 +317,7 @@
             <xs:element minOccurs="0" name="Name" type="xs:string" />
             <xs:element maxOccurs="unbounded" minOccurs="0" name="Phone" type="AnnotatedString" />
             <xs:element maxOccurs="unbounded" minOccurs="0" name="Schedule" type="Schedule" />
-            <xs:element maxOccurs="unbounded" minOccurs="0" name="Uri" type="xs:anyURI" />
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Uri" type="AnnotatedUri" />
         </xs:sequence>
         <xs:attribute name="label" type="xs:string" />
     </xs:complexType>
@@ -537,8 +537,9 @@
         <xs:sequence>
             <xs:element minOccurs="0" name="Abbreviation" type="xs:string" />
             <xs:element minOccurs="0" name="Color" type="HtmlColorString" />
+            <xs:element minOccurs="0" name="ContactInformation" type="ContactInformation" />
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
-            <xs:element minOccurs="0" name="LogoUri" type="xs:anyURI" />
+            <xs:element minOccurs="0" name="LogoUri" type="AnnotatedUri" />
             <xs:element name="Name" type="InternationalizedText" />
         </xs:sequence>
         <xs:attribute name="objectId" type="xs:ID" use="required" />
@@ -638,7 +639,7 @@
     </xs:complexType>
     <xs:complexType name="SpatialDimension">
         <xs:sequence>
-            <xs:element minOccurs="0" name="MapUri" type="xs:anyURI" />
+            <xs:element minOccurs="0" name="MapUri" type="AnnotatedUri" />
             <xs:element minOccurs="0" name="SpatialExtent" type="SpatialExtent" />
         </xs:sequence>
     </xs:complexType>
@@ -670,5 +671,12 @@
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="AnnotatedUri">
+        <xs:simpleContent>
+            <xs:extension base="xs:anyURI">
+                <xs:attribute name="Annotation" type="ShortString" />
+            </xs:extension>
+        </xs:simpleContent>
     </xs:complexType>
 </xs:schema>
