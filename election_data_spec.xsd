@@ -10,7 +10,7 @@
     </xs:simpleType>
     <xs:simpleType name="ShortString">
         <xs:restriction base="xs:string">
-            <xs:maxLength value="16" />
+            <xs:maxLength value="32" />
         </xs:restriction>
     </xs:simpleType>
     <xs:simpleType name="TimeWithZone">
