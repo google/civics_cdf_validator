@@ -426,7 +426,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
         with open(countries_file) as csvfile:
             csv_reader = csv.DictReader(csvfile)
             for row in csv_reader:
-                if row['id']:
+                if 'id' in row and row['id']:
                     ocd_id_codes.add(row['id'])
         return ocd_id_codes
 
