@@ -26,6 +26,7 @@ import requests
 from lxml import etree
 from github import Github
 from election_results_xml_validator import base
+import csv
 
 
 def validate_file(parser, arg):
@@ -422,11 +423,11 @@ class ElectoralDistrictOcdId(base.BaseRule):
                     if last_mod_date < latest_github_commit_date:
                         self._download_data(countries_file)
         ocd_id_codes = set()
-        with io.open(countries_file, mode="rb") as fd:
-            for line in fd:
-                if line is not "":
-                    # TODO use a CSV Reader
-                    ocd_id_codes.add(line.split(b",")[0])  
+        with open(countries_file) as csvfile:
+            csv_reader = csv.DictReader(csvfile)
+            for row in csv_reader:
+                if row['id']:
+                    ocd_id_codes.add(row['id'])
         return ocd_id_codes
 
     def elements(self):
