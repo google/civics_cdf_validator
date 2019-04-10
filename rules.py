@@ -26,6 +26,7 @@ import requests
 from lxml import etree
 from github import Github
 from election_results_xml_validator import base
+import csv
 
 
 def validate_file(parser, arg):
@@ -422,11 +423,11 @@ class ElectoralDistrictOcdId(base.BaseRule):
                     if last_mod_date < latest_github_commit_date:
                         self._download_data(countries_file)
         ocd_id_codes = set()
-        with io.open(countries_file, mode="rb") as fd:
-            for line in fd:
-                if line is not "":
-                    # TODO use a CSV Reader
-                    ocd_id_codes.add(line.split(b",")[0])  
+        with open(countries_file) as csvfile:
+            csv_reader = csv.DictReader(csvfile)
+            for row in csv_reader:
+                if 'id' in row and row['id']:
+                    ocd_id_codes.add(row['id'])
         return ocd_id_codes
 
     def elements(self):
@@ -1027,6 +1028,34 @@ class ValidEnumerations(base.BaseRule):
                             element.sourceline, element.tag, other_type_element.text))
 
 
+class ValidateOcdidLowerCase(base.BaseRule):
+    """Validate if the ocd-ids are all lower case.
+
+    Throw a warning if the ocd-ids are not all in lowercase."""
+
+    def elements(self):
+        return ["ExternalIdentifier"]
+
+    def check(self, element):
+        id_type = element.find("Type")
+        if id_type is None:
+            return
+        id_type_text = id_type.text
+        if id_type_text != "ocd-id":
+            return
+        id_value = element.find("Value")
+        if id_value is None:
+            return
+        ocdid = id_value.text
+        if ocdid is None or not ocdid.strip():
+            return
+        if not ocdid.islower():
+            raise base.ElectionWarning(
+                    "Line %d. OCD-ID %s is not in all lower case letters. "
+                    "Valid OCD-IDs should be all lowercase" %
+                    (element.sourceline, ocdid))
+
+
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
 _RULES = [
@@ -1053,7 +1082,8 @@ _RULES = [
     DuplicateContestNames,
     CandidatesMissingPartyData,
     AllCaps,
-    ValidEnumerations
+    ValidEnumerations,
+    ValidateOcdidLowerCase
 ]
 
 
