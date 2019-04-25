@@ -27,6 +27,7 @@ from lxml import etree
 from github import Github
 from election_results_xml_validator import base
 import csv
+from urlparse import urlparse
 
 
 def validate_file(parser, arg):
@@ -1056,6 +1057,96 @@ class ValidateOcdidLowerCase(base.BaseRule):
                     (element.sourceline, ocdid))
 
 
+class ValidateAnnotatedURI(base.BaseRule):
+    """Validate the annotated URI types.
+
+    1. Throw an error if domain names do not match with the mentioned annotation.
+    2. Throw warning for missing annotations"""
+
+    platforms = ["facebook", "twitter", "instagram", "youtube", "wikipedia"]
+    
+    def is_uri_inferrable(self, domain):
+        for platform in self.platforms:
+            if domain.find(platform) >= 0:
+                return platform
+        return False
+
+    def is_annotation_correct(self, annotation, domain):
+        platform_in_annotation = self.get_platform(annotation)
+        if (platform_in_annotation in self.platforms and
+            platform_in_annotation != self.is_uri_inferrable(domain)):
+            return False
+        return True
+
+    def get_platform(self, annotation):
+        anno_parts = annotation.split("-")
+        if len(anno_parts) == 1:
+            return anno_parts[0].strip()
+        return anno_parts[1].strip()
+
+    def is_annotation_malformed(self, annotation):
+        anno_parts = annotation.split("-")
+        if len(anno_parts) > 2:
+            return True
+        return False
+
+    '''Commenting out this function for now. It is slowing down
+        the validator by considerable amount. Working on it.
+    def url_exists(self, url):
+        try:
+            return_code = urllib2.urlopen(url).code
+        except urllib2.URLError as error:
+            print("URL: {0} --> Error: ".format(url, error.reason))
+            return False
+        except urllib2.HTTPError as error:
+            print("The server couldn't fulfill the request. Error code", error.code)
+            return False
+        else:
+            return True'''
+    
+    def elements(self):
+        schema_tree = etree.parse(self.schema_file)
+        eligible_elements = set()
+        for event, element in etree.iterwalk(schema_tree):
+            tag = self.strip_schema_ns(element)
+            if tag and tag == "element" and element.get("type") == "AnnotatedUri":
+                eligible_elements.add(element.get("name"))
+        return eligible_elements
+
+    def check(self, element):
+        url = element.text.encode('utf-8').strip()
+        if not url:
+            return
+        
+        '''if not self.url_exists(url):
+            raise base.ElectionError("Line %d. URI '%s' is malformed." %
+                (element.sourceline, url))'''
+        
+        parsed_url = urlparse(url)
+        domain = parsed_url.netloc.strip()
+        annotation = element.get("Annotation")
+        platform = None
+        if annotation:
+            if self.is_annotation_malformed(annotation):
+                raise base.ElectionError(
+                    "Line %d. Annotation '%s' is malformed. Proper format is: [type-]platform." %
+                    (element.sourceline, annotation))
+            platform = self.get_platform(annotation)
+        domain_platform = self.is_uri_inferrable(domain)
+        if domain_platform and not annotation:
+            raise base.ElectionWarning(
+                "Line %d. Annotation missing for the URI even though it is inferrable to '%s'" %
+                (element.sourceline, platform_domain))
+        if not annotation:
+            raise base.ElectionWarning(
+                "Line %d. Annotation missing for the URI" %
+                (element.sourceline))
+        if not self.is_annotation_correct(annotation, domain):
+            raise base.ElectionError(
+                "Line %d. Incorrect annotation '%s' for the URI with domain %s" %
+                (element.sourceline, annotation, domain))
+
+
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list
 _RULES = [
@@ -1083,7 +1174,8 @@ _RULES = [
     CandidatesMissingPartyData,
     AllCaps,
     ValidEnumerations,
-    ValidateOcdidLowerCase
+    ValidateOcdidLowerCase,
+    ValidateAnnotatedURI
 ]
 
 
