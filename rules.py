@@ -16,17 +16,22 @@ limitations under the License.
 from __future__ import print_function
 
 import argparse
+import csv
+from datetime import datetime
+import hashlib
 import io
 import os.path
-import hashlib
 from shutil import copyfile
-from datetime import datetime
-import language_tags
-import requests
-from lxml import etree
+
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
 from github import Github
+import language_tags
+from lxml import etree
+import pkg_resources
+import requests
+
 from election_results_xml_validator import base
-import csv
 
 
 def validate_file(parser, arg):
@@ -1087,6 +1092,19 @@ _RULES = [
 ]
 
 
+def print_metadata(filename):
+    """Prints metadata associated with this run of the validator."""
+    print("Validator version: {}".format(
+        pkg_resources.require("election_results_xml_validator")[0].version))
+
+    blocksize = 65536
+    digest = hashes.Hash(hashes.SHA512_256(), backend=default_backend())
+    with open(filename, "rb") as f:
+        for block in iter(lambda: f.read(blocksize), b""):
+            digest.update(block)
+    print("SHA-512/256 checksum: {}".format(digest.finalize().encode('hex')))
+
+
 def main():
     p = arg_parser()
     options = p.parse_args()
@@ -1120,6 +1138,9 @@ def main():
                 base.RuleOption("local_file", options.ocdid_file))
             rule_options.setdefault("GpUnitOcdId", []).append(
                 base.RuleOption("local_file", options.ocdid_file))
+
+        print_metadata(options.election_file)
+
         rule_classes_to_check = [x for x in _RULES
                                  if x.__name__ in rules_to_check]
         registry = base.RulesRegistry(
