@@ -22,6 +22,7 @@ import hashlib
 from datetime import datetime
 import language_tags
 import requests
+import time
 from lxml import etree
 from election_results_xml_validator import base
 import csv
@@ -366,7 +367,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
             else:
                 # If the file already exists, only update it if we're
                 # instructed to do so.
-                if self.check_github:
+                if self.check_github and self._should_update_file(countries_file):
                     self._download_data(countries_file)
         ocd_id_codes = set()
         with open(countries_file) as csvfile:
@@ -375,6 +376,15 @@ class ElectoralDistrictOcdId(base.BaseRule):
                 if 'id' in row and row['id']:
                     ocd_id_codes.add(row['id'])
         return ocd_id_codes
+
+    def _should_update_file(self, file_path):
+      """Determine whether the file should be updated based on its last modified timestamp.
+
+      The Github v3 REST API limits unauthenticated requests to 60 per hour. We check for ocd_id
+      files once per hour.
+      """
+      elapsed_seconds = time.time() - os.path.getmtime(file_path)
+      return elapsed_seconds > 3600
 
     def elements(self):
         return ["ElectoralDistrictId"]
