@@ -19,12 +19,10 @@ import argparse
 import io
 import os.path
 import hashlib
-from shutil import copyfile
 from datetime import datetime
 import language_tags
 import requests
 from lxml import etree
-from github import Github
 from election_results_xml_validator import base
 import csv
 
@@ -324,13 +322,13 @@ class ElectoralDistrictOcdId(base.BaseRule):
     ocds = []
     gpunits = []
     CACHE_DIR = "~/.cache"
-    GITHUB_REPO = "opencivicdata/ocd-division-ids"
-    GITHUB_DIR = "identifiers"
     check_github = True
-    github_repo = None
-    github_file = None
+    ocd_url_fmt = "https://raw.github.com/opencivicdata/ocd-division-ids/master/identifiers/country-{}.csv"
+    ocd_file_url = None
     local_file = None
     country_code = None
+    file_name_fmt = "country-{}.csv" 
+    file_name = None
 
     def __init__(self, election_tree, schema_file):
         super(ElectoralDistrictOcdId, self).__init__(election_tree, schema_file)
@@ -340,66 +338,16 @@ class ElectoralDistrictOcdId(base.BaseRule):
 
     def setup(self):
         if not self.local_file:
-            g = Github()
-            self.github_file = "country-%s.csv" % self.country_code
-            self.github_repo = g.get_repo(self.GITHUB_REPO)
+            self.ocd_file_url = self.ocd_url_fmt.format(self.country_code)
+        self.file_name = self.file_name_fmt.format(self.country_code)
         self.ocds = self._get_ocd_data()
 
-    def _get_latest_commit_date(self):
-        """Returns the latest commit date to country-us.csv."""
-        latest_commit_date = None
-        latest_commit = self.github_repo.get_commits(
-            path="{0}/{1}".format(self.GITHUB_DIR, self.github_file))[0]
-        latest_commit_date = latest_commit.commit.committer.date
-        return latest_commit_date
-
-    def _get_latest_file_blob_sha(self):
-        """Returns the gihub blob sha of country-us.csv."""
-        blob_sha = None
-        dir_contents = self.github_repo.get_dir_contents(self.GITHUB_DIR)
-        for content_file in dir_contents:
-            if content_file.name == self.github_file:
-                blob_sha = content_file.sha
-                break
-        return blob_sha
-
     def _download_data(self, file_path):
-        """Makes a request to Github to download the file."""
-        ocdid_url = "https://raw.github.com/{0}/master/{1}/{2}".format(
-            self.GITHUB_REPO, self.GITHUB_DIR, self.github_file)
-        r = requests.get(ocdid_url)
-        with io.open("{0}.tmp".format(file_path), "wb") as fd:
+        """Downloads the file from Github and stores it at the specified path."""
+        r = requests.get(self.ocd_file_url)
+        with io.open(file_path, "wb") as fd:
             for chunk in r.iter_content():
                 fd.write(chunk)
-        valid = self._verify_data("{0}.tmp".format(file_path))
-        if not valid:
-            raise base.ElectionError(
-                "Could not successfully download OCD ID data files. "
-                "Please try downloading the file manually and "
-                "place it in ~/.cache")
-        else:
-            copyfile("{0}.tmp".format(file_path), file_path)
-
-    def _verify_data(self, file_path):
-        """Compares blob sha to gihub sha and returns set of ocd id codes
-        if the file is valid
-        """
-        file_sha1 = hashlib.sha1()
-        ocd_id_codes = set()
-        file_info = os.stat(file_path)
-        # github calculates the blob sha like this
-        #sha1("blob "+filesize+"\0"+data)
-        file_sha1.update(b"blob %d\0" % file_info.st_size)
-        with io.open(file_path, mode="rb") as fd:
-            for line in fd:
-                file_sha1.update(line)
-                if line is not "":
-                    ocd_id_codes.add(line.split(b",")[0])
-        latest_file_sha = self._get_latest_file_blob_sha()
-        if latest_file_sha != file_sha1.hexdigest():
-            return False
-        else:
-            return True
 
     def _get_ocd_data(self):
         """Returns a list of OCD-ID codes. This list is populated using
@@ -410,18 +358,16 @@ class ElectoralDistrictOcdId(base.BaseRule):
         else:
             """Checks if OCD file is in ~/cache, downloads it if not."""
             cache_directory = os.path.expanduser(self.CACHE_DIR)
-            countries_file = "{0}/{1}".format(cache_directory, self.github_file)
+            countries_file = "{0}/{1}".format(cache_directory, self.file_name)
             if not os.path.exists(countries_file):
                 if not os.path.exists(cache_directory):
                     os.makedirs(cache_directory)
                 self._download_data(countries_file)
             else:
+                # If the file already exists, only update it if we're
+                # instructed to do so.
                 if self.check_github:
-                    last_mod_date = datetime.fromtimestamp(
-                        os.path.getmtime(countries_file))
-                    latest_github_commit_date = self._get_latest_commit_date()
-                    if last_mod_date < latest_github_commit_date:
-                        self._download_data(countries_file)
+                    self._download_data(countries_file)
         ocd_id_codes = set()
         with open(countries_file) as csvfile:
             csv_reader = csv.DictReader(csvfile)

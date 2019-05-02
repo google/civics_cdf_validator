@@ -51,7 +51,6 @@ setup(
         'lxml>=3.3.4',
         'language-tags>=0.4.2',
         '%s>=2.10' % requests_version,
-        'pygithub>=1.28'
     ],
     entry_points=ENTRY_POINTS,
     package_dir={'election_results_xml_validator': ''},
