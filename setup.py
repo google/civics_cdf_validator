@@ -48,6 +48,7 @@ setup(
         'warnings and info messages for common issues.',
     url='https://github.com/google/election_results_xml_validator',
     install_requires=[
+        'cryptography>=2.5',
         'lxml>=3.3.4',
         'language-tags>=0.4.2',
         '%s>=2.10' % requests_version,
