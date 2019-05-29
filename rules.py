@@ -655,11 +655,15 @@ class PartisanPrimary(base.BaseRule):
 
     def __init__(self, election_tree, schema_file):
         super(PartisanPrimary, self).__init__(election_tree, schema_file)
-        # There can only be one election element in a file
+        # There can be no more than one election element in a file
         election_elem = self.election_tree.find("Election")
-        election_type_elem = election_elem.find("Type")
-        if election_type_elem is not None:
-            self.election_type = election_type_elem.text.strip()
+        try:
+            election_type_elem = election_elem.find("Type")
+        except AttributeError:
+            pass
+        else:
+            if election_type_elem is not None:
+                self.election_type = election_type_elem.text.strip()
 
     def elements(self):
         # only check contest elements if this is a partisan election
@@ -1102,7 +1106,7 @@ def print_metadata(filename):
     with open(filename, "rb") as f:
         for block in iter(lambda: f.read(blocksize), b""):
             digest.update(block)
-    print("SHA-512/256 checksum: {}".format(digest.finalize().encode('hex')))
+    print("SHA-512/256 checksum: {}".format(digest.finalize().hex()))
 
 
 def main():
