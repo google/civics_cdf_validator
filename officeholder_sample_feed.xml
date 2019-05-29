@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Format>precinct-level</Format>
+  <GeneratedDate>2018-11-05T14:25:28</GeneratedDate>
+  <GpUnitCollection>
+    <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu0">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:tx</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-2lkjg1zsv9j</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>Texas</Name>
+      <Type>state</Type>
+    </GpUnit>
+    <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu1">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:vt</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-wlkj2oijg2g</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>Vermont</Name>
+      <Type>state</Type>
+    </GpUnit>
+    <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu2">
+      <ComposingGpUnitIds>ru-gpu0 ru-gpu1</ComposingGpUnitIds>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-2k3flj2kjf2</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>United States</Name>
+      <Type>country</Type>
+    </GpUnit>
+  </GpUnitCollection>
+  <Issuer>Data Partner X</Issuer>
+  <IssuerAbbreviation>DPX</IssuerAbbreviation>
+  <OfficeCollection>
+    <Office objectId="off0">
+      <ElectoralDistrictId>ru-gpu0</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off0</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>gpu2</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>
+        <Text language="en">United States Senator</Text>
+      </Name>
+      <OfficeHolderPersonIds>per0</OfficeHolderPersonIds>
+      <Term>
+        <StartDate>2019-01-02</StartDate>
+      </Term>
+    </Office>
+    <Office objectId="off1">
+      <ElectoralDistrictId>ru-gpu1</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>government-body</OtherType>
+          <Value>United States Senate</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru-gpu2</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Country</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>Upper house</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>
+        <Text language="en">United States Senator</Text>
+      </Name>
+      <OfficeHolderPersonIds>per1</OfficeHolderPersonIds>
+      <Term>
+        <StartDate>2019-01-02</StartDate>
+      </Term>
+    </Office>
+  </OfficeCollection>
+  <PartyCollection>
+    <Party objectId="par0">
+      <ContactInformation>
+        <Uri Annotation="wikipedia">https://en.wikipedia.org/wiki/Republican_Party_(United_States)</Uri>
+        <Uri Annotation="official-twitter">https://twitter.com/GOP</Uri>
+      </ContactInformation>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-par0</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>
+        <Text language="en">Republican Party</Text>
+      </Name>
+    </Party>
+    <Party objectId="par1">
+      <ContactInformation>
+        <Uri Annotation="wikipedia">https://en.wikipedia.org/wiki/Democratic_Party_(United_States)</Uri>
+        <Uri Annotation="official-twitter">https://twitter.com/TheDemocrats</Uri>
+      </ContactInformation>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-par1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>
+        <Text language="en">Democratic Party</Text>
+      </Name>
+    </Party>
+  </PartyCollection>
+  <PersonCollection>
+    <Person objectId="per0">
+      <ContactInformation>
+        <Uri Annotation="personal-facebook">https://www.facebook.com/tedcruzpage</Uri>
+        <Uri Annotation="personal-twitter">https://twitter.com/tedcruz</Uri>
+        <Uri Annotation="personal-website">https://www.tedcruz.org/</Uri>
+        <Uri Annotation="wikipedia">https://en.wikipedia.org/wiki/Ted_Cruz</Uri>
+      </ContactInformation>
+      <DateOfBirth>1970-12-22</DateOfBirth>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-per0</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FirstName>Rafael</FirstName>
+      <FullName>
+        <Text language="en">Rafael Edward "Ted" Cruz</Text>
+      </FullName>
+      <Gender>Male</Gender>
+      <LastName>Cruz</LastName>
+      <MiddleName>Edward</MiddleName>
+      <Nickname>Ted Cruz</Nickname>
+      <PartyId>par0</PartyId>
+    </Person>
+    <Person objectId="per1">
+      <ContactInformation>
+        <Uri Annotation="personal-website">https://act.berniesanders.com/signup/signup/</Uri>
+        <Uri Annotation="personal-facebook">https://www.facebook.com/berniesanders</Uri>
+        <Uri Annotation="wikipedia">https://en.wikipedia.org/wiki/Bernie_Sanders</Uri>
+      </ContactInformation>
+      <DateOfBirth>1941-09-08</DateOfBirth>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-per1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FirstName>Bernie</FirstName>
+      <FullName>
+        <Text language="en">Bernie Sanders</Text>
+      </FullName>
+      <Gender>Male</Gender>
+      <LastName>Sanders</LastName>
+      <PartyId>par1</PartyId>
+    </Person>
+  </PersonCollection>
+  <SequenceStart>1</SequenceStart>
+  <SequenceEnd>1</SequenceEnd>
+  <Status>certified</Status>
+  <VendorApplicationId>Hand-generated</VendorApplicationId>
+</ElectionReport>
+
