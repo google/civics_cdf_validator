@@ -146,7 +146,7 @@ def print_metadata(filename):
   with open(filename, "rb") as f:
     for block in iter(lambda: f.read(blocksize), b""):
       digest.update(block)
-  print("SHA-512/256 checksum: {}".format(digest.finalize().encode("hex")))
+  print("SHA-512/256 checksum: {}".format(digest.finalize().hex()))
 
 
 def main():
