@@ -167,14 +167,22 @@ class PercentSum(base.BaseRule):
           sum_percents += float(vote_counts.find("Count").text)
     if (not fuzzy_equals(sum_percents, 0)
         and not fuzzy_equals(sum_percents, 100)):
-      if hasattr(element, "sourceline") and element.sourceline is not None:
-        raise base.ElectionError(
-            "Line %d. Contest percents do not sum to 0 or 100: %f"
-            % (element.sourceline, sum_percents))
-      else:
-        raise base.ElectionError(
-            "Contest percents do not sum to 0 or 100: %f"
-            % sum_percents)
+      raise base.ElectionError(
+          sourceline_prefix(element)
+          + "Contest percents do not sum to 0 or 100: %f" % sum_percents)
+
+
+class OnlyOneElection(base.BaseRule):
+  """Check that there is only one Election in the ElectionReport."""
+
+  def elements(self):
+    return ["ElectionReport"]
+
+  def check(self, element):
+    if len(element.findall("Election")) > 1:
+      raise base.ElectionError(
+          sourceline_prefix(element)
+          + "ElectionReport has more than one Election.")
 
 
 class EmptyText(base.BaseRule):
@@ -997,11 +1005,18 @@ class ValidateOcdidLowerCase(base.BaseRule):
               (element.sourceline, ocdid))
 
 
+def sourceline_prefix(element):
+  if hasattr(element, "sourceline") and element.sourceline is not None:
+    return "Line %d. " % element.sourceline
+  else:
+    return ""
+
+
 # To add new rules, create a new class, inherit the base rule
 # then add it to this list.
 RULES = [
     Schema, Encoding, HungarianStyleNotation, OptionalAndEmpty, LanguageCode,
-    PercentSum,
+    PercentSum, OnlyOneElection,
     EmptyText, ElectoralDistrictOcdId, GpUnitOcdId, DuplicateGpUnits, OtherType,
     DuplicateID, ValidIDREF, UniqueLabel, PartisanPrimary,
     PartisanPrimaryHeuristic, ReusedCandidate, CoalitionParties,
