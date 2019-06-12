@@ -535,7 +535,10 @@
     </xs:complexType>
     <xs:complexType name="Party">
         <xs:sequence>
-            <xs:element minOccurs="0" name="Abbreviation" type="xs:string" />
+            <xs:choice>
+              <xs:element minOccurs="0" name="Abbreviation" type="xs:string" />
+              <xs:element minOccurs="0" name="InternationalizedAbbreviation" type="InternationalizedText" />
+            </xs:choice>
             <xs:element minOccurs="0" name="Color" type="HtmlColorString" />
             <xs:element minOccurs="0" name="ContactInformation" type="ContactInformation" />
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
