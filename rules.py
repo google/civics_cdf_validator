@@ -938,6 +938,33 @@ class AllCaps(base.BaseRule):
             "Line %d. Person %s has name in all upper case letters." %
             (element.sourceline, object_id))
 
+
+class AllLanguages(base.BaseRule):
+  """Verify that required languages are present in Text fields.
+
+    The Text elements in all entities with those fields should cover all
+    required languages for this schema.
+    """
+  required_languages = []
+
+  def elements(self):
+    return ["BallotName", "BallotTitle", "FullName", "Name"]
+
+  def check(self, element):
+    text_elements = element.findall("Text")
+    if not text_elements:
+      return
+    languages = set()
+    for text in text_elements:
+      languages.add(text.attrib["language"])
+    required_language_set = frozenset(self.required_languages)
+    if not required_language_set.issubset(languages):
+      raise base.ElectionError(
+          sourceline_prefix(element)
+          + "Element does not contain text in all required languages, missing: "
+          + str(required_language_set - languages))
+
+
 class ValidEnumerations(base.BaseRule):
   """Valid enumerations should not be encoded as 'OtherType'. 
 
@@ -1021,6 +1048,6 @@ RULES = [
     DuplicateID, ValidIDREF, UniqueLabel, PartisanPrimary,
     PartisanPrimaryHeuristic, ReusedCandidate, CoalitionParties,
     ProperBallotSelection, CandidateNotReferenced, CheckIdentifiers,
-    DuplicateContestNames, CandidatesMissingPartyData, AllCaps,
+    DuplicateContestNames, CandidatesMissingPartyData, AllCaps, AllLanguages,
     ValidEnumerations, ValidateOcdidLowerCase
 ]

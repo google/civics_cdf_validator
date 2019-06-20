@@ -133,6 +133,10 @@ def arg_parser():
       type=lambda x: _validate_country_codes(parser, x),
       required=False,
       default="us")
+  parser_validate.add_argument(
+      "--required_languages",
+      help="Languages required by the AllLanguages check.",
+      required=False)
   subparsers.add_parser("list")
   return parser
 
@@ -183,6 +187,10 @@ def main():
           base.RuleOption("local_file", options.ocdid_file))
       rule_options.setdefault("GpUnitOcdId", []).append(
           base.RuleOption("local_file", options.ocdid_file))
+    if options.required_languages:
+      rule_options.setdefault("AllLanguages", []).append(
+          base.RuleOption("required_languages",
+                          str.split(options.required_languages, ",")))
     rule_classes_to_check = [
         x for x in rules.RULES if x.__name__ in rules_to_check
     ]
