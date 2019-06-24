@@ -36,7 +36,7 @@ def _validate_file(parser, arg):
 def _validate_rules(parser, arg):
   """Check that the listed rules exist"""
   invalid_rules = []
-  rule_names = [x.__name__ for x in rules.RULES]
+  rule_names = [x.__name__ for x in rules.ALL_RULES]
   input_rules = arg.strip().split(",")
   for rule in input_rules:
     if rule and rule not in rule_names:
@@ -98,6 +98,7 @@ def arg_parser():
       required=False,
       metavar="csv_file",
       type=lambda x: _validate_file(parser, x))
+
   group = parser_validate.add_mutually_exclusive_group(required=False)
   group.add_argument(
       "-i",
@@ -105,6 +106,15 @@ def arg_parser():
       required=False,
       type=lambda x: _validate_rules(parser, x))
   group.add_argument(
+      "--rule_set",
+      "-r",
+      help="Pre-defined rule set: [{}].".format(", ".join(
+          s.name.lower() for s in rules.RuleSet)),
+      required=False,
+      default="election",
+      type=ruleset_type)
+
+  parser_validate.add_argument(
       "-e",
       help="Comma separated list of rules to be excluded.",
       required=False,
@@ -142,6 +152,15 @@ def arg_parser():
   return parser
 
 
+def ruleset_type(enum_string):
+  try:
+    return rules.RuleSet[enum_string.upper()]
+  except KeyError:
+    msg = "Rule set must be one of [{}]".format(", ".join(
+        s.name.lower() for s in rules.RuleSet))
+    raise argparse.ArgumentTypeError(msg)
+
+
 def print_metadata(filename):
   """Prints metadata associated with this run of the validator."""
   print("Validator version: {}".format(version.__version__))
@@ -160,19 +179,22 @@ def main():
   options = p.parse_args()
   if options.cmd == "list":
     print("Available rules are :")
-    for rule in rules.RULES:
+    for rule in sorted(rules.ALL_RULES, key=lambda x: x.__name__):
       print("\t" + rule.__name__ + " - " + rule.__doc__.split("\n")[0])
     return
   elif options.cmd == "validate":
-    rules_to_check = []
-    if options.i:
-      rules_to_check = options.i
-    elif options.e:
-      rules_to_check = [
-          x.__name__ for x in rules.RULES if x.__name__ not in options.e
-      ]
+    if options.rule_set == rules.RuleSet.ELECTION:
+      rule_names = [x.__name__ for x in rules.ELECTION_RULES]
+    elif options.rule_set == rules.RuleSet.OFFICEHOLDER:
+      rule_names = [x.__name__ for x in rules.OFFICEHOLDER_RULES]
     else:
-      rules_to_check = [x.__name__ for x in rules.RULES]
+      raise AssertionError("Invalid rule_set: " + options.rule_set)
+
+    if options.i:
+      rule_names = options.i
+    elif options.e:
+      rule_names = set(rule_names) - set(options.e)
+
     rule_options = {}
     if options.g:
       rule_options.setdefault("ElectoralDistrictOcdId", []).append(
@@ -194,7 +216,7 @@ def main():
           base.RuleOption("required_languages",
                           str.split(options.required_languages, ",")))
     rule_classes_to_check = [
-        x for x in rules.RULES if x.__name__ in rules_to_check
+        x for x in rules.ALL_RULES if x.__name__ in rule_names
     ]
 
     print_metadata(options.election_file)

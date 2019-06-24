@@ -17,6 +17,7 @@ from __future__ import print_function
 
 import csv
 from datetime import datetime
+import enum
 import hashlib
 import io
 import os.path
@@ -1032,6 +1033,35 @@ class ValidateOcdidLowerCase(base.BaseRule):
               (element.sourceline, ocdid))
 
 
+class PersonsHaveOffices(base.TreeRule):
+  """Ensure that all Person objects are linked to an Office."""
+
+  def check(self):
+    root = self.election_tree.getroot()
+    if not root:
+      return
+
+    person_collection = root.find("PersonCollection")
+    if person_collection is None:
+      return
+
+    person_ids = {p.attrib["objectId"] for p in person_collection}
+    office_collection = root.find("OfficeCollection")
+    office_person_ids = set()
+    if office_collection is not None:
+      for office in office_collection.findall("Office"):
+        id_obj = office.find("OfficeholderPersonIds")
+        if id_obj is not None and id_obj.text:
+          ids = id_obj.text.split()
+          office_person_ids.update(ids)
+
+    persons_without_offices = person_ids - office_person_ids
+    if persons_without_offices:
+      raise base.ElectionError(
+          "Person objects are not referenced in Offices: %s" %
+          str(persons_without_offices))
+
+
 def sourceline_prefix(element):
   if hasattr(element, "sourceline") and element.sourceline is not None:
     return "Line %d. " % element.sourceline
@@ -1039,15 +1069,50 @@ def sourceline_prefix(element):
     return ""
 
 
+class RuleSet(enum.Enum):
+  """Names for sets of rules used to validate a particular feed type."""
+  ELECTION = 1
+  OFFICEHOLDER = 2
+
+
 # To add new rules, create a new class, inherit the base rule
-# then add it to this list.
-RULES = [
-    Schema, Encoding, HungarianStyleNotation, OptionalAndEmpty, LanguageCode,
-    PercentSum, OnlyOneElection,
-    EmptyText, ElectoralDistrictOcdId, GpUnitOcdId, DuplicateGpUnits, OtherType,
-    DuplicateID, ValidIDREF, UniqueLabel, PartisanPrimary,
-    PartisanPrimaryHeuristic, ReusedCandidate, CoalitionParties,
-    ProperBallotSelection, CandidateNotReferenced, CheckIdentifiers,
-    DuplicateContestNames, CandidatesMissingPartyData, AllCaps, AllLanguages,
-    ValidEnumerations, ValidateOcdidLowerCase
-]
+# then add it to the correct rule list.
+COMMON_RULES = (
+    AllCaps,
+    AllLanguages,
+    CheckIdentifiers,
+    DuplicateGpUnits,
+    DuplicateID,
+    EmptyText,
+    Encoding,
+    GpUnitOcdId,
+    HungarianStyleNotation,
+    LanguageCode,
+    OtherType,
+    OptionalAndEmpty,
+    Schema,
+    UniqueLabel,
+    ValidEnumerations,
+    ValidIDREF,
+    ValidateOcdidLowerCase
+)
+
+ELECTION_RULES = COMMON_RULES + (
+    CandidateNotReferenced,
+    CandidatesMissingPartyData,
+    CoalitionParties,
+    DuplicateContestNames,
+    ElectoralDistrictOcdId,
+    OnlyOneElection,
+    PartisanPrimary,
+    PartisanPrimaryHeuristic,
+    PercentSum,
+    ProperBallotSelection,
+    ReusedCandidate,
+)
+
+OFFICEHOLDER_RULES = COMMON_RULES + (
+    PersonsHaveOffices,
+)
+
+ALL_RULES = frozenset(COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES)
