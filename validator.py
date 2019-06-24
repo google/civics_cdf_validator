@@ -15,6 +15,7 @@ limitations under the License.
 from __future__ import print_function
 
 import argparse
+import codecs
 import os.path
 from election_results_xml_validator import base
 from election_results_xml_validator import rules
@@ -150,7 +151,8 @@ def print_metadata(filename):
   with open(filename, "rb") as f:
     for block in iter(lambda: f.read(blocksize), b""):
       digest.update(block)
-  print("SHA-512/256 checksum: 0x{:x}".format(digest.finalize()))
+  print("SHA-512/256 checksum: 0x{:x}".format(
+      int(codecs.encode(digest.finalize(), "hex"), 16)))
 
 
 def main():
