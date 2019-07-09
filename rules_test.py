@@ -181,5 +181,41 @@ class RulesTest(absltest.TestCase):
     return subclasses
 
 
+class GenderValidationTest(absltest.TestCase):
+
+  def setUp(self):
+    super(GenderValidationTest, self).setUp()
+    self.gender_validator = rules.PersonsHaveValidGender(None, None)
+
+  def testAllPersonsHaveValidGender(self):
+    root_string = """
+      <Gender>Female</Gender>
+    """
+    gender_element = ET.fromstring(root_string)
+    self.gender_validator.check(gender_element)
+
+  def testValidationIsCaseInsensitive(self):
+    root_string = """
+      <Gender>female</Gender>
+    """
+    gender_element = ET.fromstring(root_string)
+    self.gender_validator.check(gender_element)
+
+  def testValidationIgnoresEmptyValue(self):
+    root_string = """
+      <Gender></Gender>
+    """
+    gender_element = ET.fromstring(root_string)
+    self.gender_validator.check(gender_element)
+
+  def testValidationFailsForInvalidValue(self):
+    root_string = """
+      <Gender>blamo</Gender>
+    """
+    gender_element = ET.fromstring(root_string)
+    with self.assertRaises(base.ElectionError):
+      self.gender_validator.check(gender_element)
+
+
 if __name__ == '__main__':
   absltest.main()

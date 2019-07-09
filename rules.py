@@ -1057,6 +1057,22 @@ class PersonsHaveOffices(base.TreeRule):
           str(persons_without_offices))
 
 
+class PersonsHaveValidGender(base.BaseRule):
+  """Ensure that all Person objects have a valid gender identification."""
+
+  _VALID_GENDERS = {"male", "m", "man", "female", "f", "woman",
+                    "o", "x", "other", "nonbinary"}
+
+  def elements(self):
+    return ["Gender"]
+
+  def check(self, element):
+    if (element.text is not None
+        and element.text.lower() not in self._VALID_GENDERS):
+      raise base.ElectionError(
+          "Person object has invalid gender value: %s" % element.text)
+
+
 def sourceline_prefix(element):
   if hasattr(element, "sourceline") and element.sourceline is not None:
     return "Line %d. " % element.sourceline
@@ -1089,7 +1105,8 @@ COMMON_RULES = (
     UniqueLabel,
     ValidEnumerations,
     ValidIDREF,
-    ValidateOcdidLowerCase
+    ValidateOcdidLowerCase,
+    PersonsHaveValidGender,
 )
 
 ELECTION_RULES = COMMON_RULES + (
