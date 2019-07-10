@@ -13,8 +13,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from __future__ import print_function
 
+from __future__ import print_function
+import sys
 from lxml import etree
 
 
@@ -176,7 +177,8 @@ class RulesRegistry(SchemaHandler):
     self.schema_file = schema_file
     self.rule_classes_to_check = rule_classes_to_check
     self.rule_options = rule_options
-    for e_type in [ElectionError, ElectionWarning, ElectionInfo]:
+
+    for e_type in self._SEVERITIES:
       self.exceptions[e_type] = dict()
       self.exception_counts[e_type] = 0
       self.exception_rule_counts[e_type] = dict()
@@ -260,20 +262,12 @@ class RulesRegistry(SchemaHandler):
               print(" " * 14 + "{0}".format(exception))
 
   def check_rules(self):
-    """Checks all rules.
-
-    Returns:
-      0 if no warnings or errors are generated. 1 otherwise.
-
-    Args:
-      detailed:if True prints detailed error messages
-    """
-
+    """Checks all rules."""
     try:
       election_tree = etree.parse(self.election_file)
     except etree.LxmlError as e:
       print("Fatal Error. XML file could not be parsed. {}".format(e))
-      return 1
+      sys.exit(3)
     self.register_rules(election_tree)
     for rule in self.registry.get("tree", []):
       try:
@@ -289,7 +283,3 @@ class RulesRegistry(SchemaHandler):
           element_rule.check(element)
         except ElectionException as e:
           self.exception_handler(element_rule, e)
-    if self.total_count == 0:
-      return 0
-    else:
-      return 1

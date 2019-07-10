@@ -20,18 +20,17 @@ XSD and additional higher-level requirements.
 
 See https://developers.google.com/elections-data/reference/
 """
-
 from __future__ import print_function
 
 import argparse
 import codecs
 import os.path
-from election_results_xml_validator import base
-from election_results_xml_validator import rules
-from election_results_xml_validator import version
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
+from election_results_xml_validator import base
+from election_results_xml_validator import rules
+from election_results_xml_validator import version
 
 
 def _validate_file(parser, arg):
@@ -235,11 +234,15 @@ def main():
         schema_file=options.xsd,
         rule_classes_to_check=rule_classes_to_check,
         rule_options=rule_options)
-    found_errors = registry.check_rules()
+    registry.check_rules()
     registry.print_exceptions(options.severity, options.verbose)
-    # TODO other error codes?
-    return found_errors
-
+    if registry.exception_counts[base.ElectionError]:
+      return 3
+    elif registry.exception_counts[base.ElectionWarning]:
+      return 2
+    elif registry.exception_counts[base.ElectionInfo]:
+      return 1
+    return 0
 
 if __name__ == "__main__":
   main()

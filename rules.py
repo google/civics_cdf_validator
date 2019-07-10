@@ -93,7 +93,7 @@ class Encoding(base.TreeRule):
 class HungarianStyleNotation(base.BaseRule):
   """Check that element identifiers use Hungarian style notation.
 
-  Hungarian sytle notation is used to maintain uniqueness and provide context
+  Hungarian style notation is used to maintain uniqueness and provide context
   for the identifiers.
   """
 
