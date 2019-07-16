@@ -59,7 +59,9 @@ class Schema(base.TreeRule):
 class OptionalAndEmpty(base.BaseRule):
   """Checks for optional and empty fields."""
 
-  previous = None
+  def __init__(self, election_tree, schema_file):
+    super(OptionalAndEmpty, self).__init__(election_tree, schema_file)
+    self.previous = None
 
   def elements(self):
     schema_tree = etree.parse(self.schema_file)
@@ -229,10 +231,9 @@ class ValidIDREF(base.BaseRule):
   field of type ID.
   """
 
-  all_object_ids = set()
-
   def __init__(self, election_tree, schema_file):
     super(ValidIDREF, self).__init__(election_tree, schema_file)
+    self.all_object_ids = set()
     for event, element in etree.iterwalk(self.election_tree, events=("end",)):
       if "objectId" not in element.attrib:
         continue
@@ -458,9 +459,11 @@ class GpUnitOcdId(ElectoralDistrictOcdId):
 class DuplicateGpUnits(base.TreeRule):
   """Detect GpUnits which are effectively duplicates of each other."""
 
-  leaf_nodes = set()
-  children = dict()
-  defined_gpunits = set()
+  def __init__(self, election_tree, schema_file):
+    super(DuplicateGpUnits, self).__init__(election_tree, schema_file)
+    self.leaf_nodes = set()
+    self.children = dict()
+    self.defined_gpunits = set()
 
   def check(self):
     root = self.election_tree.getroot()
@@ -658,7 +661,10 @@ class CoalitionParties(base.TreeRule):
 
 class UniqueLabel(base.BaseRule):
   """Labels should be unique within a file."""
-  labels = set()
+
+  def __init__(self, election_tree, schema_file):
+    super(UniqueLabel, self).__init__(election_tree, schema_file)
+    self.labels = set()
 
   def elements(self):
     schema_tree = etree.parse(self.schema_file)
@@ -690,7 +696,10 @@ class ReusedCandidate(base.TreeRule):
   Person is running in multiple Contests, then that Person is a Candidate
   several times over, but a Candida(te|cy) can't span contests.
   """
-  seen_candidates = {}  # mapping of candidates and candidate selections
+
+  def __init__(self, election_tree, schema_file):
+    super(ReusedCandidate, self).__init__(election_tree, schema_file)
+    self.seen_candidates = {}  # mapping of candidates and candidate selections
 
   def check(self):
     error_log = []
@@ -758,7 +767,9 @@ class CandidateNotReferenced(base.TreeRule):
   within this class and returned to the user as an error.
   """
 
-  cand_to_cand_selection = {}  # mapping of candidates to cand_selection
+  def __init__(self, election_tree, schema_file):
+    super(CandidateNotReferenced, self).__init__(election_tree, schema_file)
+    self.cand_to_cand_selection = {}  # mapping of candidates to cand_selection
 
   def check(self):
     error_log = []
@@ -1024,8 +1035,9 @@ class ValidateOcdidLowerCase(base.BaseRule):
       return
     if not ocdid.islower():
       raise base.ElectionWarning(
-          "Line %d. OCD-ID %s is not in all lower case letters. "
-          "Valid OCD-IDs should be all lowercase" % (element.sourceline, ocdid))
+          "%sOCD-ID %s is not in all lower case letters. "
+          "Valid OCD-IDs should be all lowercase" %
+          (sourceline_prefix(element), ocdid))
 
 
 class PersonsHaveOffices(base.TreeRule):
@@ -1045,7 +1057,7 @@ class PersonsHaveOffices(base.TreeRule):
     office_person_ids = set()
     if office_collection is not None:
       for office in office_collection.findall("Office"):
-        id_obj = office.find("OfficeholderPersonIds")
+        id_obj = office.find("OfficeHolderPersonIds")
         if id_obj is not None and id_obj.text:
           ids = id_obj.text.split()
           office_person_ids.update(ids)
@@ -1055,6 +1067,16 @@ class PersonsHaveOffices(base.TreeRule):
       raise base.ElectionError(
           "Person objects are not referenced in Offices: %s" %
           str(persons_without_offices))
+
+
+class ProhibitElectionData(base.TreeRule):
+  """Ensure that election data is not provided for officeholder feeds."""
+
+  def check(self):
+    root = self.election_tree.getroot()
+    if root is not None and root.find("Election") is not None:
+      raise base.ElectionError(
+          "Election data is prohibited in officeholder feeds.")
 
 
 class PersonsHaveValidGender(base.BaseRule):
@@ -1125,6 +1147,7 @@ ELECTION_RULES = COMMON_RULES + (
 
 OFFICEHOLDER_RULES = COMMON_RULES + (
     PersonsHaveOffices,
+    ProhibitElectionData,
 )
 
 ALL_RULES = frozenset(COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES)

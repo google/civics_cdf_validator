@@ -160,16 +160,7 @@ class RuleOption(object):
 class RulesRegistry(SchemaHandler):
   """Registry of rules and the elements they check."""
 
-  election_file = None
-  schema_file = None
-  rule_classes_to_check = None
-  rule_options = []
-  registry = {}
-  exceptions = {}
-  exception_counts = {}
-  exception_rule_counts = {}
-  total_count = 0
-  _SEVERITIES = [ElectionInfo, ElectionWarning, ElectionError]
+  _SEVERITIES = (ElectionInfo, ElectionWarning, ElectionError)
 
   def __init__(self, election_file, schema_file, rule_classes_to_check,
                rule_options):
@@ -177,6 +168,11 @@ class RulesRegistry(SchemaHandler):
     self.schema_file = schema_file
     self.rule_classes_to_check = rule_classes_to_check
     self.rule_options = rule_options
+    self.registry = {}
+    self.exceptions = {}
+    self.exception_counts = {}
+    self.exception_rule_counts = {}
+    self.total_count = 0
 
     for e_type in self._SEVERITIES:
       self.exceptions[e_type] = dict()

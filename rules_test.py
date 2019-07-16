@@ -15,6 +15,8 @@ class RulesTest(absltest.TestCase):
     self.only_one_election = rules.OnlyOneElection(None, None)
     self.all_languages = rules.AllLanguages(None, None)
     self.persons_have_offices = rules.PersonsHaveOffices(None, None)
+    self.prohibit_election_data = rules.ProhibitElectionData(None, None)
+    self.validate_ocdid_lowercase = rules.ValidateOcdidLowerCase(None, None)
 
   def testZeroPercents(self):
     root_string = """
@@ -139,8 +141,8 @@ class RulesTest(absltest.TestCase):
         <Person objectId="p3" />
       </PersonCollection>
       <OfficeCollection>
-        <Office><OfficeholderPersonIds>p1</OfficeholderPersonIds></Office>
-        <Office><OfficeholderPersonIds>p2 p3</OfficeholderPersonIds></Office>
+        <Office><OfficeHolderPersonIds>p1</OfficeHolderPersonIds></Office>
+        <Office><OfficeHolderPersonIds>p2 p3</OfficeHolderPersonIds></Office>
       </OfficeCollection>
     </xml>
     """
@@ -157,8 +159,8 @@ class RulesTest(absltest.TestCase):
         <Person objectId="p3" />
       </PersonCollection>
       <OfficeCollection>
-        <Office><OfficeholderPersonIds>p1</OfficeholderPersonIds></Office>
-        <Office><OfficeholderPersonIds>p2</OfficeholderPersonIds></Office>
+        <Office><OfficeHolderPersonIds>p1</OfficeHolderPersonIds></Office>
+        <Office><OfficeHolderPersonIds>p2</OfficeHolderPersonIds></Office>
       </OfficeCollection>
     </xml>
     """
@@ -166,6 +168,40 @@ class RulesTest(absltest.TestCase):
       self.persons_have_offices.election_tree = ET.ElementTree(
           ET.fromstring(root_string))
       self.persons_have_offices.check()
+
+  def testProhibitElectionData(self):
+    root_string = """<xml><PersonCollection></PersonCollection></xml>"""
+    self.prohibit_election_data.election_tree = ET.ElementTree(
+        ET.fromstring(root_string))
+    self.prohibit_election_data.check()
+
+  def testProhibitElectionData_fails(self):
+    root_string = """<xml><Election></Election></xml>"""
+    with self.assertRaises(base.ElectionError) as cm:
+      self.prohibit_election_data.election_tree = ET.ElementTree(
+          ET.fromstring(root_string))
+      self.prohibit_election_data.check()
+    self.assertIn("Election data is prohibited", str(cm.exception))
+
+  def testValidateOcdIdLowercase(self):
+    root_string = """
+    <ExternalIdentifier>
+      <Type>ocd-id</Type>
+      <Value>ocd-division/country:us/state:va</Value>
+    </ExternalIdentifier>
+    """
+    self.validate_ocdid_lowercase.check(ET.fromstring(root_string))
+
+  def testValidateOcdIdLowercase_fails(self):
+    root_string = """
+    <ExternalIdentifier>
+      <Type>ocd-id</Type>
+      <Value>ocd-division/country:us/state:VA</Value>
+    </ExternalIdentifier>
+    """
+    with self.assertRaises(base.ElectionWarning) as cm:
+      self.validate_ocdid_lowercase.check(ET.fromstring(root_string))
+    self.assertIn("Valid OCD-IDs should be all lowercase", str(cm.exception))
 
   def testAllRulesIncluded(self):
     all_rules = rules.ALL_RULES
