@@ -164,7 +164,7 @@ class RulesTest(absltest.TestCase):
       </OfficeCollection>
     </xml>
     """
-    with self.assertRaises(base.ElectionError) as cm:
+    with self.assertRaises(base.ElectionError):
       self.persons_have_offices.election_tree = ET.ElementTree(
           ET.fromstring(root_string))
       self.persons_have_offices.check()
@@ -253,5 +253,5 @@ class GenderValidationTest(absltest.TestCase):
       self.gender_validator.check(gender_element)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
   absltest.main()

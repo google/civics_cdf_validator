@@ -18,18 +18,17 @@ from __future__ import print_function
 
 import csv
 from datetime import datetime
-import enum
 import hashlib
 import io
 import os.path
 from shutil import copyfile
 
+from election_results_xml_validator import base
+import enum
 import github
 import language_tags
 from lxml import etree
 import requests
-
-from election_results_xml_validator import base
 
 
 class Schema(base.TreeRule):
@@ -330,7 +329,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
     ocd_id_codes = set()
     file_info = os.stat(file_path)
     # github calculates the blob sha like this
-    #sha1("blob "+filesize+"\0"+data)
+    # sha1("blob "+filesize+"\0"+data)
     file_sha1.update(b"blob %d\0" % file_info.st_size)
     with io.open(file_path, mode="rb") as fd:
       for line in fd:
