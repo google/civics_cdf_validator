@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 from __future__ import print_function
-import sys
 from lxml import etree
 
 
@@ -263,7 +262,9 @@ class RulesRegistry(SchemaHandler):
       election_tree = etree.parse(self.election_file)
     except etree.LxmlError as e:
       print("Fatal Error. XML file could not be parsed. {}".format(e))
-      sys.exit(3)
+      self.exception_counts[ElectionError] += 1
+      self.total_count += 1
+      return
     self.register_rules(election_tree)
     for rule in self.registry.get("tree", []):
       try:

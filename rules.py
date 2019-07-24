@@ -596,7 +596,7 @@ class PartisanPrimary(base.BaseRule):
     super(PartisanPrimary, self).__init__(election_tree, schema_file)
     # There can only be one election element in a file
     election_elem = self.election_tree.find("Election")
-    if election_elem:
+    if election_elem is not None:
       election_type_elem = election_elem.find("Type")
       if election_type_elem is not None:
         self.election_type = election_type_elem.text.strip()
@@ -789,7 +789,7 @@ class CandidateNotReferenced(base.TreeRule):
             candidate_id, []).append(candidate_selection_id)
 
     for cand_id, cand_select_ids in self.cand_to_cand_selection.items():
-      if len(cand_select_ids) == 0:
+      if not cand_select_ids:
         error_message = "A Candidate object should be referenced from one" \
             " CandidateSelection. Candidate {0} is not referenced by any" \
             " CandidateSelections".format(cand_id)

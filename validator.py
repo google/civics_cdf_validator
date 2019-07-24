@@ -24,7 +24,7 @@ from __future__ import print_function
 
 import argparse
 import codecs
-import os.path
+import os
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
@@ -33,10 +33,10 @@ from election_results_xml_validator import rules
 from election_results_xml_validator import version
 
 
-def _validate_file(parser, arg):
+def _validate_path(parser, arg):
   """Check that the files provided exist."""
   if not os.path.exists(arg):
-    parser.error("The file %s doesn't exist" % arg)
+    parser.error("The file path for %s doesn't exist" % arg)
   else:
     return arg
 
@@ -83,8 +83,9 @@ def _validate_country_codes(parser, arg):
 def arg_parser():
   """Parser for command line arguments."""
 
-  description = ("Script to validate that an elections results XML file "
-                 "follows best practices")
+  description = ("Script to validate that "
+                 "election results XML file(s) "
+                 "follow best practices")
   parser = argparse.ArgumentParser(description=description)
   subparsers = parser.add_subparsers(dest="cmd")
   parser_validate = subparsers.add_parser("validate")
@@ -94,18 +95,19 @@ def arg_parser():
       help="Common Data Format XSD file path",
       required=True,
       metavar="xsd_file",
-      type=lambda x: _validate_file(parser, x))
+      type=lambda x: _validate_path(parser, x))
   parser_validate.add_argument(
-      "election_file",
-      help="XML election file to be validated",
-      metavar="election_file",
-      type=lambda x: _validate_file(parser, x))
+      "election_files",
+      help="XML election files to be validated",
+      nargs="+",
+      metavar="election_files",
+      type=lambda x: _validate_path(parser, x))
   parser_validate.add_argument(
       "--ocdid_file",
       help="Local ocd-id csv file path",
       required=False,
       metavar="csv_file",
-      type=lambda x: _validate_file(parser, x))
+      type=lambda x: _validate_path(parser, x))
 
   group = parser_validate.add_mutually_exclusive_group(required=False)
   group.add_argument(
@@ -227,22 +229,40 @@ def main():
         x for x in rules.ALL_RULES if x.__name__ in rule_names
     ]
 
-    print_metadata(options.election_file)
+    if isinstance(options.election_files, list):
+      xml_files = options.election_files
+    else:
+      xml_files = [options.election_files]
 
-    registry = base.RulesRegistry(
-        election_file=options.election_file,
-        schema_file=options.xsd,
-        rule_classes_to_check=rule_classes_to_check,
-        rule_options=rule_options)
-    registry.check_rules()
-    registry.print_exceptions(options.severity, options.verbose)
-    if registry.exception_counts[base.ElectionError]:
-      return 3
-    elif registry.exception_counts[base.ElectionWarning]:
-      return 2
-    elif registry.exception_counts[base.ElectionInfo]:
-      return 1
-    return 0
+    errors = []
+
+    for election_file in xml_files:
+      print("\n--------- Results after validating file: {0} "
+            .format(election_file))
+
+      if (not election_file.endswith(".xml")
+          or not os.stat(election_file).st_size):
+        print("{0} is not a valid XML file.".format(election_file))
+        errors.append(3)
+        continue
+
+      print_metadata(election_file)
+      registry = base.RulesRegistry(
+          election_file=election_file,
+          schema_file=options.xsd,
+          rule_classes_to_check=rule_classes_to_check,
+          rule_options=rule_options)
+      registry.check_rules()
+      registry.print_exceptions(options.severity, options.verbose)
+      if registry.exception_counts[base.ElectionError]:
+        errors.append(3)
+      elif registry.exception_counts[base.ElectionWarning]:
+        errors.append(2)
+      elif registry.exception_counts[base.ElectionInfo]:
+        errors.append(1)
+      else:
+        errors.append(0)
+    return max(errors)
 
 if __name__ == "__main__":
   main()
