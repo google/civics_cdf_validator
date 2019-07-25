@@ -20,8 +20,8 @@ import csv
 from datetime import datetime
 import hashlib
 import io
-import os.path
-from shutil import copyfile
+import os
+import shutil
 
 from election_results_xml_validator import base
 import enum
@@ -79,7 +79,7 @@ class OptionalAndEmpty(base.BaseRule):
         not len(element)):
       raise base.ElectionWarning(
           "Line %d. %s optional element included although it "
-          "is empty" % (element.sourceline, element.tag))
+          "is empty." % (element.sourceline, element.tag))
 
 
 class Encoding(base.TreeRule):
@@ -264,47 +264,79 @@ class ValidIDREF(base.BaseRule):
 
 class ElectoralDistrictOcdId(base.BaseRule):
   """GpUnit referred to by Contest.ElectoralDistrictId MUST have a valid OCD-ID."""
-  ocds = []
-  gpunits = []
+
   CACHE_DIR = "~/.cache"
   GITHUB_REPO = "opencivicdata/ocd-division-ids"
   GITHUB_DIR = "identifiers"
-  check_github = True
-  github_repo = None
-  github_file = None
-  local_file = None
-  country_code = None
 
   def __init__(self, election_tree, schema_file):
     super(ElectoralDistrictOcdId, self).__init__(election_tree, schema_file)
     self.gpunits = []
+    self.check_github = True
+    self.country_code = None
+    self.github_file = None
+    self.github_repo = None
+    self.local_file = None
     for gpunit in self.get_elements_by_class(self.election_tree, "GpUnit"):
       self.gpunits.append(gpunit)
 
   def setup(self):
     if not self.local_file:
-      g = github.Github()
       self.github_file = "country-%s.csv" % self.country_code
-      self.github_repo = g.get_repo(self.GITHUB_REPO)
     self.ocds = self._get_ocd_data()
 
+  def _get_ocd_data(self):
+    """Returns a list of OCD-ID codes.
+
+    This list is populated using either a local file or a downloaded file
+    from GitHub.
+    """
+    # Value `local_file` is not provided by default, only by cmd line arg.
+    if self.local_file:
+      countries_file = self.local_file
+    else:
+      cache_directory = os.path.expanduser(self.CACHE_DIR)
+      countries_file = "{0}/{1}".format(cache_directory, self.github_file)
+
+      if not os.path.exists(countries_file):
+        # Only initialize `github_repo` if there's no cached file.
+        github_api = github.Github()
+        self.github_repo = github_api.get_repo(self.GITHUB_REPO)
+        if not os.path.exists(cache_directory):
+          os.makedirs(cache_directory)
+        self._download_data(countries_file)
+      else:
+        if self.check_github:
+          last_mod_date = datetime.fromtimestamp(
+              os.path.getmtime(countries_file))
+
+          seconds_since_mod = (datetime.now() - last_mod_date).total_seconds()
+
+          # If 1 hour has elapsed, check GitHub for the last file update.
+          if (seconds_since_mod/3600) > 1:
+            github_api = github.Github()
+            self.github_repo = github_api.get_repo(self.GITHUB_REPO)
+            # Re-download the file if the file on GitHub was updated.
+            if last_mod_date < self._get_latest_commit_date():
+              self._download_data(countries_file)
+            # Update the timestamp to reflect last GitHub check.
+            os.utime(countries_file)
+
+    ocd_id_codes = set()
+    with open(countries_file) as csvfile:
+      csv_reader = csv.DictReader(csvfile)
+      for row in csv_reader:
+        if "id" in row and row["id"]:
+          ocd_id_codes.add(row["id"])
+    return ocd_id_codes
+
   def _get_latest_commit_date(self):
-    """Returns the latest commit date to country-us.csv."""
+    """Returns the latest commit date to country-*.csv."""
     latest_commit_date = None
     latest_commit = self.github_repo.get_commits(
         path="{0}/{1}".format(self.GITHUB_DIR, self.github_file))[0]
     latest_commit_date = latest_commit.commit.committer.date
     return latest_commit_date
-
-  def _get_latest_file_blob_sha(self):
-    """Returns the gihub blob sha of country-us.csv."""
-    blob_sha = None
-    dir_contents = self.github_repo.get_dir_contents(self.GITHUB_DIR)
-    for content_file in dir_contents:
-      if content_file.name == self.github_file:
-        blob_sha = content_file.sha
-        break
-    return blob_sha
 
   def _download_data(self, file_path):
     """Makes a request to Github to download the file."""
@@ -321,14 +353,14 @@ class ElectoralDistrictOcdId(base.BaseRule):
           "Please try downloading the file manually and "
           "place it in ~/.cache")
     else:
-      copyfile("{0}.tmp".format(file_path), file_path)
+      shutil.copy("{0}.tmp".format(file_path), file_path)
 
   def _verify_data(self, file_path):
     """Validates a file's SHA and returns the set of corresponding ocd ids."""
     file_sha1 = hashlib.sha1()
     ocd_id_codes = set()
     file_info = os.stat(file_path)
-    # github calculates the blob sha like this
+    # GitHub calculates the blob SHA like this:
     # sha1("blob "+filesize+"\0"+data)
     file_sha1.update(b"blob %d\0" % file_info.st_size)
     with io.open(file_path, mode="rb") as fd:
@@ -342,36 +374,15 @@ class ElectoralDistrictOcdId(base.BaseRule):
     else:
       return True
 
-  def _get_ocd_data(self):
-    """Returns a list of OCD-ID codes.
-
-    This list is populated using either a local file or a downloaded file
-    from GitHub.
-    """
-    if self.local_file:
-      countries_file = self.local_file
-    else:
-      """Checks if OCD file is in ~/cache, downloads it if not."""
-      cache_directory = os.path.expanduser(self.CACHE_DIR)
-      countries_file = "{0}/{1}".format(cache_directory, self.github_file)
-      if not os.path.exists(countries_file):
-        if not os.path.exists(cache_directory):
-          os.makedirs(cache_directory)
-        self._download_data(countries_file)
-      else:
-        if self.check_github:
-          last_mod_date = datetime.fromtimestamp(
-              os.path.getmtime(countries_file))
-          latest_github_commit_date = self._get_latest_commit_date()
-          if last_mod_date < latest_github_commit_date:
-            self._download_data(countries_file)
-    ocd_id_codes = set()
-    with open(countries_file) as csvfile:
-      csv_reader = csv.DictReader(csvfile)
-      for row in csv_reader:
-        if "id" in row and row["id"]:
-          ocd_id_codes.add(row["id"])
-    return ocd_id_codes
+  def _get_latest_file_blob_sha(self):
+    """Returns the GitHub blob SHA of country-*.csv."""
+    blob_sha = None
+    dir_contents = self.github_repo.get_dir_contents(self.GITHUB_DIR)
+    for content_file in dir_contents:
+      if content_file.name == self.github_file:
+        blob_sha = content_file.sha
+        break
+    return blob_sha
 
   def elements(self):
     return ["ElectoralDistrictId"]
@@ -594,7 +605,7 @@ class PartisanPrimary(base.BaseRule):
 
   def __init__(self, election_tree, schema_file):
     super(PartisanPrimary, self).__init__(election_tree, schema_file)
-    # There can only be one election element in a file
+    # There can only be one election element in a file.
     election_elem = self.election_tree.find("Election")
     if election_elem is not None:
       election_type_elem = election_elem.find("Type")
@@ -602,7 +613,7 @@ class PartisanPrimary(base.BaseRule):
         self.election_type = election_type_elem.text.strip()
 
   def elements(self):
-    # only check contest elements if this is a partisan election
+    # Only check contest elements if this is a partisan election.
     if self.election_type and self.election_type in ("primary",
                                                      "partisan-primary-open",
                                                      "partisan-primary-closed"):
@@ -622,7 +633,8 @@ class PartisanPrimary(base.BaseRule):
 
 class PartisanPrimaryHeuristic(PartisanPrimary):
   """Attempts to identify partisan primaries not marked up as such."""
-  # add other strings that imply this is a primary contest
+
+  # Add other strings that imply this is a primary contest.
   party_text = ["(dem)", "(rep)", "(lib)"]
 
   def elements(self):
@@ -698,7 +710,9 @@ class ReusedCandidate(base.TreeRule):
 
   def __init__(self, election_tree, schema_file):
     super(ReusedCandidate, self).__init__(election_tree, schema_file)
-    self.seen_candidates = {}  # mapping of candidates and candidate selections
+
+    # Mapping of candidates and candidate selections.
+    self.seen_candidates = {}
 
   def check(self):
     error_log = []
@@ -768,7 +782,7 @@ class CandidateNotReferenced(base.TreeRule):
 
   def __init__(self, election_tree, schema_file):
     super(CandidateNotReferenced, self).__init__(election_tree, schema_file)
-    self.cand_to_cand_selection = {}  # mapping of candidates to cand_selection
+    self.cand_to_cand_selection = {}
 
   def check(self):
     error_log = []
@@ -806,10 +820,12 @@ class DuplicateContestNames(base.TreeRule):
   """
 
   def check(self):
-    name_contest_id = {}  # Mapping for <Name> and its Contest ObjectId.
+
+    # Mapping for <Name> and its Contest ObjectId.
+    name_contest_id = {}
     error_log = []
 
-    # Get object ids associated with each contest name.
+    # Get the object ids associated with each contest name.
     for event, element in etree.iterwalk(self.election_tree):
       tag = self.strip_schema_ns(element)
       if tag != "Contest":
@@ -834,9 +850,9 @@ class DuplicateContestNames(base.TreeRule):
 
 
 class CheckIdentifiers(base.TreeRule):
-  """Check that the NIST objects in the feed has an <ExternalIdentifier> block.
+  """Check that the NIST objects in the feed have an <ExternalIdentifier> block.
 
-  Add error message if the block is missing.
+  Add an error message if the block is missing.
   """
 
   def check(self):
@@ -856,13 +872,13 @@ class CheckIdentifiers(base.TreeRule):
         continue
       identifier = external_identifiers.find("ExternalIdentifier")
       if identifier is None:
-        error_message = "{0} {1} is missing a stable ExternalIdentifier".format(
+        error_message = "{0} {1} is missing a stable ExternalIdentifier.".format(
             nist_obj, object_id)
         error_log.append(base.ErrorLogEntry(element.sourceline, error_message))
         continue
       value = identifier.find("Value")
       if value is None or not value.text:
-        error_message = "{0} {1} is missing a stable ExternalIdentifier".format(
+        error_message = "{0} {1} is missing a stable ExternalIdentifier.".format(
             nist_obj, object_id)
         error_log.append(base.ErrorLogEntry(element.sourceline, error_message))
         continue
@@ -875,14 +891,14 @@ class CheckIdentifiers(base.TreeRule):
         error_log.append(base.ErrorLogEntry(None, error_message))
     if error_log:
       raise base.ElectionTreeError(
-          "The Election File has following issues with the identifiers.",
+          "The Election File has following issues with the identifiers:",
           error_log)
 
 
 class CandidatesMissingPartyData(base.BaseRule):
-  """Each Candidate should have party data associated with them.
+  """Each Candidate should have party data associated with it.
 
-  A Candidate object that has no PartyId attached to them should be picked up
+  A Candidate object that has no PartyId attached to it should be picked up
   within this class and returned to the user as a warning.
   """
 
@@ -1011,7 +1027,7 @@ class ValidEnumerations(base.BaseRule):
 
 
 class ValidateOcdidLowerCase(base.BaseRule):
-  """Validate if the ocd-ids are all lower case.
+  """Validate that the ocd-ids are all lower case.
 
   Throw a warning if the ocd-ids are not all in lowercase.
   """
@@ -1035,7 +1051,7 @@ class ValidateOcdidLowerCase(base.BaseRule):
     if not ocdid.islower():
       raise base.ElectionWarning(
           "%sOCD-ID %s is not in all lower case letters. "
-          "Valid OCD-IDs should be all lowercase" %
+          "Valid OCD-IDs should be all lowercase." %
           (sourceline_prefix(element), ocdid))
 
 
@@ -1107,8 +1123,8 @@ class RuleSet(enum.Enum):
   OFFICEHOLDER = 2
 
 
-# To add new rules, create a new class, inherit the base rule
-# then add it to the correct rule list.
+# To add new rules, create a new class, inherit the base rule,
+# and add it to the correct rule list.
 COMMON_RULES = (
     AllCaps,
     AllLanguages,
@@ -1125,6 +1141,7 @@ COMMON_RULES = (
     Schema,
     UniqueLabel,
     ValidEnumerations,
+
     ValidIDREF,
     ValidateOcdidLowerCase,
     PersonsHaveValidGender,
