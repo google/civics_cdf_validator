@@ -320,7 +320,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
             if last_mod_date < self._get_latest_commit_date():
               self._download_data(countries_file)
             # Update the timestamp to reflect last GitHub check.
-            os.utime(countries_file)
+            os.utime(countries_file, None)
 
     ocd_id_codes = set()
     with open(countries_file) as csvfile:
