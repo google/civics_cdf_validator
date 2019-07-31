@@ -98,6 +98,7 @@ class HungarianStyleNotation(base.BaseRule):
   for the identifiers.
   """
 
+  # Add a prefix when there is a specific entity in the xml.
   elements_prefix = {
       "BallotMeasureContest": "bmc",
       "BallotMeasureSelection": "bms",
@@ -912,6 +913,68 @@ class CandidatesMissingPartyData(base.BaseRule):
                                  (element.sourceline, element.get("objectId")))
 
 
+class OfficeMissingOfficeHolderPersonData(base.TreeRule):
+  """Each Office must have Persons occupying it.
+
+  An Office object that has no OfficeHolderPersonIds in it should be
+  picked up within this class and returned as an error to the user.
+  """
+
+  def check(self):
+    root = self.election_tree.getroot()
+    if not root:
+      return
+
+    office_collection = root.find("OfficeCollection")
+    if not office_collection:
+      return
+
+    persons = root.find("PersonCollection")
+    if not persons:
+      raise base.ElectionError("No Person data present.")
+
+    officeholders = set()
+    for office in office_collection.findall("Office"):
+      # Within each office, get the person associated with that office.
+      officeholder_ids = office.find("OfficeHolderPersonIds")
+
+      # If there are people associated with that office,
+      # add them to the set of people who are officeholders.
+      if officeholder_ids is not None and officeholder_ids.text.strip():
+        ids = officeholder_ids.text.strip().split()
+        officeholders.update(ids)
+      else:
+        raise base.ElectionError("Office is missing IDs of Officeholders.")
+
+    all_person_ids = set(person.attrib["objectId"]
+                         for person in persons)
+
+    # check that all officeholder ids belong to actual persons
+    ids_without_person = officeholders - all_person_ids
+
+    if ids_without_person:
+      raise base.ElectionError("Officeholders {} are missing "
+                               "Person data.".format(",".join(
+                                   ids_without_person)))
+
+
+class PersonsMissingPartyData(base.BaseRule):
+  """Each Officeholder Person should have a Party associated with it.
+
+  A Person object must contain a PartyId, and if not, it should be picked
+  up within this class and returned to the user as a warning.
+  """
+
+  def elements(self):
+    return ["Person"]
+
+  def check(self, element):
+    party_id = element.find("PartyId")
+    if party_id is None or not party_id.text or party_id.text.isspace():
+      raise base.ElectionWarning("Person {} is missing party data".format(
+          element.get("objectId")))
+
+
 class AllCaps(base.BaseRule):
   """Name elements should not be in all uppercase.
 
@@ -1141,7 +1204,6 @@ COMMON_RULES = (
     Schema,
     UniqueLabel,
     ValidEnumerations,
-
     ValidIDREF,
     ValidateOcdidLowerCase,
     PersonsHaveValidGender,
@@ -1164,6 +1226,8 @@ ELECTION_RULES = COMMON_RULES + (
 OFFICEHOLDER_RULES = COMMON_RULES + (
     PersonsHaveOffices,
     ProhibitElectionData,
+    PersonsMissingPartyData,
+    OfficeMissingOfficeHolderPersonData
 )
 
 ALL_RULES = frozenset(COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES)

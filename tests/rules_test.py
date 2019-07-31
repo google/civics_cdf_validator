@@ -17,6 +17,12 @@ class RulesTest(absltest.TestCase):
     self.persons_have_offices = rules.PersonsHaveOffices(None, None)
     self.prohibit_election_data = rules.ProhibitElectionData(None, None)
     self.validate_ocdid_lowercase = rules.ValidateOcdidLowerCase(None, None)
+    self.persons_missing_party = rules.PersonsMissingPartyData(
+        None, None
+    )
+    self.office_missing_person_ids = rules.OfficeMissingOfficeHolderPersonData(
+        None, None
+    )
 
   def testZeroPercents(self):
     root_string = """
@@ -215,6 +221,108 @@ class RulesTest(absltest.TestCase):
     for c in children:
       subclasses.update(self._subclasses(c))
     return subclasses
+
+  def testOfficeMissingOfficeHolderPersonData(self):
+    root_string = """
+    <xml>
+      <OfficeCollection>
+        <Office><OfficeHolderPersonIds>p1 p2</OfficeHolderPersonIds></Office>
+        <Office><OfficeHolderPersonIds>p3</OfficeHolderPersonIds></Office>
+      </OfficeCollection>
+      <PersonCollection>
+        <Person objectId="p1"/>
+        <Person objectId="p2">
+          <PartyId>par1</PartyId>
+        </Person>
+        <Person objectId="p3"/>
+      </PersonCollection>
+    </xml>
+    """
+    self.office_missing_person_ids.election_tree = ET.ElementTree(
+        ET.fromstring(root_string))
+    self.office_missing_person_ids.check()
+
+  def testOfficeHolderPersonIdsHaveAllPersons_fails(self):
+    root_string = """
+    <xml>
+      <OfficeCollection>
+        <Office><OfficeHolderPersonIds>p1 p2</OfficeHolderPersonIds></Office>
+        <Office><OfficeHolderPersonIds>p3</OfficeHolderPersonIds></Office>
+      </OfficeCollection>
+      <PersonCollection>
+        <Person objectId="p2">
+          <PartyId>par1</PartyId>
+        </Person>
+        <Person objectId="p3"/>
+      </PersonCollection>
+    </xml>
+    """
+    self.office_missing_person_ids.election_tree = ET.ElementTree(
+        ET.fromstring(root_string))
+
+    with self.assertRaises(base.ElectionError) as cm:
+      self.office_missing_person_ids.check()
+    self.assertIn("missing Person data", str(cm.exception))
+
+  def testOfficeHolderPersonIdsHavePersons_fails(self):
+    root_string = """
+    <xml>
+      <OfficeCollection>
+        <Office><OfficeHolderPersonIds>p1 p2</OfficeHolderPersonIds></Office>
+      <Office><OfficeHolderPersonIds>p3</OfficeHolderPersonIds></Office>
+      </OfficeCollection>
+    </xml>
+    """
+    self.office_missing_person_ids.election_tree = ET.ElementTree(
+        ET.fromstring(root_string))
+
+    with self.assertRaises(base.ElectionError) as cm:
+      self.office_missing_person_ids.check()
+    self.assertIn("No Person data present.", str(cm.exception))
+
+  def testOfficeHolderPersonDataHasIds_fails(self):
+    root_string = """
+    <xml>
+      <OfficeCollection>
+        <Office><OfficeHolderPersonIds>p1 p2</OfficeHolderPersonIds></Office>
+        <Office><OfficeHolderPersonIds>  </OfficeHolderPersonIds></Office>
+      </OfficeCollection>
+      <PersonCollection>
+        <Person objectId="p1"/>
+        <Person objectId="p2">
+          <PartyId>par1</PartyId>
+        </Person>
+      </PersonCollection>
+    </xml>
+    """
+
+    self.office_missing_person_ids.election_tree = ET.ElementTree(
+        ET.fromstring(root_string))
+
+    with self.assertRaises(base.ElectionError) as cm:
+      self.office_missing_person_ids.check()
+    self.assertIn("Office is missing IDs of Officeholders.",
+                  str(cm.exception))
+
+  def testPersonsMissingPartyData(self):
+    root_string = """
+      <Person objectId="p1">
+        <PartyId>par1</PartyId>
+      </Person>
+    """
+    self.persons_missing_party.check(ET.fromstring(root_string))
+
+  def testPersonsMissingPartyData_fails(self):
+    root_string = """
+      <Person objectId="p1">
+        <PartyId></PartyId>
+      </Person>
+    """
+
+    with self.assertRaises(base.ElectionWarning):
+      self.persons_missing_party.check(
+          ET.fromstring(root_string)
+      )
 
 
 class GenderValidationTest(absltest.TestCase):
