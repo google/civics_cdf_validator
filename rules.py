@@ -774,6 +774,43 @@ class ProperBallotSelection(base.BaseRule):
                         self.con_sel_mapping[tag], selection_tag, selection_id))
 
 
+class MissingPartyAffiliation(base.TreeRule):
+  """Each PartyId referenced in a Person or Candidate must have an associated Party.
+
+  A PartyId that has no Party that references them should be picked up
+  within this class and returned to the user as an error.
+  """
+
+  def check(self):
+    root = self.election_tree.getroot()
+    if not root:
+      return
+
+    check_party_ids = set()
+    candidate_collection = root.find("CandidateCollection")
+    if candidate_collection:
+      for cand in candidate_collection.findall("Candidate"):
+        party_id = cand.find("PartyId")
+        if party_id is not None and party_id.text and party_id.text.strip():
+          check_party_ids.add(party_id.text.strip())
+
+    person_collection = root.find("PersonCollection")
+    if person_collection:
+      for person in person_collection.findall("Person"):
+        party_id = person.find("PartyId")
+        if party_id is not None and party_id.text and party_id.text.strip():
+          check_party_ids.add(party_id.text.strip())
+
+    party_collection = root.find("PartyCollection")
+    all_parties = set(party.attrib["objectId"] for party
+                      in party_collection if party)
+
+    missing_parties = check_party_ids - all_parties
+    if check_party_ids and missing_parties:
+      raise base.ElectionError("Party elements not found "
+                               "for {}".format(",".join(missing_parties)))
+
+
 class CandidateNotReferenced(base.TreeRule):
   """Candidate should have AT LEAST one contest they are referred to.
 
@@ -797,8 +834,9 @@ class CandidateNotReferenced(base.TreeRule):
     for candidate_selection in candidate_selections:
       candidate_selection_id = candidate_selection.get("objectId", None)
       candidate_ids = candidate_selection.find("CandidateIds")
+      # if no candidate ids, skip to the next one
       if candidate_ids is None or candidate_selection_id is None:
-        break
+        continue
       for candidate_id in candidate_ids.text.split():
         self.cand_to_cand_selection.setdefault(
             candidate_id, []).append(candidate_selection_id)
@@ -1207,6 +1245,7 @@ COMMON_RULES = (
     ValidIDREF,
     ValidateOcdidLowerCase,
     PersonsHaveValidGender,
+    MissingPartyAffiliation,
 )
 
 ELECTION_RULES = COMMON_RULES + (
@@ -1227,7 +1266,7 @@ OFFICEHOLDER_RULES = COMMON_RULES + (
     PersonsHaveOffices,
     ProhibitElectionData,
     PersonsMissingPartyData,
-    OfficeMissingOfficeHolderPersonData
+    OfficeMissingOfficeHolderPersonData,
 )
 
 ALL_RULES = frozenset(COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES)

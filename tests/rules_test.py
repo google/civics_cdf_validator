@@ -23,6 +23,7 @@ class RulesTest(absltest.TestCase):
     self.office_missing_person_ids = rules.OfficeMissingOfficeHolderPersonData(
         None, None
     )
+    self.unaffiliated_parties = rules.MissingPartyAffiliation(None, None)
 
   def testZeroPercents(self):
     root_string = """
@@ -137,6 +138,157 @@ class RulesTest(absltest.TestCase):
     self.all_languages.required_languages = ["en", "es", "nl"]
     with self.assertRaises(base.ElectionError):
       self.all_languages.check(ET.fromstring(root_string))
+
+  def testPartiesMissingReference(self):
+    root_string = """
+    <xml>
+      <PartyCollection>
+        <Party objectId="par0001">
+          <Abbreviation>REP</Abbreviation>
+          <Color>e91d0e</Color>
+          <Name>
+            <Text language="en">Republican</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0002">
+          <Abbreviation>DEM</Abbreviation>
+          <Color>e91fff</Color>
+          <Name>
+            <Text language="en">Democratic</Text>
+          </Name>
+        </Party>
+      </PartyCollection>
+      <PersonCollection>
+        <Person objectId="p1">
+          <PartyId>par0001</PartyId>
+        </Person>
+        <Person objectId="p2" />
+        <Person objectId="p3" />
+      </PersonCollection>
+      <CandidateCollection>
+        <Candidate>
+          <PartyId>par0002</PartyId>
+        </Candidate>
+      </CandidateCollection>
+      <OfficeCollection>
+        <Office><OfficeHolderPersonIds>p1</OfficeHolderPersonIds></Office>
+        <Office><OfficeHolderPersonIds>p2 p3</OfficeHolderPersonIds></Office>
+      </OfficeCollection>
+    </xml>
+    """
+    self.unaffiliated_parties.election_tree = ET.ElementTree(
+        ET.fromstring(root_string))
+    self.unaffiliated_parties.check()
+
+  def testPartiesMissingPersonReference(self):
+    root_string = """
+    <xml>
+      <PartyCollection>
+        <Party objectId="par0001">
+          <Abbreviation>REP</Abbreviation>
+          <Color>e91d0e</Color>
+          <Name>
+            <Text language="en">Republican</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0002">
+          <Abbreviation>DEM</Abbreviation>
+          <Color>e91fff</Color>
+          <Name>
+            <Text language="en">Democratic</Text>
+          </Name>
+        </Party>
+      </PartyCollection>
+      <CandidateCollection>
+        <Candidate>
+          <PartyId>par0002</PartyId>
+        </Candidate>
+      </CandidateCollection>
+    </xml>
+    """
+    self.unaffiliated_parties.election_tree = ET.ElementTree(
+        ET.fromstring(root_string))
+    self.unaffiliated_parties.check()
+
+  def testPartiesMissingCandidateReference(self):
+    root_string = """
+    <xml>
+      <PartyCollection>
+        <Party objectId="par0001">
+          <Abbreviation>REP</Abbreviation>
+          <Color>e91d0e</Color>
+          <Name>
+            <Text language="en">Republican</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0002">
+          <Abbreviation>DEM</Abbreviation>
+          <Color>e91fff</Color>
+          <Name>
+            <Text language="en">Democratic</Text>
+          </Name>
+        </Party>
+      </PartyCollection>
+      <PersonCollection>
+        <Person objectId="p1">
+          <PartyId>par0001</PartyId>
+        </Person>
+        <Person objectId="p2" />
+        <Person objectId="p3" />
+      </PersonCollection>
+      <OfficeCollection>
+        <Office><OfficeHolderPersonIds>p1</OfficeHolderPersonIds></Office>
+        <Office><OfficeHolderPersonIds>p2 p3</OfficeHolderPersonIds></Office>
+      </OfficeCollection>
+    </xml>
+    """
+    self.unaffiliated_parties.election_tree = ET.ElementTree(
+        ET.fromstring(root_string))
+    self.unaffiliated_parties.check()
+
+  def testPartiesMissingPartyReference_fails(self):
+    root_string = """
+    <xml>
+      <PartyCollection>
+        <Party objectId="par0001">
+          <Abbreviation>REP</Abbreviation>
+          <Color>e91d0e</Color>
+          <Name>
+            <Text language="en">Republican</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0002">
+          <Abbreviation>DEM</Abbreviation>
+          <Color>e91fff</Color>
+          <Name>
+            <Text language="en">Democratic</Text>
+          </Name>
+        </Party>
+      </PartyCollection>
+      <PersonCollection>
+        <Person objectId="p1">
+          <PartyId>par0001</PartyId>
+        </Person>
+        <Person objectId="p2" />
+        <Person objectId="p3" />
+      </PersonCollection>
+      <CandidateCollection>
+        <Candidate>
+          <PartyId>par0003</PartyId>
+        </Candidate>
+      </CandidateCollection>
+      <OfficeCollection>
+        <Office><OfficeHolderPersonIds>p1</OfficeHolderPersonIds></Office>
+        <Office><OfficeHolderPersonIds>p2 p3</OfficeHolderPersonIds></Office>
+      </OfficeCollection>
+    </xml>
+    """
+
+    self.unaffiliated_parties.election_tree = ET.ElementTree(
+        ET.fromstring(root_string))
+    with self.assertRaises(base.ElectionError) as cm:
+      self.unaffiliated_parties.check()
+    self.assertIn("Party elements not found", str(cm.exception))
 
   def testPersonsHaveOffices(self):
     root_string = """
