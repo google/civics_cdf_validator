@@ -61,11 +61,6 @@
           <OtherType>stable</OtherType>
           <Value>stable-off0</Value>
         </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>jurisdiction-id</OtherType>
-          <Value>gpu2</Value>
-        </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>
         <Text language="en">United States Senator</Text>
@@ -74,6 +69,7 @@
       <Term>
         <StartDate>2019-01-02</StartDate>
       </Term>
+      <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
     </Office>
     <Office objectId="off1">
       <ElectoralDistrictId>ru-gpu1</ElectoralDistrictId>
@@ -83,26 +79,6 @@
           <OtherType>stable</OtherType>
           <Value>stable-off1</Value>
         </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>government-body</OtherType>
-          <Value>United States Senate</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>jurisdiction-id</OtherType>
-          <Value>ru-gpu2</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Country</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>Upper house</Value>
-        </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>
         <Text language="en">United States Senator</Text>
@@ -111,6 +87,10 @@
       <Term>
         <StartDate>2019-01-02</StartDate>
       </Term>
+      <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+      <AdditionalData type="government-body">United States Senate</AdditionalData>
+      <AdditionalData type="office-level">Country</AdditionalData>
+      <AdditionalData type="office-role">Upper house</AdditionalData>
     </Office>
   </OfficeCollection>
   <PartyCollection>

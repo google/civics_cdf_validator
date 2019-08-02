@@ -516,6 +516,7 @@
                     <xs:attribute name="label" type="xs:string" />
                 </xs:complexType>
             </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="AdditionalData" type="AdditionalDataType" />
         </xs:sequence>
         <xs:attribute name="objectId" type="xs:ID" use="required" />
     </xs:complexType>
@@ -674,6 +675,14 @@
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="AdditionalDataType">
+        <xs:simpleContent>
+            <xs:extension base="xs:anyURI">
+                <xs:attribute name="type" type="ShortString" />
+                <xs:attribute name="language" type="ShortString" />
+        </xs:extension>
+      </xs:simpleContent>
     </xs:complexType>
     <xs:complexType name="AnnotatedUri">
         <xs:simpleContent>
