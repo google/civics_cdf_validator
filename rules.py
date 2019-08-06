@@ -407,7 +407,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
             value = extern_id.find("Value")
             if value is None or not hasattr(value, "text"):
               continue
-            if value.text in self.ocds:
+            if value.text.encode("utf-8") in self.ocds:
               valid_ocd_id = True
           if (id_type is not None and id_type.text != "ocd-id" and
               id_type.text.lower() == "ocd-id"):
@@ -461,7 +461,7 @@ class GpUnitOcdId(ElectoralDistrictOcdId):
           value = extern_id.find("Value")
           if value is None or not hasattr(value, "text"):
             continue
-          if value.text not in self.ocds:
+          if value.text.encode("utf-8") not in self.ocds:
             raise base.ElectionWarning(
                 "The OCD ID %s in GpUnit %s defined on line %d is "
                 "not valid" % (value.text, gpunit_id, value.sourceline))
@@ -783,7 +783,7 @@ class MissingPartyAffiliation(base.TreeRule):
 
   def check(self):
     root = self.election_tree.getroot()
-    if not root:
+    if root is None:
       return
 
     check_party_ids = set()
@@ -795,7 +795,7 @@ class MissingPartyAffiliation(base.TreeRule):
           check_party_ids.add(party_id.text.strip())
 
     person_collection = root.find("PersonCollection")
-    if person_collection:
+    if person_collection is not None:
       for person in person_collection.findall("Person"):
         party_id = person.find("PartyId")
         if party_id is not None and party_id.text and party_id.text.strip():
@@ -803,7 +803,8 @@ class MissingPartyAffiliation(base.TreeRule):
 
     party_collection = root.find("PartyCollection")
     all_parties = set(party.attrib["objectId"] for party
-                      in party_collection if party)
+                      in party_collection if party is not None
+                      and party.get("objectId", None))
 
     missing_parties = check_party_ids - all_parties
     if check_party_ids and missing_parties:
@@ -960,15 +961,15 @@ class OfficeMissingOfficeHolderPersonData(base.TreeRule):
 
   def check(self):
     root = self.election_tree.getroot()
-    if not root:
+    if root is None:
       return
 
     office_collection = root.find("OfficeCollection")
-    if not office_collection:
+    if office_collection is None:
       return
 
     persons = root.find("PersonCollection")
-    if not persons:
+    if persons is None:
       raise base.ElectionError("No Person data present.")
 
     officeholders = set()
@@ -1161,7 +1162,7 @@ class PersonsHaveOffices(base.TreeRule):
 
   def check(self):
     root = self.election_tree.getroot()
-    if not root:
+    if root is None:
       return
 
     person_collection = root.find("PersonCollection")
