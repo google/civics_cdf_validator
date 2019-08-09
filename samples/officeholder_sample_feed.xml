@@ -121,6 +121,11 @@
           <OtherType>stable</OtherType>
           <Value>stable-par1</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>party-leader-id</OtherType>
+          <Value>per2</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>
         <Text language="en">Democratic Party</Text>
@@ -173,6 +178,31 @@
       </FullName>
       <Gender>Male</Gender>
       <LastName>Sanders</LastName>
+      <PartyId>par1</PartyId>
+    </Person>
+    <Person objectId="per2">
+      <!-- Party leader referenced by party-leader-id. Does not require a linked office. -->
+      <ContactInformation>
+        <Uri Annotation="personal-facebook">https://www.facebook.com/leaderofparty</Uri>
+        <Uri Annotation="personal-twitter">https://twitter.com/partyleader</Uri>
+        <Uri Annotation="personal-website">https://www.partyleader.org/</Uri>
+        <Uri Annotation="wikipedia">https://en.wikipedia.org/wiki/Party_Leader</Uri>
+      </ContactInformation>
+      <DateOfBirth>1970-12-25</DateOfBirth>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-per2</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FirstName>Lebron</FirstName>
+      <FullName>
+        <Text language="en">Lebron "Party Leader" King</Text>
+      </FullName>
+      <Gender>Male</Gender>
+      <LastName>King</LastName>
+      <MiddleName>Marcus</MiddleName>
       <PartyId>par1</PartyId>
     </Person>
   </PersonCollection>

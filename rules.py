@@ -1172,6 +1172,13 @@ class PersonsHaveOffices(base.TreeRule):
     if root is None:
       return
 
+    party_leader_ids = set()
+    leader_types = ["party-leader-id", "party-chair-id"]
+    for external_id in root.findall(".//Party//ExternalIdentifier"):
+      other_type = external_id.find("OtherType")
+      if other_type is not None and other_type.text in leader_types:
+        party_leader_ids.add(external_id.find("Value").text)
+
     person_collection = root.find("PersonCollection")
     if person_collection is None:
       return
@@ -1186,7 +1193,7 @@ class PersonsHaveOffices(base.TreeRule):
           ids = id_obj.text.split()
           office_person_ids.update(ids)
 
-    persons_without_offices = person_ids - office_person_ids
+    persons_without_offices = person_ids - office_person_ids - party_leader_ids
     if persons_without_offices:
       raise base.ElectionError(
           "Person objects are not referenced in Offices: %s" %

@@ -308,6 +308,40 @@ class RulesTest(absltest.TestCase):
         ET.fromstring(root_string))
     self.persons_have_offices.check()
 
+  def testPartyLeadersDoNotRequireOffices(self):
+    root_string = """
+    <xml>
+      <PersonCollection>
+        <Person objectId="p1" /> <!-- Has office -->
+        <Person objectId="p2" /> <!-- Party leader (no office) -->
+        <Person objectId="p3" /> <!-- Party chair  (no office) -->
+      </PersonCollection>
+      <OfficeCollection>
+        <Office><OfficeHolderPersonIds>p1</OfficeHolderPersonIds></Office>
+      </OfficeCollection>
+      <PartyCollection>
+        <Party>
+          <Name>Republican Socialists</Name>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>Other</Type>
+              <OtherType>party-leader-id</OtherType>
+              <Value>p2</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>Other</Type>
+              <OtherType>party-chair-id</OtherType>
+              <Value>p3</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Party>
+      </PartyCollection>
+    </xml>
+    """
+    self.persons_have_offices.election_tree = ET.ElementTree(
+        ET.fromstring(root_string))
+    self.persons_have_offices.check()
+
   def testPersonsHaveOffices_fails(self):
     root_string = """
     <xml>
