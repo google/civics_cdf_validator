@@ -31,6 +31,17 @@ from lxml import etree
 import requests
 
 
+def fuzzy_equals(a, b, epsilon=1e-6):
+  return abs(a - b) < epsilon
+
+
+def sourceline_prefix(element):
+  if hasattr(element, "sourceline") and element.sourceline is not None:
+    return "Line %d. " % element.sourceline
+  else:
+    return ""
+
+
 class Schema(base.TreeRule):
   """Checks if election file validates against the provided schema."""
 
@@ -149,10 +160,6 @@ class LanguageCode(base.BaseRule):
         not language_tags.tags.check(elem_lang)):
       raise base.ElectionError("Line %d. %s is not a valid language code" %
                                (element.sourceline, elem_lang))
-
-
-def fuzzy_equals(a, b, epsilon=1e-6):
-  return abs(a - b) < epsilon
 
 
 class PercentSum(base.BaseRule):
@@ -788,7 +795,7 @@ class MissingPartyAffiliation(base.TreeRule):
 
     check_party_ids = set()
     candidate_collection = root.find("CandidateCollection")
-    if candidate_collection:
+    if candidate_collection is not None:
       for cand in candidate_collection.findall("Candidate"):
         party_id = cand.find("PartyId")
         if party_id is not None and party_id.text and party_id.text.strip():
@@ -1212,18 +1219,47 @@ class PersonsHaveValidGender(base.BaseRule):
           "Person object has invalid gender value: %s" % element.text)
 
 
-def sourceline_prefix(element):
-  if hasattr(element, "sourceline") and element.sourceline is not None:
-    return "Line %d. " % element.sourceline
-  else:
-    return ""
+class VoteCountTypesCoherency(base.BaseRule):
+  """Ensure VoteCount types describe the appropriate votable."""
+
+  # From NIST Results Processor ResultResultConverter.java, line 63.
+  PARTY_VC_TYPES = {"seats-won", "seats-leading", "party-votes",
+                    "seats-no-election", "seats-total", "seats-delta"}
+  # Ibid.
+  CAND_VC_TYPES = {"candidate-votes"}
+
+  def elements(self):
+    return ["Contest"]
+
+  def check(self, element):
+    invalid_vc_types = None
+    contest_type = ""
+    if element.get("type", "") == "CandidateContest":
+      invalid_vc_types = self.PARTY_VC_TYPES
+      contest_type = "Candidate"
+    elif element.get("type", "") == "PartyContest":
+      invalid_vc_types = self.CAND_VC_TYPES
+      contest_type = "Party"
+    if invalid_vc_types:
+      errors = []
+      for ballot_selection in element.findall("BallotSelection"):
+        for vote_counts in (
+            ballot_selection.find(
+                "VoteCountsCollection").findall("VoteCounts")):
+          vc_type = vote_counts.find("OtherType").text
+          if vc_type in invalid_vc_types:
+            errors.append(vc_type)
+      if errors:
+        raise base.ElectionError("VoteCount types {0} should not be nested "
+                                 " in {1} Contest ({2})"
+                                 .format(", ".join(errors), contest_type,
+                                         element.attrib["objectId"]))
 
 
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
   OFFICEHOLDER = 2
-
 
 # To add new rules, create a new class, inherit the base rule,
 # and add it to the correct rule list.
@@ -1261,6 +1297,7 @@ ELECTION_RULES = COMMON_RULES + (
     PercentSum,
     ProperBallotSelection,
     ReusedCandidate,
+    VoteCountTypesCoherency,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (

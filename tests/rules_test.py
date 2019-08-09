@@ -513,5 +513,123 @@ class GenderValidationTest(absltest.TestCase):
       self.gender_validator.check(gender_element)
 
 
+class VoteCountTypesCoherencyTest(absltest.TestCase):
+
+  def setUp(self):
+    super(VoteCountTypesCoherencyTest, self).setUp()
+    self.vc_coherency = rules.VoteCountTypesCoherency(None, None)
+
+  def testInvalidNotInPartyContest(self):
+    root_string = """
+    <Contest objectId="pc1" type="PartyContest">
+      <BallotSelection objectId="ps1-0">
+        <VoteCountsCollection>
+          <VoteCounts>
+            <OtherType>seats-leading</OtherType>
+          </VoteCounts>
+          <VoteCounts>
+            <OtherType>total-percent</OtherType>
+            <Count>0.0</Count>
+          </VoteCounts>
+        </VoteCountsCollection>
+      </BallotSelection>
+    </Contest>
+    """
+    self.vc_coherency.check(ET.fromstring(root_string))
+
+  def testInvalidNotInPartyContest_fails(self):
+    root_string = """
+    <Contest objectId="pc1" type="PartyContest">
+      <BallotSelection objectId="ps1-0">
+        <VoteCountsCollection>
+          <VoteCounts>
+            <OtherType>candidate-votes</OtherType>
+          </VoteCounts>
+          <VoteCounts>
+            <OtherType>total-percent</OtherType>
+            <Count>0.0</Count>
+          </VoteCounts>
+        </VoteCountsCollection>
+      </BallotSelection>
+    </Contest>
+    """
+    with self.assertRaises(base.ElectionError) as cm:
+      self.vc_coherency.check(ET.fromstring(root_string))
+
+    for vc_type in rules.VoteCountTypesCoherency.CAND_VC_TYPES:
+      self.assertIn(vc_type, str(cm.exception))
+
+  def testInvalidNotInCandidateContest(self):
+    root_string = """
+    <Contest objectId="pc1" type="CandidateContest">
+      <BallotSelection objectId="ps1-0">
+        <VoteCountsCollection>
+          <VoteCounts>
+            <OtherType>candidate-votes</OtherType>
+          </VoteCounts>
+          <VoteCounts>
+            <OtherType>total-percent</OtherType>
+            <Count>0.0</Count>
+          </VoteCounts>
+        </VoteCountsCollection>
+      </BallotSelection>
+    </Contest>
+    """
+    self.vc_coherency.check(ET.fromstring(root_string))
+
+  def testNonInvalidVCTypesDoNotFail(self):
+    # returns None if no VoteCount types
+    root_string = """
+    <Contest objectId="pc1" type="CandidateContest">
+      <BallotSelection objectId="ps1-0">
+        <VoteCountsCollection>
+          <VoteCounts>
+            <OtherType>total-percent</OtherType>
+            <Count>0.0</Count>
+          </VoteCounts>
+          <VoteCounts>
+            <OtherType>some-future-vote-count-type</OtherType>
+          </VoteCounts>
+        </VoteCountsCollection>
+      </BallotSelection>
+    </Contest>
+    """
+    self.assertIsNone(self.vc_coherency.check(ET.fromstring(root_string)))
+
+  def testInvalidNotInCandidateContest_fails(self):
+    # Checks Candidate parsing fails on all party types
+    root_string = """
+    <Contest objectId="pc1" type="CandidateContest">
+      <BallotSelection objectId="ps1-0">
+        <VoteCountsCollection>
+          <VoteCounts>
+            <OtherType>seats-won</OtherType>
+          </VoteCounts>
+          <VoteCounts>
+            <OtherType>seats-leading</OtherType>
+          </VoteCounts>
+          <VoteCounts>
+            <OtherType>party-votes</OtherType>
+          </VoteCounts>
+          <VoteCounts>
+            <OtherType>seats-no-election</OtherType>
+          </VoteCounts>
+          <VoteCounts>
+            <OtherType>seats-total</OtherType>
+          </VoteCounts>
+          <VoteCounts>
+            <OtherType>seats-delta</OtherType>
+          </VoteCounts>
+        </VoteCountsCollection>
+      </BallotSelection>
+    </Contest>
+    """
+
+    with self.assertRaises(base.ElectionError) as cm:
+      self.vc_coherency.check(ET.fromstring(root_string))
+
+    for vc_type in rules.VoteCountTypesCoherency.PARTY_VC_TYPES:
+      self.assertIn(vc_type, str(cm.exception))
+
 if __name__ == "__main__":
   absltest.main()
