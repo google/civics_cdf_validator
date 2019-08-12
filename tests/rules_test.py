@@ -15,6 +15,8 @@ class RulesTest(absltest.TestCase):
     self.only_one_election = rules.OnlyOneElection(None, None)
     self.all_languages = rules.AllLanguages(None, None)
     self.persons_have_offices = rules.PersonsHaveOffices(None, None)
+    self.party_leadership_must_exist = rules.PartyLeadershipMustExist(
+        None, None)
     self.prohibit_election_data = rules.ProhibitElectionData(None, None)
     self.validate_ocdid_lowercase = rules.ValidateOcdidLowerCase(None, None)
     self.persons_missing_party = rules.PersonsMissingPartyData(
@@ -341,6 +343,69 @@ class RulesTest(absltest.TestCase):
     self.persons_have_offices.election_tree = ET.ElementTree(
         ET.fromstring(root_string))
     self.persons_have_offices.check()
+
+  def testPartyLeadershipExists(self):
+    root_string = """
+    <xml>
+      <PersonCollection>
+        <Person objectId="p2" /> <!-- Party leader -->
+        <Person objectId="p3" /> <!-- Party chair  -->
+      </PersonCollection>
+      <PartyCollection>
+        <Party>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>Other</Type>
+              <OtherType>party-leader-id</OtherType>
+              <Value>p2</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Party>
+        <Party>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>Other</Type>
+              <OtherType>party-chair-id</OtherType>
+              <Value>p3</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Party>
+      </PartyCollection>
+    </xml>
+    """
+    self.party_leadership_must_exist.election_tree = ET.ElementTree(
+        ET.fromstring(root_string))
+    self.party_leadership_must_exist.check()
+
+  def testPartyLeadershipExists_fails(self):
+    root_string = """
+    <xml>
+      <PartyCollection>
+        <Party>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>Other</Type>
+              <OtherType>party-leader-id</OtherType>
+              <Value>p2</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Party>
+        <Party>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>Other</Type>
+              <OtherType>party-chair-id</OtherType>
+              <Value>p3</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Party>
+      </PartyCollection>
+    </xml>
+    """
+    with self.assertRaises(base.ElectionError):
+      self.party_leadership_must_exist.election_tree = ET.ElementTree(
+          ET.fromstring(root_string))
+      self.party_leadership_must_exist.check()
 
   def testPersonsHaveOffices_fails(self):
     root_string = """

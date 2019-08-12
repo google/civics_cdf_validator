@@ -30,6 +30,8 @@ import language_tags
 from lxml import etree
 import requests
 
+PARTY_LEADERSHIP_TYPES = ["party-leader-id", "party-chair-id"]
+
 
 def fuzzy_equals(a, b, epsilon=1e-6):
   return abs(a - b) < epsilon
@@ -1173,10 +1175,9 @@ class PersonsHaveOffices(base.TreeRule):
       return
 
     party_leader_ids = set()
-    leader_types = ["party-leader-id", "party-chair-id"]
     for external_id in root.findall(".//Party//ExternalIdentifier"):
       other_type = external_id.find("OtherType")
-      if other_type is not None and other_type.text in leader_types:
+      if other_type is not None and other_type.text in PARTY_LEADERSHIP_TYPES:
         party_leader_ids.add(external_id.find("Value").text)
 
     person_collection = root.find("PersonCollection")
@@ -1198,6 +1199,32 @@ class PersonsHaveOffices(base.TreeRule):
       raise base.ElectionError(
           "Person objects are not referenced in Offices: %s" %
           str(persons_without_offices))
+
+
+class PartyLeadershipMustExist(base.TreeRule):
+  """Each party leader or party chair should refer to a person in the feed."""
+
+  def check(self):
+    root = self.election_tree.getroot()
+    if root is None:
+      return
+
+    party_leader_ids = set()
+    for external_id in root.findall(".//Party//ExternalIdentifier"):
+      other_type = external_id.find("OtherType")
+      if other_type is not None and other_type.text in PARTY_LEADERSHIP_TYPES:
+        party_leader_ids.add(external_id.find("Value").text)
+
+    persons = root.find("PersonCollection")
+    all_person_ids = set()
+    if persons is not None:
+      all_person_ids = set(person.attrib["objectId"] for person in persons)
+    ids_without_person = party_leader_ids - all_person_ids
+
+    if ids_without_person:
+      raise base.ElectionError("No Person data for {} found "
+                               "in the feed.".format(
+                                   ",".join(ids_without_person)))
 
 
 class ProhibitElectionData(base.TreeRule):
@@ -1290,6 +1317,7 @@ COMMON_RULES = (
     ValidateOcdidLowerCase,
     PersonsHaveValidGender,
     MissingPartyAffiliation,
+    PartyLeadershipMustExist,
 )
 
 ELECTION_RULES = COMMON_RULES + (
