@@ -416,7 +416,13 @@ class ElectoralDistrictOcdId(base.BaseRule):
             value = extern_id.find("Value")
             if value is None or not hasattr(value, "text"):
               continue
-            if value.text.encode("utf-8") in self.ocds:
+            if isinstance(value.text, str):
+              ocd_id = value.text
+            elif isinstance(value.text, unicode):
+              ocd_id = value.text.encode("utf-8")
+            else:
+              ocd_id = ""
+            if ocd_id in self.ocds:
               valid_ocd_id = True
           if (id_type is not None and id_type.text != "ocd-id" and
               id_type.text.lower() == "ocd-id"):
@@ -470,10 +476,16 @@ class GpUnitOcdId(ElectoralDistrictOcdId):
           value = extern_id.find("Value")
           if value is None or not hasattr(value, "text"):
             continue
-          if value.text.encode("utf-8") not in self.ocds:
+          if isinstance(value.text, str):
+            ocd_id = value.text
+          elif isinstance(value.text, unicode):
+            ocd_id = value.text.encode("utf-8")
+          else:
+            ocd_id = ""
+          if ocd_id not in self.ocds:
             raise base.ElectionWarning(
                 "The OCD ID %s in GpUnit %s defined on line %d is "
-                "not valid" % (value.text, gpunit_id, value.sourceline))
+                "not valid" % (ocd_id, gpunit_id, value.sourceline))
 
 
 class DuplicateGpUnits(base.TreeRule):

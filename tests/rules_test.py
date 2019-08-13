@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Unit test for rules.py."""
 
 import xml.etree.ElementTree as ET
@@ -5,6 +6,7 @@ import xml.etree.ElementTree as ET
 from absl.testing import absltest
 from election_results_xml_validator import base
 from election_results_xml_validator import rules
+from lxml import etree
 
 
 class RulesTest(absltest.TestCase):
@@ -729,6 +731,95 @@ class VoteCountTypesCoherencyTest(absltest.TestCase):
 
     for vc_type in rules.VoteCountTypesCoherency.PARTY_VC_TYPES:
       self.assertIn(vc_type, str(cm.exception))
+
+
+class ElectoralDistrictOcdIdTest(absltest.TestCase):
+
+  def testUnicodeOCDIDsAreValid(self):
+    root_string = """
+      <Contest objectId="ru_at_999">
+        <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
+        <GpUnit objectId="cc_at_999" type="ReportingUnit">
+           <ExternalIdentifiers>
+             <ExternalIdentifier>
+               <Type>ocd-id</Type>
+               <Value>regionalwahlkreis:burgenland_süd</Value>
+             </ExternalIdentifier>
+           </ExternalIdentifiers>
+        </GpUnit>
+      </Contest>
+    """
+
+    election_tree = etree.fromstring(root_string)
+    self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    self.ocdid_validator.ocds = set(["regionalwahlkreis:burgenland_süd"])
+    self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
+
+  def testUnicodeOCDIDsAreValid_fails(self):
+    root_string = """
+      <Contest objectId="ru_at_999">
+        <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
+        <GpUnit objectId="cc_at_999" type="ReportingUnit">
+           <ExternalIdentifiers>
+             <ExternalIdentifier>
+               <Type>ocd-id</Type>
+               <Value>regionalwahlkreis:kärnten_west</Value>
+             </ExternalIdentifier>
+           </ExternalIdentifiers>
+        </GpUnit>
+      </Contest>
+    """
+
+    election_tree = etree.fromstring(root_string)
+
+    self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    self.ocdid_validator.ocds = set(["regionalwahlkreis:burgenland_süd"])
+    with self.assertRaises(base.ElectionError) as cm:
+      self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
+    self.assertIn("does not have a valid OCD", str(cm.exception))
+
+  def testNonUnicodeOCDIDsAreValid(self):
+    root_string = """
+      <Contest objectId="ru_at_999">
+        <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
+        <GpUnit objectId="cc_at_999" type="ReportingUnit">
+           <ExternalIdentifiers>
+             <ExternalIdentifier>
+               <Type>ocd-id</Type>
+               <Value>regionalwahlkreis:burgenland_sued</Value>
+             </ExternalIdentifier>
+           </ExternalIdentifiers>
+        </GpUnit>
+      </Contest>
+    """
+
+    election_tree = etree.fromstring(root_string)
+    self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    self.ocdid_validator.ocds = set(["regionalwahlkreis:burgenland_sued"])
+    self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
+
+  def testNonUnicodeOCDIDsAreValid_fails(self):
+    root_string = """
+      <Contest objectId="ru_at_999">
+        <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
+        <GpUnit objectId="cc_at_999" type="ReportingUnit">
+           <ExternalIdentifiers>
+             <ExternalIdentifier>
+               <Type>ocd-id</Type>
+               <Value>regionalwahlkreis:burgenland_sued</Value>
+             </ExternalIdentifier>
+           </ExternalIdentifiers>
+        </GpUnit>
+      </Contest>
+    """
+
+    election_tree = etree.fromstring(root_string)
+    self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    self.ocdid_validator.ocds = set(["regionalwahlkreis:karnten_west"])
+    with self.assertRaises(base.ElectionError) as cm:
+      self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
+    self.assertIn("does not have a valid OCD", str(cm.exception))
+
 
 if __name__ == "__main__":
   absltest.main()
