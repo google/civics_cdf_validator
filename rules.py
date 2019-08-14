@@ -1178,8 +1178,8 @@ class ValidateOcdidLowerCase(base.BaseRule):
           (sourceline_prefix(element), ocdid))
 
 
-class PersonsHaveOffices(base.TreeRule):
-  """Ensure that all Person objects are linked to an Office."""
+class PersonHasOffice(base.TreeRule):
+  """Ensure that each non-party-leader Person object linked to one Office."""
 
   def check(self):
     root = self.election_tree.getroot()
@@ -1203,14 +1203,19 @@ class PersonsHaveOffices(base.TreeRule):
       for office in office_collection.findall("Office"):
         id_obj = office.find("OfficeHolderPersonIds")
         if id_obj is not None and id_obj.text:
-          ids = id_obj.text.split()
+          ids = id_obj.text.strip().split()
+          if len(ids) > 1:
+            raise base.ElectionError(
+                "Office object {} has {} OfficeHolders. Must have exactly one."
+                .format(office.get("objectId", ""), str(len(ids)))
+            )
           office_person_ids.update(ids)
 
-    persons_without_offices = person_ids - office_person_ids - party_leader_ids
-    if persons_without_offices:
+    persons_without_office = person_ids - office_person_ids - party_leader_ids
+    if persons_without_office:
       raise base.ElectionError(
-          "Person objects are not referenced in Offices: %s" %
-          str(persons_without_offices))
+          "Person objects are not referenced in an Office: {}"
+          .format(",".join(persons_without_office)))
 
 
 class PartyLeadershipMustExist(base.TreeRule):
@@ -1348,7 +1353,7 @@ ELECTION_RULES = COMMON_RULES + (
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (
-    PersonsHaveOffices,
+    PersonHasOffice,
     ProhibitElectionData,
     PersonsMissingPartyData,
     OfficeMissingOfficeHolderPersonData,

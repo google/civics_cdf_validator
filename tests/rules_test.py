@@ -16,7 +16,7 @@ class RulesTest(absltest.TestCase):
     self.percent_sum = rules.PercentSum(None, None)
     self.only_one_election = rules.OnlyOneElection(None, None)
     self.all_languages = rules.AllLanguages(None, None)
-    self.persons_have_offices = rules.PersonsHaveOffices(None, None)
+    self.person_has_office = rules.PersonHasOffice(None, None)
     self.party_leadership_must_exist = rules.PartyLeadershipMustExist(
         None, None)
     self.prohibit_election_data = rules.ProhibitElectionData(None, None)
@@ -283,7 +283,8 @@ class RulesTest(absltest.TestCase):
       </CandidateCollection>
       <OfficeCollection>
         <Office><OfficeHolderPersonIds>p1</OfficeHolderPersonIds></Office>
-        <Office><OfficeHolderPersonIds>p2 p3</OfficeHolderPersonIds></Office>
+        <Office><OfficeHolderPersonIds>p3</OfficeHolderPersonIds></Office>
+        <Office><OfficeHolderPersonIds>p2</OfficeHolderPersonIds></Office>
       </OfficeCollection>
     </xml>
     """
@@ -294,7 +295,9 @@ class RulesTest(absltest.TestCase):
       self.unaffiliated_parties.check()
     self.assertIn("Party elements not found", str(cm.exception))
 
-  def testPersonsHaveOffices(self):
+  def testPersonHasOneOffice(self):
+    # NOTE: That all offices have valid Persons is
+    # checked by testOfficeMissingOfficeHolderPersonData
     root_string = """
     <xml>
       <PersonCollection>
@@ -303,14 +306,107 @@ class RulesTest(absltest.TestCase):
         <Person objectId="p3" />
       </PersonCollection>
       <OfficeCollection>
-        <Office><OfficeHolderPersonIds>p1</OfficeHolderPersonIds></Office>
-        <Office><OfficeHolderPersonIds>p2 p3</OfficeHolderPersonIds></Office>
+        <Office objectId="o1">
+          <OfficeHolderPersonIds>p1</OfficeHolderPersonIds>
+        </Office>
+        <Office objectId="o2">
+          <OfficeHolderPersonIds>p2</OfficeHolderPersonIds>
+        </Office>
+        <Office objectId="o3">
+          <OfficeHolderPersonIds>p3</OfficeHolderPersonIds>
+        </Office>
+        <Office objectId="o4">
+          <OfficeHolderPersonIds>p4</OfficeHolderPersonIds>
+        </Office>
       </OfficeCollection>
     </xml>
     """
-    self.persons_have_offices.election_tree = ET.ElementTree(
+    self.person_has_office.election_tree = ET.ElementTree(
         ET.fromstring(root_string))
-    self.persons_have_offices.check()
+    self.person_has_office.check()
+
+  def testPersonHasOneOffice_fails(self):
+    root_string = """
+    <xml>
+      <PersonCollection>
+        <Person objectId="p1" />
+        <Person objectId="p2" />
+        <Person objectId="p3" />
+      </PersonCollection>
+      <OfficeCollection>
+        <Office objectId="o1">
+          <OfficeHolderPersonIds>p1</OfficeHolderPersonIds>
+        </Office>
+        <Office objectId="o2">
+          <OfficeHolderPersonIds>p2</OfficeHolderPersonIds>
+        </Office>
+      </OfficeCollection>
+    </xml>
+    """
+    self.person_has_office.election_tree = ET.ElementTree(
+        ET.fromstring(root_string))
+
+    with self.assertRaises(base.ElectionError) as cm:
+      self.person_has_office.check()
+
+    self.assertIn("Person objects are not referenced in an Office",
+                  str(cm.exception))
+
+  def testOfficeHasOnePerson(self):
+    root_string = """
+    <xml>
+      <PersonCollection>
+        <Person objectId="p1" />
+        <Person objectId="p2" />
+        <Person objectId="p3" />
+        <Person objectId="p4" />
+      </PersonCollection>
+      <OfficeCollection>
+        <Office objectId="o1">
+          <OfficeHolderPersonIds>p1</OfficeHolderPersonIds>
+        </Office>
+        <Office objectId="o2">
+          <OfficeHolderPersonIds>p2</OfficeHolderPersonIds>
+        </Office>
+        <Office objectId="o3">
+          <OfficeHolderPersonIds>p3</OfficeHolderPersonIds>
+        </Office>
+      </OfficeCollection>
+    </xml>
+    """
+    self.person_has_office.election_tree = ET.ElementTree(
+        ET.fromstring(root_string))
+    with self.assertRaises(base.ElectionError) as cm:
+      self.person_has_office.check()
+
+    self.assertIn("Person objects are not referenced in an Office",
+                  str(cm.exception))
+
+  def testOfficeHasOnePerson_fails(self):
+    root_string = """
+    <xml>
+      <PersonCollection>
+        <Person objectId="p1" />
+        <Person objectId="p2" />
+        <Person objectId="p3" />
+      </PersonCollection>
+      <OfficeCollection>
+        <Office objectId="o1">
+           <OfficeHolderPersonIds>p1</OfficeHolderPersonIds>
+        </Office>
+        <Office objectId="o2">
+           <OfficeHolderPersonIds>p2 p3</OfficeHolderPersonIds>
+        </Office>
+      </OfficeCollection>
+    </xml>
+    """
+    self.person_has_office.election_tree = ET.ElementTree(
+        ET.fromstring(root_string))
+
+    with self.assertRaises(base.ElectionError) as cm:
+      self.person_has_office.check()
+
+    self.assertIn("OfficeHolders. Must have exactly one.", str(cm.exception))
 
   def testPartyLeadersDoNotRequireOffices(self):
     root_string = """
@@ -342,9 +438,9 @@ class RulesTest(absltest.TestCase):
       </PartyCollection>
     </xml>
     """
-    self.persons_have_offices.election_tree = ET.ElementTree(
+    self.person_has_office.election_tree = ET.ElementTree(
         ET.fromstring(root_string))
-    self.persons_have_offices.check()
+    self.person_has_office.check()
 
   def testPartyLeadershipExists(self):
     root_string = """
@@ -408,25 +504,6 @@ class RulesTest(absltest.TestCase):
       self.party_leadership_must_exist.election_tree = ET.ElementTree(
           ET.fromstring(root_string))
       self.party_leadership_must_exist.check()
-
-  def testPersonsHaveOffices_fails(self):
-    root_string = """
-    <xml>
-      <PersonCollection>
-        <Person objectId="p1" />
-        <Person objectId="p2" />
-        <Person objectId="p3" />
-      </PersonCollection>
-      <OfficeCollection>
-        <Office><OfficeHolderPersonIds>p1</OfficeHolderPersonIds></Office>
-        <Office><OfficeHolderPersonIds>p2</OfficeHolderPersonIds></Office>
-      </OfficeCollection>
-    </xml>
-    """
-    with self.assertRaises(base.ElectionError):
-      self.persons_have_offices.election_tree = ET.ElementTree(
-          ET.fromstring(root_string))
-      self.persons_have_offices.check()
 
   def testProhibitElectionData(self):
     root_string = """<xml><PersonCollection></PersonCollection></xml>"""
