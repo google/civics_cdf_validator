@@ -30,7 +30,10 @@
           <Value>stable-gpu-wlkj2oijg2g</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>Vermont</Name>
+      <InternationalizedName>
+        <Text language="en">Vermont</Text>
+        <Text language="bg">Върмонт</Text>
+      </InternationalizedName>
       <Type>state</Type>
     </GpUnit>
     <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu2">

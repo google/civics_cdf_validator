@@ -471,7 +471,10 @@
         <xs:sequence>
             <xs:element minOccurs="0" name="ComposingGpUnitIds" type="xs:IDREFS" />
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
-            <xs:element minOccurs="0" name="Name" type="xs:string" />
+            <xs:choice>
+              <xs:element minOccurs="0" name="Name" type="xs:string" />
+              <xs:element minOccurs="0" name="InternationalizedName" type="InternationalizedText" />
+            </xs:choice>
             <xs:element maxOccurs="unbounded" minOccurs="0" name="SummaryCounts" type="SummaryCounts" />
         </xs:sequence>
         <xs:attribute name="objectId" type="xs:ID" use="required" />
