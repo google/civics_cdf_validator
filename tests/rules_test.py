@@ -810,6 +810,153 @@ class VoteCountTypesCoherencyTest(absltest.TestCase):
       self.assertIn(vc_type, str(cm.exception))
 
 
+class ValidURIAnnotationTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ValidURIAnnotationTest, self).setUp()
+    self.valid_annotation = rules.ValidURIAnnotation(None, None)
+
+  def testPlatformOnlyValidAnnotation(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="wikipedia">
+          <![CDATA[https://de.wikipedia.org/]]>
+        </Uri>
+        <Uri Annotation="candidate-image">
+          <![CDATA[https://www.parlament.gv.at/test.jpg]]>
+        </Uri>
+      </ContactInformation>
+    """
+    self.valid_annotation.check(ET.fromstring(root_string))
+
+  def testTypePlatformValidAnnotation(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="official-website">
+          <![CDATA[https://www.spoe.at]]>
+        </Uri>
+        <Uri Annotation="official-facebook">
+          <![CDATA[https://www.facebook.com]]>
+        </Uri>
+        <Uri Annotation="official-twitter">
+          <![CDATA[https://twitter.com]]>
+        </Uri>
+        <Uri Annotation="official-youtube">
+          <![CDATA[https://www.youtube.com]]>
+        </Uri>
+        <Uri Annotation="personal-instagram">
+          <![CDATA[https://www.instagram.com]]>
+        </Uri>
+      </ContactInformation>
+    """
+    self.valid_annotation.check(ET.fromstring(root_string))
+
+  def testTypePlatformNoAnnotationWarning(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="official-website">
+          <![CDATA[https://www.spoe.at]]>
+        </Uri>
+        <Uri>
+          <![CDATA[https://twitter.com]]>
+        </Uri>
+      </ContactInformation>
+    """
+    with self.assertRaises(base.ElectionWarning) as cm:
+      self.valid_annotation.check(ET.fromstring(root_string))
+    self.assertIn("missing annotation", str(cm.exception))
+
+  def testNoTypeWhenTypePlatformWarning(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="website">
+          <![CDATA[https://www.spoe.at]]>
+        </Uri>
+        <Uri Annotation="official-youtube">
+          <![CDATA[https://www.youtube.com]]>
+        </Uri>
+      </ContactInformation>
+    """
+    with self.assertRaises(base.ElectionWarning) as cm:
+      self.valid_annotation.check(ET.fromstring(root_string))
+    self.assertIn("missing usage type.", str(cm.exception))
+
+  def testNoPlatformHasUsageTypeWarning(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="campaign">
+          <![CDATA[https://www.spoe.at]]>
+        </Uri>
+        <Uri Annotation="official-youtube">
+          <![CDATA[https://www.youtube.com]]>
+        </Uri>
+      </ContactInformation>
+    """
+    with self.assertRaises(base.ElectionError) as cm:
+      self.valid_annotation.check(ET.fromstring(root_string))
+    self.assertIn("has usage type, missing platform.",
+                  str(cm.exception))
+
+  def testIncorrectPlatformFails(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="official-website">
+          <![CDATA[https://www.spoe.at]]>
+        </Uri>
+        <Uri Annotation="personal-twitter">
+          <![CDATA[https://www.youtube.com/SmithForGov]]>
+        </Uri>
+      </ContactInformation>
+    """
+    with self.assertRaises(base.ElectionError) as cm:
+      self.valid_annotation.check(ET.fromstring(root_string))
+    self.assertIn("incorrect for URI", str(cm.exception))
+
+  def testNonExistentPlatformFails(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="official-website">
+          <![CDATA[https://www.spoe.at]]>
+        </Uri>
+        <Uri Annotation="campaign-netsite">
+          <![CDATA[http://www.smithforgovernor2020.com]]>
+        </Uri>
+      </ContactInformation>
+    """
+    with self.assertRaises(base.ElectionError) as cm:
+      self.valid_annotation.check(ET.fromstring(root_string))
+    self.assertIn("is not a valid annotation.", str(cm.exception))
+
+  def testInvalidURL(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="official-website">
+          <![CDATA[tps://www.spoe.at]]>
+        </Uri>
+        <Uri Annotation="campaign-website">
+          <![CDATA[http://www.smithforgovernor2020.com]]>
+        </Uri>
+      </ContactInformation>
+    """
+    with self.assertRaises(base.ElectionError) as cm:
+      self.valid_annotation.check(ET.fromstring(root_string))
+    self.assertIn("URI tps://www.spoe.at is not valid.",
+                  str(cm.exception))
+
+  def testEmptyURL(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="official-website"> </Uri>
+        <Uri Annotation="campaign-website">
+          <![CDATA[http://www.smithforgovernor2020.com]]>
+        </Uri>
+      </ContactInformation>
+    """
+    with self.assertRaises(base.ElectionError) as cm:
+      self.valid_annotation.check(ET.fromstring(root_string))
+    self.assertIn("is missing URI.", str(cm.exception))
+
+
 class ElectoralDistrictOcdIdTest(absltest.TestCase):
 
   def testUnicodeOCDIDsAreValid(self):

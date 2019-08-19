@@ -38,9 +38,11 @@ class SamplesTest(absltest.TestCase):
     self._TestFile('post_election_sample_feed_summary.xml', self.election_rules)
 
   def testPreElectionSampleFeed(self):
-    self._TestFile('pre_election_sample_feed.xml', self.election_rules)
+    self._TestFile('pre_election_sample_feed.xml',
+                   self.election_rules, expected_warnings=19)
 
-  def _TestFile(self, filename, rules_to_check):
+  def _TestFile(self, filename, rules_to_check,
+                expected_errors=0, expected_warnings=0):
     sample_file = os.path.join(
         FLAGS.test_srcdir,
         'google3/third_party/py/election_results_xml_validator/'
@@ -56,8 +58,10 @@ class SamplesTest(absltest.TestCase):
         rule_classes_to_check=rules_to_check)
 
     registry.check_rules()
-    self.assertEqual(0, registry.exception_counts[base.ElectionError])
-    self.assertEqual(0, registry.exception_counts[base.ElectionWarning])
+    self.assertEqual(expected_errors,
+                     registry.exception_counts[base.ElectionError])
+    self.assertEqual(expected_warnings,
+                     registry.exception_counts[base.ElectionWarning])
 
 
 if __name__ == '__main__':
