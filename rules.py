@@ -23,8 +23,9 @@ import io
 import os
 import re
 import shutil
-from election_results_xml_validator import base
+import sys
 
+from election_results_xml_validator import base
 import enum
 import github
 import language_tags
@@ -297,6 +298,12 @@ class ElectoralDistrictOcdId(base.BaseRule):
       self.github_file = "country-%s.csv" % self.country_code
     self.ocds = self._get_ocd_data()
 
+  def _read_csv(self, reader, ocd_id_codes):
+    """Reads in OCD IDs from CSV file."""
+    for row in reader:
+      if "id" in row and row["id"]:
+        ocd_id_codes.add(row["id"])
+
   def _get_ocd_data(self):
     """Returns a list of OCD-ID codes.
 
@@ -333,13 +340,18 @@ class ElectoralDistrictOcdId(base.BaseRule):
               self._download_data(countries_file)
             # Update the timestamp to reflect last GitHub check.
             os.utime(countries_file, None)
-
     ocd_id_codes = set()
-    with open(countries_file) as csvfile:
-      csv_reader = csv.DictReader(csvfile)
-      for row in csv_reader:
-        if "id" in row and row["id"]:
-          ocd_id_codes.add(row["id"])
+
+    # CSVs read in Python3 must be specified as UTF-8.
+    if sys.version_info.major < 3:
+      with open(countries_file) as csvfile:
+        csv_reader = csv.DictReader(csvfile)
+        self._read_csv(csv_reader, ocd_id_codes)
+    else:
+      with open(countries_file, encoding="utf-8") as csvfile:
+        csv_reader = csv.DictReader(csvfile)
+        self._read_csv(csv_reader, ocd_id_codes)
+
     return ocd_id_codes
 
   def _get_latest_commit_date(self):
