@@ -60,6 +60,7 @@ setup(
     tests_require=[
         'pytest',
         'absl-py',
+        'mock>=3.0.5',
     ],
     entry_points=ENTRY_POINTS,
     package_dir={'election_results_xml_validator': ''},
