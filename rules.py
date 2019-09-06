@@ -934,6 +934,8 @@ class CheckIdentifiers(base.TreeRule):
   Add an error message if the block is missing.
   """
 
+  _SKIPPABLE_TYPES = ["contest-stage"]
+
   def check(self):
     identifier_values = {}
     error_log = []
@@ -963,6 +965,11 @@ class CheckIdentifiers(base.TreeRule):
             nist_obj, object_id)
         error_log.append(base.ErrorLogEntry(element.sourceline, err_message))
         continue
+      id_type = identifier.find("Type")
+      if id_type is not None and id_type.text == "other":
+        other_type = identifier.find("OtherType")
+        if other_type is not None and other_type.text in self._SKIPPABLE_TYPES:
+          continue
       identifier_values.setdefault(value.text, []).append(object_id)
     for value_text, obj_ids in identifier_values.items():
       if len(obj_ids) > 1:

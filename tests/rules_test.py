@@ -2071,6 +2071,32 @@ class CheckIdentifiersTest(absltest.TestCase):
 
     rules.CheckIdentifiers(election_tree, None).check()
 
+  def testIgnoresExternalIdentifiersForContestStages(self):
+    contest_stages = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Contest objectId="cc11111">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>contest-stage</OtherType>
+              <Value>projections</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Contest>
+        <Contest objectId="cc22222">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>contest-stage</OtherType>
+              <Value>projections</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Contest>
+      </ElectionReport>
+    """
+    election_tree = etree.fromstring(contest_stages)
+    rules.CheckIdentifiers(election_tree, None).check()
+
   def testRaisesErrorIfExternalIdentifiersMissing(self):
     root_string = self._base_report.format("contest id", "candidate id", "")
     election_tree = etree.fromstring(root_string)
