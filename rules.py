@@ -531,6 +531,8 @@ class DuplicateGpUnits(base.TreeRule):
   def find_duplicates(self):
     tags = dict()
     for object_id in self.children:
+      if not self.children[object_id]:
+        continue
       sorted_children = " ".join(sorted(self.children[object_id]))
       if sorted_children in tags:
         tags[sorted_children].append(object_id)
@@ -550,6 +552,7 @@ class DuplicateGpUnits(base.TreeRule):
     if object_id in self.leaf_nodes:
       return
     composing_ids = self.get_composing_gpunits(gpunit)
+    visited = set()
     while True:
       # Iterate over the set of GpUnits which compose this particular
       # GpUnit. If any of the children of this node have children
@@ -581,7 +584,10 @@ class DuplicateGpUnits(base.TreeRule):
           # seems like something that will never happen.
           print("Non-leaf node {} has no children".format(middle_node))
           continue
+        visited.add(middle_node)
         for node in self.children[middle_node]:
+          if node in visited:
+            continue
           composing_ids.add(node)
         composing_ids.remove(middle_node)
 
@@ -593,6 +599,52 @@ class DuplicateGpUnits(base.TreeRule):
     if not composing_ids:
       return None
     return set(composing_ids)
+
+
+class GpUnitsTree(base.TreeRule):
+  """Ensure that GpUnits form a tree and no cycles are present."""
+
+  def __init__(self, election_tree, schema_file):
+    super(GpUnitsTree, self).__init__(election_tree, schema_file)
+    self.edges = dict()  # Used to maintain the record of connected edges
+    self.visited = {}  # Used to store status of the nodes as - visited ot not.
+    self.error_log = []
+    self.bad_nodes = []
+
+  def build_tree(self, gpunit):
+    # Check if the node is already visited
+    if gpunit in self.visited:
+      if gpunit not in self.bad_nodes:
+        error_message = ("Cycle detected at node {0}".format(gpunit))
+        self.error_log.append(base.ErrorLogEntry(None, error_message))
+        self.bad_nodes.append(gpunit)
+      return
+    self.visited[gpunit] = 1
+    # Check each composing_gpunit and its edges if any.
+    for child_unit in self.edges[gpunit]:
+      if child_unit in self.edges:
+        self.build_tree(child_unit)
+      else:
+        error_message = ("Node {0} is not present in the"
+                         " file as a GpUnit element.".format(child_unit))
+        self.error_log.append(base.ErrorLogEntry(None, error_message))
+
+  def check(self):
+    for element in self.get_elements_by_class(self.election_tree, "GpUnit"):
+      object_id = element.get("objectId", None)
+      if object_id is None:
+        continue
+      self.edges[object_id] = []
+      composing_gp_unit = element.find("ComposingGpUnitIds")
+      if composing_gp_unit is None or composing_gp_unit.text is None:
+        continue
+      composing_gp_unit_ids = composing_gp_unit.text.split()
+      self.edges[object_id] = composing_gp_unit_ids
+    for gpunit in self.edges:
+      self.build_tree(gpunit)
+      self.visited.clear()
+    if self.error_log:
+      raise base.ElectionTreeError("The GpUnits have a cycle.", self.error_log)
 
 
 class OtherType(base.BaseRule):
@@ -1459,6 +1511,7 @@ COMMON_RULES = (
     PartyLeadershipMustExist,
     URIValidator,
     ValidURIAnnotation,
+    GpUnitsTree,
 )
 
 ELECTION_RULES = COMMON_RULES + (
