@@ -1332,6 +1332,35 @@ class VoteCountTypesCoherency(base.BaseRule):
                                          element.attrib["objectId"]))
 
 
+class URIValidator(base.BaseRule):
+  """Basic URL validations.
+
+  Ensure each URL has valid protocol, domain, and query.
+  """
+
+  def elements(self):
+    return ["Uri"]
+
+  def check(self, element):
+    url = element.text
+    if url is None:
+      raise base.ElectionError("Missing URI value.")
+    parsed_url = urlparse(url)
+    discrepencies = []
+    if parsed_url.scheme not in set(["http", "https"]):
+      discrepencies.append("protocol - invalid")
+    if not parsed_url.netloc:
+      discrepencies.append("domain - missing")
+    if parsed_url.query:
+      discrepencies.append("query params - not allowed")
+
+    if discrepencies:
+      raise base.ElectionError(
+          "The provided URI, {}, is invalid for the following reasons: {}."
+          .format(url, ", ".join(discrepencies))
+      )
+
+
 class ValidURIAnnotation(base.BaseRule):
   """Validate annotations on candidate/officeholder URLs.
 
@@ -1347,14 +1376,7 @@ class ValidURIAnnotation(base.BaseRule):
     return ["ContactInformation"]
 
   def check_url(self, url, annotation, platform=None):
-    # Check URL is valid.
     parsed_url = urlparse(url)
-
-    # Scheme could be missing, or an http(s) format.
-    if (not parsed_url.netloc or parsed_url.scheme
-        not in set(["http", "https", ""])):
-      raise base.ElectionError("URI {} is not valid.".format(url))
-
     # Ensure media platform name is in URL.
     if platform and platform != "website" and platform not in parsed_url.netloc:
       raise base.ElectionError(
@@ -1366,13 +1388,7 @@ class ValidURIAnnotation(base.BaseRule):
 
     for uri in uris:
       annotation = uri.get("Annotation", "").strip()
-      url = uri.text
-
-      if not url or not url.strip():
-        raise base.ElectionError("Annotation {} is missing URI."
-                                 .format(annotation))
-      else:
-        url = url.strip()
+      url = uri.text.strip()
 
       if not annotation:
         raise base.ElectionWarning("URI {} is missing annotation."
@@ -1441,6 +1457,7 @@ COMMON_RULES = (
     PersonsHaveValidGender,
     MissingPartyAffiliation,
     PartyLeadershipMustExist,
+    URIValidator,
     ValidURIAnnotation,
 )
 

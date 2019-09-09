@@ -2979,11 +2979,69 @@ class VoteCountTypesCoherencyTest(absltest.TestCase):
       self.assertIn(vc_type, str(cm.exception))
 
 
+class URIValidatorTest(absltest.TestCase):
+
+  def setUp(self):
+    super(URIValidatorTest, self).setUp()
+    self.uri_validator = rules.URIValidator(None, None)
+    self.uri_element = """
+      <Uri>{}</Uri>
+    """
+
+  def testOnlyChecksUriElements(self):
+    self.assertEqual(["Uri"], self.uri_validator.elements())
+
+  def testChecksForValidUri(self):
+    valid_url = self.uri_element.format("http://www.whitehouse.gov")
+    self.uri_validator.check(etree.fromstring(valid_url))
+
+  def testRaisesAnErrorIfUriNotProvided(self):
+    invalid_scheme = self.uri_element.format("")
+    with self.assertRaises(base.ElectionError) as ee:
+      self.uri_validator.check(etree.fromstring(invalid_scheme))
+    self.assertIn("Missing URI value.", str(ee.exception))
+
+  def testRaisesAnErrorIfNoSchemeProvided(self):
+    missing_scheme = self.uri_element.format("www.whitehouse.gov")
+    with self.assertRaises(base.ElectionError) as ee:
+      self.uri_validator.check(etree.fromstring(missing_scheme))
+    self.assertIn("protocol - invalid", str(ee.exception))
+
+  def testRaisesAnErrorIfSchemeIsNotInApprovedList(self):
+    invalid_scheme = self.uri_element.format("tps://www.whitehouse.gov")
+    with self.assertRaises(base.ElectionError) as ee:
+      self.uri_validator.check(etree.fromstring(invalid_scheme))
+    self.assertIn("protocol - invalid", str(ee.exception))
+
+  def testRaisesAnErrorIfNetLocationNotProvided(self):
+    missing_netloc = self.uri_element.format("missing/loc.md")
+    with self.assertRaises(base.ElectionError) as ee:
+      self.uri_validator.check(etree.fromstring(missing_netloc))
+    self.assertIn("domain - missing", str(ee.exception))
+
+  def testRaisesAnErrorIfQueryParamsAreProvided(self):
+    contains_query = self.uri_element.format(
+        "http://www.whitehouse.gov?filter=yesplease")
+    with self.assertRaises(base.ElectionError) as ee:
+      self.uri_validator.check(etree.fromstring(contains_query))
+    self.assertIn("query params - not allowed", str(ee.exception))
+
+  def testAggregatesErrors(self):
+    multiple_issues = self.uri_element.format("missing/loc.md?filter=yesplease")
+    with self.assertRaises(base.ElectionError) as ee:
+      self.uri_validator.check(etree.fromstring(multiple_issues))
+    self.assertIn("query params - not allowed", str(ee.exception))
+    self.assertIn("domain - missing", str(ee.exception))
+
+
 class ValidURIAnnotationTest(absltest.TestCase):
 
   def setUp(self):
     super(ValidURIAnnotationTest, self).setUp()
     self.valid_annotation = rules.ValidURIAnnotation(None, None)
+
+  def testOnlyChecksContactInformationElements(self):
+    self.assertEqual(["ContactInformation"], self.valid_annotation.elements())
 
   def testPlatformOnlyValidAnnotation(self):
     root_string = """
@@ -3095,35 +3153,6 @@ class ValidURIAnnotationTest(absltest.TestCase):
     with self.assertRaises(base.ElectionError) as cm:
       self.valid_annotation.check(etree.fromstring(root_string))
     self.assertIn("is not a valid annotation.", str(cm.exception))
-
-  def testInvalidURL(self):
-    root_string = """
-      <ContactInformation label="ci_par_at_1">
-        <Uri Annotation="official-website">
-          <![CDATA[tps://www.spoe.at]]>
-        </Uri>
-        <Uri Annotation="campaign-website">
-          <![CDATA[http://www.smithforgovernor2020.com]]>
-        </Uri>
-      </ContactInformation>
-    """
-    with self.assertRaises(base.ElectionError) as cm:
-      self.valid_annotation.check(etree.fromstring(root_string))
-    self.assertIn("URI tps://www.spoe.at is not valid.",
-                  str(cm.exception))
-
-  def testEmptyURL(self):
-    root_string = """
-      <ContactInformation label="ci_par_at_1">
-        <Uri Annotation="official-website"> </Uri>
-        <Uri Annotation="campaign-website">
-          <![CDATA[http://www.smithforgovernor2020.com]]>
-        </Uri>
-      </ContactInformation>
-    """
-    with self.assertRaises(base.ElectionError) as cm:
-      self.valid_annotation.check(etree.fromstring(root_string))
-    self.assertIn("is missing URI.", str(cm.exception))
 
 
 class RulesTest(absltest.TestCase):
