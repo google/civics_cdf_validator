@@ -3155,6 +3155,52 @@ class ValidURIAnnotationTest(absltest.TestCase):
     self.assertIn("is not a valid annotation.", str(cm.exception))
 
 
+class GpUnitsTreeValidationTest(absltest.TestCase):
+
+  def setUp(self):
+    super(GpUnitsTreeValidationTest, self).setUp()
+    self.gpunits_tree_validator = rules.GpUnitsTree(None, None)
+
+  def testValidationFailsIfCyclesFormed(self):
+    root_string = """
+    <xml>
+      <GpUnitCollection>
+        <GpUnit objectId="ru0002">
+          <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+        </GpUnit>
+        <GpUnit objectId="ru_pre92426">
+          <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+        </GpUnit>
+        <GpUnit objectId="ru_temp_id">
+          <ComposingGpUnitIds>ru_pre92426</ComposingGpUnitIds>
+        </GpUnit>
+      </GpUnitCollection>
+    </xml>
+    """
+    with self.assertRaises(base.ElectionTreeError):
+      self.gpunits_tree_validator.election_tree = etree.ElementTree(
+          etree.fromstring(root_string))
+      self.gpunits_tree_validator.check()
+
+  def testValidationIfTreeFormed(self):
+    root_string = """
+    <xml>
+      <GpUnitCollection>
+        <GpUnit objectId="ru0002">
+          <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+        </GpUnit>
+        <GpUnit objectId="ru_pre92426">
+        </GpUnit>
+        <GpUnit objectId="ru_temp_id">
+        </GpUnit>
+      </GpUnitCollection>
+    </xml>
+    """
+    self.gpunits_tree_validator.election_tree = etree.ElementTree(
+        etree.fromstring(root_string))
+    self.gpunits_tree_validator.check()
+
+
 class RulesTest(absltest.TestCase):
 
   def testAllRulesIncluded(self):
