@@ -2499,18 +2499,40 @@ class ValidEnumerationsTest(absltest.TestCase):
 
   def testElementsOfTypeOtherDoNotUseValidEnumerationInOtherTypeField(self):
     type_other_string = """
+    <GpUnit objectId="ru0002">
+      <Name>Virginia</Name>
+      <Type>state</Type>
+    </GpUnit>
+    """
+    element = etree.fromstring(type_other_string)
+    self.enum_validator.valid_enumerations = ["state"]
+    self.enum_validator.check(element)
+
+  def testRaisesAnErrorIfOtherTypeFieldHasValidEnumerationAsAValue(self):
+    type_other_string = """
+    <GpUnit objectId="ru0002">
+      <Name>Virginia</Name>
+      <Type>other</Type>
+      <OtherType>state</OtherType>
+    </GpUnit>
+    """
+    element = etree.fromstring(type_other_string)
+    self.enum_validator.valid_enumerations = ["state"]
+    with self.assertRaises(base.ElectionError):
+      self.enum_validator.check(element)
+
+  def testElementsOfTypeOtherForExternalIdentifierElements(self):
+    type_other_string = """
       <ExternalIdentifier>
-        <Type>other</Type>
-        <OtherType>stable</OtherType>
+        <Type>stable</Type>
         <Value>Paddy's Pub</Value>
       </ExternalIdentifier>
     """
     element = etree.fromstring(type_other_string)
-    self.enum_validator.valid_enumerations = []
-
+    self.enum_validator.valid_enumerations = ["stable"]
     self.enum_validator.check(element)
 
-  def testRaisesAnErrorIfOtherTypeFieldHasValidEnumerationAsAValue(self):
+  def testExternalIdentifierForValidEnumerationSetAsOtherType(self):
     type_other_string = """
       <ExternalIdentifier>
         <Type>other</Type>
@@ -2520,7 +2542,6 @@ class ValidEnumerationsTest(absltest.TestCase):
     """
     element = etree.fromstring(type_other_string)
     self.enum_validator.valid_enumerations = ["stable"]
-
     with self.assertRaises(base.ElectionError):
       self.enum_validator.check(element)
 
