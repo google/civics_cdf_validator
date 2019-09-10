@@ -1213,6 +1213,9 @@ class ValidEnumerations(base.BaseRule):
           if tag == "element":
             elem_name = elem.get("name", None)
             if elem_name and element.get("name") and elem_name == "OtherType":
+              if element.get("name") == "ExternalIdentifiers":
+                eligible_elements.append("ExternalIdentifier")
+                continue
               eligible_elements.append(element.get("name"))
     return eligible_elements
 
@@ -1223,9 +1226,10 @@ class ValidEnumerations(base.BaseRule):
       if other_type_element is not None:
         if other_type_element.text in self.valid_enumerations:
           raise base.ElectionError(
-              "Line %d. Type of element %s is set to 'other' even though "
-              "'%s' is a valid enumeration" %
-              (element.sourceline, element.tag, other_type_element.text))
+              "%sType of element %s is set to 'other' even though "
+              "'%s' is a valid enumeration"
+              % (sourceline_prefix(element), element.tag,
+                 other_type_element.text))
 
 
 class ValidateOcdidLowerCase(base.BaseRule):
