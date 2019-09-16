@@ -1407,8 +1407,6 @@ class URIValidator(base.BaseRule):
       discrepencies.append("protocol - invalid")
     if not parsed_url.netloc:
       discrepencies.append("domain - missing")
-    if parsed_url.query:
-      discrepencies.append("query params - not allowed")
 
     if discrepencies:
       raise base.ElectionError(
