@@ -3040,18 +3040,16 @@ class URIValidatorTest(absltest.TestCase):
       self.uri_validator.check(etree.fromstring(missing_netloc))
     self.assertIn("domain - missing", str(ee.exception))
 
-  def testRaisesAnErrorIfQueryParamsAreProvided(self):
+  def testAllowsQueryParamsToBeIncluded(self):
     contains_query = self.uri_element.format(
         "http://www.whitehouse.gov?filter=yesplease")
-    with self.assertRaises(base.ElectionError) as ee:
-      self.uri_validator.check(etree.fromstring(contains_query))
-    self.assertIn("query params - not allowed", str(ee.exception))
+    self.uri_validator.check(etree.fromstring(contains_query))
 
   def testAggregatesErrors(self):
     multiple_issues = self.uri_element.format("missing/loc.md?filter=yesplease")
     with self.assertRaises(base.ElectionError) as ee:
       self.uri_validator.check(etree.fromstring(multiple_issues))
-    self.assertIn("query params - not allowed", str(ee.exception))
+    self.assertIn("protocol - invalid", str(ee.exception))
     self.assertIn("domain - missing", str(ee.exception))
 
 
