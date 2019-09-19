@@ -236,6 +236,7 @@ class DuplicateID(base.TreeRule):
           "The Election File contains duplicate object IDs", error_log)
 
 
+# TODO(kaminer): Refactor this rule to extend ValidReferenceRule
 class ValidIDREF(base.BaseRule):
   """Check that IDREFs are valid.
 
@@ -862,6 +863,7 @@ class ProperBallotSelection(base.BaseRule):
                         self.con_sel_mapping[tag], selection_tag, selection_id))
 
 
+# TODO(kaminer): Refactor this rule to extend ValidReferenceRule
 class MissingPartyAffiliation(base.TreeRule):
   """Each Person/Candidate PartyId must have an associated Party.
 
@@ -1052,6 +1054,7 @@ class CandidatesMissingPartyData(base.BaseRule):
                                  (element.sourceline, element.get("objectId")))
 
 
+# TODO(kaminer): Refactor this rule to extend ValidReferenceRule
 class OfficeMissingOfficeHolderPersonData(base.TreeRule):
   """Each Office must have Persons occupying it.
 
@@ -1261,6 +1264,7 @@ class ValidateOcdidLowerCase(base.BaseRule):
           (sourceline_prefix(element), ocdid))
 
 
+# TODO(kaminer): Refactor this rule to extend ValidReferenceRule
 class PersonHasOffice(base.TreeRule):
   """Ensure that each non-party-leader Person object linked to one Office."""
 
@@ -1301,6 +1305,7 @@ class PersonHasOffice(base.TreeRule):
           .format(",".join(persons_without_office)))
 
 
+# TODO(kaminer): Refactor this rule to extend ValidReferenceRule
 class PartyLeadershipMustExist(base.TreeRule):
   """Each party leader or party chair should refer to a person in the feed."""
 
@@ -1483,6 +1488,30 @@ class ValidURIAnnotation(base.BaseRule):
         self.check_url(url, annotation, platform=platform)
 
 
+class ValidJurisdictionID(base.ValidReferenceRule):
+  """Each jurisdiction id should refer to a valid GpUnit."""
+
+  def _gather_reference_values(self):
+    root = self.election_tree.getroot()
+    jurisdiction_elements = root.findall(
+        ".//AdditionalData[@type='jurisdiction-id']")
+
+    external_ids = root.findall(".//ExternalIdentifier")
+    for extern_id in external_ids:
+      id_type = extern_id.find("Type")
+      if (id_type is not None and id_type.text == "other"):
+        other_type = extern_id.find("OtherType")
+        if (other_type is not None and other_type.text == "jurisdiction-id"):
+          if extern_id.find("Value") is not None:
+            jurisdiction_elements.append(extern_id.find("Value"))
+
+    return set([elem.text for elem in jurisdiction_elements])
+
+  def _gather_defined_values(self):
+    gp_unit_elements = self.election_tree.getroot().findall(".//GpUnit")
+    return set([elem.get("objectId", None) for elem in gp_unit_elements])
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
@@ -1514,6 +1543,7 @@ COMMON_RULES = (
     URIValidator,
     ValidURIAnnotation,
     GpUnitsTree,
+    ValidJurisdictionID,
 )
 
 ELECTION_RULES = COMMON_RULES + (

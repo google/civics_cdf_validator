@@ -146,6 +146,35 @@ class TreeRule(BaseRule):
     """Checks entire tree."""
 
 
+class ValidReferenceRule(TreeRule):
+  """Rule that makes sure reference values are properly defined."""
+
+  def _gather_reference_values(self):
+    """Collect a set of all values that are referencing a pre-defined value.
+
+    Ex: A party leader ID should reference an ID from a PersonCollection.
+    This method should return a set of all party leader IDs.
+    """
+    raise NotImplementedError
+
+  def _gather_defined_values(self):
+    """Collect a set of the pre-defined values that are being referenced.
+
+    Ex: A party leader ID should reference an ID from a PersonCollection.
+    This method should return a set of all PersonIDs from the PersonCollection.
+    """
+    raise NotImplementedError
+
+  def check(self):
+    reference_ids = self._gather_reference_values()
+    defined_ids = self._gather_defined_values()
+    invalid_references = reference_ids - defined_ids
+
+    if invalid_references:
+      raise ElectionError("No defined data for {} found in the feed.".format(
+          ", ".join(invalid_references)))
+
+
 class RuleOption(object):
   class_name = None
   option_name = None
