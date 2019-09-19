@@ -3174,6 +3174,146 @@ class ValidURIAnnotationTest(absltest.TestCase):
     self.assertIn("is not a valid annotation.", str(cm.exception))
 
 
+class ValidJurisdictionIDTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ValidJurisdictionIDTest, self).setUp()
+    self.root_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <GpUnitCollection>
+          {}
+          <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu2"/>
+          <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu3"/>
+        </GpUnitCollection>
+        <OfficeCollection>
+          {}
+          <Office objectId="off1">
+            <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          </Office>
+          <Office objectId="off2">
+            <AdditionalData>ru-gpu4</AdditionalData>
+          </Office>
+          <Office>
+            <ExternalIdentifiers>
+              {}
+            </ExternalIdentifiers>
+          </Office>
+        </OfficeCollection>
+      </ElectionReport>
+    """
+
+  # _gather_reference_values tests
+  def testReturnsASetOfJurisdictionIdsFromGivenTree_AdditionalData(self):
+    root_string = self.root_string.format("", """
+          <Office objectId="off0">
+            <AdditionalData type="jurisdiction-id">ru-gpu1</AdditionalData>
+          </Office>""", "")
+
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    validator = rules.ValidJurisdictionID(election_tree, None)
+    reference_values = validator._gather_reference_values()
+    self.assertEqual(set(["ru-gpu1", "ru-gpu2"]), reference_values)
+
+  def testReturnsASetOfJurisdictionIdsFromGivenTree_ExternalIdentifier(self):
+    root_string = self.root_string.format("", "", """
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>jurisdiction-id</OtherType>
+            <Value>ru-gpu3</Value>
+          </ExternalIdentifier>""")
+
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    validator = rules.ValidJurisdictionID(election_tree, None)
+    reference_values = validator._gather_reference_values()
+    self.assertEqual(set(["ru-gpu2", "ru-gpu3"]), reference_values)
+
+  def testIgnoresExternalIdentifierWithoutType(self):
+    root_string = self.root_string.format("", "", """
+          <ExternalIdentifier>
+            <OtherType>jurisdiction-id</OtherType>
+            <Value>ru-gpu3</Value>
+          </ExternalIdentifier>""")
+
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    validator = rules.ValidJurisdictionID(election_tree, None)
+    reference_values = validator._gather_reference_values()
+    self.assertEqual(set(["ru-gpu2"]), reference_values)
+
+  def testIgnoresExternalIdentifierWithoutOtherTypeNotJurisdictionId(self):
+    root_string = self.root_string.format("", "", """
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>district-id</OtherType>
+            <Value>ru-gpu3</Value>
+          </ExternalIdentifier>""")
+
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    validator = rules.ValidJurisdictionID(election_tree, None)
+    reference_values = validator._gather_reference_values()
+    self.assertEqual(set(["ru-gpu2"]), reference_values)
+
+  def testIgnoresExternalIdentifierWithoutValueElement(self):
+    root_string = self.root_string.format("", "", """
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>jurisdiction-id</OtherType>
+          </ExternalIdentifier>""")
+
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    validator = rules.ValidJurisdictionID(election_tree, None)
+    reference_values = validator._gather_reference_values()
+    self.assertEqual(set(["ru-gpu2"]), reference_values)
+
+  def testItRemovesDuplicatesIfMulitpleOfficesHaveSameJurisdiction(self):
+    root_string = self.root_string.format("", """
+          <Office objectId="off0">
+            <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          </Office>""", "")
+
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    validator = rules.ValidJurisdictionID(election_tree, None)
+    reference_values = validator._gather_reference_values()
+    self.assertEqual(set(["ru-gpu2"]), reference_values)
+
+  # _gather_defined_values test
+  def testReturnsASetOfGpUnitsFromGivenTree(self):
+    root_string = self.root_string.format("""
+          <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu1"/>""", "", "")
+
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    validator = rules.ValidJurisdictionID(election_tree, None)
+    reference_values = validator._gather_defined_values()
+    self.assertEqual(set(["ru-gpu1", "ru-gpu2", "ru-gpu3"]), reference_values)
+
+  # check tests
+  def testEveryJurisdictionIdReferencesAValidGpUnit(self):
+    root_string = self.root_string.format("""
+          <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu1"/>""", """
+          <Office objectId="off0">
+            <AdditionalData type="jurisdiction-id">ru-gpu1</AdditionalData>
+          </Office>""", """
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>jurisdiction-id</OtherType>
+            <Value>ru-gpu3</Value>
+          </ExternalIdentifier>""")
+
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    rules.ValidJurisdictionID(election_tree, None).check()
+
+  def testRaisesAnElectionErrorIfJurisdictionIdIsNotAGpUnitId(self):
+    root_string = self.root_string.format("""
+          <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu1"/>""", """
+          <Office objectId="off0">
+            <AdditionalData type="jurisdiction-id">ru-gpu99</AdditionalData>
+          </Office>""", "")
+
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    with self.assertRaises(base.ElectionError) as ee:
+      rules.ValidJurisdictionID(election_tree, None).check()
+    self.assertIn("ru-gpu99", str(ee.exception))
+
+
 class GpUnitsTreeValidationTest(absltest.TestCase):
 
   def setUp(self):
@@ -3226,6 +3366,7 @@ class RulesTest(absltest.TestCase):
     all_rules = rules.ALL_RULES
     possible_rules = self._subclasses(base.BaseRule)
     possible_rules.remove(base.TreeRule)
+    possible_rules.remove(base.ValidReferenceRule)
     self.assertSetEqual(all_rules, possible_rules)
 
   def _subclasses(self, cls):
