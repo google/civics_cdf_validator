@@ -1810,6 +1810,125 @@ class ProperBallotSelectionTest(absltest.TestCase):
       self.ballot_selection_validator.check(element.find("Contest"))
 
 
+class PartiesHaveDifferentColorsTest(absltest.TestCase):
+
+  def setUp(self):
+    super(PartiesHaveDifferentColorsTest, self).setUp()
+    self._base_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <Name>
+            <Text language="en">Republican</Text>
+          </Name>
+          {0}
+        </Party>
+        <Party objectId="par0002">
+          <Name>
+            <Text language="en">Democratic</Text>
+          </Name>
+          {1}
+        </Party>
+        <Party objectId="par0003">
+          <Name>
+            <Text language="en">Green</Text>
+          </Name>
+          {2}
+        </Party>
+      </PartyCollection>
+    """
+    self._color_str = "<Color>{}</Color>"
+    self.color_validator = rules.PartiesHaveDifferentColors(None, None)
+
+  def testPartiesHaveDifferentColorsLowercase(self):
+    root_string = self._base_string.format(
+        self._color_str.format("ff0000"),
+        self._color_str.format("0000ff"),
+        self._color_str.format("008000")
+    )
+    element = etree.fromstring(root_string)
+    self.color_validator.check(element)
+
+  def testPartiesHaveDifferentColorsUppercase(self):
+    root_string = self._base_string.format(
+        self._color_str.format("FF0000"),
+        self._color_str.format("0000FF"),
+        self._color_str.format("008000")
+    )
+    element = etree.fromstring(root_string)
+    self.color_validator.check(element)
+
+  def testPartiesHaveSameColors(self):
+    root_string = self._base_string.format(
+        self._color_str.format("ff0000"),
+        self._color_str.format("ff0000"),
+        self._color_str.format("ff0000")
+    )
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionWarning) as cm:
+      self.color_validator.check(element)
+    self.assertIn("has same color as", str(cm.exception))
+    self.assertIn("par0001", str(cm.exception))
+    self.assertIn("par0002", str(cm.exception))
+    self.assertIn("par0003", str(cm.exception))
+
+  def testColorHasPoundSign(self):
+    root_string = self._base_string.format(
+        self._color_str.format("ff0000"),
+        self._color_str.format("#0000ff"),
+        self._color_str.format("#008000")
+    )
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionWarning) as cm:
+      self.color_validator.check(element)
+    self.assertIn("is not a valid hex color", str(cm.exception))
+    self.assertIn("par0002", str(cm.exception))
+    self.assertIn("par0003", str(cm.exception))
+
+  def testColorTagMissingValue(self):
+    root_string = self._base_string.format(
+        self._color_str.format(""),
+        self._color_str.format("0000ff"),
+        self._color_str.format("")
+    )
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionWarning) as cm:
+      self.color_validator.check(element)
+    self.assertIn("is missing a value", str(cm.exception))
+    self.assertIn("par0001", str(cm.exception))
+    self.assertIn("par0003", str(cm.exception))
+
+  def testPartiesHaveNonHex(self):
+    root_string = self._base_string.format(
+        self._color_str.format("ff0000"),
+        self._color_str.format("blue"),
+        self._color_str.format("green")
+    )
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionWarning) as cm:
+      self.color_validator.check(element)
+    self.assertIn("is not a valid hex color", str(cm.exception))
+    self.assertIn("par0002", str(cm.exception))
+    self.assertIn("par0003", str(cm.exception))
+
+  def testPartyHasMoreThanOneColor(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <Name>
+            <Text language="en">Republican</Text>
+          </Name>
+          <Color>ff0000</Color>
+          <Color>008800</Color>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionWarning) as cm:
+      self.color_validator.check(element)
+    self.assertIn("has more than one color", str(cm.exception))
+    self.assertIn("par0001", str(cm.exception))
+
+
 class MissingPartyAffiliationTest(absltest.TestCase):
 
   _base_xml_string = """
@@ -3379,4 +3498,3 @@ class RulesTest(absltest.TestCase):
 
 if __name__ == "__main__":
   absltest.main()
-

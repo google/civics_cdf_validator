@@ -55,6 +55,11 @@ class ElectionWarning(ElectionException):
 
   description = "Warning"
 
+  def __init__(self, message, warning_log=None):
+    super(ElectionWarning, self).__init__(message)
+    if warning_log:
+      self.error_log = warning_log
+
 
 class ElectionInfo(ElectionException):
   """Information that user needs to know about following XML best practices."""
@@ -275,15 +280,15 @@ class RulesRegistry(SchemaHandler):
                                                   e_type_name, rule_suffix))
         if verbose:
           for exception in self.exceptions[e_type][rule_class]:
-            if exception.error_log:
-              for error in exception.error_log:
-                if error.line is not None:
-                  print(" " * 14 +
-                        "Line {0}: {1}".format(error.line, error.message))
-                else:
-                  print(" " * 14 + "{0}".format(error.message))
-            else:
+            if not exception.error_log:
               print(" " * 14 + "{0}".format(exception))
+              continue
+            for error in exception.error_log:
+              if error.line is not None:
+                print(" " * 14 +
+                      "Line {0}: {1}".format(error.line, error.message))
+              else:
+                print(" " * 14 + "{0}".format(error.message))
 
   def check_rules(self):
     """Checks all rules."""

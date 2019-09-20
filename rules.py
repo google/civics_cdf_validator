@@ -454,7 +454,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
           "does not have any external identifiers" %
           (element.sourceline, element.text, referenced_gpunit.sourceline,
            contest_id))
-    if not valid_ocd_id and referenced_gpunit is not None:
+    if referenced_gpunit is not None and not valid_ocd_id:
       raise base.ElectionError(
           "Line %d. The ElectoralDistrictId element for contest %s "
           "refers to GpUnit %s on line %d that does not have a valid OCD "
@@ -861,6 +861,59 @@ class ProperBallotSelection(base.BaseRule):
             "BallotSelection. %s must have a %s but contains a "
             "%s, %s" % (element.sourceline, contest_id, tag,
                         self.con_sel_mapping[tag], selection_tag, selection_id))
+
+
+class PartiesHaveDifferentColors(base.BaseRule):
+  """Each Party should have a single, unique hex Color without a leading '#'.
+
+  A Party object that has no Color or an invalid Color should be picked up
+  within this class and returned to the user as a warning.
+  """
+
+  def elements(self):
+    return ["PartyCollection"]
+
+  def check(self, element):
+    party_colors = {}
+    warnings = []
+    for party in element.findall("Party"):
+      colors = party.findall("Color")
+      if not colors:
+        continue
+      party_object_id = party.get("objectId")
+      if len(colors) > 1:
+        warnings.append(
+            "Line %d: Party %s has more than one color." %
+            (element.sourceline, party.get("objectId"))
+        )
+      for color in colors:
+        color_val = color.text
+        if not color_val:
+          warnings.append(
+              "Line %d: Color tag in Party %s is missing a value." %
+              (element.sourceline, party_object_id)
+          )
+        else:
+          try:
+            int(color_val, 16)
+          except ValueError:
+            warnings.append(
+                "Line %d: %s in Party %s is not a valid hex color." %
+                (element.sourceline, color_val, party_object_id)
+            )
+          if color_val in party_colors:
+            warnings.append(
+                "Line %d: Party %s has same color as Party %s." %
+                (element.sourceline, party_object_id, party_colors[color_val])
+            )
+          else:
+            party_colors[color_val] = party_object_id
+    if warnings:
+      raise base.ElectionWarning(
+          "The Election File contains the following "
+          "party color warning(s) \n{}".format("\n".join(warnings)),
+          warning_log=warnings
+      )
 
 
 # TODO(kaminer): Refactor this rule to extend ValidReferenceRule
@@ -1559,6 +1612,7 @@ ELECTION_RULES = COMMON_RULES + (
     ProperBallotSelection,
     ReusedCandidate,
     VoteCountTypesCoherency,
+    PartiesHaveDifferentColors,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (
@@ -1569,4 +1623,3 @@ OFFICEHOLDER_RULES = COMMON_RULES + (
 )
 
 ALL_RULES = frozenset(COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES)
-
