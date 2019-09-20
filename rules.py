@@ -281,6 +281,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
   CACHE_DIR = "~/.cache"
   GITHUB_REPO = "opencivicdata/ocd-division-ids"
   GITHUB_DIR = "identifiers"
+  OCD_PATTERN_MATCHER = re.compile(r"^ocd-division\/country:(\w|-|_|\.|~)+(\/(\w|-|_)+:(\w|-|_|\.|~)+)*$")
 
   def __init__(self, election_tree, schema_file):
     super(ElectoralDistrictOcdId, self).__init__(election_tree, schema_file)
@@ -436,7 +437,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
               ocd_id = value.text.encode("utf-8")
             else:
               ocd_id = ""
-            if ocd_id in self.ocds:
+            if ocd_id in self.ocds and self.OCD_PATTERN_MATCHER.fullmatch(ocd_id):  
               valid_ocd_id = True
           if (id_type is not None and id_type.text != "ocd-id" and
               id_type.text.lower() == "ocd-id"):
