@@ -60,13 +60,15 @@ def _validate_rules(parser, arg):
 def _validate_severity(parser, arg):
   """Check that the severity level provided is correct."""
 
-  _VALID_SEVERITIES = {"info": 0, "warning": 1, "error": 2}
-  if arg.strip().lower() not in _VALID_SEVERITIES:
+  valid_severities = {"info": 0, "warning": 1, "error": 2}
+  if arg.strip().lower() not in valid_severities:
     parser.error("Invalid severity. Options are error, warning, or info")
   else:
-    return _VALID_SEVERITIES[arg.strip().lower()]
+    return valid_severities[arg.strip().lower()]
 
 
+# pylint: disable=g-doc-args
+# pylint: disable=g-doc-return-or-yield
 def _validate_country_codes(parser, arg):
   """Check that the supplied 2 country code is correct.
 

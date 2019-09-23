@@ -18,6 +18,7 @@ from __future__ import print_function
 from lxml import etree
 
 
+# pylint: disable=g-bad-exception-name
 class ElectionException(Exception):
   """Base class for all the errors in this script."""
   error_message = None
@@ -46,6 +47,7 @@ class ElectionTreeError(ElectionError):
     self.error_log = error_log
 
 
+# pylint: disable=g-bad-exception-name
 class ElectionWarning(ElectionException):
   """An issue that should be fixed.
 
@@ -61,6 +63,7 @@ class ElectionWarning(ElectionException):
       self.error_log = warning_log
 
 
+# pylint: disable=g-bad-exception-name
 class ElectionInfo(ElectionException):
   """Information that user needs to know about following XML best practices."""
 
@@ -130,8 +133,11 @@ class BaseRule(SchemaHandler):
   def set_option(self, option):
     """Used to set commandline options for the rule.
 
-    The rule must have the option_name attribute, otherwise raise an
-    exception.
+    Args:
+      option: commandline option object.
+
+    Raises:
+      ElectionException: the rule must have the option_name attribute.
     """
     if not hasattr(self, option.option_name):
       raise ElectionException("Invalid attribute set")
@@ -234,7 +240,8 @@ class RulesRegistry(SchemaHandler):
           self.registry[element] = [rule_instance]
 
   def exception_handler(self, rule, exception):
-    for e_type in self.exceptions.keys():
+    """Gather error counts by type, class, and total."""
+    for e_type in self.exceptions:
       if issubclass(exception.__class__, e_type):
         if rule.__class__ not in self.exceptions[e_type]:
           self.exceptions[e_type][rule.__class__] = []
@@ -266,6 +273,7 @@ class RulesRegistry(SchemaHandler):
       e_type_name = e_type.description
       print("{0:6d} {1} message{2} found".format(self.exception_counts[e_type],
                                                  e_type_name, suffix))
+      # pylint: disable=cell-var-from-loop
       # Within the error severity, sort from most common to least common.
       for rule_class in sorted(
           self.exceptions[e_type].keys(),
@@ -305,7 +313,7 @@ class RulesRegistry(SchemaHandler):
         rule.check()
       except ElectionException as e:
         self.exception_handler(rule, e)
-    for event, element in etree.iterwalk(election_tree, events=("end",)):
+    for _, element in etree.iterwalk(election_tree, events=("end",)):
       tag = self.get_element_class(element)
       if not tag or tag not in self.registry.keys():
         continue

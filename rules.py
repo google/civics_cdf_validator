@@ -17,7 +17,7 @@
 from __future__ import print_function
 
 import csv
-from datetime import datetime
+import datetime
 import hashlib
 import io
 import os
@@ -77,17 +77,18 @@ class OptionalAndEmpty(base.BaseRule):
   def elements(self):
     schema_tree = etree.parse(self.schema_file)
     eligible_elements = []
-    for event, element in etree.iterwalk(schema_tree):
+    for _, element in etree.iterwalk(schema_tree):
       tag = self.strip_schema_ns(element)
       if tag and tag == "element" and element.get("minOccurs") == "0":
         eligible_elements.append(element.get("name"))
     return eligible_elements
 
+  # pylint: disable=g-explicit-length-test
   def check(self, element):
     if element == self.previous:
       return
     self.previous = element
-    if ((element.text is None or element.text.strip() == "") and
+    if ((element.text is None or not element.text.strip()) and
         not len(element)):
       raise base.ElectionWarning(
           "Line %d. %s optional element included although it "
@@ -207,7 +208,7 @@ class EmptyText(base.BaseRule):
     return ["Text"]
 
   def check(self, element):
-    if element.text is not None and element.text.strip() == "":
+    if element.text is not None and not element.text.strip():
       raise base.ElectionWarning("Line %d. %s is empty" %
                                  (element.sourceline, element.tag))
 
@@ -218,7 +219,7 @@ class DuplicateID(base.TreeRule):
   def check(self):
     all_object_ids = set()
     error_log = []
-    for event, element in etree.iterwalk(self.election_tree, events=("end",)):
+    for _, element in etree.iterwalk(self.election_tree, events=("end",)):
       if "objectId" not in element.attrib:
         continue
       else:
@@ -247,7 +248,7 @@ class ValidIDREF(base.BaseRule):
   def __init__(self, election_tree, schema_file):
     super(ValidIDREF, self).__init__(election_tree, schema_file)
     self.all_object_ids = set()
-    for event, element in etree.iterwalk(self.election_tree, events=("end",)):
+    for _, element in etree.iterwalk(self.election_tree, events=("end",)):
       if "objectId" not in element.attrib:
         continue
       else:
@@ -260,7 +261,7 @@ class ValidIDREF(base.BaseRule):
   def elements(self):
     schema_tree = etree.parse(self.schema_file)
     eligible_elements = []
-    for event, element in etree.iterwalk(schema_tree):
+    for _, element in etree.iterwalk(schema_tree):
       tag = self.strip_schema_ns(element)
       if (tag and tag == "element" and
           element.get("type") in ("xs:IDREF", "xs:IDREFS")):
@@ -327,10 +328,12 @@ class ElectoralDistrictOcdId(base.BaseRule):
         self._download_data(countries_file)
       else:
         if self.check_github:
-          last_mod_date = datetime.fromtimestamp(
+          last_mod_date = datetime.datetime.fromtimestamp(
               os.path.getmtime(countries_file))
 
-          seconds_since_mod = (datetime.now() - last_mod_date).total_seconds()
+          seconds_since_mod = (
+              datetime.datetime.now() - last_mod_date
+          ).total_seconds()
 
           # If 1 hour has elapsed, check GitHub for the last file update.
           if (seconds_since_mod/3600) > 1:
@@ -471,9 +474,6 @@ class GpUnitOcdId(ElectoralDistrictOcdId):
   ]
   validate_ocd_file = True
 
-  def __init__(self, election_tree, schema_file):
-    super(GpUnitOcdId, self).__init__(election_tree, schema_file)
-
   def elements(self):
     return ["ReportingUnit"]
 
@@ -578,7 +578,6 @@ class DuplicateGpUnits(base.TreeRule):
         return
       for middle_node in non_leaf_nodes:
         if middle_node not in self.children:
-          # TODO: Figure out error
           # TODO(kaminer): Confirm whether or not it's possible to remove
           # this block. non_leafe_nodes consist exclusively of nodes in
           # self.children (see line 565). Checking for them not to be there
@@ -767,7 +766,7 @@ class UniqueLabel(base.BaseRule):
   def elements(self):
     schema_tree = etree.parse(self.schema_file)
     eligible_elements = []
-    for event, element in etree.iterwalk(schema_tree):
+    for _, element in etree.iterwalk(schema_tree):
       tag = self.strip_schema_ns(element)
       if tag == "element":
         elem_type = element.get("type", None)
@@ -819,10 +818,10 @@ class ReusedCandidate(base.TreeRule):
     error_log = []
     for cand_id, cand_select_ids in self.seen_candidates.items():
       if len(cand_select_ids) > 1:
-        error_message = "A Candidate object should only ever be " \
-            "referenced from one CandidateSelection. Candidate %s is " \
-            "referenced by the following CandidateSelections :- %s" % (
-                cand_id, ", ".join(cand_select_ids))
+        error_message = ("A Candidate object should only ever be referenced"
+                         " from one CandidateSelection. Candidate %s is"
+                         " referenced by the following CandidateSelections "
+                         ":- %s") % (cand_id, ", ".join(cand_select_ids))
         error_log.append(base.ErrorLogEntry(None, error_message))
     if error_log:
       raise base.ElectionTreeError(
@@ -849,11 +848,11 @@ class ProperBallotSelection(base.BaseRule):
   def check(self, element):
     tag = self.get_element_class(element)
     selections = []
-    for c in self.con_sel_mapping.keys():
+    for c in self.con_sel_mapping:
       selections += self.get_elements_by_class(element, self.con_sel_mapping[c])
     for selection in selections:
       selection_tag = self.get_element_class(selection)
-      if (selection_tag != self.con_sel_mapping[tag]):
+      if selection_tag != self.con_sel_mapping[tag]:
         contest_id = element.get("objectId", None)
         selection_id = selection.get("objectId", None)
         raise base.ElectionError(
@@ -989,9 +988,9 @@ class CandidateNotReferenced(base.TreeRule):
 
     for cand_id, cand_select_ids in self.cand_to_cand_selection.items():
       if not cand_select_ids:
-        error_message = "A Candidate object should be referenced from one" \
-            " CandidateSelection. Candidate {0} is not referenced by any" \
-            " CandidateSelections".format(cand_id)
+        error_message = ("A Candidate object should be referenced from one"
+                         " CandidateSelection. Candidate {0} is not referenced"
+                         " by any CandidateSelections").format(cand_id)
         error_log.append(base.ErrorLogEntry(None, error_message))
     if error_log:
       raise base.ElectionTreeError(
@@ -1012,7 +1011,7 @@ class DuplicateContestNames(base.TreeRule):
     # TODO(kaminer) Avoid the iterwalk by extending BaseRule
     # and only checking ContestCollection. Verify with Justin
     # Get the object ids associated with each contest name.
-    for event, element in etree.iterwalk(self.election_tree):
+    for _, element in etree.iterwalk(self.election_tree):
       tag = self.strip_schema_ns(element)
       if tag != "Contest":
         continue
@@ -1049,7 +1048,7 @@ class CheckIdentifiers(base.TreeRule):
     # TODO(kaminer) Turn this rule into a BaseRule by returning
     # this list from elements function.
     nist_objects = ("Candidate", "Contest", "Party")
-    for event, element in etree.iterwalk(self.election_tree):
+    for _, element in etree.iterwalk(self.election_tree):
       nist_obj = self.strip_schema_ns(element)
       if nist_obj not in nist_objects:
         continue
