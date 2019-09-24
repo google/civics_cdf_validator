@@ -283,6 +283,8 @@ class ElectoralDistrictOcdId(base.BaseRule):
   CACHE_DIR = "~/.cache"
   GITHUB_REPO = "opencivicdata/ocd-division-ids"
   GITHUB_DIR = "identifiers"
+  # Reference http://docs.opencivicdata.org/en/latest/proposals/0002.html
+  OCD_PATTERN = r"^ocd-division\/country:[a-z]{2}(\/(\w|-)+:(\w|-|\.|~)+)*$"
 
   def __init__(self, election_tree, schema_file):
     super(ElectoralDistrictOcdId, self).__init__(election_tree, schema_file)
@@ -292,6 +294,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
     self.github_file = None
     self.github_repo = None
     self.local_file = None
+    self.ocd_matcher = re.compile(self.OCD_PATTERN, flags=re.U)
     for gpunit in self.get_elements_by_class(self.election_tree, "GpUnit"):
       self.gpunits.append(gpunit)
 
@@ -438,8 +441,8 @@ class ElectoralDistrictOcdId(base.BaseRule):
             if value is None or not hasattr(value, "text"):
               continue
             ocd_id = self._encode_ocdid_value(value.text)
-            if ocd_id in self.ocds:
-              valid_ocd_id = True
+            valid_ocd_id = (ocd_id in self.ocds and
+                            self.ocd_matcher.match(ocd_id))
           if (id_type is not None and id_type.text != "ocd-id" and
               id_type.text.lower() == "ocd-id"):
             raise base.ElectionError(

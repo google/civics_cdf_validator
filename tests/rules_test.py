@@ -869,6 +869,7 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     self.assertIn("does not have a valid OCD", str(ee.exception))
 
   def testUnicodeOCDIDsAreValid(self):
+    ocd_value = "ocd-division/country:la/regionalwahlkreis:burgenland_süd"
     root_string = """
       <Contest objectId="ru_at_999">
         <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
@@ -876,19 +877,59 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
            <ExternalIdentifiers>
              <ExternalIdentifier>
                <Type>ocd-id</Type>
-               <Value>regionalwahlkreis:burgenland_süd</Value>
+               <Value>""" + ocd_value + """</Value>
              </ExternalIdentifier>
            </ExternalIdentifiers>
         </GpUnit>
       </Contest>
     """
-
     election_tree = etree.fromstring(root_string)
     self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
-    self.ocdid_validator.ocds = set(["regionalwahlkreis:burgenland_süd"])
+    self.ocdid_validator.ocds = set([ocd_value])
+    self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
+
+  def testCountryOCDIDsAreValid(self):
+    ocd_value = "ocd-division/country:la"
+    root_string = """
+      <Contest objectId="ru_at_999">
+        <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
+        <GpUnit objectId="cc_at_999" type="ReportingUnit">
+           <ExternalIdentifiers>
+             <ExternalIdentifier>
+               <Type>ocd-id</Type>
+               <Value>""" + ocd_value + """</Value>
+             </ExternalIdentifier>
+           </ExternalIdentifiers>
+        </GpUnit>
+      </Contest>
+    """
+    election_tree = etree.fromstring(root_string)
+    self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    self.ocdid_validator.ocds = set([ocd_value])
+    self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
+
+  def testLongOCDIDsAreValid(self):
+    ocd_value = "ocd-division/country:us/state:la"
+    root_string = """
+      <Contest objectId="ru_at_999">
+        <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
+        <GpUnit objectId="cc_at_999" type="ReportingUnit">
+           <ExternalIdentifiers>
+             <ExternalIdentifier>
+               <Type>ocd-id</Type>
+               <Value>""" + ocd_value + """</Value>
+             </ExternalIdentifier>
+           </ExternalIdentifiers>
+        </GpUnit>
+      </Contest>
+    """
+    election_tree = etree.fromstring(root_string)
+    self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    self.ocdid_validator.ocds = set([ocd_value])
     self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
 
   def testUnicodeOCDIDsAreValid_fails(self):
+    ocd_value = "ocd-division/country:la/regionalwahlkreis:kärnten_west"
     root_string = """
       <Contest objectId="ru_at_999">
         <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
@@ -896,22 +937,89 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
            <ExternalIdentifiers>
              <ExternalIdentifier>
                <Type>ocd-id</Type>
-               <Value>regionalwahlkreis:kärnten_west</Value>
+               <Value>""" + ocd_value + """</Value>
              </ExternalIdentifier>
            </ExternalIdentifiers>
         </GpUnit>
       </Contest>
     """
-
     election_tree = etree.fromstring(root_string)
 
     self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
-    self.ocdid_validator.ocds = set(["regionalwahlkreis:burgenland_süd"])
+    self.ocdid_validator.ocds = set(["ocd-division/country:la"
+                                     "/regionalwahlkreis:burgenland_süd"])
+    with self.assertRaises(base.ElectionError) as cm:
+      self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
+    self.assertIn("does not have a valid OCD", str(cm.exception))
+
+  def testInvalidUnicodeOCDIDs_fails(self):
+    ocd_value = "ocd-division/country:la/regionalwahlkreis:burgenland_süd/"
+    root_string = """
+      <Contest objectId="ru_at_999">
+        <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
+        <GpUnit objectId="cc_at_999" type="ReportingUnit">
+           <ExternalIdentifiers>
+             <ExternalIdentifier>
+               <Type>ocd-id</Type>
+               <Value>""" + ocd_value + """</Value>
+             </ExternalIdentifier>
+           </ExternalIdentifiers>
+        </GpUnit>
+      </Contest>
+    """
+    election_tree = etree.fromstring(root_string)
+    self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    self.ocdid_validator.ocds = set([ocd_value])
+    with self.assertRaises(base.ElectionError) as cm:
+      self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
+    self.assertIn("does not have a valid OCD", str(cm.exception))
+
+  def testInvalidNonUnicodeOCDIDs_fails(self):
+    ocd_value = "regionalwahlkreis:burgenland_sued"
+    root_string = """
+      <Contest objectId="ru_at_999">
+        <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
+        <GpUnit objectId="cc_at_999" type="ReportingUnit">
+           <ExternalIdentifiers>
+             <ExternalIdentifier>
+               <Type>ocd-id</Type>
+               <Value>""" + ocd_value + """</Value>
+             </ExternalIdentifier>
+           </ExternalIdentifiers>
+        </GpUnit>
+      </Contest>
+    """
+    election_tree = etree.fromstring(root_string)
+    self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    self.ocdid_validator.ocds = set(["regionalwahlkreis:karnten_west"])
+    with self.assertRaises(base.ElectionError) as cm:
+      self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
+    self.assertIn("does not have a valid OCD", str(cm.exception))
+
+  def testInvalidNonUnicodeOCDIDsWithAnInvalidCharacter_fails(self):
+    ocd_value = "ocd-division/country:la/regionalwahlkreis:burgenland*d"
+    root_string = """
+      <Contest objectId="ru_at_999">
+        <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
+        <GpUnit objectId="cc_at_999" type="ReportingUnit">
+           <ExternalIdentifiers>
+             <ExternalIdentifier>
+               <Type>ocd-id</Type>
+               <Value>""" + ocd_value + """</Value>
+             </ExternalIdentifier>
+           </ExternalIdentifiers>
+        </GpUnit>
+      </Contest>
+    """
+    election_tree = etree.fromstring(root_string)
+    self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    self.ocdid_validator.ocds = set([ocd_value])
     with self.assertRaises(base.ElectionError) as cm:
       self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
     self.assertIn("does not have a valid OCD", str(cm.exception))
 
   def testNonUnicodeOCDIDsAreValid(self):
+    ocd_value = "ocd-division/country:to/regionalwahlkreis:burgenland_sued"
     root_string = """
       <Contest objectId="ru_at_999">
         <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
@@ -919,19 +1027,19 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
            <ExternalIdentifiers>
              <ExternalIdentifier>
                <Type>ocd-id</Type>
-               <Value>regionalwahlkreis:burgenland_sued</Value>
+               <Value>""" + ocd_value + """</Value>
              </ExternalIdentifier>
            </ExternalIdentifiers>
         </GpUnit>
       </Contest>
     """
-
     election_tree = etree.fromstring(root_string)
     self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
-    self.ocdid_validator.ocds = set(["regionalwahlkreis:burgenland_sued"])
+    self.ocdid_validator.ocds = set([ocd_value])
     self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
 
   def testNonUnicodeOCDIDsAreValid_fails(self):
+    ocd_value = "ocd-division/country:to/regionalwahlkreis:burgenland_sued"
     root_string = """
       <Contest objectId="ru_at_999">
         <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
@@ -939,16 +1047,16 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
            <ExternalIdentifiers>
              <ExternalIdentifier>
                <Type>ocd-id</Type>
-               <Value>regionalwahlkreis:burgenland_sued</Value>
+               <Value>""" + ocd_value + """</Value>
              </ExternalIdentifier>
            </ExternalIdentifiers>
         </GpUnit>
       </Contest>
     """
-
     election_tree = etree.fromstring(root_string)
     self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
-    self.ocdid_validator.ocds = set(["regionalwahlkreis:karnten_west"])
+    self.ocdid_validator.ocds = set(["ocd-division/country:to"
+                                     "/regionalwahlkreis:karnten_west"])
     with self.assertRaises(base.ElectionError) as cm:
       self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
     self.assertIn("does not have a valid OCD", str(cm.exception))
