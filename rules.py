@@ -237,7 +237,6 @@ class DuplicateID(base.TreeRule):
           "The Election File contains duplicate object IDs", error_log)
 
 
-# TODO(kaminer): Refactor this rule to extend ValidReferenceRule
 class ValidIDREF(base.BaseRule):
   """Check that IDREFs are valid.
 
@@ -918,45 +917,37 @@ class PartiesHaveDifferentColors(base.BaseRule):
       )
 
 
-# TODO(kaminer): Refactor this rule to extend ValidReferenceRule
-class MissingPartyAffiliation(base.TreeRule):
+class MissingPartyAffiliation(base.ValidReferenceRule):
   """Each Person/Candidate PartyId must have an associated Party.
 
   A PartyId that has no Party that references them should be picked up
   within this class and returned to the user as an error.
   """
 
-  def check(self):
+  def __init__(self, election_tree, schema_file):
+    super(MissingPartyAffiliation, self).__init__(
+        election_tree, schema_file, "Party")
+
+  def _gather_reference_values(self):
     root = self.election_tree.getroot()
-    if not root.getchildren():
-      return
-
     check_party_ids = set()
-    candidate_collection = root.find("CandidateCollection")
-    if candidate_collection is not None:
-      for cand in candidate_collection.findall("Candidate"):
-        party_id = cand.find("PartyId")
-        if party_id is not None and party_id.text and party_id.text.strip():
-          check_party_ids.add(party_id.text.strip())
 
-    person_collection = root.find("PersonCollection")
-    if person_collection is not None:
-      for person in person_collection.findall("Person"):
-        party_id = person.find("PartyId")
-        if party_id is not None and party_id.text and party_id.text.strip():
-          check_party_ids.add(party_id.text.strip())
+    party_ids = root.findall(".//CandidateCollection//Candidate//PartyId")
+    party_ids += root.findall(".//PersonCollection//Person//PartyId")
 
+    for elem in party_ids:
+      if elem.text and elem.text.strip():
+        check_party_ids.add(elem.text.strip())
+    return check_party_ids
+
+  def _gather_defined_values(self):
     all_parties = set()
-    party_collection = root.find("PartyCollection")
+    party_collection = self.election_tree.getroot().find("PartyCollection")
     if party_collection is not None:
       all_parties = set(party.attrib["objectId"] for party
                         in party_collection if party is not None
                         and party.get("objectId", None))
-
-    missing_parties = check_party_ids - all_parties
-    if check_party_ids and missing_parties:
-      raise base.ElectionError("Party elements not found "
-                               "for {}".format(",".join(missing_parties)))
+    return all_parties
 
 
 class CandidateNotReferenced(base.TreeRule):
@@ -1109,50 +1100,38 @@ class CandidatesMissingPartyData(base.BaseRule):
                                  (element.sourceline, element.get("objectId")))
 
 
-# TODO(kaminer): Refactor this rule to extend ValidReferenceRule
-class OfficeMissingOfficeHolderPersonData(base.TreeRule):
+class OfficeMissingOfficeHolderPersonData(base.ValidReferenceRule):
   """Each Office must have Persons occupying it.
 
   An Office object that has no OfficeHolderPersonIds in it should be
   picked up within this class and returned as an error to the user.
   """
 
-  def check(self):
+  def __init__(self, election_tree, schema_file):
+    super(OfficeMissingOfficeHolderPersonData, self).__init__(
+        election_tree, schema_file, "Person")
+
+  def _gather_reference_values(self):
     root = self.election_tree.getroot()
-    if not root.getchildren():
-      return
+    reference_values = set()
 
-    office_collection = root.find("OfficeCollection")
-    if office_collection is None:
-      return
+    officeholder_ids = root.findall(
+        ".//OfficeCollection//Office//OfficeHolderPersonIds")
 
-    persons = root.find("PersonCollection")
-    if persons is None:
-      raise base.ElectionError("No Person data present.")
-
-    officeholders = set()
-    for office in office_collection.findall("Office"):
-      # Within each office, get the person associated with that office.
-      officeholder_ids = office.find("OfficeHolderPersonIds")
-
-      # If there are people associated with that office,
-      # add them to the set of people who are officeholders.
-      if officeholder_ids is not None and officeholder_ids.text.strip():
-        ids = officeholder_ids.text.strip().split()
-        officeholders.update(ids)
+    for elem in officeholder_ids:
+      if elem.text and elem.text.strip():
+        reference_values.update(elem.text.strip().split())
       else:
         raise base.ElectionError("Office is missing IDs of Officeholders.")
+    return reference_values
 
-    all_person_ids = set(person.attrib["objectId"]
-                         for person in persons)
-
-    # check that all officeholder ids belong to actual persons
-    ids_without_person = officeholders - all_person_ids
-
-    if ids_without_person:
-      raise base.ElectionError("Officeholders {} are missing "
-                               "Person data.".format(",".join(
-                                   ids_without_person)))
+  def _gather_defined_values(self):
+    all_people = set()
+    person_collection = self.election_tree.getroot().find("PersonCollection")
+    if person_collection is not None:
+      all_people = set(person.attrib["objectId"]
+                       for person in person_collection)
+    return all_people
 
 
 class PersonsMissingPartyData(base.BaseRule):
@@ -1319,52 +1298,53 @@ class ValidateOcdidLowerCase(base.BaseRule):
           (sourceline_prefix(element), ocdid))
 
 
-# TODO(kaminer): Refactor this rule to extend ValidReferenceRule
-class PersonHasOffice(base.TreeRule):
+class PersonHasOffice(base.ValidReferenceRule):
   """Ensure that each non-party-leader Person object linked to one Office."""
 
-  def check(self):
+  def _gather_reference_values(self):
     root = self.election_tree.getroot()
-    if not root.getchildren():
-      return
 
-    party_leader_ids = set()
+    person_ids = set()
+    person_collection = root.find("PersonCollection")
+    if person_collection is not None:
+      person_ids = {p.attrib["objectId"] for p in person_collection}
+    return person_ids
+
+  def _gather_defined_values(self):
+    root = self.election_tree.getroot()
+
+    person_reference_ids = set()
     for external_id in root.findall(".//Party//ExternalIdentifier"):
       other_type = external_id.find("OtherType")
       if other_type is not None and other_type.text in _PARTY_LEADERSHIP_TYPES:
-        party_leader_ids.add(external_id.find("Value").text)
+        person_reference_ids.add(external_id.find("Value").text)
 
-    person_collection = root.find("PersonCollection")
-    if person_collection is None:
-      return
-
-    person_ids = {p.attrib["objectId"] for p in person_collection}
     office_collection = root.find("OfficeCollection")
-    office_person_ids = set()
     if office_collection is not None:
       for office in office_collection.findall("Office"):
         id_obj = office.find("OfficeHolderPersonIds")
         if id_obj is not None and id_obj.text:
           ids = id_obj.text.strip().split()
+          # TODO(kaminer): OfficeMissingOfficeHolderPersonData allows more
+          # than one id. Evaluate contradiction.
           if len(ids) > 1:
             raise base.ElectionError(
                 "Office object {} has {} OfficeHolders. Must have exactly one."
                 .format(office.get("objectId", ""), str(len(ids)))
             )
-          office_person_ids.update(ids)
+          person_reference_ids.update(ids)
 
-    persons_without_office = person_ids - office_person_ids - party_leader_ids
-    if persons_without_office:
-      raise base.ElectionError(
-          "Person objects are not referenced in an Office: {}"
-          .format(",".join(persons_without_office)))
+    return person_reference_ids
 
 
-# TODO(kaminer): Refactor this rule to extend ValidReferenceRule
-class PartyLeadershipMustExist(base.TreeRule):
+class PartyLeadershipMustExist(base.ValidReferenceRule):
   """Each party leader or party chair should refer to a person in the feed."""
 
-  def check(self):
+  def __init__(self, election_tree, schema_file):
+    super(PartyLeadershipMustExist, self).__init__(
+        election_tree, schema_file, "Person")
+
+  def _gather_reference_values(self):
     root = self.election_tree.getroot()
     if root is None:
       return
@@ -1374,17 +1354,18 @@ class PartyLeadershipMustExist(base.TreeRule):
       other_type = external_id.find("OtherType")
       if other_type is not None and other_type.text in _PARTY_LEADERSHIP_TYPES:
         party_leader_ids.add(external_id.find("Value").text)
+    return party_leader_ids
+
+  def _gather_defined_values(self):
+    root = self.election_tree.getroot()
+    if root is None:
+      return
 
     persons = root.find("PersonCollection")
     all_person_ids = set()
     if persons is not None:
       all_person_ids = set(person.attrib["objectId"] for person in persons)
-    ids_without_person = party_leader_ids - all_person_ids
-
-    if ids_without_person:
-      raise base.ElectionError("No Person data for {} found "
-                               "in the feed.".format(
-                                   ",".join(ids_without_person)))
+    return all_person_ids
 
 
 class ProhibitElectionData(base.TreeRule):
@@ -1546,6 +1527,10 @@ class ValidURIAnnotation(base.BaseRule):
 class ValidJurisdictionID(base.ValidReferenceRule):
   """Each jurisdiction id should refer to a valid GpUnit."""
 
+  def __init__(self, election_tree, schema_file):
+    super(ValidJurisdictionID, self).__init__(
+        election_tree, schema_file, "GpUnit")
+
   def _gather_reference_values(self):
     root = self.election_tree.getroot()
     jurisdiction_elements = root.findall(
@@ -1625,3 +1610,4 @@ OFFICEHOLDER_RULES = COMMON_RULES + (
 )
 
 ALL_RULES = frozenset(COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES)
+

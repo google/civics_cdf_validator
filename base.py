@@ -160,6 +160,10 @@ class TreeRule(BaseRule):
 class ValidReferenceRule(TreeRule):
   """Rule that makes sure reference values are properly defined."""
 
+  def __init__(self, election_tree, schema_file, missing_element="data"):
+    super(ValidReferenceRule, self).__init__(election_tree, schema_file)
+    self.missing_element = missing_element
+
   def _gather_reference_values(self):
     """Collect a set of all values that are referencing a pre-defined value.
 
@@ -182,8 +186,8 @@ class ValidReferenceRule(TreeRule):
     invalid_references = reference_ids - defined_ids
 
     if invalid_references:
-      raise ElectionError("No defined data for {} found in the feed.".format(
-          ", ".join(invalid_references)))
+      raise ElectionError("No defined {} for {} found in the feed.".format(
+          self.missing_element, ", ".join(invalid_references)))
 
 
 class RuleOption(object):

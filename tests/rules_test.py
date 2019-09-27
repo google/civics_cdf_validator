@@ -2061,6 +2061,9 @@ class MissingPartyAffiliationTest(absltest.TestCase):
       <Person objectId="p1">
         <PartyId>par0001</PartyId>
       </Person>
+      <Person objectId="p1">
+        <PartyId></PartyId>
+      </Person>
       <Person objectId="p2" />
       <Person objectId="p3" />
     </PersonCollection>
@@ -2078,32 +2081,96 @@ class MissingPartyAffiliationTest(absltest.TestCase):
           <Text language="en">Democratic</Text>
         </Name>
       </Party>
+      <Party objectId="par0003">
+        <Name>
+          <Text language="en">Libertarian</Text>
+        </Name>
+      </Party>
     </PartyCollection>
   """
 
+  # _gather_reference_values tests
+  def testReturnsPartyIdsFromCandidatesAndPeople(self):
+    root_string = self._base_xml_string.format(
+        self._candidate_collection,
+        self._person_collection,
+        self._party_collection)
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    party_validator = rules.MissingPartyAffiliation(election_tree, None)
+
+    reference_values = party_validator._gather_reference_values()
+    expected_reference_values = set(["par0002", "par0001"])
+    self.assertEqual(expected_reference_values, reference_values)
+
+  def testReturnsCandidatePartyIdsIfNoPersonCollection(self):
+    root_string = self._base_xml_string.format(
+        self._party_collection, "", self._candidate_collection)
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    party_validator = rules.MissingPartyAffiliation(election_tree, None)
+
+    reference_values = party_validator._gather_reference_values()
+    expected_reference_values = set(["par0002"])
+    self.assertEqual(expected_reference_values, reference_values)
+
+  def testReturnsPersonPartyIdsIfNoCandidateCollection(self):
+    root_string = self._base_xml_string.format(self._party_collection,
+                                               self._person_collection, "")
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    party_validator = rules.MissingPartyAffiliation(election_tree, None)
+
+    reference_values = party_validator._gather_reference_values()
+    expected_reference_values = set(["par0001"])
+    self.assertEqual(expected_reference_values, reference_values)
+
+  def testIgnoresPartyIdElementsWithInvalidText(self):
+    candidate_collection = """
+      <CandidateCollection>
+        <Candidate>
+          <PartyId>   </PartyId>
+        </Candidate>
+        <Candidate/>
+      </CandidateCollection>
+    """
+    root_string = self._base_xml_string.format(
+        self._party_collection, self._person_collection, candidate_collection)
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    party_validator = rules.MissingPartyAffiliation(election_tree, None)
+
+    reference_values = party_validator._gather_reference_values()
+    expected_reference_values = set(["par0001"])
+    self.assertEqual(expected_reference_values, reference_values)
+
+  # _gather_defined_values tests
+  def testReturnsObjectIdsFromPartyCollectionParties(self):
+    root_string = self._base_xml_string.format(
+        self._candidate_collection,
+        self._person_collection,
+        self._party_collection)
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    party_validator = rules.MissingPartyAffiliation(election_tree, None)
+
+    defined_values = party_validator._gather_defined_values()
+    expected_defined_values = set(["par0002", "par0001", "par0003"])
+    self.assertEqual(expected_defined_values, defined_values)
+
+  def testReturnsAnEmptySetIfNoCollection(self):
+    root_string = self._base_xml_string.format(
+        self._candidate_collection,
+        self._person_collection,
+        "")
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    party_validator = rules.MissingPartyAffiliation(election_tree, None)
+
+    defined_values = party_validator._gather_defined_values()
+    self.assertEqual(set(), defined_values)
+
+  # check tests
   def testCheckEachPartyIdReferenceHasAPartyElement(self):
-    xml_root = self._base_xml_string.format(
+    root_string = self._base_xml_string.format(
         self._party_collection,
         self._person_collection,
         self._candidate_collection)
-    root_string = io.BytesIO(bytes(xml_root.encode()))
-    election_tree = etree.parse(root_string)
-    party_validator = rules.MissingPartyAffiliation(election_tree, None)
-    party_validator.check()
-
-  def testPartiesMissingPersonReference(self):
-    xml_root = self._base_xml_string.format(
-        self._party_collection, "", self._candidate_collection)
-    root_string = io.BytesIO(bytes(xml_root.encode()))
-    election_tree = etree.parse(root_string)
-    party_validator = rules.MissingPartyAffiliation(election_tree, None)
-    party_validator.check()
-
-  def testPartiesMissingCandidateReference(self):
-    xml_root = self._base_xml_string.format(self._party_collection,
-                                            self._person_collection, "")
-    root_string = io.BytesIO(bytes(xml_root.encode()))
-    election_tree = etree.parse(root_string)
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
     party_validator = rules.MissingPartyAffiliation(election_tree, None)
     party_validator.check()
 
@@ -2114,17 +2181,15 @@ class MissingPartyAffiliationTest(absltest.TestCase):
     party_validator.check()
 
   def testRaisesErrorIfThereIsNoPartyCollection(self):
-    xml_root = self._base_xml_string.format(
-        "",
-        self._person_collection, self._candidate_collection)
-    root_string = io.BytesIO(bytes(xml_root.encode()))
-    election_tree = etree.parse(root_string)
+    root_string = self._base_xml_string.format(
+        "", self._person_collection, self._candidate_collection)
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
     party_validator = rules.MissingPartyAffiliation(election_tree, None)
 
     with self.assertRaises(base.ElectionError):
       party_validator.check()
 
-  def testRaisesErrorIfPartyIdDoesNotHavePartyElement(self):
+  def testRaisesErrorIfPartyIdDoesNotReferencePartyElement(self):
     root_string = io.BytesIO(b"""
       <xml>
         <PartyCollection>
@@ -2157,7 +2222,8 @@ class MissingPartyAffiliationTest(absltest.TestCase):
     party_validator = rules.MissingPartyAffiliation(election_tree, None)
     with self.assertRaises(base.ElectionError) as ee:
       party_validator.check()
-    self.assertIn("Party elements not found", str(ee.exception))
+    self.assertIn("No defined Party for par0003 found in the feed.",
+                  str(ee.exception))
 
 
 class CandidateNotReferencedTest(absltest.TestCase):
@@ -2370,6 +2436,44 @@ class CheckIdentifiersTest(absltest.TestCase):
 
 class OfficeMissingOfficeHolderPersonDataTest(absltest.TestCase):
 
+  # _gather_reference_values tests
+  def testReturnsOfficeHolderPersonIdsFromOfficeCollection(self):
+    root_string = """
+      <xml>
+        <OfficeCollection>
+          <Office><OfficeHolderPersonIds>p1 p2</OfficeHolderPersonIds></Office>
+          <Office><OfficeHolderPersonIds>p3</OfficeHolderPersonIds></Office>
+        </OfficeCollection>
+      </xml>
+    """
+    tree = etree.ElementTree(etree.fromstring(root_string))
+    office_validator = rules.OfficeMissingOfficeHolderPersonData(tree, None)
+
+    reference_values = office_validator._gather_reference_values()
+    expected_reference_values = set(["p1", "p2", "p3"])
+    self.assertEqual(expected_reference_values, reference_values)
+
+  # _gather_defined_values tests
+  def testReturnsObjectIdsFromPersonCollectionPeople(self):
+    root_string = """
+      <xml>
+        <PersonCollection>
+          <Person objectId="p1"/>
+          <Person objectId="p2">
+            <PartyId>par1</PartyId>
+          </Person>
+          <Person objectId="p3"/>
+        </PersonCollection>
+      </xml>
+    """
+    tree = etree.ElementTree(etree.fromstring(root_string))
+    office_validator = rules.OfficeMissingOfficeHolderPersonData(tree, None)
+
+    reference_values = office_validator._gather_defined_values()
+    expected_reference_values = set(["p1", "p2", "p3"])
+    self.assertEqual(expected_reference_values, reference_values)
+
+  # check tests
   def testCheckEachOfficeHasHolderWithValidPersonId(self):
     root_string = io.BytesIO(b"""
       <xml>
@@ -2410,13 +2514,13 @@ class OfficeMissingOfficeHolderPersonDataTest(absltest.TestCase):
 
     with self.assertRaises(base.ElectionError) as ee:
       office_validator.check()
-    self.assertIn("missing Person data", str(ee.exception))
+    self.assertIn("No defined Person for p1 found in the feed.",
+                  str(ee.exception))
 
   def testRaisesErrorIfNoPersonCollectionIsPresent(self):
     root_string = io.BytesIO(b"""
       <xml>
         <OfficeCollection>
-          <Office><OfficeHolderPersonIds>p1 p2</OfficeHolderPersonIds></Office>
           <Office><OfficeHolderPersonIds>p3</OfficeHolderPersonIds></Office>
         </OfficeCollection>
       </xml>
@@ -2426,7 +2530,8 @@ class OfficeMissingOfficeHolderPersonDataTest(absltest.TestCase):
 
     with self.assertRaises(base.ElectionError) as ee:
       office_validator.check()
-    self.assertIn("No Person data present.", str(ee.exception))
+    self.assertIn("No defined Person for p3 found in the feed.",
+                  str(ee.exception))
 
   def testRaisesErrorIfOfficeHolderHasNoId(self):
     root_string = io.BytesIO(b"""
@@ -2456,15 +2561,6 @@ class OfficeMissingOfficeHolderPersonDataTest(absltest.TestCase):
       <OfficeCollection/>
     """)
     election_tree = etree.parse(no_root_string)
-    rules.OfficeMissingOfficeHolderPersonData(election_tree, None).check()
-
-  def testIgnoresTreesWithNoOfficeCollection(self):
-    no_office_string = io.BytesIO(b"""
-      <xml>
-        <PersonCollection/>
-      </xml>
-    """)
-    election_tree = etree.parse(no_office_string)
     rules.OfficeMissingOfficeHolderPersonData(election_tree, None).check()
 
 
@@ -2864,6 +2960,45 @@ class PersonHasOfficeTest(absltest.TestCase):
     </xml>
   """
 
+    # _gather_reference_values tests
+  def testReturnsPersonIdsFromPersonCollection(self):
+    root_string = self._base_xml.format("")
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    office_validator = rules.PersonHasOffice(election_tree, None)
+
+    reference_values = office_validator._gather_reference_values()
+    expected_reference_values = set(["p1", "p2", "p3"])
+    self.assertEqual(expected_reference_values, reference_values)
+
+  # _gather_defined_values tests
+  def testReturnsPartyLeaderAndOfficeHolderIds(self):
+    defined_collections = """
+      <OfficeCollection>
+        <Office><OfficeHolderPersonIds>p1</OfficeHolderPersonIds></Office>
+        <Office><OfficeHolderPersonIds>p2</OfficeHolderPersonIds></Office>
+        <Office><OfficeHolderPersonIds>p3</OfficeHolderPersonIds></Office>
+      </OfficeCollection>
+      <PartyCollection>
+        <Party>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>party-leader-id</OtherType>
+              <Value>p4</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Party>
+      </PartyCollection>
+    """
+    root_string = self._base_xml.format(defined_collections)
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    office_validator = rules.PersonHasOffice(election_tree, None)
+
+    defined_values = office_validator._gather_defined_values()
+    expected_defined_values = set(["p1", "p2", "p3", "p4"])
+    self.assertEqual(expected_defined_values, defined_values)
+
+  # check tests
   def testEachPersonInACollectionIsReferencedByAnOffice(self):
     office_collection = """
       <OfficeCollection>
@@ -2987,7 +3122,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     with self.assertRaises(base.ElectionError) as cm:
       rules.PersonHasOffice(election_tree, None).check()
 
-    self.assertIn("Person objects are not referenced in an Office",
+    self.assertIn("No defined data for p3 found in the feed.",
                   str(cm.exception))
 
   def testOfficeHasOnePerson_fails(self):
@@ -3036,6 +3171,43 @@ class PartyLeadershipMustExistTest(absltest.TestCase):
     </PartyCollection>
   """
 
+  # _gather_reference_values tests
+  def testReturnsSetOfPartyLeaderIds(self):
+    root_string = """
+      <xml>
+        <PersonCollection>
+          <Person objectId="p2" />
+          <Person objectId="p3" />
+        </PersonCollection>
+        {}
+      </xml>
+    """.format(self._party_collection)
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    leadership_validator = rules.PartyLeadershipMustExist(election_tree, None)
+
+    reference_values = leadership_validator._gather_reference_values()
+    expected_reference_values = set(["p2", "p3"])
+    self.assertEqual(expected_reference_values, reference_values)
+
+  # _gather_defined_values tests
+  def testReturnsSetOfPersonObjectIds(self):
+    root_string = """
+      <xml>
+        <PersonCollection>
+          <Person objectId="p4" />
+          <Person objectId="p5" />
+        </PersonCollection>
+        {}
+      </xml>
+    """.format(self._party_collection)
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    leadership_validator = rules.PartyLeadershipMustExist(election_tree, None)
+
+    defined_values = leadership_validator._gather_defined_values()
+    expected_defined_values = set(["p4", "p5"])
+    self.assertEqual(expected_defined_values, defined_values)
+
+  # check tests
   def testPartyLeadershipExists(self):
     xml_string = """
       <xml>
