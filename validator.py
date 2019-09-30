@@ -274,6 +274,7 @@ def main():
           rule_classes_to_check=rule_classes_to_check,
           rule_options=rule_options)
       registry.check_rules()
+      registry.count_stats()
       registry.print_exceptions(options.severity, options.verbose)
       if registry.exception_counts[base.ElectionError]:
         errors.append(3)

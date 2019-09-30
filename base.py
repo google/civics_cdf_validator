@@ -205,6 +205,9 @@ class RulesRegistry(SchemaHandler):
 
   _SEVERITIES = (ElectionInfo, ElectionWarning, ElectionError)
 
+  _TOP_LEVEL_ENTITIES = set(
+      ["Party", "GpUnit", "Office", "Person", "Candidate", "Contest"])
+
   def __init__(self, election_file, schema_file, rule_classes_to_check,
                rule_options):
     self.election_file = election_file
@@ -216,23 +219,21 @@ class RulesRegistry(SchemaHandler):
     self.exception_counts = {}
     self.exception_rule_counts = {}
     self.total_count = 0
+    self.election_tree = None
 
     for e_type in self._SEVERITIES:
       self.exceptions[e_type] = dict()
       self.exception_counts[e_type] = 0
       self.exception_rule_counts[e_type] = dict()
 
-  def register_rules(self, election_tree):
+  def register_rules(self):
     """Register all the rules to be checked.
 
     Returns:
       A dictionary of elements and rules that check each element
-
-    Args:
-      election_tree: election tree to be checked
     """
     for rule in self.rule_classes_to_check:
-      rule_instance = rule(election_tree, self.schema_file)
+      rule_instance = rule(self.election_tree, self.schema_file)
       if rule.__name__ in self.rule_options.keys():
         for option in self.rule_options[rule.__name__]:
           rule_instance.set_option(option)
@@ -302,25 +303,48 @@ class RulesRegistry(SchemaHandler):
               else:
                 print(" " * 14 + "{0}".format(error.message))
 
+  # TODO(nathrahul): refactor this once decided on validator 2.0 refactor.
+  def print_feed_stats(self, counts):
+    """Prints the counts of each top level entity."""
+    if counts.values():
+      print("\n" + " " * 5 + "Entity Counts")
+      for entity, count in counts.items():
+        if count:
+          print(" " * 10 + "{0}: {1}".format(entity, count))
+      print()
+
+  # TODO(nathrahul): refactor this once decided on validator 2.0 refactor.
+  def count_stats(self):
+    """Aggregates the counts for each top level entity."""
+    if self.election_tree:
+      counts = {}
+      for entity in self._TOP_LEVEL_ENTITIES:
+        counts[entity] = len(
+            self.election_tree.findall(".//{0}Collection//{1}".format(
+                entity, entity)))
+      self.print_feed_stats(counts)
+
   def check_rules(self):
     """Checks all rules."""
     try:
-      election_tree = etree.parse(self.election_file)
+      self.election_tree = etree.parse(self.election_file)
     except etree.LxmlError as e:
       print("Fatal Error. XML file could not be parsed. {}".format(e))
       self.exception_counts[ElectionError] += 1
       self.total_count += 1
       return
-    self.register_rules(election_tree)
+    self.register_rules()
     for rule in self.registry.get("tree", []):
       try:
         rule.check()
       except ElectionException as e:
         self.exception_handler(rule, e)
-    for _, element in etree.iterwalk(election_tree, events=("end",)):
+    for _, element in etree.iterwalk(self.election_tree, events=("end",)):
       tag = self.get_element_class(element)
-      if not tag or tag not in self.registry.keys():
+
+      if not tag or tag not in self.registry:
         continue
+
       for element_rule in self.registry[tag]:
         try:
           element_rule.check(element)
