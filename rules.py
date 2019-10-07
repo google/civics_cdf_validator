@@ -1474,9 +1474,10 @@ class ValidURIAnnotation(base.BaseRule):
     parsed_url = urlparse(url)
     # Ensure media platform name is in URL.
     if platform and platform != "website" and platform not in parsed_url.netloc:
-      raise base.ElectionError(
-          "Annotation {} is incorrect for URI {}."
-          .format(annotation, url))
+       # Note that the URL is encoded for printing purposes
+      raise base.ElectionError("Annotation {} is incorrect for URI {}.".format(
+          annotation, url.encode("ascii", "ignore")
+      ))
 
   def check(self, element):
     uris = element.findall("Uri")
@@ -1610,4 +1611,3 @@ OFFICEHOLDER_RULES = COMMON_RULES + (
 )
 
 ALL_RULES = frozenset(COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES)
-
