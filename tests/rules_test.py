@@ -3404,7 +3404,7 @@ class URIValidatorTest(absltest.TestCase):
   def setUp(self):
     super(URIValidatorTest, self).setUp()
     self.uri_validator = rules.URIValidator(None, None)
-    self.uri_element = """
+    self.uri_element = u"""
       <Uri>{}</Uri>
     """
 
@@ -3438,6 +3438,12 @@ class URIValidatorTest(absltest.TestCase):
     with self.assertRaises(base.ElectionError) as ee:
       self.uri_validator.check(etree.fromstring(missing_netloc))
     self.assertIn("domain - missing", str(ee.exception))
+
+  def testRaisesAnErrorIfUriNotAscii(self):
+    unicode_url = self.uri_element.format("https://nahnah.com/nopê")
+    with self.assertRaises(base.ElectionError) as ee:
+      self.uri_validator.check(etree.fromstring(unicode_url))
+    self.assertIn("not ascii encoded", str(ee.exception))
 
   def testAllowsQueryParamsToBeIncluded(self):
     contains_query = self.uri_element.format(

@@ -1442,8 +1442,15 @@ class URIValidator(base.BaseRule):
     url = element.text
     if url is None:
       raise base.ElectionError("Missing URI value.")
+
     parsed_url = urlparse(url)
     discrepencies = []
+
+    try:
+      url.decode('ascii')
+    except UnicodeDecodeError:
+      discrepencies.append("not ascii encoded")
+
     if parsed_url.scheme not in set(["http", "https"]):
       discrepencies.append("protocol - invalid")
     if not parsed_url.netloc:
@@ -1452,7 +1459,7 @@ class URIValidator(base.BaseRule):
     if discrepencies:
       raise base.ElectionError(
           "The provided URI, {}, is invalid for the following reasons: {}."
-          .format(url, ", ".join(discrepencies))
+          .format(url.encode("ascii", "ignore"), ", ".join(discrepencies))
       )
 
 
@@ -1485,10 +1492,11 @@ class ValidURIAnnotation(base.BaseRule):
     for uri in uris:
       annotation = uri.get("Annotation", "").strip()
       url = uri.text.strip()
+      ascii_url = url.encode("ascii", "ignore")
 
       if not annotation:
         raise base.ElectionWarning("URI {} is missing annotation."
-                                   .format(url))
+                                   .format(ascii_url))
 
       if re.search(r"candidate-image", annotation):
         self.check_url(url, annotation)
@@ -1508,7 +1516,7 @@ class ValidURIAnnotation(base.BaseRule):
           elif platform != "wikipedia":
             raise base.ElectionError(
                 "Annotation {} is not a valid annotation for URI {}."
-                .format(annotation, url))
+                .format(annotation, ascii_url))
         elif len(ann_elements) == 2:
           # Two elements at this stage would mean the annotation
           # must be a platform with a usage type.
@@ -1520,7 +1528,7 @@ class ValidURIAnnotation(base.BaseRule):
         else:
           # More than two implies an invalid annotation.
           raise base.ElectionError("Annotation {} is invalid for URI {}."
-                                   .format(annotation, url))
+                                   .format(annotation, ascii_url))
         # Finally, check platform is in the URL.
         self.check_url(url, annotation, platform=platform)
 
