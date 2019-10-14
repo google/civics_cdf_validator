@@ -38,6 +38,11 @@ class ElectionError(ElectionException):
 
   description = "Error"
 
+  def __init__(self, message, error_log=None):
+    super(ElectionError, self).__init__(message)
+    if error_log:
+      self.error_log = error_log
+
 
 class ElectionTreeError(ElectionError):
   """Special exception for Tree Rules."""

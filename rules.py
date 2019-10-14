@@ -426,6 +426,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
     contest_id = element.getparent().get("objectId")
     if not contest_id:
       return
+    error_log = []
     valid_ocd_id = False
     referenced_gpunit = None
     external_ids = []
@@ -444,27 +445,38 @@ class ElectoralDistrictOcdId(base.BaseRule):
                             self.ocd_matcher.match(ocd_id))
           if (id_type is not None and id_type.text != "ocd-id" and
               id_type.text.lower() == "ocd-id"):
-            raise base.ElectionError(
-                "Line %d. The External Identifier case is incorrect"
-                ". Should be ocd-id and not %s" %
-                (id_type.sourceline, id_type.text))
+            error_log.append(
+                base.ErrorLogEntry(
+                    None, "Line %d. The External Identifier case is incorrect"
+                    ". Should be ocd-id and not %s" %
+                    (id_type.sourceline, id_type.text)))
     if referenced_gpunit is None:
-      raise base.ElectionError(
-          "Line %d. The ElectoralDistrictId element for contest %s does "
-          "not refer to a GpUnit. Every ElectoralDistrictId MUST "
-          "reference a GpUnit" % (element.sourceline, contest_id))
+      error_log.append(
+          base.ErrorLogEntry(
+              None,
+              "Line %d. The ElectoralDistrictId element for contest %s does "
+              "not refer to a GpUnit. Every ElectoralDistrictId MUST "
+              "reference a GpUnit" % (element.sourceline, contest_id)))
     if referenced_gpunit is not None and not external_ids:
-      raise base.ElectionError(
-          "Line %d. The GpUnit %s on line %d referenced by contest %s "
-          "does not have any external identifiers" %
-          (element.sourceline, element.text, referenced_gpunit.sourceline,
-           contest_id))
+      error_log.append(
+          base.ErrorLogEntry(
+              None,
+              "Line %d. The GpUnit %s on line %d referenced by contest %s "
+              "does not have any external identifiers" %
+              (element.sourceline, element.text, referenced_gpunit.sourceline,
+               contest_id)))
     if referenced_gpunit is not None and not valid_ocd_id:
+      error_log.append(
+          base.ErrorLogEntry(
+              None, "Line %d. The ElectoralDistrictId element for contest %s "
+              "refers to GpUnit %s on line %d that does not have a valid OCD "
+              "ID" % (element.sourceline, contest_id, element.text,
+                      referenced_gpunit.sourceline)))
+    if error_log:
       raise base.ElectionError(
-          "Line %d. The ElectoralDistrictId element for contest %s "
-          "refers to GpUnit %s on line %d that does not have a valid OCD "
-          "ID" % (element.sourceline, contest_id, element.text,
-                  referenced_gpunit.sourceline))
+          "The file contains the following ElectoralDistrictId "
+          "error(s) \n{}".format("\n".join([e.message for e in error_log])),
+          error_log=error_log)
 
 
 class GpUnitOcdId(ElectoralDistrictOcdId):
@@ -884,37 +896,37 @@ class PartiesHaveDifferentColors(base.BaseRule):
       party_object_id = party.get("objectId")
       if len(colors) > 1:
         warnings.append(
-            "Line %d: Party %s has more than one color." %
-            (element.sourceline, party.get("objectId"))
-        )
+            base.ErrorLogEntry(
+                None, "Line %d: Party %s has more than one color." %
+                (element.sourceline, party.get("objectId"))))
       for color in colors:
         color_val = color.text
         if not color_val:
           warnings.append(
-              "Line %d: Color tag in Party %s is missing a value." %
-              (element.sourceline, party_object_id)
-          )
+              base.ErrorLogEntry(
+                  None, "Line %d: Color tag in Party %s is missing a value." %
+                  (element.sourceline, party_object_id)))
         else:
           try:
             int(color_val, 16)
           except ValueError:
             warnings.append(
-                "Line %d: %s in Party %s is not a valid hex color." %
-                (element.sourceline, color_val, party_object_id)
-            )
+                base.ErrorLogEntry(
+                    None, "Line %d: %s in Party %s is not a valid hex color." %
+                    (element.sourceline, color_val, party_object_id)))
           if color_val in party_colors:
             warnings.append(
-                "Line %d: Party %s has same color as Party %s." %
-                (element.sourceline, party_object_id, party_colors[color_val])
-            )
+                base.ErrorLogEntry(
+                    None, "Line %d: Party %s has same color as Party %s." %
+                    (element.sourceline, party_object_id,
+                     party_colors[color_val])))
           else:
             party_colors[color_val] = party_object_id
     if warnings:
       raise base.ElectionWarning(
-          "The Election File contains the following "
-          "party color warning(s) \n{}".format("\n".join(warnings)),
-          warning_log=warnings
-      )
+          "The Election File contains the following party color warnings: \n{}"
+          .format("\n".join([w.message for w in warnings])),
+          warning_log=warnings)
 
 
 class MissingPartyAffiliation(base.ValidReferenceRule):
@@ -1482,7 +1494,7 @@ class ValidURIAnnotation(base.BaseRule):
     parsed_url = urlparse(url)
     # Ensure media platform name is in URL.
     if platform and platform != "website" and platform not in parsed_url.netloc:
-       # Note that the URL is encoded for printing purposes
+      # Note that the URL is encoded for printing purposes
       raise base.ElectionError("Annotation {} is incorrect for URI {}.".format(
           annotation, url.encode("ascii", "ignore")
       ))
