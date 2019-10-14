@@ -3471,6 +3471,9 @@ class ValidURIAnnotationTest(absltest.TestCase):
         <Uri Annotation="wikipedia">
           <![CDATA[https://de.wikipedia.org/]]>
         </Uri>
+        <Uri Annotation="ballotpedia">
+          <![CDATA[http://ballotpedia.org/George_Washington]]>
+        </Uri>
         <Uri Annotation="candidate-image">
           <![CDATA[https://www.parlament.gv.at/test.jpg]]>
         </Uri>

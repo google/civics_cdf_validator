@@ -1473,6 +1473,7 @@ class ValidURIAnnotation(base.BaseRule):
   TYPE_PLATFORMS = set(["facebook", "twitter", "instagram",
                         "youtube", "website", "fb"])
   USAGE_TYPES = set(["personal", "official", "campaign"])
+  PLATFORM_ONLY_ANNOTATIONS = set(["wikipedia", "ballotpedia"])
 
   def elements(self):
     return ["ContactInformation"]
@@ -1513,7 +1514,7 @@ class ValidURIAnnotation(base.BaseRule):
           elif platform in self.USAGE_TYPES:
             raise base.ElectionError("Annotation {} has usage type, "
                                      "missing platform.".format(annotation))
-          elif platform != "wikipedia":
+          elif platform not in self.PLATFORM_ONLY_ANNOTATIONS:
             raise base.ElectionError(
                 "Annotation {} is not a valid annotation for URI {}."
                 .format(annotation, ascii_url))
