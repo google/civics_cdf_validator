@@ -725,7 +725,7 @@ class PartisanPrimary(base.BaseRule):
     if (primary_party_ids is None or not primary_party_ids.text or
         not primary_party_ids.text.strip()):
       election_elem = self.election_tree.find("Election")
-      raise base.ElectionError(
+      raise base.ElectionWarning(
           "Line %d. Election is of ElectionType %s but PrimaryPartyIds "
           "is not present or is empty" %
           (election_elem.sourceline, self.election_type))

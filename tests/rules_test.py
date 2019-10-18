@@ -1551,7 +1551,7 @@ class PartisanPrimaryTest(absltest.TestCase):
     election.sourceline = 7
     contest = election.find("CandidateContest")
 
-    with self.assertRaises(base.ElectionError):
+    with self.assertRaises(base.ElectionWarning):
       rules.PartisanPrimary(root, None).check(contest)
 
   def testRaisesErrorIfPartyIdsDoNotExist_EmptyParty(self):
@@ -1569,7 +1569,7 @@ class PartisanPrimaryTest(absltest.TestCase):
     election.sourceline = 7
     contest = election.find("CandidateContest")
 
-    with self.assertRaises(base.ElectionError):
+    with self.assertRaises(base.ElectionWarning):
       rules.PartisanPrimary(root, None).check(contest)
 
   def testRaisesErrorIfPartyIdsDoNotExist_WhiteSpace(self):
@@ -1587,7 +1587,7 @@ class PartisanPrimaryTest(absltest.TestCase):
     election.sourceline = 7
     contest = election.find("CandidateContest")
 
-    with self.assertRaises(base.ElectionError):
+    with self.assertRaises(base.ElectionWarning):
       rules.PartisanPrimary(root, None).check(contest)
 
 
