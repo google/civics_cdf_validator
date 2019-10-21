@@ -254,6 +254,7 @@
     <xs:complexType name="Candidate">
         <xs:sequence>
             <xs:element name="BallotName" type="InternationalizedText" />
+            <xs:element minOccurs="0" name="CampaignSlogan" type="InternationalizedText" />
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
             <xs:element minOccurs="0" name="FileDate" type="xs:date" />
             <xs:element minOccurs="0" name="IsIncumbent" type="xs:boolean" />
@@ -548,6 +549,8 @@
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
             <xs:element minOccurs="0" name="LogoUri" type="AnnotatedUri" />
             <xs:element name="Name" type="InternationalizedText" />
+            <xs:element minOccurs="0" name="PartyScopeGpUnitIds" type="xs:IDREFS" />
+            <xs:element minOccurs="0" name="Slogan" type="InternationalizedText" />
         </xs:sequence>
         <xs:attribute name="objectId" type="xs:ID" use="required" />
     </xs:complexType>
