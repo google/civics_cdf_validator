@@ -19,6 +19,7 @@ import csv
 import datetime
 import hashlib
 import io
+import json
 import os
 import re
 import shutil
@@ -1578,6 +1579,63 @@ class ValidateOcdidLowerCase(base.BaseRule):
           (sourceline_prefix(element), ocdid))
 
 
+class ValidateOcdidAgainstType(base.BaseRule):
+  """Validate GpUnit OCDID against the specific <Type> element.
+
+  For a <GpUnit> element (xsi:type=ReportingUnit), <Type> shall be consistent
+  with the <ExternalIdentifier> element (<Type>ocd-id</Type>) provided for the
+  <GpUnit>
+  """
+
+  def elements(self):
+    return ["GpUnitCollection"]
+
+  def is_ocdid_valid(self, ocd_id, list_of_patterns):
+    for ocd_format in list_of_patterns:
+      match = re.match(ocd_format, ocd_id)
+      if match:
+        return True
+    return False
+
+  def check(self, element):
+    error_log = []
+    # cwd = os.path.dirname(os.path.realpath(__file__))
+    # json_file = "{0}/{1}".format(cwd, "ocdid_and_types.json")
+    json_file = "ocdid_and_types.json"
+    with open(json_file) as patterns:
+      ocdid_format = json.loads(patterns.read())
+    for gpunit in element.findall("GpUnit"):
+      object_id = gpunit.get("objectId")
+      type_element = gpunit.find("Type")
+      if type_element is None:
+        continue
+      gpunit_type = type_element.text.strip()
+      if gpunit_type not in ocdid_format:
+        continue
+      external_identifiers = gpunit.find("ExternalIdentifiers")
+      if external_identifiers is None:
+        continue
+      ext_ids = external_identifiers.findall("ExternalIdentifier")
+      for ext_id in ext_ids:
+        type_element = ext_id.find("Type")
+        if type_element.text != "ocd-id":
+          continue
+        ocd_id_value = ext_id.find("Value")
+        if ocd_id_value is None:
+          continue
+        ocd_id = ocd_id_value.text.strip()
+      if not self.is_ocdid_valid(ocd_id, ocdid_format[gpunit_type]):
+        error_message = ("The OCD-ID '%s' in GpUnit %s does not "
+                         "match against the specified type '%s'" %
+                         (ocd_id, object_id, gpunit_type))
+        error_log.append(
+            base.ErrorLogEntry(ocd_id_value.sourceline, error_message))
+    if error_log:
+      raise base.ElectionTreeError(
+          "The OCDIDs in the Election File don't match with the <Type>",
+          error_log)
+
+
 class ContestHasMultipleOffices(base.BaseRule):
   """Ensure that each contest has exactly one Office."""
 
@@ -1958,6 +2016,7 @@ COMMON_RULES = (
     MissingPartyNameTranslation,
     MissingPartyAbbreviationTranslation,
     OfficesHaveJurisdictionID,
+    ValidateOcdidAgainstType,
 )
 
 ELECTION_RULES = COMMON_RULES + (

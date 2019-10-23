@@ -1,0 +1,83 @@
+{
+  "ballot-batch": [],
+  "ballot-style-area": ["^ocd-division/country:[a-z]{2}/state:[a-z]{2}/region:[a-z0-9_]+$"],
+  "borough": ["^ocd-division/country:[a-z]{2}/state:[a-z]{2}/borough:[a-z-_]+$"],
+  "city": ["^ocd-division/country:[a-z]{2}/district:[a-z]{2}"],
+  "city-council": [
+    "^ocd-division/country:[a-z]{2}/district:[a-z]{2}/anc:[0-9]{1}[a-z]{1}/council_district:[a-z0-9_-~]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/borough:[a-z-_]+/council_district:[a-z0-9_-~]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/county:[a-z]+/council_district:[a-z0-9_-~]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/parish:[a-z_]+/council_district:[a-z0-9_-~]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/place:[a-z_]+/council_district:[a-z0-9_-~]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/region:[a-z0-9_]+/council_district:[a-z0-9_-~]+$"
+  ],
+  "combined-precinct": [],
+  "congressional": ["^ocd-division/country:[a-z]{2}/state:[a-z]{2}/lok_sabha:[a-z_-]+$"],
+  "country": ["^ocd-division/country:[a-z]{2}$"],
+  "county": [
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/county:[a-z]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/place:[a-z_]+/county:[a-z]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/parish:[a-z_]+$"
+  ],
+  "county-council": ["^ocd-division/country:[a-z]{2}/state:[a-z]{2}/county:[a-z]+/council_district:[a-z_]+$"],
+  "drop-box": [],
+  "judicial": [
+    "^ocd-division/country:[a-z]{2}/court_of_appeals:[a-z0-9]+/district_court:[a-z0-9_]+$",
+    "^ocd-division/country:[a-z]{2}/court_of_appeals:[a-z0-9]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/district_court:[a-z0-9_]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/court_of_appeals:[a-z0-9]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/superior_court:[0-9]{1,2}[a-z]?$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/(chancery|circuit|supreme)_court:[0-9]{1,2}$"
+  ],
+  "municipality": ["^ocd-division/country:[a-z]{2}/territory:[a-z]{2}/municipio:[a-z_]+$"],
+  "polling-place": [],
+  "precinct": [
+    "^ocd-division/country:[a-z]{2}/district:[a-z]{2}/ward:[0-9]{1,2}/precinct:[a-z0-9_]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/county:[a-z]+/precinct:[a-z0-9_]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/(parish|place):[a-z_]+/precinct:[a-z0-9_]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/sldl:[0-9]{1,2}/precinct:[a-z0-9_]+$"
+  ],
+  "school": [
+    "^ocd-division/country:[a-z]{2}/district:[a-z]{2}/school_district:[a-z0-9_-~]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/borough:[a-z-_]+/school_district:[a-z0-9_-~]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/census_area:[a-z0-9_-~]+/school_district:[a-z0-9_-~]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/county:[a-z]+/school_district:[a-z0-9_-~]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/parish:[a-z_]+/school_district:[a-z0-9_-~]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/place:[a-z_]+/school_district:[a-z0-9_-~]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/school_district:[a-z0-9_-~]+$"
+  ],
+  "special": [],
+  "split-precinct": [],
+  "state": ["^ocd-division/country:[a-z]{2}/state:[a-z]{2}$"],
+  "state-house": ["^ocd-division/country:[a-z]{2}/state:[a-z]{2}/sldl:[0-9]+$"],
+  "state-senate": [
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/sldu:[0-9]{1,2}$",
+    "^ocd-division/country:[a-z]{2}/territory:[a-z]{2}/sldu:[0-9]{1,2}$"
+  ],
+  "town": [],
+  "township": [],
+  "utility": [
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/county:[a-z]+/health_care:[a-z_-]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/county:[a-z]+/sanitation:[a-z_]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/(sewer|transit):[a-z]+$"
+  ],
+  "village": [],
+  "vote-center": [],
+  "ward": [
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/(parish|place):[a-z_]+/ward:[0-9]{1,2}$"
+  ],
+  "water": ["^ocd-division/country:[a-z]{2}/state:[a-z]{2}/county:[a-z]+/water:[a-z_]+$"],
+  "other": [
+    "^ocd-division/country:[a-z]{2}/district:[a-z]{2}/anc:[0-9]{1}[a-z]{1}$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/cd:[0-9]{1,2}$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/census_area:[a-z0-9_-~]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/county:[a-z]+/commissioner_district:[0-9a-z]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/county:[a-z]+/constable_district:[0-9]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/executive_district:[0-9a-z]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/county:[a-z]+/la_metro_sector:[a-z_]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/county:[a-z]+/park_district:[0-9]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/county:[a-z]+/place:[a-z_]+$",
+    "^ocd-division/country:[a-z]{2}/state:[a-z]{2}/place:[a-z_]+$",
+    "^ocd-division/country:[a-z]{2}/territory:[a-z]{2}$"
+  ]
+}

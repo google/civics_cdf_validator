@@ -3370,6 +3370,66 @@ class ValidateOcdidLowerCaseTest(absltest.TestCase):
     self.ocdid_validator.check(etree.fromstring(empty_value_string))
 
 
+class ValidateOcdidAgainstTypeTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ValidateOcdidAgainstTypeTest, self).setUp()
+    self.type_validator = rules.ValidateOcdidAgainstType(None, None)
+
+  def testCorrectTypeAgainstOcdid(self):
+    root_string = """
+      <GpUnitCollection>
+        <GpUnit objectId="ru0002">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:us/state:va</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+          <Type>state</Type>
+        </GpUnit>
+        <GpUnit objectId="ru0001">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:us/state:va/county:albemarle</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+          <Type>county</Type>
+        </GpUnit>
+      </GpUnitCollection>
+    """
+    element = etree.fromstring(root_string)
+    self.type_validator.check(element)
+
+  def testIfRaiseWarningForIncorrectTypeAgainstOcdid(self):
+    root_string = """
+        <GpUnitCollection>
+          <GpUnit objectId="ru0001">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>ocd-id</Type>
+                <Value>ocd-division/country:us/state:va/county:albemarle</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+            <Type>country</Type>
+          </GpUnit>
+          <GpUnit objectId="ru0081">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>ocd-id</Type>
+                <Value>ocd-division/country:us/state:va/county:albemarle/council_district:rio</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+            <Type>county</Type>
+          </GpUnit>
+        </GpUnitCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionTreeError):
+      self.type_validator.check(element)
+
+
 class ContestHasMultipleOfficesTest(absltest.TestCase):
 
   base_string = """<Contest>{}</Contest>"""
