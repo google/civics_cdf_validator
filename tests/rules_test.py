@@ -2960,7 +2960,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     </xml>
   """
 
-    # _gather_reference_values tests
+  # _gather_reference_values tests
   def testReturnsPersonIdsFromPersonCollection(self):
     root_string = self._base_xml.format("")
     election_tree = etree.ElementTree(etree.fromstring(root_string))
@@ -3575,9 +3575,34 @@ class ValidURIAnnotationTest(absltest.TestCase):
         </Uri>
       </ContactInformation>
     """
-    with self.assertRaises(base.ElectionError) as cm:
+    with self.assertRaises(base.ElectionWarning) as cm:
       self.valid_annotation.check(etree.fromstring(root_string))
     self.assertIn("is not a valid annotation.", str(cm.exception))
+
+  def testFBAnnotation(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="personal-facebook">
+          <![CDATA[https://www.fb.com/juanjomalvinas]]>
+        </Uri>
+      </ContactInformation>
+    """
+    self.valid_annotation.check(etree.fromstring(root_string))
+
+  def testIncorrectFBAnnotationFails(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="official-fb">
+          <![CDATA[https://www.facebook.com]]>
+        </Uri>
+        <Uri Annotation="personal-fb">
+          <![CDATA[http://www.facebook.com]]>
+        </Uri>
+      </ContactInformation>
+    """
+    with self.assertRaises(base.ElectionWarning) as cm:
+      self.valid_annotation.check(etree.fromstring(root_string))
+    self.assertIn("official-fb is not a valid annotation", str(cm.exception))
 
 
 class ValidJurisdictionIDTest(absltest.TestCase):

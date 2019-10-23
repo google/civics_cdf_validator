@@ -1482,22 +1482,22 @@ class ValidURIAnnotation(base.BaseRule):
   Throws Warnings and Errors depending on type of invalidity.
   """
 
-  TYPE_PLATFORMS = set(["facebook", "twitter", "instagram",
-                        "youtube", "website", "fb"])
+  TYPE_PLATFORMS = set(
+      ["facebook", "twitter", "instagram", "youtube", "website"])
   USAGE_TYPES = set(["personal", "official", "campaign"])
   PLATFORM_ONLY_ANNOTATIONS = set(["wikipedia", "ballotpedia"])
 
   def elements(self):
     return ["ContactInformation"]
 
-  def check_url(self, url, annotation, platform=None):
+  def check_url(self, url, annotation, platform):
     parsed_url = urlparse(url)
     # Ensure media platform name is in URL.
-    if platform and platform != "website" and platform not in parsed_url.netloc:
+    if (platform != "website" and platform not in parsed_url.netloc and
+        not (platform == "facebook" and "fb.com" in parsed_url.netloc)):
       # Note that the URL is encoded for printing purposes
       raise base.ElectionError("Annotation {} is incorrect for URI {}.".format(
-          annotation, url.encode("ascii", "ignore")
-      ))
+          annotation, url.encode("ascii", "ignore")))
 
   def check(self, element):
     uris = element.findall("Uri")
@@ -1511,10 +1511,8 @@ class ValidURIAnnotation(base.BaseRule):
         raise base.ElectionWarning("URI {} is missing annotation."
                                    .format(ascii_url))
 
-      if re.search(r"candidate-image", annotation):
-        self.check_url(url, annotation)
-      else:
-        # If the annotation is not an image, do platform checks.
+      # Only do platform checks if the annotation is not an image.
+      if not re.search(r"candidate-image", annotation):
         ann_elements = annotation.split("-")
         if len(ann_elements) == 1:
           platform = ann_elements[0]
@@ -1536,14 +1534,14 @@ class ValidURIAnnotation(base.BaseRule):
           usage_type, platform = ann_elements
           if (usage_type not in self.USAGE_TYPES or
               platform not in self.TYPE_PLATFORMS):
-            raise base.ElectionError("{} is not a valid annotation."
-                                     .format(annotation))
+            raise base.ElectionWarning(
+                "{} is not a valid annotation.".format(annotation))
         else:
           # More than two implies an invalid annotation.
           raise base.ElectionError("Annotation {} is invalid for URI {}."
                                    .format(annotation, ascii_url))
         # Finally, check platform is in the URL.
-        self.check_url(url, annotation, platform=platform)
+        self.check_url(url, annotation, platform)
 
 
 class ValidJurisdictionID(base.ValidReferenceRule):
