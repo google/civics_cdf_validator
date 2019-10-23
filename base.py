@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from __future__ import print_function
+from election_results_xml_validator import stats
 from lxml import etree
 
 
@@ -321,26 +322,24 @@ class RulesRegistry(SchemaHandler):
               else:
                 print(" " * 14 + "{0}".format(error.message))
 
-  # TODO(nathrahul): refactor this once decided on validator 2.0 refactor.
-  def print_feed_stats(self, counts):
-    """Prints the counts of each top level entity."""
-    if counts.values():
-      print("\n" + " " * 5 + "Entity Counts")
-      for entity, count in counts.items():
-        if count:
-          print(" " * 10 + "{0}: {1}".format(entity, count))
-      print()
-
-  # TODO(nathrahul): refactor this once decided on validator 2.0 refactor.
   def count_stats(self):
     """Aggregates the counts for each top level entity."""
     if self.election_tree:
-      counts = {}
-      for entity in self._TOP_LEVEL_ENTITIES:
-        counts[entity] = len(
-            self.election_tree.findall(".//{0}Collection//{1}".format(
-                entity, entity)))
-      self.print_feed_stats(counts)
+      # Find the top-level entities.
+      entity_path_str = ".//{0}Collection//{1}"
+      print("\n" + " " * 5 + "Entity and Attribute Counts:")
+      for entity_name in stats.ENTITY_STATS:
+        entity_instances = self.election_tree.findall(
+            entity_path_str.format(entity_name, entity_name))
+        if entity_instances:
+          # If top-level entity exists, instantiate a stat counter with total.
+          entity_stats = stats.ENTITY_STATS[entity_name](len(entity_instances))
+          # Then for each possible nested attribute, add count for those.
+          for attr in entity_stats.attribute_counts:
+            for instance in entity_instances:
+              entity_stats.increment_attribute(
+                  attr, len(instance.findall(".//{}".format(attr))))
+          print(entity_stats)
 
   def check_rules(self):
     """Checks all rules."""

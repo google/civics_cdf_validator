@@ -53,6 +53,7 @@ class RulesRegistryTest(absltest.TestCase):
             <Name>
               <Text language="en">Republican</Text>
             </Name>
+            <Color>e30413</Color>
           </Party>
           <Party objectId="par0002">
             <Name>
@@ -95,13 +96,18 @@ class RulesRegistryTest(absltest.TestCase):
         </GpUnitCollection>
         <ContestCollection>
           <Contest objectId="cc11111">
-           Test
+           <Name>Test</Name>
           </Contest>
           <Contest objectId="cc22222">
-           Test1
+            <Name>Test1</Name>
           </Contest>
           <Contest objectId="cc33333">
-           Test2
+            <Name>Test2</Name>
+            <BallotSelection objectId="cs-br1-alckmin">
+              <VoteCountsCollection>
+                <VoteCounts><Type>total</Type><Count>0</Count></VoteCounts>
+              </VoteCountsCollection>
+            </BallotSelection>
           </Contest>
         </ContestCollection>
       </ElectionReport>
@@ -116,7 +122,7 @@ class RulesRegistryTest(absltest.TestCase):
     sys.stdout = out
     self.registry.count_stats()
     output = out.getvalue().strip()
-    exp_counts = {
+    expected_entity_counts = {
         "Party": 2,
         "Person": 3,
         "Candidate": 1,
@@ -124,8 +130,22 @@ class RulesRegistryTest(absltest.TestCase):
         "GpUnit": 3,
         "Contest": 3
     }
-    for entity, count in exp_counts.items():
-      self.assertIn("{0}: {1}".format(entity, count), output)
+
+    # Value: (found_in_n_entities, missing_in_m_entities).
+    expected_attr_counts = {
+        "ComposingGpUnitIds": (3, 0),
+        "Color": (1, 1),
+        "BallotSelection": (1, 2)
+    }
+
+    for entity, count in expected_entity_counts.items():
+      self.assertIn("{0} (Total: {1})".format(entity, count), output)
+
+    for attr, stat in expected_attr_counts.items():
+      count, missing_in = stat
+      self.assertIn(
+          "{:<22s}{:^8s}{:>15s}".format(attr, str(count), str(missing_in)),
+          output)
 
 
 if __name__ == "__main__":
