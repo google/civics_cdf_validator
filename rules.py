@@ -876,11 +876,44 @@ class ProperBallotSelection(base.BaseRule):
                         self.con_sel_mapping[tag], selection_tag, selection_id))
 
 
-class PartiesHaveDifferentColors(base.BaseRule):
-  """Each Party should have a single, unique hex Color without a leading '#'.
+class PartiesHaveValidColors(base.BaseRule):
+  """Each Party should have a valid hex Color without a leading '#'.
 
   A Party object that has no Color or an invalid Color should be picked up
   within this class and returned to the user as a warning.
+  """
+
+  def elements(self):
+    return ["Party"]
+
+  def check(self, element):
+    colors = element.findall("Color")
+    if not colors:
+      return
+    party_object_id = element.get("objectId")
+    if len(colors) > 1:
+      raise base.ElectionWarning(
+          "Line %d: Party %s has more than one color." %
+          (element.sourceline, party_object_id))
+    color_val = colors[0].text
+    if not color_val:
+      raise base.ElectionWarning(
+          "Line %d: Color tag in Party %s is missing a value." %
+          (element.sourceline, party_object_id))
+    else:
+      try:
+        int(color_val, 16)
+      except ValueError:
+        raise base.ElectionWarning(
+            "Line %d: %s in Party %s is not a valid hex color." %
+            (element.sourceline, color_val, party_object_id))
+
+
+class ValidateDuplicateColors(base.BaseRule):
+  """Each Party should have unique hex color.
+
+  A Party object that has duplicate color should be picked up
+  within this class and returned to the user as an Info message.
   """
 
   def elements(self):
@@ -888,45 +921,32 @@ class PartiesHaveDifferentColors(base.BaseRule):
 
   def check(self, element):
     party_colors = {}
-    warnings = []
-    for party in element.findall("Party"):
-      colors = party.findall("Color")
-      if not colors:
+    info_message = ""
+    info_log = []
+    parties = element.findall("Party")
+    if len(parties) < 1:
+      info_message = (
+          "Line %d: <PartyCollection> does not have <Party> objects" %
+          (element.sourceline))
+      info_log.append(base.ErrorLogEntry(None, info_message))
+    for party in parties:
+      color_element = party.find("Color")
+      if color_element is None:
         continue
       party_object_id = party.get("objectId")
-      if len(colors) > 1:
-        warnings.append(
-            base.ErrorLogEntry(
-                None, "Line %d: Party %s has more than one color." %
-                (element.sourceline, party.get("objectId"))))
-      for color in colors:
-        color_val = color.text
-        if not color_val:
-          warnings.append(
-              base.ErrorLogEntry(
-                  None, "Line %d: Color tag in Party %s is missing a value." %
-                  (element.sourceline, party_object_id)))
-        else:
-          try:
-            int(color_val, 16)
-          except ValueError:
-            warnings.append(
-                base.ErrorLogEntry(
-                    None, "Line %d: %s in Party %s is not a valid hex color." %
-                    (element.sourceline, color_val, party_object_id)))
-          if color_val in party_colors:
-            warnings.append(
-                base.ErrorLogEntry(
-                    None, "Line %d: Party %s has same color as Party %s." %
-                    (element.sourceline, party_object_id,
-                     party_colors[color_val])))
-          else:
-            party_colors[color_val] = party_object_id
-    if warnings:
-      raise base.ElectionWarning(
-          "The Election File contains the following party color warnings: \n{}"
-          .format("\n".join([w.message for w in warnings])),
-          warning_log=warnings)
+      color = color_element.text
+      if color is None:
+        continue
+      if color in party_colors:
+        info_message = (
+            "Line %d: Party %s has same color as Party %s." %
+            (color_element.sourceline, party_object_id, party_colors[color]))
+        info_log.append(base.ErrorLogEntry(None, info_message))
+      else:
+        party_colors[color] = party_object_id
+    if info_log:
+      raise base.ElectionTreeInfo(
+          "The feed contains parties with duplicate colors", info_log)
 
 
 class MissingPartyAffiliation(base.ValidReferenceRule):
@@ -1619,7 +1639,8 @@ ELECTION_RULES = COMMON_RULES + (
     ProperBallotSelection,
     ReusedCandidate,
     VoteCountTypesCoherency,
-    PartiesHaveDifferentColors,
+    PartiesHaveValidColors,
+    ValidateDuplicateColors,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (

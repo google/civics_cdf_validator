@@ -74,6 +74,19 @@ class ElectionInfo(ElectionException):
 
   description = "Info"
 
+  def __init__(self, message, error_log=None):
+    super(ElectionInfo, self).__init__(message)
+    if error_log:
+      self.error_log = error_log
+
+
+class ElectionTreeInfo(ElectionInfo):
+  """Special exception for Tree Rules."""
+
+  def __init__(self, message, error_log):
+    super(ElectionTreeInfo, self).__init__(message)
+    self.error_log = error_log
+
 
 class ErrorLogEntry(object):
   line = None
