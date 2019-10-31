@@ -1073,7 +1073,7 @@ class CheckIdentifiers(base.TreeRule):
     error_log = []
     # TODO(kaminer) Turn this rule into a BaseRule by returning
     # this list from elements function.
-    nist_objects = ("Candidate", "Contest", "Party")
+    nist_objects = ("Candidate", "Contest", "Party", "Person")
     for _, element in etree.iterwalk(self.election_tree):
       nist_obj = self.strip_schema_ns(element)
       if nist_obj not in nist_objects:
