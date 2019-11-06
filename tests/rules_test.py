@@ -3420,6 +3420,11 @@ class URIValidatorTest(absltest.TestCase):
     valid_url = self.uri_element.format("http://www.whitehouse.gov")
     self.uri_validator.check(etree.fromstring(valid_url))
 
+  def testChecksForValidNonWwwUri(self):
+    valid_url = self.uri_element.format(
+        "https://zh.wikipedia.org/zh-tw/Fake_Page")
+    self.uri_validator.check(etree.fromstring(valid_url))
+
   def testRaisesAnErrorIfUriNotProvided(self):
     invalid_scheme = self.uri_element.format("")
     with self.assertRaises(base.ElectionError) as ee:
@@ -3483,6 +3488,16 @@ class ValidURIAnnotationTest(absltest.TestCase):
         </Uri>
         <Uri Annotation="candidate-image">
           <![CDATA[https://www.parlament.gv.at/test.jpg]]>
+        </Uri>
+      </ContactInformation>
+    """
+    self.valid_annotation.check(etree.fromstring(root_string))
+
+  def testWikipediaAlternateWritingSystem(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="wikipedia">
+          <![CDATA[https://zh.wikipedia.org/zh-cn/Fake_Page]]>
         </Uri>
       </ContactInformation>
     """
