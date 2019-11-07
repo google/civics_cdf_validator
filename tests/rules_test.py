@@ -3813,6 +3813,72 @@ class GpUnitsTreeValidationTest(absltest.TestCase):
     self.gpunits_tree_validator.check()
 
 
+class ElectionStartDatesTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ElectionStartDatesTest, self).setUp()
+    self.date_validator = rules.ElectionStartDates(None, None)
+    self.today = datetime.datetime.now().date()
+    self.election_string = """
+    <Election>
+      <StartDate>{}</StartDate>
+      <EndDate>{}</EndDate>
+    </Election>
+    """
+
+  def testStartDatesAreNotFlaggedIfNotInThePast(self):
+    election_string = self.election_string.format(
+        self.today + datetime.timedelta(days=1),
+        self.today + datetime.timedelta(days=2))
+    election = etree.fromstring(election_string)
+    self.date_validator.check(election)
+
+  def testAWarningIsThrownIfStartDateIsInPast(self):
+    election_string = self.election_string.format(
+        self.today + datetime.timedelta(days=-1),
+        self.today + datetime.timedelta(days=2))
+    election = etree.fromstring(election_string)
+    with self.assertRaises(base.ElectionWarning):
+      self.date_validator.check(election)
+
+
+class ElectionEndDatesTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ElectionEndDatesTest, self).setUp()
+    self.date_validator = rules.ElectionEndDates(None, None)
+    self.today = datetime.datetime.now().date()
+    self.election_string = """
+    <Election>
+      <StartDate>{}</StartDate>
+      <EndDate>{}</EndDate>
+    </Election>
+    """
+
+  def testEndDatesAreNotFlaggedIfNotInThePast(self):
+    election_string = self.election_string.format(
+        self.today + datetime.timedelta(days=1),
+        self.today + datetime.timedelta(days=2))
+    election = etree.fromstring(election_string)
+    self.date_validator.check(election)
+
+  def testAnErrorIsThrownIfEndDateIsInPast(self):
+    election_string = self.election_string.format(
+        self.today + datetime.timedelta(days=1),
+        self.today + datetime.timedelta(days=-2))
+    election = etree.fromstring(election_string)
+    with self.assertRaises(base.ElectionError):
+      self.date_validator.check(election)
+
+  def testAnErrorIsThrownIfEndDateIsBeforeStartDate(self):
+    election_string = self.election_string.format(
+        self.today + datetime.timedelta(days=2),
+        self.today + datetime.timedelta(days=1))
+    election = etree.fromstring(election_string)
+    with self.assertRaises(base.ElectionError):
+      self.date_validator.check(election)
+
+
 class RulesTest(absltest.TestCase):
 
   def testAllRulesIncluded(self):
@@ -3820,6 +3886,7 @@ class RulesTest(absltest.TestCase):
     possible_rules = self._subclasses(base.BaseRule)
     possible_rules.remove(base.TreeRule)
     possible_rules.remove(base.ValidReferenceRule)
+    possible_rules.remove(base.DateRule)
     self.assertSetEqual(all_rules, possible_rules)
 
   def _subclasses(self, cls):

@@ -15,6 +15,9 @@ limitations under the License.
 """
 
 from __future__ import print_function
+
+import datetime
+
 from election_results_xml_validator import stats
 from lxml import etree
 
@@ -207,6 +210,55 @@ class ValidReferenceRule(TreeRule):
     if invalid_references:
       raise ElectionError("No defined {} for {} found in the feed.".format(
           self.missing_element, ", ".join(invalid_references)))
+
+
+class DateRule(BaseRule):
+  """Base rule used for date validations.
+
+  When validating dates, this rule can be used to gather start and
+  end date values.
+  """
+
+  def elements(self):
+    return ["Election"]
+
+  def gather_dates(self, election_element):
+    """Gather StartDate and EndDate values for the provided element.
+
+    An election element should have a start and end date in the desired format.
+    These dates should be extracted and set as instance variables to be used
+    in validation checks.
+
+    Args:
+      election_element: An election element.
+
+    Raises:
+      ElectionError: dates need to be properly formatted.
+    """
+    error_log = []
+    self.today = datetime.datetime.now().date()
+
+    self.start_elem = election_element.find("StartDate")
+    try:
+      self.start_date = datetime.datetime.strptime(
+          self.start_elem.text, "%Y-%m-%d").date()
+    except ValueError:
+      error_message = "The StartDate text should be of the format yyyy-mm-dd"
+      error_log.append(ErrorLogEntry(
+          self.start_elem.sourceline, error_message))
+
+    self.end_elem = election_element.find("EndDate")
+    try:
+      self.end_date = datetime.datetime.strptime(
+          self.end_elem.text, "%Y-%m-%d").date()
+    except ValueError:
+      error_message = "The EndDate text should be of the format yyyy-mm-dd"
+      error_log.append(ErrorLogEntry(
+          self.end_elem.sourceline, error_message))
+
+    if error_log:
+      raise ElectionError("The format for the election dates are invalid: ",
+                          error_log)
 
 
 class RuleOption(object):

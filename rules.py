@@ -1592,6 +1592,52 @@ class ValidJurisdictionID(base.ValidReferenceRule):
     return set([elem.get("objectId", None) for elem in gp_unit_elements])
 
 
+class ElectionStartDates(base.DateRule):
+  """Election elements should contain valid start dates.
+
+  Start dates in the past should raise a warning. This is not an error
+  as validator could conceivably be run during an ongoing election.
+  """
+
+  def check(self, element):
+    self.gather_dates(element)
+    start_delta = (self.start_date - self.today).days
+    if start_delta < 0:
+      error_message = """The start date {} is in the past. Please double
+      check that this is expected.""".format(self.start_date)
+      raise base.ElectionWarning(error_message)
+
+
+class ElectionEndDates(base.DateRule):
+  """Election elements should contain valid end dates.
+
+  End dates should be a present or future date and should not occur
+  before the start date.
+  """
+
+  def check(self, element):
+    self.gather_dates(element)
+    error_log = []
+
+    end_delta = (self.end_date - self.today).days
+    if end_delta < 0:
+      error_message = """The end date {} is invalid as it is
+      in the past.""".format(self.end_date)
+      error_log.append(base.ErrorLogEntry(
+          self.end_elem.sourceline, error_message))
+
+    start_end_delta = (self.end_date - self.start_date).days
+    if start_end_delta < 0:
+      error_message = """The election dates (start: {}, end: {}) are invalid.
+      The end date must be the same or after the start date.""".format(
+          self.start_date, self.end_date)
+      error_log.append(base.ErrorLogEntry(
+          self.end_elem.sourceline, error_message))
+
+    if error_log:
+      raise base.ElectionError("The election dates are invalid: ", error_log)
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
@@ -1641,6 +1687,8 @@ ELECTION_RULES = COMMON_RULES + (
     VoteCountTypesCoherency,
     PartiesHaveValidColors,
     ValidateDuplicateColors,
+    ElectionStartDates,
+    ElectionEndDates,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (

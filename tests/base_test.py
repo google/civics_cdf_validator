@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Unit test for base.py."""
 
+import datetime
 import io
 import sys
 from absl.testing import absltest
@@ -39,6 +40,45 @@ class ValidReferenceRuleTest(absltest.TestCase):
       base.ValidReferenceRule(None, None).check()
     self.assertIn("id-5", str(ee.exception))
     self.assertIn("id-6", str(ee.exception))
+
+
+class DateRuleTest(absltest.TestCase):
+
+  def setUp(self):
+    super(DateRuleTest, self).setUp()
+    self.date_validator = base.DateRule(None, None)
+    self.today = datetime.datetime.now().date()
+    self.election_string = """
+    <Election>
+      <StartDate>{}</StartDate>
+      <EndDate>{}</EndDate>
+    </Election>
+    """
+
+  def testChecksElectionElements(self):
+    self.assertEqual(["Election"], self.date_validator.elements())
+
+  def testSetStartAndEndDatesAsInstanceVariables(self):
+    start_date = self.today + datetime.timedelta(days=1)
+    end_date = self.today + datetime.timedelta(days=2)
+
+    election_string = self.election_string.format(
+        start_date, end_date)
+    election = etree.fromstring(election_string)
+    self.date_validator.gather_dates(election)
+
+    self.assertEqual(start_date, self.date_validator.start_date)
+    self.assertEqual(end_date, self.date_validator.end_date)
+
+  def testRaisesErrorForInvalidDateFormats(self):
+    start_date_time = datetime.datetime.now() + datetime.timedelta(days=1)
+    end_date_time = datetime.datetime.now() + datetime.timedelta(days=2)
+
+    election_string = self.election_string.format(
+        start_date_time, end_date_time)
+    election = etree.fromstring(election_string)
+    with self.assertRaises(base.ElectionError):
+      self.date_validator.gather_dates(election)
 
 
 class RulesRegistryTest(absltest.TestCase):

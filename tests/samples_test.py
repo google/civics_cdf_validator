@@ -24,8 +24,14 @@ class SamplesTest(absltest.TestCase):
     super(SamplesTest, self).setUp()
     # OCD-ID rules don't work inside google3.
     ocd_id_rules = {rules.ElectoralDistrictOcdId, rules.GpUnitOcdId}
-    self.election_rules = set(rules.ELECTION_RULES) - ocd_id_rules
-    self.officeholder_rules = set(rules.OFFICEHOLDER_RULES) - ocd_id_rules
+    # Election dates check for dates to not be in the past. Since our sample
+    # files will always, at some point, end up being in the past we are
+    # removing date rules from these tests.
+    date_rules = {rules.ElectionStartDates, rules.ElectionEndDates}
+    self.election_rules = (
+        set(rules.ELECTION_RULES) - ocd_id_rules - date_rules)
+    self.officeholder_rules = (
+        set(rules.OFFICEHOLDER_RULES) - ocd_id_rules)
 
   def testOfficeholderSampleFeed(self):
     self._TestFile('officeholder_sample_feed.xml', self.officeholder_rules)
