@@ -197,12 +197,16 @@ def print_metadata(filename):
   print("Validator version: {}".format(version.__version__))
 
   blocksize = 65536
-  digest = hashes.Hash(hashes.SHA512_256(), backend=default_backend())
+  backend = default_backend()
+  if backend.hash_supported(hashes.SHA512_256()):
+    digest = hashes.Hash(hashes.SHA512_256(), backend=backend)
+  else:
+    digest = hashes.Hash(hashes.SHA512(), backend=backend)
   with open(filename, "rb") as f:
     for block in iter(lambda: f.read(blocksize), b""):
       digest.update(block)
-  print("SHA-512/256 checksum: 0x{:x}".format(
-      int(codecs.encode(digest.finalize(), "hex"), 16)))
+  print("{} checksum: 0x{:x}".format(
+      digest.algorithm.name, int(codecs.encode(digest.finalize(), "hex"), 16)))
 
 
 def main():
