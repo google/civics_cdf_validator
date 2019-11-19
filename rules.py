@@ -1503,7 +1503,7 @@ class ValidURIAnnotation(base.BaseRule):
   """
 
   TYPE_PLATFORMS = set(
-      ["facebook", "twitter", "instagram", "youtube", "website"])
+      ["facebook", "twitter", "instagram", "youtube", "website", "line"])
   USAGE_TYPES = set(["personal", "official", "campaign"])
   PLATFORM_ONLY_ANNOTATIONS = set(["wikipedia", "ballotpedia"])
 

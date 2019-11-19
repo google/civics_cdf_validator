@@ -3518,6 +3518,9 @@ class ValidURIAnnotationTest(absltest.TestCase):
         <Uri Annotation="official-youtube">
           <![CDATA[https://www.youtube.com]]>
         </Uri>
+        <Uri Annotation="campaign-line">
+          <![CDATA[https://line.me/ti/p/@kmtonline]]>
+        </Uri>
         <Uri Annotation="personal-instagram">
           <![CDATA[https://www.instagram.com]]>
         </Uri>
