@@ -3425,6 +3425,11 @@ class URIValidatorTest(absltest.TestCase):
         "https://zh.wikipedia.org/zh-tw/Fake_Page")
     self.uri_validator.check(etree.fromstring(valid_url))
 
+  def testChecksForValidUriWithParentheses(self):
+    valid_url = self.uri_element.format(
+        "http://en.wikipedia.org/wiki/Thomas_Jefferson_(Virginia)")
+    self.uri_validator.check(etree.fromstring(valid_url))
+
   def testRaisesAnErrorIfUriNotProvided(self):
     invalid_scheme = self.uri_element.format("")
     with self.assertRaises(base.ElectionError) as ee:
