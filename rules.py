@@ -1330,6 +1330,26 @@ class ValidateOcdidLowerCase(base.BaseRule):
           (sourceline_prefix(element), ocdid))
 
 
+class ContestHasMultipleOffices(base.BaseRule):
+  """Ensure that each contest has exactly one Office."""
+
+  def elements(self):
+    return ["Contest"]
+
+  def check(self, element):
+    # for each contest, get the <officeids> entity
+    office_ids = element.find("OfficeIds")
+    if office_ids is not None and office_ids.text:
+      ids = office_ids.text.split()
+      if len(ids) > 1:
+        raise base.ElectionError(
+            "Contest {} has more than one associated office.".format(
+                element.get("objectId", "")))
+    else:
+      raise base.ElectionError("Contest {} has no associated offices.".format(
+          element.get("objectId", "")))
+
+
 class PersonHasOffice(base.ValidReferenceRule):
   """Ensure that each non-party-leader Person object linked to one Office."""
 
@@ -1689,6 +1709,7 @@ ELECTION_RULES = COMMON_RULES + (
     ValidateDuplicateColors,
     ElectionStartDates,
     ElectionEndDates,
+    ContestHasMultipleOffices,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (

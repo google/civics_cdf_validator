@@ -2954,6 +2954,37 @@ class ValidateOcdidLowerCaseTest(absltest.TestCase):
     self.ocdid_validator.check(etree.fromstring(empty_value_string))
 
 
+class ContestHasMultipleOfficesTest(absltest.TestCase):
+
+  base_string = """<Contest>{}</Contest>"""
+
+  def setUp(self):
+    super(ContestHasMultipleOfficesTest, self).setUp()
+    self.contest_offices_validator = rules.ContestHasMultipleOffices(None, None)
+
+  def testOneOfficeValid(self):
+    root_string = self.base_string.format("<OfficeIds>off-ar1-arb</OfficeIds>")
+    element = etree.fromstring(root_string)
+    self.contest_offices_validator.check(element)
+
+  def testMultipleOfficesFail(self):
+    root_string = self.base_string.format(
+        "<OfficeIds>off-ar1-ara off-ar1-arb</OfficeIds>")
+    element = etree.fromstring(root_string)
+
+    with self.assertRaises(base.ElectionError) as cm:
+      self.contest_offices_validator.check(element)
+    self.assertIn("has more than one associated office.", str(cm.exception))
+
+  def testNoOfficesFail(self):
+    root_string = self.base_string.format("<OfficeIds></OfficeIds>")
+    element = etree.fromstring(root_string)
+
+    with self.assertRaises(base.ElectionError) as cm:
+      self.contest_offices_validator.check(element)
+    self.assertIn("has no associated offices.", str(cm.exception))
+
+
 class PersonHasOfficeTest(absltest.TestCase):
 
   _base_xml = """
