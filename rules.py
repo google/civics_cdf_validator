@@ -613,13 +613,56 @@ class DuplicateGpUnits(base.TreeRule):
     return set(composing_ids)
 
 
-class GpUnitsTree(base.TreeRule):
-  """Ensure that GpUnits form a tree and no cycles are present."""
+class GpUnitsHaveSingleRoot(base.TreeRule):
+  """Ensure that GpUnits form a single-rooted tree."""
 
   def __init__(self, election_tree, schema_file):
-    super(GpUnitsTree, self).__init__(election_tree, schema_file)
+    super(GpUnitsHaveSingleRoot, self).__init__(election_tree, schema_file)
+    self.error_log = []
+
+  def check(self):
+    # Make sure there's at most one GpUnit as a root.
+    # The root is defined as having ComposingGpUnitIds but
+    # is not in the ComposingGpUnitIds of any other GpUnit.
+
+    gpunit_ids = set()
+    composing_gpunits = set()
+    for element in self.get_elements_by_class(self.election_tree, "GpUnit"):
+      object_id = element.get("objectId", None)
+      if object_id is not None:
+        gpunit_ids.add(object_id)
+      composing_gpunit = element.find("ComposingGpUnitIds")
+      if composing_gpunit is not None and composing_gpunit.text is not None:
+        composing_gpunits.update(composing_gpunit.text.split())
+
+    roots = gpunit_ids - composing_gpunits
+
+    if not roots:
+      self.error_log.append(
+          base.ErrorLogEntry(
+              None, "GpUnits have no geo district root. "
+              "There should be exactly one root geo district."))
+    elif len(roots) > 1:
+      self.error_log.append(
+          base.ErrorLogEntry(
+              None, "GpUnits tree has more than one root: {0}".format(
+                  ", ".join(roots))))
+
+    if self.error_log:
+      raise base.ElectionError(
+          "GpUnits tree has the following errors regarding the root: \n{}"
+          .format("\n".join([entry.message for entry in self.error_log])),
+          error_log=self.error_log)
+
+
+class GpUnitsCyclesRefsValidation(base.TreeRule):
+  """Ensure that GpUnits form a valid tree and no cycles are present."""
+
+  def __init__(self, election_tree, schema_file):
+    super(GpUnitsCyclesRefsValidation, self).__init__(election_tree,
+                                                      schema_file)
     self.edges = dict()  # Used to maintain the record of connected edges
-    self.visited = {}  # Used to store status of the nodes as - visited ot not.
+    self.visited = {}  # Used to store status of the nodes as visited or not.
     self.error_log = []
     self.bad_nodes = []
 
@@ -627,8 +670,9 @@ class GpUnitsTree(base.TreeRule):
     # Check if the node is already visited
     if gpunit in self.visited:
       if gpunit not in self.bad_nodes:
-        error_message = ("Cycle detected at node {0}".format(gpunit))
-        self.error_log.append(base.ErrorLogEntry(None, error_message))
+        self.error_log.append(
+            base.ErrorLogEntry(None,
+                               "Cycle detected at node {0}".format(gpunit)))
         self.bad_nodes.append(gpunit)
       return
     self.visited[gpunit] = 1
@@ -637,9 +681,10 @@ class GpUnitsTree(base.TreeRule):
       if child_unit in self.edges:
         self.build_tree(child_unit)
       else:
-        error_message = ("Node {0} is not present in the"
-                         " file as a GpUnit element.".format(child_unit))
-        self.error_log.append(base.ErrorLogEntry(None, error_message))
+        self.error_log.append(
+            base.ErrorLogEntry(
+                None, "Node {0} is not present in the file as a GpUnit element."
+                .format(child_unit)))
 
   def check(self):
     for element in self.get_elements_by_class(self.election_tree, "GpUnit"):
@@ -655,8 +700,12 @@ class GpUnitsTree(base.TreeRule):
     for gpunit in self.edges:
       self.build_tree(gpunit)
       self.visited.clear()
+
     if self.error_log:
-      raise base.ElectionTreeError("The GpUnits have a cycle.", self.error_log)
+      raise base.ElectionError(
+          "GpUnits tree has the following errors: \n{}".format("\n".join(
+              [entry.message for entry in self.error_log])),
+          error_log=self.error_log)
 
 
 class OtherType(base.BaseRule):
@@ -1874,7 +1923,7 @@ COMMON_RULES = (
     PartyLeadershipMustExist,
     URIValidator,
     ValidURIAnnotation,
-    GpUnitsTree,
+    GpUnitsCyclesRefsValidation,
     ValidJurisdictionID,
     DuplicatedPartyName,
     DuplicatedPartyAbbreviation,
@@ -1900,6 +1949,7 @@ ELECTION_RULES = COMMON_RULES + (
     ElectionStartDates,
     ElectionEndDates,
     ContestHasMultipleOffices,
+    GpUnitsHaveSingleRoot,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (

@@ -4230,11 +4230,79 @@ class ValidJurisdictionIDTest(absltest.TestCase):
     self.assertIn("ru-gpu99", str(ee.exception))
 
 
-class GpUnitsTreeValidationTest(absltest.TestCase):
+class GpUnitsHaveSingleRootTest(absltest.TestCase):
 
   def setUp(self):
-    super(GpUnitsTreeValidationTest, self).setUp()
-    self.gpunits_tree_validator = rules.GpUnitsTree(None, None)
+    super(GpUnitsHaveSingleRootTest, self).setUp()
+    self.gpunits_tree_validator = rules.GpUnitsHaveSingleRoot(None, None)
+
+  def testSingleRoot(self):
+    root_string = """
+    <xml>
+      <GpUnitCollection>
+        <GpUnit objectId="ru0002">
+          <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+        </GpUnit>
+        <GpUnit objectId="ru_pre92426">
+          <ComposingGpUnitIds>ru0002</ComposingGpUnitIds>
+        </GpUnit>
+        <GpUnit objectId="ru_temp_id">
+        </GpUnit>
+      </GpUnitCollection>
+    </xml>
+    """
+    self.gpunits_tree_validator.election_tree = etree.ElementTree(
+        etree.fromstring(root_string))
+    self.gpunits_tree_validator.check()
+
+  def testMultipleRootTreeFails(self):
+    root_string = """
+    <xml>
+      <GpUnitCollection>
+        <GpUnit objectId="ru0002">
+          <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+        </GpUnit>
+        <GpUnit objectId="ru_pre92426">
+        </GpUnit>
+        <GpUnit objectId="ru_temp_id">
+        </GpUnit>
+      </GpUnitCollection>
+    </xml>
+    """
+    with self.assertRaises(base.ElectionError) as cm:
+      self.gpunits_tree_validator.election_tree = etree.ElementTree(
+          etree.fromstring(root_string))
+      self.gpunits_tree_validator.check()
+    self.assertIn("GpUnits tree has more than one root", str(cm.exception))
+
+  def testNoRootsTreeFails(self):
+    root_string = """
+    <xml>
+      <GpUnitCollection>
+        <GpUnit objectId="ru0002">
+          <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+        </GpUnit>
+        <GpUnit objectId="ru_pre92426">
+          <ComposingGpUnitIds>ru0002</ComposingGpUnitIds>
+        </GpUnit>
+        <GpUnit objectId="ru_temp_id">
+          <ComposingGpUnitIds>ru_pre92426</ComposingGpUnitIds>
+        </GpUnit>
+      </GpUnitCollection>
+    </xml>
+    """
+    with self.assertRaises(base.ElectionError) as cm:
+      self.gpunits_tree_validator.election_tree = etree.ElementTree(
+          etree.fromstring(root_string))
+      self.gpunits_tree_validator.check()
+    self.assertIn("GpUnits have no geo district root.", str(cm.exception))
+
+
+class GpUnitsCyclesRefsValidationTest(absltest.TestCase):
+
+  def setUp(self):
+    super(GpUnitsCyclesRefsValidationTest, self).setUp()
+    self.gpunits_tree_validator = rules.GpUnitsCyclesRefsValidation(None, None)
 
   def testValidationFailsIfCyclesFormed(self):
     root_string = """
@@ -4252,17 +4320,18 @@ class GpUnitsTreeValidationTest(absltest.TestCase):
       </GpUnitCollection>
     </xml>
     """
-    with self.assertRaises(base.ElectionTreeError):
+    with self.assertRaises(base.ElectionError) as cm:
       self.gpunits_tree_validator.election_tree = etree.ElementTree(
           etree.fromstring(root_string))
       self.gpunits_tree_validator.check()
+    self.assertIn("Cycle detected at node", str(cm.exception))
 
-  def testValidationIfTreeFormed(self):
+  def testValidationForValidTree(self):
     root_string = """
     <xml>
       <GpUnitCollection>
         <GpUnit objectId="ru0002">
-          <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+          <ComposingGpUnitIds>ru_temp_id ru_pre92426</ComposingGpUnitIds>
         </GpUnit>
         <GpUnit objectId="ru_pre92426">
         </GpUnit>

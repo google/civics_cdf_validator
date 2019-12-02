@@ -37,15 +37,26 @@ class SamplesTest(absltest.TestCase):
     self._TestFile('officeholder_sample_feed.xml', self.officeholder_rules)
 
   def testPostElectionSampleFeedPrecincts(self):
-    self._TestFile('post_election_sample_feed_precincts.xml',
-                   self.election_rules)
+    self._TestFile(
+        'post_election_sample_feed_precincts.xml',
+        self.election_rules,
+        expected_errors=1,
+    )
 
   def testPostElectionSampleFeedSummary(self):
-    self._TestFile('post_election_sample_feed_summary.xml', self.election_rules)
+    self._TestFile(
+        'post_election_sample_feed_summary.xml',
+        self.election_rules,
+        expected_errors=1,
+    )
 
   def testPreElectionSampleFeed(self):
-    self._TestFile('pre_election_sample_feed.xml',
-                   self.election_rules, expected_warnings=19)
+    self._TestFile(
+        'pre_election_sample_feed.xml',
+        self.election_rules,
+        expected_warnings=19,
+        expected_errors=1,
+    )
 
   def _TestFile(self, filename, rules_to_check,
                 expected_errors=0, expected_warnings=0):
