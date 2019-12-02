@@ -57,8 +57,8 @@ class SchemaTest(absltest.TestCase):
 
     with self.assertRaises(base.ElectionError) as ee:
       schema_validator.check()
-    self.assertIn(
-        "schema file could not be parsed correctly", str(ee.exception))
+    self.assertIn("schema file could not be parsed correctly",
+                  str(ee.exception))
 
   def testRaisesErrorForInvalidTree(self):
     root_string = """
@@ -74,8 +74,8 @@ class SchemaTest(absltest.TestCase):
 
     with self.assertRaises(base.ElectionTreeError) as ete:
       schema_validator.check()
-    self.assertIn(
-        "election file didn't validate against schema", str(ete.exception))
+    self.assertIn("election file didn't validate against schema",
+                  str(ete.exception))
 
 
 class OptionalAndEmptyTest(absltest.TestCase):
@@ -379,8 +379,8 @@ class OnlyOneElectionTest(absltest.TestCase):
     self.election_count_validator = rules.OnlyOneElection(None, None)
 
   def testOnlyChecksElectionReportElements(self):
-    self.assertEqual(
-        ["ElectionReport"], self.election_count_validator.elements())
+    self.assertEqual(["ElectionReport"],
+                     self.election_count_validator.elements())
 
   def testShouldHaveExactlyOneElection(self):
     root_string = """
@@ -532,8 +532,8 @@ class ValidIDREFTest(absltest.TestCase):
     """
 
     root_element = etree.fromstring(root_string)
-    id_ref_validator = rules.ValidIDREF(
-        root_element, ValidIDREFTest._schema_file)
+    id_ref_validator = rules.ValidIDREF(root_element,
+                                        ValidIDREFTest._schema_file)
 
     ref_elem_one = root_element.find("Office").findall("ElectoralDistrictId")[0]
     ref_elem_two = root_element.find("Office").findall("ElectoralDistrictId")[1]
@@ -558,8 +558,8 @@ class ValidIDREFTest(absltest.TestCase):
     """
 
     root_element = etree.fromstring(root_string)
-    id_ref_validator = rules.ValidIDREF(
-        root_element, ValidIDREFTest._schema_file)
+    id_ref_validator = rules.ValidIDREF(root_element,
+                                        ValidIDREFTest._schema_file)
 
     ref_element_one = root_element.find("Office").find("ElectoralDistrictId")
     ref_element_two = root_element.find("Office").find("OfficeHolderPersonIds")
@@ -636,13 +636,11 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
 
     now = datetime.datetime.now()
     formatted_commit_date = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-    commit = github.Commit.Commit(None, {}, dict({
-        "commit": dict({
-            "committer": dict({
-                "date": formatted_commit_date
-            })
-        })
-    }), None)
+    commit = github.Commit.Commit(
+        None, {},
+        dict({
+            "commit": dict({"committer": dict({"date": formatted_commit_date})})
+        }), None)
 
     mock_get_commits = MagicMock(return_value=[commit])
     self.ocdid_validator.github_repo.get_commits = mock_get_commits
@@ -687,9 +685,11 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
 
   # _get_latest_file_blob_sha tests
   def testItReturnsTheBlobShaOfTheGithubFileWhenFound(self):
-    content_file = github.ContentFile.ContentFile(None, {}, dict({
-        "name": "country-ar.csv", "sha": "abc123"
-    }), None)
+    content_file = github.ContentFile.ContentFile(
+        None, {}, dict({
+            "name": "country-ar.csv",
+            "sha": "abc123"
+        }), None)
     repo = github.Repository.Repository(None, {}, {}, None)
     repo.get_dir_contents = MagicMock(return_value=[content_file])
     self.ocdid_validator.github_repo = repo
@@ -699,9 +699,11 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     self.assertEqual("abc123", blob_sha)
 
   def testItReturnsNoneIfTheFileCantBeFound(self):
-    content_file = github.ContentFile.ContentFile(None, {}, dict({
-        "name": "country-ar.csv", "sha": "abc123"
-    }), None)
+    content_file = github.ContentFile.ContentFile(
+        None, {}, dict({
+            "name": "country-ar.csv",
+            "sha": "abc123"
+        }), None)
     repo = github.Repository.Repository(None, {}, {}, None)
     repo.get_dir_contents = MagicMock(return_value=[content_file])
     self.ocdid_validator.github_repo = repo
@@ -946,8 +948,9 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     election_tree = etree.fromstring(root_string)
 
     self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
-    self.ocdid_validator.ocds = set(["ocd-division/country:la"
-                                     "/regionalwahlkreis:burgenland_süd"])
+    self.ocdid_validator.ocds = set(
+        ["ocd-division/country:la"
+         "/regionalwahlkreis:burgenland_süd"])
     with self.assertRaises(base.ElectionError) as cm:
       self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
     self.assertIn("does not have a valid OCD", str(cm.exception))
@@ -1055,8 +1058,9 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     """
     election_tree = etree.fromstring(root_string)
     self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
-    self.ocdid_validator.ocds = set(["ocd-division/country:to"
-                                     "/regionalwahlkreis:karnten_west"])
+    self.ocdid_validator.ocds = set(
+        ["ocd-division/country:to"
+         "/regionalwahlkreis:karnten_west"])
     with self.assertRaises(base.ElectionError) as cm:
       self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
     self.assertIn("does not have a valid OCD", str(cm.exception))
@@ -1115,8 +1119,8 @@ class GpUnitOcdIdTest(absltest.TestCase):
         "county")
     report = etree.fromstring(reporting_unit)
 
-    self.gp_unit_validator.ocds = set([
-        "ocd-division/country:us/state:ma/county:middlesex"])
+    self.gp_unit_validator.ocds = set(
+        ["ocd-division/country:us/state:ma/county:middlesex"])
     self.gp_unit_validator.check(report.find("GpUnit"))
 
   def testItIgnoresElementsWithNoObjectId(self):
@@ -1136,16 +1140,15 @@ class GpUnitOcdIdTest(absltest.TestCase):
     )
     report = etree.fromstring(reporting_unit)
 
-    self.gp_unit_validator.ocds = set([
-        "ocd-division/country:us"])
+    self.gp_unit_validator.ocds = set(["ocd-division/country:us"])
     self.gp_unit_validator.check(report.find("GpUnit"))
 
   def testItIgnoresElementsWithNoOcdIdValue(self):
     reporting_unit = self.base_reporting_unit.format("", "county")
     report = etree.fromstring(reporting_unit)
 
-    self.gp_unit_validator.ocds = set([
-        "ocd-division/country:us/state:ma/county:middlesex"])
+    self.gp_unit_validator.ocds = set(
+        ["ocd-division/country:us/state:ma/county:middlesex"])
     self.gp_unit_validator.check(report.find("GpUnit"))
 
   def testItRaisesAWarningIfOcdIdNotInListOfValidIds(self):
@@ -1155,8 +1158,8 @@ class GpUnitOcdIdTest(absltest.TestCase):
     )
     report = etree.fromstring(reporting_unit)
 
-    self.gp_unit_validator.ocds = set([
-        "ocd-division/country:us/state:ma/county:middlesex"])
+    self.gp_unit_validator.ocds = set(
+        ["ocd-division/country:us/state:ma/county:middlesex"])
     with self.assertRaises(base.ElectionWarning):
       self.gp_unit_validator.check(report.find("GpUnit"))
 
@@ -1254,9 +1257,8 @@ class DuplicateGpUnitsTest(absltest.TestCase):
     self.assertEqual(dict(), self.gp_unit_validator.children)
     self.gp_unit_validator.process_one_gpunit(gp_unit)
 
-    expected_children = dict({
-        "ru0002": set(["ru_pre90111", "ru_pre90139", "ru_pre90183"])
-    })
+    expected_children = dict(
+        {"ru0002": set(["ru_pre90111", "ru_pre90139", "ru_pre90183"])})
     self.assertEqual(expected_children, self.gp_unit_validator.children)
 
   def testShouldOnlyHaveLeafNodesAsChildren(self):
@@ -1275,9 +1277,8 @@ class DuplicateGpUnitsTest(absltest.TestCase):
         "ghi789": set(["xyz123"])
     })
     self.gp_unit_validator.leaf_nodes = set(["ru_pre90183"])
-    self.gp_unit_validator.defined_gpunits = set([
-        "ru_pre90111", "ru_pre90139", "ghi789", "ru_pre90789"
-    ])
+    self.gp_unit_validator.defined_gpunits = set(
+        ["ru_pre90111", "ru_pre90139", "ghi789", "ru_pre90789"])
     self.gp_unit_validator.process_one_gpunit(gp_unit)
 
     expected_children = dict({
@@ -1934,23 +1935,17 @@ class PartiesHaveValidColorsTest(absltest.TestCase):
     self.color_validator = rules.PartiesHaveValidColors(None, None)
 
   def testPartiesHaveValidColorsLowercase(self):
-    root_string = self._base_string.format(
-        self._color_str.format("ff0000")
-    )
+    root_string = self._base_string.format(self._color_str.format("ff0000"))
     element = etree.fromstring(root_string)
     self.color_validator.check(element)
 
   def testPartiesHaveValidColorsUppercase(self):
-    root_string = self._base_string.format(
-        self._color_str.format("FF0000")
-    )
+    root_string = self._base_string.format(self._color_str.format("FF0000"))
     element = etree.fromstring(root_string)
     self.color_validator.check(element)
 
   def testColorHasPoundSign(self):
-    root_string = self._base_string.format(
-        self._color_str.format("#0000ff")
-    )
+    root_string = self._base_string.format(self._color_str.format("#0000ff"))
     element = etree.fromstring(root_string)
     with self.assertRaises(base.ElectionWarning) as cm:
       self.color_validator.check(element)
@@ -1958,9 +1953,7 @@ class PartiesHaveValidColorsTest(absltest.TestCase):
     self.assertIn("par0001", str(cm.exception))
 
   def testColorTagMissingValue(self):
-    root_string = self._base_string.format(
-        self._color_str.format("")
-    )
+    root_string = self._base_string.format(self._color_str.format(""))
     element = etree.fromstring(root_string)
     with self.assertRaises(base.ElectionWarning) as cm:
       self.color_validator.check(element)
@@ -1968,9 +1961,7 @@ class PartiesHaveValidColorsTest(absltest.TestCase):
     self.assertIn("par0001", str(cm.exception))
 
   def testPartiesHaveNonHex(self):
-    root_string = self._base_string.format(
-        self._color_str.format("green")
-    )
+    root_string = self._base_string.format(self._color_str.format("green"))
     element = etree.fromstring(root_string)
     with self.assertRaises(base.ElectionWarning) as cm:
       self.color_validator.check(element)
@@ -2036,12 +2027,442 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
 
   def testPartiesHaveUniqueColors(self):
     root_string = self._base_string.format(
-        self._color_str.format("ff0000"),
-        self._color_str.format("0000ff"),
-        self._color_str.format("008000")
-    )
+        self._color_str.format("ff0000"), self._color_str.format("0000ff"),
+        self._color_str.format("008000"))
     element = etree.fromstring(root_string)
     self.color_validator.check(element)
+
+
+class DuplicatedPartyAbbreviationTest(absltest.TestCase):
+
+  def setUp(self):
+    super(DuplicatedPartyAbbreviationTest, self).setUp()
+    self.parties_validator = rules.DuplicatedPartyAbbreviation(
+        None, None)
+
+  def testPartyCollectionWithoutParty(self):
+    root_string = """
+      <PartyCollection>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionTreeInfo) as cm:
+      self.parties_validator.check(element)
+    self.assertIn("The feed contains duplicated party abbreviations",
+                  str(cm.exception))
+
+  def testPartyWithoutInternationalizedAbbreviation(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+        </Party>
+        <Party objectId="par0002">
+          <InternationalizedAbbreviation>
+            <Text language="en">Democratic</Text>
+            <Text language="ro">Democratic</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0003">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionTreeInfo) as cm:
+      self.parties_validator.check(element)
+    self.assertIn("The feed contains duplicated party abbreviations",
+                  str(cm.exception))
+
+  def testDuplicateInternationalizedAbbreviation(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Republican</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0002">
+          <InternationalizedAbbreviation>
+            <Text language="en">Democratic</Text>
+            <Text language="ro">Democratic</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0003">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionTreeInfo) as cm:
+      self.parties_validator.check(element)
+    self.assertIn("The feed contains duplicated party abbreviations",
+                  str(cm.exception))
+
+  def testNoDuplicatedInternationalizedAbbreviation(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0002">
+          <InternationalizedAbbreviation>
+            <Text language="en">Democratic</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0003">
+          <InternationalizedAbbreviation>
+            <Text language="en">Green</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+    self.parties_validator.check(element)
+
+
+class DuplicatedPartyNameTest(absltest.TestCase):
+
+  def setUp(self):
+    super(DuplicatedPartyNameTest, self).setUp()
+    self.parties_validator = rules.DuplicatedPartyName(None, None)
+
+  def testPartyCollectionWithoutParty(self):
+    root_string = """
+      <PartyCollection>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionTreeInfo) as cm:
+      self.parties_validator.check(element)
+    self.assertIn("The feed contains duplicated party names", str(cm.exception))
+
+  def testPartyWithoutName(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+        </Party>
+        <Party objectId="par0002">
+          <Name>
+            <Text language="en">Democratic</Text>
+            <Text language="ro">Democratic</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0003">
+          <Name>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </Name>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionTreeInfo) as cm:
+      self.parties_validator.check(element)
+    self.assertIn("The feed contains duplicated party names", str(cm.exception))
+
+  def testDuplicatePartyName(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <Name>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Republican</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0002">
+          <Name>
+            <Text language="en">Democratic</Text>
+            <Text language="ro">Democratic</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0003">
+          <Name>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </Name>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionTreeInfo) as cm:
+      self.parties_validator.check(element)
+    self.assertIn("The feed contains duplicated party names", str(cm.exception))
+
+  def testUniquePartyName(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <Name>
+            <Text language="en">Republican</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0002">
+          <Name>
+            <Text language="en">Democratic</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0003">
+          <Name>
+            <Text language="en">Green</Text>
+          </Name>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+    self.parties_validator.check(element)
+
+
+class MissingPartyNameTranslationTest(absltest.TestCase):
+
+  def setUp(self):
+    super(MissingPartyNameTranslationTest, self).setUp()
+    self.parties_validator = rules.MissingPartyNameTranslation(
+        None, None)
+
+  def testPartyCollectionWithoutParty(self):
+    root_string = """
+      <PartyCollection>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionTreeInfo) as cm:
+      self.parties_validator.check(element)
+    self.assertIn("The feed is missing several parties name translation",
+                  str(cm.exception))
+
+  def testPartyWithoutName(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+        </Party>
+        <Party objectId="par0002">
+          <Name>
+            <Text language="en">Democratic</Text>
+            <Text language="ro">Democratic</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0003">
+          <Name>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </Name>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionTreeInfo) as cm:
+      self.parties_validator.check(element)
+    self.assertIn("The feed is missing several parties name translation",
+                  str(cm.exception))
+
+  def testMissingTranslationAtTheBeginning(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <Name>
+            <Text language="en">Republican</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0002">
+          <Name>
+            <Text language="en">Democratic</Text>
+            <Text language="ro">Democratico</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0003">
+          <Name>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </Name>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionTreeInfo) as cm:
+      self.parties_validator.check(element)
+    self.assertIn("The feed is missing several parties name translation",
+                  str(cm.exception))
+
+  def testMissingTranslationInTheMiddle(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <Name>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Republican</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0002">
+          <Name>
+            <Text language="en">Democratic</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0003">
+          <Name>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </Name>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionTreeInfo) as cm:
+      self.parties_validator.check(element)
+    self.assertIn("The feed is missing several parties name translation",
+                  str(cm.exception))
+
+  def testWithAllGoodTranslation(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <Name>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Republican</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0003">
+          <Name>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </Name>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+    self.parties_validator.check(element)
+
+
+class MissingPartyAbbreviationTranslationTest(absltest.TestCase):
+
+  def setUp(self):
+    super(MissingPartyAbbreviationTranslationTest, self).setUp()
+    self.parties_validator = rules.MissingPartyAbbreviationTranslation(
+        None, None)
+
+  def testPartyCollectionWithoutParty(self):
+    root_string = """
+      <PartyCollection>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionTreeInfo) as cm:
+      self.parties_validator.check(element)
+    self.assertIn(
+        "The feed is missing several parties abbreviation translation",
+        str(cm.exception))
+
+  def testPartyWithoutInternationalizedAbbreviation(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+        </Party>
+        <Party objectId="par0002">
+          <InternationalizedAbbreviation>
+            <Text language="en">Democratic</Text>
+            <Text language="ro">Democratic</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0003">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionTreeInfo) as cm:
+      self.parties_validator.check(element)
+    self.assertIn(
+        "The feed is missing several parties abbreviation translation",
+        str(cm.exception))
+
+  def testMissingTranslationAtTheBeginning(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0002">
+          <InternationalizedAbbreviation>
+            <Text language="en">Democratic</Text>
+            <Text language="ro">Democratico</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0003">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionTreeInfo) as cm:
+      self.parties_validator.check(element)
+    self.assertIn(
+        "The feed is missing several parties abbreviation translation",
+        str(cm.exception))
+
+  def testMissingTranslationInTheMiddle(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Republican</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0002">
+          <InternationalizedAbbreviation>
+            <Text language="en">Democratic</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0003">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionTreeInfo) as cm:
+      self.parties_validator.check(element)
+    self.assertIn(
+        "The feed is missing several parties abbreviation translation",
+        str(cm.exception))
+
+  def testWithAllGoodTranslation(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Republican</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0003">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+    self.parties_validator.check(element)
 
 
 class MissingPartyAffiliationTest(absltest.TestCase):
@@ -2098,10 +2519,9 @@ class MissingPartyAffiliationTest(absltest.TestCase):
 
   # _gather_reference_values tests
   def testReturnsPartyIdsFromCandidatesAndPeople(self):
-    root_string = self._base_xml_string.format(
-        self._candidate_collection,
-        self._person_collection,
-        self._party_collection)
+    root_string = self._base_xml_string.format(self._candidate_collection,
+                                               self._person_collection,
+                                               self._party_collection)
     election_tree = etree.ElementTree(etree.fromstring(root_string))
     party_validator = rules.MissingPartyAffiliation(election_tree, None)
 
@@ -2110,8 +2530,8 @@ class MissingPartyAffiliationTest(absltest.TestCase):
     self.assertEqual(expected_reference_values, reference_values)
 
   def testReturnsCandidatePartyIdsIfNoPersonCollection(self):
-    root_string = self._base_xml_string.format(
-        self._party_collection, "", self._candidate_collection)
+    root_string = self._base_xml_string.format(self._party_collection, "",
+                                               self._candidate_collection)
     election_tree = etree.ElementTree(etree.fromstring(root_string))
     party_validator = rules.MissingPartyAffiliation(election_tree, None)
 
@@ -2138,8 +2558,9 @@ class MissingPartyAffiliationTest(absltest.TestCase):
         <Candidate/>
       </CandidateCollection>
     """
-    root_string = self._base_xml_string.format(
-        self._party_collection, self._person_collection, candidate_collection)
+    root_string = self._base_xml_string.format(self._party_collection,
+                                               self._person_collection,
+                                               candidate_collection)
     election_tree = etree.ElementTree(etree.fromstring(root_string))
     party_validator = rules.MissingPartyAffiliation(election_tree, None)
 
@@ -2149,10 +2570,9 @@ class MissingPartyAffiliationTest(absltest.TestCase):
 
   # _gather_defined_values tests
   def testReturnsObjectIdsFromPartyCollectionParties(self):
-    root_string = self._base_xml_string.format(
-        self._candidate_collection,
-        self._person_collection,
-        self._party_collection)
+    root_string = self._base_xml_string.format(self._candidate_collection,
+                                               self._person_collection,
+                                               self._party_collection)
     election_tree = etree.ElementTree(etree.fromstring(root_string))
     party_validator = rules.MissingPartyAffiliation(election_tree, None)
 
@@ -2161,10 +2581,8 @@ class MissingPartyAffiliationTest(absltest.TestCase):
     self.assertEqual(expected_defined_values, defined_values)
 
   def testReturnsAnEmptySetIfNoCollection(self):
-    root_string = self._base_xml_string.format(
-        self._candidate_collection,
-        self._person_collection,
-        "")
+    root_string = self._base_xml_string.format(self._candidate_collection,
+                                               self._person_collection, "")
     election_tree = etree.ElementTree(etree.fromstring(root_string))
     party_validator = rules.MissingPartyAffiliation(election_tree, None)
 
@@ -2173,10 +2591,9 @@ class MissingPartyAffiliationTest(absltest.TestCase):
 
   # check tests
   def testCheckEachPartyIdReferenceHasAPartyElement(self):
-    root_string = self._base_xml_string.format(
-        self._party_collection,
-        self._person_collection,
-        self._candidate_collection)
+    root_string = self._base_xml_string.format(self._party_collection,
+                                               self._person_collection,
+                                               self._candidate_collection)
     election_tree = etree.ElementTree(etree.fromstring(root_string))
     party_validator = rules.MissingPartyAffiliation(election_tree, None)
     party_validator.check()
@@ -2188,8 +2605,8 @@ class MissingPartyAffiliationTest(absltest.TestCase):
     party_validator.check()
 
   def testRaisesErrorIfThereIsNoPartyCollection(self):
-    root_string = self._base_xml_string.format(
-        "", self._person_collection, self._candidate_collection)
+    root_string = self._base_xml_string.format("", self._person_collection,
+                                               self._candidate_collection)
     election_tree = etree.ElementTree(etree.fromstring(root_string))
     party_validator = rules.MissingPartyAffiliation(election_tree, None)
 
@@ -2560,8 +2977,7 @@ class OfficeMissingOfficeHolderPersonDataTest(absltest.TestCase):
 
     with self.assertRaises(base.ElectionError) as ee:
       office_validator.check()
-    self.assertIn("Office is missing IDs of Officeholders.",
-                  str(ee.exception))
+    self.assertIn("Office is missing IDs of Officeholders.", str(ee.exception))
 
   def testIgnoresTreesWithNoRoot(self):
     no_root_string = io.BytesIO(b"""
@@ -3045,8 +3461,8 @@ class PersonHasOfficeTest(absltest.TestCase):
         <Office><OfficeHolderPersonIds>p3</OfficeHolderPersonIds></Office>
       </OfficeCollection>
     """
-    root_string = io.BytesIO(bytes(self._base_xml.format(
-        office_collection).encode()))
+    root_string = io.BytesIO(
+        bytes(self._base_xml.format(office_collection).encode()))
     election_tree = etree.parse(root_string)
     office_validator = rules.PersonHasOffice(election_tree, None)
     office_validator.check()
@@ -3075,8 +3491,8 @@ class PersonHasOfficeTest(absltest.TestCase):
         <Office/>
       </OfficeCollection>
     """
-    root_string = io.BytesIO(bytes(self._base_xml.format(
-        office_collection).encode()))
+    root_string = io.BytesIO(
+        bytes(self._base_xml.format(office_collection).encode()))
     election_tree = etree.parse(root_string)
     office_validator = rules.PersonHasOffice(election_tree, None)
     with self.assertRaises(base.ElectionError):
@@ -3112,8 +3528,8 @@ class PersonHasOfficeTest(absltest.TestCase):
           </Party>
         </PartyCollection>
     """
-    root_string = io.BytesIO(bytes(self._base_xml.format(
-        office_party_collections).encode()))
+    root_string = io.BytesIO(
+        bytes(self._base_xml.format(office_party_collections).encode()))
     election_tree = etree.parse(root_string)
     office_validator = rules.PersonHasOffice(election_tree, None)
     office_validator.check()
@@ -3137,8 +3553,8 @@ class PersonHasOfficeTest(absltest.TestCase):
         </Office>
       </OfficeCollection>
     """
-    root_string = io.BytesIO(bytes(self._base_xml.format(
-        office_collection).encode()))
+    root_string = io.BytesIO(
+        bytes(self._base_xml.format(office_collection).encode()))
     election_tree = etree.parse(root_string)
     rules.PersonHasOffice(election_tree, None).check()
 
@@ -3153,8 +3569,8 @@ class PersonHasOfficeTest(absltest.TestCase):
         </Office>
       </OfficeCollection>
     """
-    root_string = io.BytesIO(bytes(self._base_xml.format(
-        office_collection).encode()))
+    root_string = io.BytesIO(
+        bytes(self._base_xml.format(office_collection).encode()))
     election_tree = etree.parse(root_string)
 
     with self.assertRaises(base.ElectionError) as cm:
@@ -3174,8 +3590,8 @@ class PersonHasOfficeTest(absltest.TestCase):
         </Office>
       </OfficeCollection>
     """
-    root_string = io.BytesIO(bytes(self._base_xml.format(
-        office_collection).encode()))
+    root_string = io.BytesIO(
+        bytes(self._base_xml.format(office_collection).encode()))
     election_tree = etree.parse(root_string)
 
     with self.assertRaises(base.ElectionError) as cm:
@@ -3607,8 +4023,7 @@ class ValidURIAnnotationTest(absltest.TestCase):
     """
     with self.assertRaises(base.ElectionError) as cm:
       self.valid_annotation.check(etree.fromstring(root_string))
-    self.assertIn("has usage type, missing platform.",
-                  str(cm.exception))
+    self.assertIn("has usage type, missing platform.", str(cm.exception))
 
   def testIncorrectPlatformFails(self):
     root_string = """
@@ -3696,7 +4111,8 @@ class ValidJurisdictionIDTest(absltest.TestCase):
 
   # _gather_reference_values tests
   def testReturnsASetOfJurisdictionIdsFromGivenTree_AdditionalData(self):
-    root_string = self.root_string.format("", """
+    root_string = self.root_string.format(
+        "", """
           <Office objectId="off0">
             <AdditionalData type="jurisdiction-id">ru-gpu1</AdditionalData>
           </Office>""", "")
@@ -3707,7 +4123,8 @@ class ValidJurisdictionIDTest(absltest.TestCase):
     self.assertEqual(set(["ru-gpu1", "ru-gpu2"]), reference_values)
 
   def testReturnsASetOfJurisdictionIdsFromGivenTree_ExternalIdentifier(self):
-    root_string = self.root_string.format("", "", """
+    root_string = self.root_string.format(
+        "", "", """
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>jurisdiction-id</OtherType>
@@ -3720,7 +4137,8 @@ class ValidJurisdictionIDTest(absltest.TestCase):
     self.assertEqual(set(["ru-gpu2", "ru-gpu3"]), reference_values)
 
   def testIgnoresExternalIdentifierWithoutType(self):
-    root_string = self.root_string.format("", "", """
+    root_string = self.root_string.format(
+        "", "", """
           <ExternalIdentifier>
             <OtherType>jurisdiction-id</OtherType>
             <Value>ru-gpu3</Value>
@@ -3732,7 +4150,8 @@ class ValidJurisdictionIDTest(absltest.TestCase):
     self.assertEqual(set(["ru-gpu2"]), reference_values)
 
   def testIgnoresExternalIdentifierWithoutOtherTypeNotJurisdictionId(self):
-    root_string = self.root_string.format("", "", """
+    root_string = self.root_string.format(
+        "", "", """
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>district-id</OtherType>
@@ -3745,7 +4164,8 @@ class ValidJurisdictionIDTest(absltest.TestCase):
     self.assertEqual(set(["ru-gpu2"]), reference_values)
 
   def testIgnoresExternalIdentifierWithoutValueElement(self):
-    root_string = self.root_string.format("", "", """
+    root_string = self.root_string.format(
+        "", "", """
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>jurisdiction-id</OtherType>
@@ -3757,7 +4177,8 @@ class ValidJurisdictionIDTest(absltest.TestCase):
     self.assertEqual(set(["ru-gpu2"]), reference_values)
 
   def testItRemovesDuplicatesIfMulitpleOfficesHaveSameJurisdiction(self):
-    root_string = self.root_string.format("", """
+    root_string = self.root_string.format(
+        "", """
           <Office objectId="off0">
             <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
           </Office>""", "")
@@ -3769,7 +4190,8 @@ class ValidJurisdictionIDTest(absltest.TestCase):
 
   # _gather_defined_values test
   def testReturnsASetOfGpUnitsFromGivenTree(self):
-    root_string = self.root_string.format("""
+    root_string = self.root_string.format(
+        """
           <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu1"/>""", "", "")
 
     election_tree = etree.ElementTree(etree.fromstring(root_string))
@@ -3779,7 +4201,8 @@ class ValidJurisdictionIDTest(absltest.TestCase):
 
   # check tests
   def testEveryJurisdictionIdReferencesAValidGpUnit(self):
-    root_string = self.root_string.format("""
+    root_string = self.root_string.format(
+        """
           <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu1"/>""", """
           <Office objectId="off0">
             <AdditionalData type="jurisdiction-id">ru-gpu1</AdditionalData>
@@ -3794,7 +4217,8 @@ class ValidJurisdictionIDTest(absltest.TestCase):
     rules.ValidJurisdictionID(election_tree, None).check()
 
   def testRaisesAnElectionErrorIfJurisdictionIdIsNotAGpUnitId(self):
-    root_string = self.root_string.format("""
+    root_string = self.root_string.format(
+        """
           <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu1"/>""", """
           <Office objectId="off0">
             <AdditionalData type="jurisdiction-id">ru-gpu99</AdditionalData>
@@ -3925,6 +4349,7 @@ class RulesTest(absltest.TestCase):
     possible_rules = self._subclasses(base.BaseRule)
     possible_rules.remove(base.TreeRule)
     possible_rules.remove(base.ValidReferenceRule)
+    possible_rules.remove(rules.ValidatePartyCollection)
     possible_rules.remove(base.DateRule)
     self.assertSetEqual(all_rules, possible_rules)
 

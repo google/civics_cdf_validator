@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Validation rules for the NIST CDF XML validator."""
 
 from __future__ import print_function
@@ -333,12 +332,11 @@ class ElectoralDistrictOcdId(base.BaseRule):
           last_mod_date = datetime.datetime.fromtimestamp(
               os.path.getmtime(countries_file))
 
-          seconds_since_mod = (
-              datetime.datetime.now() - last_mod_date
-          ).total_seconds()
+          seconds_since_mod = (datetime.datetime.now() -
+                               last_mod_date).total_seconds()
 
           # If 1 hour has elapsed, check GitHub for the last file update.
-          if (seconds_since_mod/3600) > 1:
+          if (seconds_since_mod / 3600) > 1:
             github_api = github.Github()
             self.github_repo = github_api.get_repo(self.GITHUB_REPO)
             # Re-download the file if the file on GitHub was updated.
@@ -441,8 +439,8 @@ class ElectoralDistrictOcdId(base.BaseRule):
             if value is None or not hasattr(value, "text"):
               continue
             ocd_id = self._encode_ocdid_value(value.text)
-            valid_ocd_id = (ocd_id in self.ocds and
-                            self.ocd_matcher.match(ocd_id))
+            valid_ocd_id = (
+                ocd_id in self.ocds and self.ocd_matcher.match(ocd_id))
           if (id_type is not None and id_type.text != "ocd-id" and
               id_type.text.lower() == "ocd-id"):
             error_log.append(
@@ -892,9 +890,8 @@ class PartiesHaveValidColors(base.BaseRule):
       return
     party_object_id = element.get("objectId")
     if len(colors) > 1:
-      raise base.ElectionWarning(
-          "Line %d: Party %s has more than one color." %
-          (element.sourceline, party_object_id))
+      raise base.ElectionWarning("Line %d: Party %s has more than one color." %
+                                 (element.sourceline, party_object_id))
     color_val = colors[0].text
     if not color_val:
       raise base.ElectionWarning(
@@ -909,19 +906,25 @@ class PartiesHaveValidColors(base.BaseRule):
             (element.sourceline, color_val, party_object_id))
 
 
-class ValidateDuplicateColors(base.BaseRule):
-  """Each Party should have unique hex color.
+class ValidatePartyCollection(base.BaseRule):
+  """Generic party collection validation rule.
 
-  A Party object that has duplicate color should be picked up
-  within this class and returned to the user as an Info message.
+  All partyCollection validation rules can inherit from this class since it
+  contains basic checks.
   """
 
   def elements(self):
     return ["PartyCollection"]
 
+  def check_specific(self, parties):
+    """Return a list of info log to be raised."""
+    raise NotImplementedError
+
+  def get_specific_info_message(self):
+    """Return an ElectionTreeInfo specific message."""
+    raise NotImplementedError
+
   def check(self, element):
-    party_colors = {}
-    info_message = ""
     info_log = []
     parties = element.findall("Party")
     if len(parties) < 1:
@@ -929,6 +932,24 @@ class ValidateDuplicateColors(base.BaseRule):
           "Line %d: <PartyCollection> does not have <Party> objects" %
           (element.sourceline))
       info_log.append(base.ErrorLogEntry(None, info_message))
+    info_log.extend(self.check_specific(parties))
+    if info_log:
+      raise base.ElectionTreeInfo(self.get_specific_info_message(), info_log)
+
+
+class ValidateDuplicateColors(ValidatePartyCollection):
+  """Each Party should have unique hex color.
+
+  A Party object that has duplicate color should be picked up
+  within this class and returned to the user as an Info message.
+  """
+
+  def get_specific_info_message(self):
+    return "The feed contains parties with duplicate colors"
+
+  def check_specific(self, parties):
+    party_colors = {}
+    info_log = []
     for party in parties:
       color_element = party.find("Color")
       if color_element is None:
@@ -944,9 +965,171 @@ class ValidateDuplicateColors(base.BaseRule):
         info_log.append(base.ErrorLogEntry(None, info_message))
       else:
         party_colors[color] = party_object_id
-    if info_log:
-      raise base.ElectionTreeInfo(
-          "The feed contains parties with duplicate colors", info_log)
+    return info_log
+
+
+class DuplicatedPartyAbbreviation(ValidatePartyCollection):
+  """Party abbreviation should be used once in a given language.
+
+  If an abbreviation is duplicated, the corresponding party should be picked up
+  within this class and returned to the user as an Info message.
+  """
+
+  def get_specific_info_message(self):
+    return "The feed contains duplicated party abbreviations"
+
+  def check_specific(self, parties):
+    info_log = []
+    party_abbrs_by_language = {}
+    for party in parties:
+      party_object_id = party.get("objectId")
+      abbr_element = party.find("InternationalizedAbbreviation")
+      if abbr_element is None:
+        info_message = (
+            "Line %d: <Party> %s does not have <InternationalizedAbbreviation>"
+            " objects" % (party.sourceline, party_object_id))
+        info_log.append(base.ErrorLogEntry(None, info_message))
+        continue
+      party_abbrs = abbr_element.findall("Text")
+      for party_abbr in party_abbrs:
+        language = party_abbr.get("language")
+        abbr = party_abbr.text
+        if language not in party_abbrs_by_language:
+          party_abbrs_by_language[language] = {}
+        if abbr in party_abbrs_by_language[language]:
+          info_message = (
+              "Line %d: Party %s has same abbreviation in %s as Party %s." %
+              (party.sourceline, party_object_id, language,
+               party_abbrs_by_language[language][abbr]))
+          info_log.append(base.ErrorLogEntry(None, info_message))
+        else:
+          party_abbrs_by_language[language][abbr] = party_object_id
+    return info_log
+
+
+class DuplicatedPartyName(ValidatePartyCollection):
+  """Party name should be used once in a given language.
+
+  If a party name is duplicated, the corresponding party should be picked up
+  within this class and returned to the user as an Info message.
+  """
+
+  def get_specific_info_message(self):
+    return "The feed contains duplicated party names"
+
+  def check_specific(self, parties):
+    info_log = []
+    party_names_by_language = {}
+    for party in parties:
+      party_object_id = party.get("objectId")
+      name_element = party.find("Name")
+      if name_element is None:
+        info_message = ("Line %d: <Party> %s does not have <Name> objects" %
+                        (party.sourceline, party_object_id))
+        info_log.append(base.ErrorLogEntry(None, info_message))
+        continue
+      party_names = name_element.findall("Text")
+      for party_name in party_names:
+        language = party_name.get("language")
+        name = party_name.text
+        if language not in party_names_by_language:
+          party_names_by_language[language] = {}
+        if name in party_names_by_language[language]:
+          info_message = ("Line %d: Party %s has same name in %s as Party %s." %
+                          (party_name.sourceline, party_object_id, language,
+                           party_names_by_language[language][name]))
+          info_log.append(base.ErrorLogEntry(None, info_message))
+        else:
+          party_names_by_language[language][name] = party_object_id
+    return info_log
+
+
+class MissingPartyNameTranslation(ValidatePartyCollection):
+  """All Parties should have their name translated to the same languages.
+
+  If there is a party name that is not translated to all the feed languages,
+  the party should be picked up within this class and returned to the user as
+  an Info message.
+  """
+
+  def get_specific_info_message(self):
+    return "The feed is missing several parties name translation"
+
+  def check_specific(self, parties):
+    info_log = []
+    feed_languages, feed_party_ids = set(), set()
+    for party in parties:
+      party_object_id = party.get("objectId")
+      name_element = party.find("Name")
+      if name_element is None:
+        info_message = ("Line %d: <Party> %s does not have <Name> objects" %
+                        (party.sourceline, party_object_id))
+        info_log.append(base.ErrorLogEntry(None, info_message))
+        continue
+      party_names = name_element.findall("Text")
+      party_languages = set()
+      for party_name in party_names:
+        language = party_name.get("language")
+        if language not in feed_languages:
+          feed_languages.add(language)
+          if feed_party_ids:
+            info_message = (
+                "The feed is missing names translation to %s for parties : %s."
+                % (language, feed_party_ids))
+            info_log.append(base.ErrorLogEntry(None, info_message))
+        party_languages.add(language)
+      feed_party_ids.add(party_object_id)
+      if len(party_languages) != len(feed_languages):
+        info_message = (
+            "The party %s name is not translated to all feed languages %s. You"
+            " only did it for the following languages : %s." %
+            (party_object_id, feed_languages, party_languages))
+        info_log.append(base.ErrorLogEntry(None, info_message))
+    return info_log
+
+
+class MissingPartyAbbreviationTranslation(ValidatePartyCollection):
+  """Every party's abbreviation should be translated to the same languages.
+
+  If a party is missing a name translation, it should be picked up within this
+  class and returned to the user as an Info message.
+  """
+
+  def get_specific_info_message(self):
+    return "The feed is missing several parties abbreviation translation"
+
+  def check_specific(self, parties):
+    info_log = []
+    feed_languages, feed_party_ids = set(), set()
+    for party in parties:
+      party_object_id = party.get("objectId")
+      abbr_element = party.find("InternationalizedAbbreviation")
+      if abbr_element is None:
+        info_message = ("Line %d: <Party> %s does not have "
+                        "<InternationalizedAbbreviation> objects" %
+                        (party.sourceline, party_object_id))
+        info_log.append(base.ErrorLogEntry(None, info_message))
+        continue
+      party_abbrs = abbr_element.findall("Text")
+      party_languages = set()
+      for party_abbr in party_abbrs:
+        language = party_abbr.get("language")
+        if language not in feed_languages:
+          feed_languages.add(language)
+          if feed_party_ids:
+            info_message = (
+                "The feed is missing abbreviation translation to %s for parties"
+                " : %s." % (language, feed_party_ids))
+            info_log.append(base.ErrorLogEntry(None, info_message))
+        party_languages.add(language)
+      feed_party_ids.add(party_object_id)
+      if len(party_languages) != len(feed_languages):
+        info_message = (
+            "The party %s abbreviation is not translated to all feed languages "
+            "%s. You only did it for the following languages : %s." %
+            (party_object_id, feed_languages, party_languages))
+        info_log.append(base.ErrorLogEntry(None, info_message))
+    return info_log
 
 
 class MissingPartyAffiliation(base.ValidReferenceRule):
@@ -957,8 +1140,8 @@ class MissingPartyAffiliation(base.ValidReferenceRule):
   """
 
   def __init__(self, election_tree, schema_file):
-    super(MissingPartyAffiliation, self).__init__(
-        election_tree, schema_file, "Party")
+    super(MissingPartyAffiliation, self).__init__(election_tree, schema_file,
+                                                  "Party")
 
   def _gather_reference_values(self):
     root = self.election_tree.getroot()
@@ -976,9 +1159,9 @@ class MissingPartyAffiliation(base.ValidReferenceRule):
     all_parties = set()
     party_collection = self.election_tree.getroot().find("PartyCollection")
     if party_collection is not None:
-      all_parties = set(party.attrib["objectId"] for party
-                        in party_collection if party is not None
-                        and party.get("objectId", None))
+      all_parties = set(party.attrib["objectId"]
+                        for party in party_collection
+                        if party is not None and party.get("objectId", None))
     return all_parties
 
 
@@ -1140,8 +1323,8 @@ class OfficeMissingOfficeHolderPersonData(base.ValidReferenceRule):
   """
 
   def __init__(self, election_tree, schema_file):
-    super(OfficeMissingOfficeHolderPersonData, self).__init__(
-        election_tree, schema_file, "Person")
+    super(OfficeMissingOfficeHolderPersonData,
+          self).__init__(election_tree, schema_file, "Person")
 
   def _gather_reference_values(self):
     root = self.election_tree.getroot()
@@ -1161,8 +1344,8 @@ class OfficeMissingOfficeHolderPersonData(base.ValidReferenceRule):
     all_people = set()
     person_collection = self.election_tree.getroot().find("PersonCollection")
     if person_collection is not None:
-      all_people = set(person.attrib["objectId"]
-                       for person in person_collection)
+      all_people = set(
+          person.attrib["objectId"] for person in person_collection)
     return all_people
 
 
@@ -1252,9 +1435,9 @@ class AllLanguages(base.BaseRule):
     required_language_set = frozenset(self.required_languages)
     if not required_language_set.issubset(languages):
       raise base.ElectionError(
-          sourceline_prefix(element)
-          + "Element does not contain text in all required languages, missing: "
-          + str(required_language_set - languages))
+          sourceline_prefix(element) +
+          "Element does not contain text in all required languages, missing: " +
+          str(required_language_set - languages))
 
 
 class ValidEnumerations(base.BaseRule):
@@ -1296,9 +1479,9 @@ class ValidEnumerations(base.BaseRule):
         if other_type_element.text in self.valid_enumerations:
           raise base.ElectionError(
               "%sType of element %s is set to 'other' even though "
-              "'%s' is a valid enumeration"
-              % (sourceline_prefix(element), element.tag,
-                 other_type_element.text))
+              "'%s' is a valid enumeration" %
+              (sourceline_prefix(element), element.tag,
+               other_type_element.text))
 
 
 class ValidateOcdidLowerCase(base.BaseRule):
@@ -1382,8 +1565,7 @@ class PersonHasOffice(base.ValidReferenceRule):
           if len(ids) > 1:
             raise base.ElectionError(
                 "Office object {} has {} OfficeHolders. Must have exactly one."
-                .format(office.get("objectId", ""), str(len(ids)))
-            )
+                .format(office.get("objectId", ""), str(len(ids))))
           person_reference_ids.update(ids)
 
     return person_reference_ids
@@ -1393,8 +1575,8 @@ class PartyLeadershipMustExist(base.ValidReferenceRule):
   """Each party leader or party chair should refer to a person in the feed."""
 
   def __init__(self, election_tree, schema_file):
-    super(PartyLeadershipMustExist, self).__init__(
-        election_tree, schema_file, "Person")
+    super(PartyLeadershipMustExist, self).__init__(election_tree, schema_file,
+                                                   "Person")
 
   def _gather_reference_values(self):
     root = self.election_tree.getroot()
@@ -1433,24 +1615,27 @@ class ProhibitElectionData(base.TreeRule):
 class PersonsHaveValidGender(base.BaseRule):
   """Ensure that all Person objects have a valid gender identification."""
 
-  _VALID_GENDERS = {"male", "m", "man", "female", "f", "woman",
-                    "o", "x", "other", "nonbinary"}
+  _VALID_GENDERS = {
+      "male", "m", "man", "female", "f", "woman", "o", "x", "other", "nonbinary"
+  }
 
   def elements(self):
     return ["Gender"]
 
   def check(self, element):
-    if (element.text is not None
-        and element.text.lower() not in self._VALID_GENDERS):
-      raise base.ElectionError(
-          "Person object has invalid gender value: %s" % element.text)
+    if (element.text is not None and
+        element.text.lower() not in self._VALID_GENDERS):
+      raise base.ElectionError("Person object has invalid gender value: %s" %
+                               element.text)
 
 
 class VoteCountTypesCoherency(base.BaseRule):
   """Ensure VoteCount types describe the appropriate votable."""
 
-  PARTY_VC_TYPES = {"seats-won", "seats-leading", "party-votes",
-                    "seats-no-election", "seats-total", "seats-delta"}
+  PARTY_VC_TYPES = {
+      "seats-won", "seats-leading", "party-votes", "seats-no-election",
+      "seats-total", "seats-delta"
+  }
   # Ibid.
   CAND_VC_TYPES = {"candidate-votes"}
 
@@ -1476,9 +1661,9 @@ class VoteCountTypesCoherency(base.BaseRule):
             errors.append(vc_type)
       if errors:
         raise base.ElectionError("VoteCount types {0} should not be nested "
-                                 " in {1} Contest ({2})"
-                                 .format(", ".join(errors), contest_type,
-                                         element.attrib["objectId"]))
+                                 " in {1} Contest ({2})".format(
+                                     ", ".join(errors), contest_type,
+                                     element.attrib["objectId"]))
 
 
 class URIValidator(base.BaseRule):
@@ -1511,8 +1696,7 @@ class URIValidator(base.BaseRule):
     if discrepencies:
       raise base.ElectionError(
           "The provided URI, {}, is invalid for the following reasons: {}."
-          .format(url.encode("ascii", "ignore"), ", ".join(discrepencies))
-      )
+          .format(url.encode("ascii", "ignore"), ", ".join(discrepencies)))
 
 
 class ValidURIAnnotation(base.BaseRule):
@@ -1548,8 +1732,8 @@ class ValidURIAnnotation(base.BaseRule):
       ascii_url = url.encode("ascii", "ignore")
 
       if not annotation:
-        raise base.ElectionWarning("URI {} is missing annotation."
-                                   .format(ascii_url))
+        raise base.ElectionWarning(
+            "URI {} is missing annotation.".format(ascii_url))
 
       # Only do platform checks if the annotation is not an image.
       if not re.search(r"candidate-image", annotation):
@@ -1559,15 +1743,15 @@ class ValidURIAnnotation(base.BaseRule):
           # One element would imply the annotation could be a platform
           # without a usage type, which is checked here.
           if platform in self.TYPE_PLATFORMS:
-            raise base.ElectionWarning("Annotation {} missing usage type."
-                                       .format(annotation))
+            raise base.ElectionWarning(
+                "Annotation {} missing usage type.".format(annotation))
           elif platform in self.USAGE_TYPES:
             raise base.ElectionError("Annotation {} has usage type, "
                                      "missing platform.".format(annotation))
           elif platform not in self.PLATFORM_ONLY_ANNOTATIONS:
             raise base.ElectionError(
-                "Annotation {} is not a valid annotation for URI {}."
-                .format(annotation, ascii_url))
+                "Annotation {} is not a valid annotation for URI {}.".format(
+                    annotation, ascii_url))
         elif len(ann_elements) == 2:
           # Two elements at this stage would mean the annotation
           # must be a platform with a usage type.
@@ -1578,8 +1762,9 @@ class ValidURIAnnotation(base.BaseRule):
                 "{} is not a valid annotation.".format(annotation))
         else:
           # More than two implies an invalid annotation.
-          raise base.ElectionError("Annotation {} is invalid for URI {}."
-                                   .format(annotation, ascii_url))
+          raise base.ElectionError(
+              "Annotation {} is invalid for URI {}.".format(
+                  annotation, ascii_url))
         # Finally, check platform is in the URL.
         self.check_url(url, annotation, platform)
 
@@ -1588,8 +1773,8 @@ class ValidJurisdictionID(base.ValidReferenceRule):
   """Each jurisdiction id should refer to a valid GpUnit."""
 
   def __init__(self, election_tree, schema_file):
-    super(ValidJurisdictionID, self).__init__(
-        election_tree, schema_file, "GpUnit")
+    super(ValidJurisdictionID, self).__init__(election_tree, schema_file,
+                                              "GpUnit")
 
   def _gather_reference_values(self):
     root = self.election_tree.getroot()
@@ -1663,6 +1848,7 @@ class RuleSet(enum.Enum):
   ELECTION = 1
   OFFICEHOLDER = 2
 
+
 # To add new rules, create a new class, inherit the base rule,
 # and add it to the correct rule list.
 COMMON_RULES = (
@@ -1690,6 +1876,10 @@ COMMON_RULES = (
     ValidURIAnnotation,
     GpUnitsTree,
     ValidJurisdictionID,
+    DuplicatedPartyName,
+    DuplicatedPartyAbbreviation,
+    MissingPartyNameTranslation,
+    MissingPartyAbbreviationTranslation,
 )
 
 ELECTION_RULES = COMMON_RULES + (
