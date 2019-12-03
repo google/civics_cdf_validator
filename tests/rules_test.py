@@ -4081,6 +4081,151 @@ class ValidURIAnnotationTest(absltest.TestCase):
     self.assertIn("official-fb is not a valid annotation", str(cm.exception))
 
 
+class OfficesHaveJurisdictionIDTest(absltest.TestCase):
+
+  def setUp(self):
+    super(OfficesHaveJurisdictionIDTest, self).setUp()
+    self.root_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <OfficeCollection>
+          {}
+        </OfficeCollection>
+      </ElectionReport>
+    """
+    self.offices_validator = rules.OfficesHaveJurisdictionID(None, None)
+
+  def testOfficeHasJurisdictionIDByAdditionalData(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off1">
+            <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    self.offices_validator.check(element)
+
+  def testOfficeHasJurisdictionIDByExternalIdentifier(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off1">
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>jurisdiction-id</OtherType>
+               <Value>ru_pt_999</Value>
+             </ExternalIdentifier>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    self.offices_validator.check(element)
+
+  def testOfficeDoesNotHaveJurisdictionIDByAdditionalData(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off2">
+            <AdditionalData>ru-gpu4</AdditionalData>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(base.ElectionError) as cm:
+      self.offices_validator.check(element)
+    self.assertIn("is missing a jurisdiction-id", str(cm.exception))
+
+  def testOfficeDoesNotHaveJurisdictionIDTextByAdditionalData(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off2">
+            <AdditionalData type="jurisdiction-id"></AdditionalData>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(base.ElectionError) as cm:
+      self.offices_validator.check(element)
+    self.assertIn("is missing a jurisdiction-id", str(cm.exception))
+
+  def testOfficeHasMoreThanOneJurisdictionIDbyAdditionalData(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off1">
+            <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+            <AdditionalData type="jurisdiction-id">ru-gpu3</AdditionalData>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(base.ElectionError) as cm:
+      self.offices_validator.check(element)
+    self.assertIn("has more than one jurisdiction-id", str(cm.exception))
+
+  def testOfficeDoesNotHaveJurisdictionIDByExternalIdentifier(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off2">
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <Value>ru-gpu3</Value>
+             </ExternalIdentifier>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(base.ElectionError) as cm:
+      self.offices_validator.check(element)
+    self.assertIn("is missing a jurisdiction-id", str(cm.exception))
+
+  def testOfficeDoesNotHaveJurisdictionIDTextByExternalIdentifier(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off2">
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>jurisdiction-id</OtherType>
+               <Value></Value>
+             </ExternalIdentifier>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(base.ElectionError) as cm:
+      self.offices_validator.check(element)
+    self.assertIn("is missing a jurisdiction-id", str(cm.exception))
+
+  def testOfficeHasMoreThanOneJurisdictionIDbyExternalIdentifier(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off1">
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>jurisdiction-id</OtherType>
+               <Value>ru_pt_900</Value>
+             </ExternalIdentifier>
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>jurisdiction-id</OtherType>
+               <Value>ru_pt_800</Value>
+             </ExternalIdentifier>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(base.ElectionError) as cm:
+      self.offices_validator.check(element)
+    self.assertIn("has more than one jurisdiction-id", str(cm.exception))
+
+  def testJurisdictionIDTextIsWhitespaceByExternalIdentifier(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off2">
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>jurisdiction-id</OtherType>
+               <Value>  </Value>
+             </ExternalIdentifier>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(base.ElectionError) as cm:
+      self.offices_validator.check(element)
+    self.assertIn("is missing a jurisdiction-id", str(cm.exception))
+
+  def testJurisdictionIDTextIsWhitespaceByAdditionalData(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off2">
+            <AdditionalData type="jurisdiction-id">    </AdditionalData>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(base.ElectionError) as cm:
+      self.offices_validator.check(element)
+    self.assertIn("is missing a jurisdiction-id", str(cm.exception))
+
+
 class ValidJurisdictionIDTest(absltest.TestCase):
 
   def setUp(self):

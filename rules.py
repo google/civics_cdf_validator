@@ -42,6 +42,22 @@ def sourceline_prefix(element):
     return ""
 
 
+def get_jurisdiction_elements(element):
+  """Helper to gather all Value entities with jurisdiction-ids."""
+  jurisdiction_elements = element.findall(
+      ".//AdditionalData[@type='jurisdiction-id']")
+
+  external_ids = element.findall(".//ExternalIdentifier")
+  for extern_id in external_ids:
+    id_type = extern_id.find("Type")
+    if (id_type is not None and id_type.text == "other"):
+      other_type = extern_id.find("OtherType")
+      if (other_type is not None and other_type.text == "jurisdiction-id"):
+        if extern_id.find("Value") is not None:
+          jurisdiction_elements.append(extern_id.find("Value"))
+  return jurisdiction_elements
+
+
 class Schema(base.TreeRule):
   """Checks if election file validates against the provided schema."""
 
@@ -1818,6 +1834,29 @@ class ValidURIAnnotation(base.BaseRule):
         self.check_url(url, annotation, platform)
 
 
+class OfficesHaveJurisdictionID(base.BaseRule):
+  """Each office must have a jurisdiction-id."""
+
+  def elements(self):
+    return ["Office"]
+
+  def check(self, element):
+    jurisdiction_values = [
+        el.text
+        for el in get_jurisdiction_elements(element)
+        if el.text and el.text.strip()
+    ]
+
+    if not jurisdiction_values:
+      raise base.ElectionError(
+          ("Office {} is missing a jurisdiction-id.".format(
+              element.get("object_id", ""))))
+    if len(jurisdiction_values) > 1:
+      raise base.ElectionError(
+          ("Office {} has more than one jurisdiction-id.".format(
+              element.get("object_id", ""))))
+
+
 class ValidJurisdictionID(base.ValidReferenceRule):
   """Each jurisdiction id should refer to a valid GpUnit."""
 
@@ -1827,19 +1866,8 @@ class ValidJurisdictionID(base.ValidReferenceRule):
 
   def _gather_reference_values(self):
     root = self.election_tree.getroot()
-    jurisdiction_elements = root.findall(
-        ".//AdditionalData[@type='jurisdiction-id']")
-
-    external_ids = root.findall(".//ExternalIdentifier")
-    for extern_id in external_ids:
-      id_type = extern_id.find("Type")
-      if (id_type is not None and id_type.text == "other"):
-        other_type = extern_id.find("OtherType")
-        if (other_type is not None and other_type.text == "jurisdiction-id"):
-          if extern_id.find("Value") is not None:
-            jurisdiction_elements.append(extern_id.find("Value"))
-
-    return set([elem.text for elem in jurisdiction_elements])
+    return set(
+        [elem.text for elem in get_jurisdiction_elements(root) if elem.text])
 
   def _gather_defined_values(self):
     gp_unit_elements = self.election_tree.getroot().findall(".//GpUnit")
@@ -1929,6 +1957,7 @@ COMMON_RULES = (
     DuplicatedPartyAbbreviation,
     MissingPartyNameTranslation,
     MissingPartyAbbreviationTranslation,
+    OfficesHaveJurisdictionID,
 )
 
 ELECTION_RULES = COMMON_RULES + (

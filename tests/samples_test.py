@@ -55,8 +55,7 @@ class SamplesTest(absltest.TestCase):
         'pre_election_sample_feed.xml',
         self.election_rules,
         expected_warnings=19,
-        expected_errors=1,
-    )
+        expected_errors=18)
 
   def _TestFile(self, filename, rules_to_check,
                 expected_errors=0, expected_warnings=0):
