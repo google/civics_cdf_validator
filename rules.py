@@ -334,7 +334,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
       countries_file = self.local_file
     else:
       cache_directory = os.path.expanduser(self.CACHE_DIR)
-      countries_file = "{0}/{1}".format(cache_directory, self.github_file)
+      countries_file = os.path.join(cache_directory, self.github_file)
 
       if not os.path.exists(countries_file):
         # Only initialize `github_repo` if there's no cached file.
@@ -776,9 +776,9 @@ class PartisanPrimary(base.BaseRule):
 
   def elements(self):
     # Only check contest elements if this is a partisan election.
-    if self.election_type and self.election_type in ("primary",
+    if self.election_type and self.election_type in {"primary",
                                                      "partisan-primary-open",
-                                                     "partisan-primary-closed"):
+                                                     "partisan-primary-closed"}:
       return ["CandidateContest"]
     else:
       return []
@@ -801,8 +801,8 @@ class PartisanPrimaryHeuristic(PartisanPrimary):
   party_text = ["(dem)", "(rep)", "(lib)"]
 
   def elements(self):
-    if not self.election_type or self.election_type not in (
-        "primary", "partisan-primary-open", "partisan-primary-closed"):
+    if not self.election_type or self.election_type not in {
+        "primary", "partisan-primary-open", "partisan-primary-closed"}:
       return ["CandidateContest"]
     else:
       return []
