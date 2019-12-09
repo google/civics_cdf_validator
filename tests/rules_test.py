@@ -2747,6 +2747,55 @@ class DuplicateContestNamesTest(absltest.TestCase):
       duplicate_validator.check()
 
 
+class ValidStableIDTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ValidStableIDTest, self).setUp()
+    self.root_string = """
+        <ExternalIdentifier>
+          <Type>{}</Type>
+          {}
+          <Value>{}</Value>
+        </ExternalIdentifier>
+    """
+    self.stable_string = "<OtherType>stable</OtherType>"
+    self.stable_id_validator = rules.ValidStableID(None, None)
+
+  def testValidStableID(self):
+
+    test_string = self.root_string.format("other", self.stable_string,
+                                          "vageneral-cand-2013-va-obama")
+    self.stable_id_validator.check(etree.fromstring(test_string))
+
+  def testNonStableIDOtherTypesDontThrowError(self):
+
+    test_string = self.root_string.format("other",
+                                          "<OtherType>anothertype</OtherType>",
+                                          "vageneral-cand-2013-va-obama")
+    self.stable_id_validator.check(etree.fromstring(test_string))
+
+  def testNonStableIDTypesDontThrowError(self):
+
+    test_string = self.root_string.format("ocd-id", "",
+                                          "ocd-id/country/state/thing")
+    self.stable_id_validator.check(etree.fromstring(test_string))
+
+  def testInvalidStableID(self):
+
+    test_string = self.root_string.format("other", self.stable_string,
+                                          "cand-2013-va-obama!")
+    with self.assertRaises(base.ElectionError) as cm:
+      self.stable_id_validator.check(etree.fromstring(test_string))
+    self.assertIn("is not in the correct format.", str(cm.exception))
+
+  def testEmptyStableIDFails(self):
+
+    test_string = self.root_string.format("other", self.stable_string, "   ")
+    with self.assertRaises(base.ElectionError) as cm:
+      self.stable_id_validator.check(etree.fromstring(test_string))
+    self.assertIn("is not in the correct format.", str(cm.exception))
+
+
 class CheckIdentifiersTest(absltest.TestCase):
 
   _base_report = """

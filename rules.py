@@ -291,6 +291,31 @@ class ValidIDREF(base.BaseRule):
                                    (element.sourceline, id_ref))
 
 
+class ValidStableID(base.BaseRule):
+  """Ensure stable-ids are in the correct format."""
+
+  def __init__(self, election_tree, schema_file):
+    super(ValidStableID, self).__init__(election_tree, schema_file)
+    regex = r"^[a-zA-Z0-9_-]+$"
+    self.stable_id_matcher = re.compile(regex, flags=re.U)
+
+  def elements(self):
+    return ["ExternalIdentifier"]
+
+  def check(self, element):
+    type_element = element.find("Type")
+    if type_element is not None and type_element.text == "other":
+      other_type_element = element.find("OtherType")
+      if other_type_element is not None:
+        if other_type_element.text == "stable":
+          stable_id = element.find("Value")
+          if stable_id is not None and stable_id.text:
+            if not self.stable_id_matcher.match(stable_id.text):
+              raise base.ElectionError(
+                  "Stable id {} is not in the correct format.".format(
+                      stable_id.text))
+
+
 class ElectoralDistrictOcdId(base.BaseRule):
   """GpUnit referred to by Contest.ElectoralDistrictId MUST have a valid OCD-ID."""
 
@@ -1958,6 +1983,7 @@ COMMON_RULES = (
     MissingPartyNameTranslation,
     MissingPartyAbbreviationTranslation,
     OfficesHaveJurisdictionID,
+    ValidStableID,
 )
 
 ELECTION_RULES = COMMON_RULES + (
