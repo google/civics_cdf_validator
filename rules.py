@@ -575,18 +575,20 @@ class DuplicateGpUnits(base.TreeRule):
       object_id = gpunit.attrib["objectId"]
       self.defined_gpunits.add(object_id)
       composing_ids = self.get_composing_gpunits(gpunit)
+      # If no composing gpunits, then it's considered a leaf.
       if composing_ids is None:
         self.leaf_nodes.add(object_id)
       else:
-        self.children[object_id] = composing_ids
+        if not self.children.get(object_id, None):
+          self.children[object_id] = composing_ids
+        else:
+          self.children[object_id].update(composing_ids)
     for gpunit in collection:
       self.process_one_gpunit(gpunit)
 
   def find_duplicates(self):
     tags = dict()
     for object_id in self.children:
-      if not self.children[object_id]:
-        continue
       sorted_children = " ".join(sorted(self.children[object_id]))
       if sorted_children in tags:
         tags[sorted_children].append(object_id)
@@ -603,6 +605,7 @@ class DuplicateGpUnits(base.TreeRule):
     if "objectId" not in gpunit.attrib:
       return
     object_id = gpunit.attrib["objectId"]
+    # Don't check leaf nodes.
     if object_id in self.leaf_nodes:
       return
     composing_ids = self.get_composing_gpunits(gpunit)
@@ -615,6 +618,7 @@ class DuplicateGpUnits(base.TreeRule):
       # leaf nodes.
       non_leaf_nodes = set()
       are_leaf_nodes = set()
+      # if the child is not a leaf (it has children)
       for composing_id in composing_ids:
         if (composing_id in self.leaf_nodes or
             composing_id not in self.defined_gpunits):
@@ -627,7 +631,10 @@ class DuplicateGpUnits(base.TreeRule):
         # means that the schema validation should catch this, and we can
         # skip this error.
       if not non_leaf_nodes:
-        self.children[object_id] = are_leaf_nodes
+        if not self.children.get(object_id, None):
+          self.children[object_id] = are_leaf_nodes
+        else:
+          self.children[object_id].update(are_leaf_nodes)
         return
       for middle_node in non_leaf_nodes:
         if middle_node not in self.children:
@@ -646,11 +653,11 @@ class DuplicateGpUnits(base.TreeRule):
 
   def get_composing_gpunits(self, gpunit):
     composing = gpunit.find("ComposingGpUnitIds")
-    if composing is None or composing.text is None:
-      return None
+    if composing is None or not composing.text:
+      return
     composing_ids = composing.text.split()
     if not composing_ids:
-      return None
+      return
     return set(composing_ids)
 
 
