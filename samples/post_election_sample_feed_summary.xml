@@ -14,6 +14,7 @@
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <FileDate>2015-06-01</FileDate>
+        <IsTopTicket>true</IsTopTicket>
         <PartyId>par0003</PartyId>
       </Candidate>
       <Candidate objectId="can10861b">
@@ -27,6 +28,7 @@
             <Value>vageneral-cand-2013-va-biden</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
+        <IsTopTicket>false</IsTopTicket>
         <PartyId>par0003</PartyId>
       </Candidate>
       <Candidate objectId="can10862a">
@@ -40,6 +42,7 @@
             <Value>vageneral-cand-2013-va-romney</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
+        <IsTopTicket>true</IsTopTicket>
         <PartyId>par0001</PartyId>
       </Candidate>
       <Candidate objectId="can10862b">
@@ -53,6 +56,7 @@
             <Value>vageneral-cand-2013-va-ryan</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
+        <IsTopTicket>false</IsTopTicket>
         <PartyId>par0001</PartyId>
       </Candidate>
       <Candidate objectId="can10961">
@@ -157,6 +161,7 @@
             <Value>vageneral-cand-2013-va-powell</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
+        <IsTopTicket>false</IsTopTicket>
         <PartyId>par0003</PartyId>
       </Candidate>
       <Candidate objectId="can10422">
@@ -339,6 +344,7 @@
             <Value>vageneral-cand-2013-va-strucko</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
+        <IsTopTicket>true</IsTopTicket>
         <PartyId>par0004</PartyId>
       </Candidate>
       <Candidate objectId="can10213">

@@ -4749,6 +4749,369 @@ class ElectionEndDatesTest(absltest.TestCase):
       self.date_validator.check(election)
 
 
+class ElectionsHaveValidNumberOfWinnersTest(absltest.TestCase):
+
+  base_tree = """
+    <xml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <ContestCollection>
+        {0}
+      </ContestCollection>
+      <CandidateCollection>
+        {1}
+      </CandidateCollection>
+    </xml>
+  """
+
+  class Contest(object):
+
+    contest = """
+      <Contest objectId="{0}" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs10861" xsi:type="CandidateSelection">
+          <CandidateIds>{1}</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs10862" xsi:type="CandidateSelection">
+          <CandidateIds>{2}</CandidateIds>
+        </BallotSelection>
+        <NumberElected>{3}</NumberElected>
+      </Contest>
+    """
+
+    def __init__(
+        self,
+        object_id="cc20002",
+        candidate_ids=None,
+        number_elected=1):
+      self.object_id = object_id
+      self.candidate_ids = candidate_ids
+      if candidate_ids is None:
+        self.candidate_ids = ["can10861a can10861b", "can10862a can10862b"]
+      self.candidate_ids = candidate_ids
+      self.number_elected = number_elected
+
+    def __str__(self):
+      return self.contest.format(
+          self.object_id, self.candidate_ids[0],
+          self.candidate_ids[1], self.number_elected)
+
+  class Candidate(object):
+
+    def __init__(self, object_id, name, is_top_ticket, status):
+      self.object_id = object_id
+      self.name = name
+      self.is_top_ticket = is_top_ticket
+      self.status = status
+
+    candidate = """
+      <Candidate objectId="{0}">
+        <BallotName>
+          <Text language="en">{1}</Text>
+        </BallotName>
+        <IsTopTicket>{2}</IsTopTicket>
+        <PostElectionStatus>{3}</PostElectionStatus>
+      </Candidate>
+    """
+
+    def __str__(self):
+      return self.candidate.format(
+          self.object_id, self.name, self.is_top_ticket, self.status,
+      )
+
+  # is_combined_ticket_contest tests
+  def testReturnTrueIfAtLeastOneBallotItemHasMultipleCandidates(self):
+    candidate_ids = ["can10861a can10861b", "can10862a"]
+    contest = self.Contest(candidate_ids=candidate_ids)
+
+    root_string = self.base_tree.format(str(contest), "")
+    contest_element = etree.fromstring(
+        root_string).find(".//ContestCollection//Contest")
+    validator = rules.ElectionsHaveValidNumberOfWinners(None, None)
+
+    is_combined_ticket = validator.is_combined_ticket_contest(contest_element)
+    self.assertTrue(is_combined_ticket)
+
+  def testReturnFalseIfEachBallotItemHasOneCandidate(self):
+    candidate_ids = ["can10861a", "can10862a"]
+    contest = self.Contest(candidate_ids=candidate_ids)
+
+    root_string = self.base_tree.format(str(contest), "")
+    contest_element = etree.fromstring(
+        root_string).find(".//ContestCollection//Contest")
+    validator = rules.ElectionsHaveValidNumberOfWinners(None, None)
+
+    is_combined_ticket = validator.is_combined_ticket_contest(contest_element)
+    self.assertFalse(is_combined_ticket)
+
+  def testSetsMappingOfContestToCandidateIds(self):
+    candidate_ids = ["can10861a can10861b", "can10862a"]
+    contest = self.Contest(object_id="cc20002", candidate_ids=candidate_ids)
+
+    root_string = self.base_tree.format(str(contest), "")
+    contest_element = etree.fromstring(
+        root_string).find(".//ContestCollection//Contest")
+    validator = rules.ElectionsHaveValidNumberOfWinners(None, None)
+
+    expected_contest_candidates = {
+        "cc20002": ["can10861a", "can10861b", "can10862a"],
+    }
+
+    validator.is_combined_ticket_contest(contest_element)
+    self.assertEqual(expected_contest_candidates, validator.contest_candidates)
+
+  # valid_top_ticket tests
+  def testIsTopTicketExistsAndSetProperlyForEachBallotSelectionCandidate(self):
+    cand_one = self.Candidate(
+        "can10861a", "Tom Brady", "true", "projected-winner")
+    cand_two = self.Candidate(
+        "can10861b", "Drew Bledsoe", "false", "projected-winner")
+    cand_three = self.Candidate(
+        "can10862a", "Peyton Manning", "true", "withdrawn")
+    cand_four = self.Candidate(
+        "can10862b", "Jim Sorgi", "false", "withdrawn")
+    all_candidates_string = (
+        str(cand_one) + str(cand_two) + str(cand_three) + str(cand_four))
+
+    candidate_ids = ["can10861a can10861b", "can10862a can10862b"]
+    contest = self.Contest(object_id="cc20002", candidate_ids=candidate_ids)
+
+    root_string = self.base_tree.format(str(contest), all_candidates_string)
+    election_tree = etree.fromstring(root_string)
+    validator = rules.ElectionsHaveValidNumberOfWinners(election_tree, None)
+
+    contest_element = election_tree.find(".//ContestCollection/Contest")
+    validator.valid_top_ticket(contest_element)
+
+  def testRaisesErrorIfTopTicketNotSet(self):
+    contest = self.Contest(candidate_ids=["can10862a", ""])
+    candidate_string = """
+      <CandidateCollection>
+        <Candidate objectId="can10862a">
+          <BallotName>
+            <Text language="en">Mitt Romney</Text>
+          </BallotName>
+        </Candidate>
+      </CandidateCollection>
+    """
+    root_string = self.base_tree.format(str(contest), candidate_string)
+    election_tree = etree.fromstring(root_string)
+    validator = rules.ElectionsHaveValidNumberOfWinners(election_tree, None)
+
+    with self.assertRaises(base.ElectionError) as ee:
+      contest_element = election_tree.find(".//ContestCollection/Contest")
+      validator.valid_top_ticket(contest_element)
+    self.assertIn(
+        "The election file contains invalid ballot selections.",
+        str(ee.exception))
+    self.assertIn(
+        "Candidate can10862a is missing IsTopTicket flag",
+        ee.exception.error_log[0].message)
+
+  def testRaisesErrorIfMoreThanOneTopTicketPerBallotIsTrue(self):
+    cand_one = self.Candidate(
+        "can10861a", "Tom Brady", "true", "projected-winner")
+    cand_two = self.Candidate(
+        "can10861b", "Drew Bledsoe", "true", "projected-winner")
+    cand_three = self.Candidate(
+        "can10862a", "Peyton Manning", "true", "withdrawn")
+    cand_four = self.Candidate(
+        "can10862b", "Jim Sorgi", "false", "withdrawn")
+    all_candidates_string = (
+        str(cand_one) + str(cand_two) + str(cand_three) + str(cand_four))
+
+    candidate_ids = ["can10861a can10861b", "can10862a can10862b"]
+    contest = self.Contest(object_id="cc20002", candidate_ids=candidate_ids)
+
+    root_string = self.base_tree.format(str(contest), all_candidates_string)
+    election_tree = etree.fromstring(root_string)
+    validator = rules.ElectionsHaveValidNumberOfWinners(election_tree, None)
+
+    with self.assertRaises(base.ElectionTreeError) as ete:
+      contest_element = election_tree.find(".//ContestCollection/Contest")
+      validator.valid_top_ticket(contest_element)
+    self.assertIn(
+        "The election file contains invalid ballot selections.",
+        str(ete.exception))
+    self.assertIn((
+        "Candidates can10861a and can10861b are part of the same ballot "
+        "selection and are both flagged as IsTopTicket."),
+                  ete.exception.error_log[0].message)
+
+  def testRaisesErrorIfNoCandidatesFromBallotItemAreSetAsTopTicket(self):
+    cand_one = self.Candidate(
+        "can10861a", "Tom Brady", "true", "projected-winner")
+    cand_two = self.Candidate(
+        "can10861b", "Drew Bledsoe", "false", "projected-winner")
+    cand_three = self.Candidate(
+        "can10862a", "Peyton Manning", "false", "withdrawn")
+    cand_four = self.Candidate(
+        "can10862b", "Jim Sorgi", "false", "withdrawn")
+    all_candidates_string = (
+        str(cand_one) + str(cand_two) + str(cand_three) + str(cand_four))
+
+    candidate_ids = ["can10861a can10861b", "can10862a can10862b"]
+    contest = self.Contest(object_id="cc20002", candidate_ids=candidate_ids)
+
+    root_string = self.base_tree.format(str(contest), all_candidates_string)
+    election_tree = etree.fromstring(root_string)
+    validator = rules.ElectionsHaveValidNumberOfWinners(election_tree, None)
+
+    with self.assertRaises(base.ElectionTreeError) as ete:
+      contest_element = election_tree.find(".//ContestCollection/Contest")
+      validator.valid_top_ticket(contest_element)
+    self.assertIn(
+        "The election file contains invalid ballot selections.",
+        str(ete.exception))
+    self.assertIn((
+        "One candidate from ballot selection cs10862 must have "
+        "IsTopTicket set to true"), ete.exception.error_log[0].message)
+
+  # # check tests
+  # pylint: disable=unused-argument
+  def mock_combined_ticket_contest(self, contest_element):
+    return True
+
+  # pylint: disable=unused-argument
+  def mock_single_ticket_contest(self, contest_element):
+    return False
+
+  def mock_valid_top_ticket(self, contest_element):
+    return None
+
+  @patch.object(
+      rules.ElectionsHaveValidNumberOfWinners, "is_combined_ticket_contest",
+      mock_combined_ticket_contest)
+  @patch.object(
+      rules.ElectionsHaveValidNumberOfWinners, "valid_top_ticket",
+      mock_valid_top_ticket)
+  def testTheTopTicketWinnersDoesNotExceedNumberElected(self):
+    cand_one = self.Candidate(
+        "can10861a", "Tom Brady", "true", "projected-winner")
+    cand_two = self.Candidate(
+        "can10861b", "Drew Bledsoe", "false", "projected-winner")
+    cand_three = self.Candidate(
+        "can10862a", "Peyton Manning", "true", "withdrawn")
+    cand_four = self.Candidate(
+        "can10862b", "Jim Sorgi", "false", "withdrawn")
+    all_candidates_string = (
+        str(cand_one) + str(cand_two) + str(cand_three) + str(cand_four))
+
+    candidate_ids = ["can10861a can10861b", "can10862a can10862b"]
+    contest = self.Contest(
+        object_id="cc20002", candidate_ids=candidate_ids, number_elected=1)
+
+    root_string = self.base_tree.format(str(contest), all_candidates_string)
+    election_tree = etree.fromstring(root_string)
+
+    validator = rules.ElectionsHaveValidNumberOfWinners(election_tree, None)
+    validator.contest_candidates = {
+        contest.object_id: [
+            cand_one.object_id, cand_two.object_id,
+            cand_three.object_id, cand_four.object_id,
+        ],
+    }
+
+    validator.check()
+
+  @patch.object(
+      rules.ElectionsHaveValidNumberOfWinners, "is_combined_ticket_contest",
+      mock_single_ticket_contest)
+  @patch.object(
+      rules.ElectionsHaveValidNumberOfWinners, "valid_top_ticket",
+      mock_valid_top_ticket)
+  def testNumberOfWinnersDoesNotExceedNumberElected_SingleTicketContest(self):
+    cand_one = self.Candidate("can10861a", "Tom Brady", "", "projected-winner")
+    cand_two = self.Candidate("can10862a", "Peyton Manning", "", "withdrawn")
+    all_candidates_string = str(cand_one) + str(cand_two)
+
+    candidate_ids = ["can10861a", "can10862a"]
+    contest = self.Contest(
+        object_id="cc20002", candidate_ids=candidate_ids, number_elected=1)
+
+    root_string = self.base_tree.format(str(contest), all_candidates_string)
+    election_tree = etree.fromstring(root_string)
+
+    validator = rules.ElectionsHaveValidNumberOfWinners(election_tree, None)
+    validator.contest_candidates = {
+        contest.object_id: [cand_one.object_id, cand_two.object_id],
+    }
+
+    validator.check()
+
+  @patch.object(
+      rules.ElectionsHaveValidNumberOfWinners, "is_combined_ticket_contest",
+      mock_combined_ticket_contest)
+  @patch.object(
+      rules.ElectionsHaveValidNumberOfWinners, "valid_top_ticket",
+      mock_valid_top_ticket)
+  def testRaisesErrorIfTopTicketWinnersExceedsNumberElected(self):
+    cand_one = self.Candidate(
+        "can10861a", "Tom Brady", "true", "projected-winner")
+    cand_two = self.Candidate(
+        "can10861b", "Drew Bledsoe", "false", "projected-winner")
+    cand_three = self.Candidate(
+        "can10862a", "Peyton Manning", "true", "projected-winner")
+    cand_four = self.Candidate(
+        "can10862b", "Jim Sorgi", "false", "projected-winner")
+    all_candidates_string = (
+        str(cand_one) + str(cand_two) + str(cand_three) + str(cand_four))
+
+    candidate_ids = ["can10861a can10861b", "can10862a can10862b"]
+    contest = self.Contest(
+        object_id="cc20002", candidate_ids=candidate_ids, number_elected=1)
+
+    root_string = self.base_tree.format(str(contest), all_candidates_string)
+    election_tree = etree.fromstring(root_string)
+
+    validator = rules.ElectionsHaveValidNumberOfWinners(election_tree, None)
+    validator.contest_candidates = {
+        contest.object_id: [
+            cand_one.object_id, cand_two.object_id,
+            cand_three.object_id, cand_four.object_id,
+        ],
+    }
+
+    with self.assertRaises(base.ElectionTreeError) as ete:
+      validator.check()
+    self.assertIn("The election file contains an invalid number of winners.",
+                  str(ete.exception))
+    self.assertIn((
+        "There are currently 2 top ticket candidates set as projected-winner "
+        "when 1 are expected for Contest cc20002"),
+                  ete.exception.error_log[0].message)
+
+  @patch.object(
+      rules.ElectionsHaveValidNumberOfWinners, "is_combined_ticket_contest",
+      mock_single_ticket_contest)
+  @patch.object(
+      rules.ElectionsHaveValidNumberOfWinners, "valid_top_ticket",
+      mock_valid_top_ticket)
+  def testRaisesErrorIfNumOfWinnersExceedsNumElected_SingleTicket(self):
+    cand_one = self.Candidate(
+        "can10861a", "Tom Brady", "", "projected-winner")
+    cand_two = self.Candidate(
+        "can10862a", "Peyton Manning", "", "projected-winner")
+    all_candidates_string = str(cand_one) + str(cand_two)
+
+    candidate_ids = ["can10861a", "can10862a"]
+    contest = self.Contest(
+        object_id="cc20002", candidate_ids=candidate_ids, number_elected=1)
+
+    root_string = self.base_tree.format(str(contest), all_candidates_string)
+    election_tree = etree.fromstring(root_string)
+
+    validator = rules.ElectionsHaveValidNumberOfWinners(election_tree, None)
+    validator.contest_candidates = {
+        contest.object_id: [cand_one.object_id, cand_two.object_id],
+    }
+
+    with self.assertRaises(base.ElectionTreeError) as ete:
+      validator.check()
+    self.assertIn(("The election file contains an invalid number of winners."),
+                  str(ete.exception))
+    self.assertIn(("There are currently 2 candidates set as projected-winner "
+                   "for Contest cc20002 when 1 are expected"),
+                  ete.exception.error_log[0].message)
+
+
 class RulesTest(absltest.TestCase):
 
   def testAllRulesIncluded(self):

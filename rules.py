@@ -1924,6 +1924,125 @@ class ElectionEndDates(base.DateRule):
       raise base.ElectionError("The election dates are invalid: ", error_log)
 
 
+class ElectionsHaveValidNumberOfWinners(base.TreeRule):
+  """Each contest should have a valid number of candidates flagged as a winner.
+
+  Contests should have an equal number of candidates flagged as a winner as
+  the value specified in NumberElected. For combined-ticket contests, only
+  candidates flagged as IsTopTicket should be considered.
+  """
+
+  def __init__(self, election_tree, schema_file):
+    super(ElectionsHaveValidNumberOfWinners, self).__init__(
+        election_tree, schema_file)
+    self.contest_candidates = {}
+    self.namespaces = {"xsi": "http://www.w3.org/2001/XMLSchema-instance"}
+
+  def is_combined_ticket_contest(self, contest_element):
+    ballot_selections = contest_element.findall("BallotSelection")
+    is_combined_ticket_contest = False
+    candidate_ids = []
+    for bs in ballot_selections:
+      candidates = bs.find("CandidateIds")
+      if candidates is None:
+        continue
+      ballot_candidates = candidates.text.split()
+      candidate_ids.extend(ballot_candidates)
+      if len(ballot_candidates) > 1:
+        is_combined_ticket_contest = True
+
+    self.contest_candidates[contest_element.get("objectId")] = candidate_ids
+    return is_combined_ticket_contest
+
+  def valid_top_ticket(self, contest_element):
+    ballot_selections = contest_element.findall("BallotSelection")
+    error_log = []
+    for bs in ballot_selections:
+      cand_id_text = bs.find("CandidateIds").text
+      candidate_ids = cand_id_text.split() if cand_id_text is not None else []
+      top_ticket = None
+      for candidate_id in candidate_ids:
+        candidate = self.election_tree.find(
+            ".//Candidate[@objectId='{}']".format(candidate_id))
+        is_top_ticket = candidate.find("IsTopTicket")
+        if is_top_ticket is None:
+          error_message = ("Candidate {} is missing IsTopTicket flag. This is "
+                           " required for contests with multiple candidates "
+                           "per ballot selection.").format(candidate_id)
+          error_log.append(base.ErrorLogEntry(None, error_message))
+        if is_top_ticket is not None and is_top_ticket.text == "true":
+          if top_ticket is not None:
+            error_message = ("Candidates {} and {} are part of the same "
+                             "ballot selection and are both flagged as"
+                             " IsTopTicket. There can only be one top ticket "
+                             "per ballot selection").format(
+                                 top_ticket, candidate_id)
+            error_log.append(base.ErrorLogEntry(None, error_message))
+          top_ticket = candidate_id
+      if top_ticket is None:
+        error_message = ("One candidate from ballot selection {} must have "
+                         "IsTopTicket set to true.").format(
+                             bs.get("objectId", None))
+        error_log.append(base.ErrorLogEntry(None, error_message))
+    if error_log:
+      raise base.ElectionTreeError(
+          "The election file contains invalid ballot selections.",
+          error_log)
+
+  # pylint: disable=g-long-lambda
+  def check(self):
+    single_contest_winner = lambda status, cand: (
+        status is not None and status.text == "projected-winner")
+    multi_contest_winner = lambda status, cand: single_contest_winner(
+        status, cand) and cand.find("IsTopTicket").text == "true"
+
+    error_log = []
+    for contest in self.election_tree.findall(
+        ".//ContestCollection//Contest[@xsi:type='CandidateContest']",
+        self.namespaces):
+      contest_id = contest.get("objectId")
+      number_elected_elem = contest.find("NumberElected")
+      if number_elected_elem is None:
+        error_message = "Contest {} is missing a NumberElected value.".format(
+            contest_id
+        )
+        error_log.append(base.ErrorLogEntry(None, error_message))
+        continue
+      winner_count = 0
+      number_elected = number_elected_elem.text
+      winner_check = single_contest_winner
+      is_combined_ticket_contest = self.is_combined_ticket_contest(contest)
+      if is_combined_ticket_contest:
+        self.valid_top_ticket(contest)
+        winner_check = multi_contest_winner
+      for candidate_id in self.contest_candidates[contest.get("objectId")]:
+        candidate = self.election_tree.find(
+            ".//Candidate[@objectId='{}']".format(candidate_id))
+        status = candidate.find("PostElectionStatus")
+        if winner_check(status, candidate):
+          winner_count += 1
+      if int(winner_count) > int(number_elected):
+        if is_combined_ticket_contest:
+          error_message = (
+              "For combined ticket contests (more than one candidate per "
+              "ballot selection) the number of candidates that are set to "
+              "true for IsTopTicket should be less than or equal to the value "
+              "of NumberElected for this contest. There are currently {0} top "
+              "ticket candidates set as projected-winner when {1} are "
+              "expected for Contest {2}").format(
+                  winner_count, number_elected, contest.get("objectId"))
+          error_log.append(base.ErrorLogEntry(None, error_message))
+        error_message = (
+            "There are currently {0} candidates set as projected-winner for "
+            "Contest {2} when {1} are expected").format(
+                winner_count, number_elected, contest.get("objectId"))
+        error_log.append(base.ErrorLogEntry(None, error_message))
+    if error_log:
+      raise base.ElectionTreeError(
+          ("The election file contains an invalid number of winners."),
+          error_log)
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
@@ -1984,6 +2103,7 @@ ELECTION_RULES = COMMON_RULES + (
     DuplicatedPartyName,
     DuplicatedPartyAbbreviation,
     MissingPartyNameTranslation,
+    ElectionsHaveValidNumberOfWinners,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (

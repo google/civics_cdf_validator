@@ -380,6 +380,7 @@
              Candidate would be a Democrat, but Bernie Sanders the person would
              be an independent.
           -->
+        <IsTopTicket>true</IsTopTicket>
         <PartyId>par0003</PartyId>
         <PersonId>per10861a</PersonId>
       </Candidate>
@@ -388,6 +389,7 @@
           <Text language="en">Joseph R. Biden</Text>
         </BallotName>
         <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>vageneral-cand-2013-va-biden</Value></ExternalIdentifier></ExternalIdentifiers>
+        <IsTopTicket>false</IsTopTicket>
         <PartyId>par0003</PartyId>
         <PersonId>per10861b</PersonId>
       </Candidate>
@@ -396,6 +398,7 @@
           <Text language="en">Mitt Romney</Text>
         </BallotName>
         <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>vageneral-cand-2013-va-romney</Value></ExternalIdentifier></ExternalIdentifiers>
+        <IsTopTicket>true</IsTopTicket>
         <PartyId>par0001</PartyId>
         <PersonId>per10862a</PersonId>
       </Candidate>
@@ -404,6 +407,7 @@
           <Text language="en">Paul Ryan</Text>
         </BallotName>
         <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>vageneral-cand-2013-va-ryan</Value></ExternalIdentifier></ExternalIdentifiers>
+        <IsTopTicket>false</IsTopTicket>
         <PartyId>par0001</PartyId>
         <PersonId>per10862b</PersonId>
       </Candidate>
@@ -468,6 +472,7 @@
           <Text language="en">Cleo E. Powell</Text>
         </BallotName>
         <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>vageneral-cand-2013-va-powell</Value></ExternalIdentifier></ExternalIdentifiers>
+        <IsTopTicket>false</IsTopTicket>
         <PartyId>par0003</PartyId>
         <PersonId>per14444</PersonId>
       </Candidate>
@@ -583,6 +588,7 @@
           <Text language="en">Eric J. Strucko</Text>
         </BallotName>
         <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>vageneral-cand-2013-va-strucko</Value></ExternalIdentifier></ExternalIdentifiers>
+        <IsTopTicket>true</IsTopTicket>
         <PartyId>par0004</PartyId>
         <PersonId>per10215</PersonId>
       </Candidate>
