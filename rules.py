@@ -1978,7 +1978,6 @@ COMMON_RULES = (
     ValidURIAnnotation,
     GpUnitsCyclesRefsValidation,
     ValidJurisdictionID,
-    MissingPartyNameTranslation,
     OfficesHaveJurisdictionID,
     ValidStableID,
 )
@@ -2005,6 +2004,7 @@ ELECTION_RULES = COMMON_RULES + (
     MissingPartyAbbreviationTranslation,
     DuplicatedPartyName,
     DuplicatedPartyAbbreviation,
+    MissingPartyNameTranslation,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (
