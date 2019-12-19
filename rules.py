@@ -549,109 +549,43 @@ class GpUnitOcdId(ElectoralDistrictOcdId):
                 "not valid" % (ocd_id, gpunit_id, value.sourceline))
 
 
-class DuplicateGpUnits(base.TreeRule):
+class DuplicateGpUnits(base.BaseRule):
   """Detect GpUnits which are effectively duplicates of each other."""
 
-  def __init__(self, election_tree, schema_file):
-    super(DuplicateGpUnits, self).__init__(election_tree, schema_file)
-    self.leaf_nodes = set()
-    self.children = dict()
-    self.defined_gpunits = set()
+  def elements(self):
+    return ["GpUnitCollection"]
 
-  def check(self):
-    root = self.election_tree.getroot()
-    if root is None:
-      return
-    collection = root.find("GpUnitCollection")
-    if collection is None:
-      return
-    self.process_gpunit_collection(collection)
-    self.find_duplicates()
-
-  def process_gpunit_collection(self, collection):
-    for gpunit in collection:
-      if "objectId" not in gpunit.attrib:
+  def check(self, element):
+    children = {}
+    object_ids = set()
+    error_log = []
+    for gpunit in element.findall("GpUnit"):
+      object_id = gpunit.get("objectId")
+      if not object_id:
         continue
-      object_id = gpunit.attrib["objectId"]
-      self.defined_gpunits.add(object_id)
-      composing_ids = self.get_composing_gpunits(gpunit)
-      if composing_ids is None:
-        self.leaf_nodes.add(object_id)
-      else:
-        self.children[object_id] = composing_ids
-    for gpunit in collection:
-      self.process_one_gpunit(gpunit)
-
-  def find_duplicates(self):
-    tags = dict()
-    for object_id in self.children:
-      if not self.children[object_id]:
+      elif object_id in object_ids:
+        error_log.append(
+            base.ErrorLogEntry(
+                None, "GpUnit with object_id {} is "
+                "duplicated at line {}".format(object_id, gpunit.sourceline)))
         continue
-      sorted_children = " ".join(sorted(self.children[object_id]))
-      if sorted_children in tags:
-        tags[sorted_children].append(object_id)
-      else:
-        tags[sorted_children] = [object_id]
-    for tag in tags:
-      if len(tags[tag]) == 1:
+      object_ids.add(object_id)
+      composing_gpunits = gpunit.find("ComposingGpUnitIds")
+      if composing_gpunits is None or not composing_gpunits.text:
         continue
-      raise base.ElectionError("GpUnits [%s] are duplicates" %
-                               (", ".join(tags[tag])))
-
-  def process_one_gpunit(self, gpunit):
-    """Define each GpUnit in terms of only nodes with no children."""
-    if "objectId" not in gpunit.attrib:
-      return
-    object_id = gpunit.attrib["objectId"]
-    if object_id in self.leaf_nodes:
-      return
-    composing_ids = self.get_composing_gpunits(gpunit)
-    visited = set()
-    while True:
-      # Iterate over the set of GpUnits which compose this particular
-      # GpUnit. If any of the children of this node have children
-      # themselves, replace the child of this node with the set of
-      # grandchildren. Repeat until the only children of this GpUnit are
-      # leaf nodes.
-      non_leaf_nodes = set()
-      are_leaf_nodes = set()
-      for composing_id in composing_ids:
-        if (composing_id in self.leaf_nodes or
-            composing_id not in self.defined_gpunits):
-          are_leaf_nodes.add(composing_id)
-        elif composing_id in self.children:
-          non_leaf_nodes.add(composing_id)
-        # If we get here then it means that the composing ID (i.e., the
-        # GpUnit referenced by the current GpUnit) is not actually
-        # present in the doc. Since everything is handled by IDREFS this
-        # means that the schema validation should catch this, and we can
-        # skip this error.
-      if not non_leaf_nodes:
-        self.children[object_id] = are_leaf_nodes
-        return
-      for middle_node in non_leaf_nodes:
-        if middle_node not in self.children:
-          # TODO(kaminer): Confirm whether or not it's possible to remove
-          # this block. non_leafe_nodes consist exclusively of nodes in
-          # self.children (see line 565). Checking for them not to be there
-          # seems like something that will never happen.
-          print("Non-leaf node {} has no children".format(middle_node))
-          continue
-        visited.add(middle_node)
-        for node in self.children[middle_node]:
-          if node in visited:
-            continue
-          composing_ids.add(node)
-        composing_ids.remove(middle_node)
-
-  def get_composing_gpunits(self, gpunit):
-    composing = gpunit.find("ComposingGpUnitIds")
-    if composing is None or composing.text is None:
-      return None
-    composing_ids = composing.text.split()
-    if not composing_ids:
-      return None
-    return set(composing_ids)
+      composing_ids = frozenset(composing_gpunits.text.split())
+      if children.get(composing_ids):
+        error_log.append(
+            base.ErrorLogEntry(
+                None, "GpUnits {} are duplicates".format(
+                    str((children[composing_ids], object_id)))))
+        continue
+      children[composing_ids] = object_id
+    if error_log:
+      raise base.ElectionError(
+          "The following errors are due to duplicate GpUnits: \n{}".format(
+              "\n".join([e.message for e in error_log])),
+          error_log=error_log)
 
 
 class GpUnitsHaveSingleRoot(base.TreeRule):

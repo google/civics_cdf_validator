@@ -1169,223 +1169,154 @@ class DuplicateGpUnitsTest(absltest.TestCase):
   def setUp(self):
     super(DuplicateGpUnitsTest, self).setUp()
     self.gp_unit_validator = rules.DuplicateGpUnits(None, None)
+    self.root_string = """
+    <GpUnitCollection>
+    {}
+    </GpUnitCollection>
+    """
 
-  # get_composing_gpunits tests
-  def testReturnsASetOfComposingIdsForGivenGpUnit(self):
-    gp_unit_string = """
-      <GpUnit objectId="ru0002">
-        <ComposingGpUnitIds>ru_pre90111 ru_pre90139 ru_pre90183</ComposingGpUnitIds>
+  def testNoGpUnitsReturnsNone(self):
+    self.gp_unit_validator.check(etree.fromstring(self.root_string))
+
+  def testNoObjectIdsReturnsNone(self):
+    test_string = """
+      <GpUnit>
+        <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
         <Name>Virginia</Name>
         <Type>state</Type>
       </GpUnit>
-    """
-    gp_unit = etree.fromstring(gp_unit_string)
-
-    expected_gp_units = set(["ru_pre90111", "ru_pre90139", "ru_pre90183"])
-    composing_gp_units = self.gp_unit_validator.get_composing_gpunits(gp_unit)
-
-    self.assertEqual(expected_gp_units, composing_gp_units)
-
-  def testReturnNoneIfNoUnitIdsElement(self):
-    gp_unit_string = """
-      <GpUnit objectId="ru0002">
-        <Name>Virginia</Name>
+      <GpUnit>
+        <ComposingGpUnitIds>xyz987</ComposingGpUnitIds>
+        <Name>New York</Name>
         <Type>state</Type>
       </GpUnit>
     """
-    gp_unit = etree.fromstring(gp_unit_string)
+    self.gp_unit_validator.check(
+        etree.fromstring(self.root_string.format(test_string)))
 
-    composing_gp_units = self.gp_unit_validator.get_composing_gpunits(gp_unit)
+  def testNoComposingGpUnitsReturnsNone(self):
+    test_string = """
+      <GpUnit>
+        <Name>Virginia</Name>
+        <Type>state</Type>
+      </GpUnit>
+      <GpUnit>
+        <Name>New York</Name>
+        <Type>state</Type>
+      </GpUnit>
+    """
+    self.gp_unit_validator.check(
+        etree.fromstring(self.root_string.format(test_string)))
 
-    self.assertIsNone(composing_gp_units)
-
-  def testReturnNoneIfUnitIdsElementIsEmpty(self):
-    gp_unit_string = """
-      <GpUnit objectId="ru0002">
+  def testNoComposingGpUnitsTextReturnsNone(self):
+    test_string = """
+      <GpUnit>
         <ComposingGpUnitIds></ComposingGpUnitIds>
         <Name>Virginia</Name>
         <Type>state</Type>
       </GpUnit>
+      <GpUnit>
+        <Name>New York</Name>
+        <Type>state</Type>
+      </GpUnit>
     """
-    gp_unit = etree.fromstring(gp_unit_string)
+    self.gp_unit_validator.check(
+        etree.fromstring(self.root_string.format(test_string)))
 
-    composing_gp_units = self.gp_unit_validator.get_composing_gpunits(gp_unit)
-
-    self.assertIsNone(composing_gp_units)
-
-  def testReturnNoneIfUnitIdsSplitIsEmpty(self):
-    gp_unit_string = """
+  def testItProcessesCollectionAndDoesNotFindDuplicates(self):
+    test_string = """
       <GpUnit objectId="ru0002">
-        <ComposingGpUnitIds> </ComposingGpUnitIds>
+        <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
+        <Name>Virginia</Name>
+        <Type>state</Type>
+      </GpUnit>
+      <GpUnit objectId="ru0003">
+        <ComposingGpUnitIds></ComposingGpUnitIds>
+        <Name>Massachusetts</Name>
+        <Type>state</Type>
+      </GpUnit>
+      <GpUnit>
+        <ComposingGpUnitIds>xyz987</ComposingGpUnitIds>
+        <Name>New York</Name>
+        <Type>state</Type>
+      </GpUnit>
+    """
+    self.gp_unit_validator.check(
+        etree.fromstring(self.root_string.format(test_string)))
+
+  def testItProcessesCollectionAndFindsDuplicatePaths(self):
+    test_string = """
+      <GpUnit objectId="ru0002">
+        <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
+        <Name>Virginia</Name>
+        <Type>state</Type>
+      </GpUnit>
+      <GpUnit objectId="abc123">
+        <ComposingGpUnitIds></ComposingGpUnitIds>
+        <Name>Massachusetts</Name>
+        <Type>state</Type>
+      </GpUnit>
+      <GpUnit objectId="ru0004">
+        <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
         <Name>Virginia</Name>
         <Type>state</Type>
       </GpUnit>
     """
-    gp_unit = etree.fromstring(gp_unit_string)
+    with self.assertRaises(base.ElectionError) as cm:
+      self.gp_unit_validator.check(
+          etree.fromstring(self.root_string.format(test_string)))
+    self.assertIn("GpUnits ('ru0002', 'ru0004') are duplicates",
+                  str(cm.exception))
 
-    composing_gp_units = self.gp_unit_validator.get_composing_gpunits(gp_unit)
-
-    self.assertIsNone(composing_gp_units)
-
-  # process_one_gpunit tests
-  def testIgnoresUnitWithNoId(self):
-    gp_unit_string = """
-      <GpUnit/>
-    """
-    gp_unit = etree.fromstring(gp_unit_string)
-    self.gp_unit_validator.process_one_gpunit(gp_unit)
-
-  def testIgnoresUnitWithIdAlreadyInLeafNodes(self):
-    gp_unit_string = """
-      <GpUnit objectId="abc123"/>
-    """
-    gp_unit = etree.fromstring(gp_unit_string)
-
-    self.gp_unit_validator.leaf_nodes = set(["abc123"])
-    self.gp_unit_validator.process_one_gpunit(gp_unit)
-
-  def testShouldListComposingIdChildren(self):
-    gp_unit_string = """
+  def testItProcessesCollectionAndFindsDuplicateObjectIds(self):
+    test_string = """
       <GpUnit objectId="ru0002">
-        <ComposingGpUnitIds>ru_pre90111 ru_pre90139 ru_pre90183</ComposingGpUnitIds>
+        <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
+        <Name>Virginia</Name>
+        <Type>state</Type>
+      </GpUnit>
+      <GpUnit objectId="abc123">
+        <ComposingGpUnitIds></ComposingGpUnitIds>
+        <Name>Massachusetts</Name>
+        <Type>state</Type>
+      </GpUnit>
+      <GpUnit objectId="ru0002">
+        <ComposingGpUnitIds>abc124</ComposingGpUnitIds>
         <Name>Virginia</Name>
         <Type>state</Type>
       </GpUnit>
     """
-    gp_unit = etree.fromstring(gp_unit_string)
+    with self.assertRaises(base.ElectionError) as cm:
+      self.gp_unit_validator.check(
+          etree.fromstring(self.root_string.format(test_string)))
+    self.assertIn("GpUnit with object_id ru0002 is duplicated",
+                  str(cm.exception))
 
-    self.assertEqual(dict(), self.gp_unit_validator.children)
-    self.gp_unit_validator.process_one_gpunit(gp_unit)
-
-    expected_children = dict(
-        {"ru0002": set(["ru_pre90111", "ru_pre90139", "ru_pre90183"])})
-    self.assertEqual(expected_children, self.gp_unit_validator.children)
-
-  def testShouldOnlyHaveLeafNodesAsChildren(self):
-    gp_unit_string = """
+  def testItFindsDuplicateObjectIdsAndDuplicatePaths(self):
+    test_string = """
       <GpUnit objectId="ru0002">
-        <ComposingGpUnitIds>ru_pre90111 ru_pre90139 ru_pre90183 ru_pre90789</ComposingGpUnitIds>
+        <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
+        <Name>Virginia</Name>
+        <Type>state</Type>
+      </GpUnit>
+      <GpUnit objectId="ru0002">
+        <ComposingGpUnitIds></ComposingGpUnitIds>
+        <Name>Massachusetts</Name>
+        <Type>state</Type>
+      </GpUnit>
+      <GpUnit objectId="ru0004">
+        <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
         <Name>Virginia</Name>
         <Type>state</Type>
       </GpUnit>
     """
-    gp_unit = etree.fromstring(gp_unit_string)
-
-    self.gp_unit_validator.children = dict({
-        "ru_pre90111": set(["abc123", "def456"]),
-        "ru_pre90139": set(["ghi789"]),
-        "ghi789": set(["xyz123"])
-    })
-    self.gp_unit_validator.leaf_nodes = set(["ru_pre90183"])
-    self.gp_unit_validator.defined_gpunits = set(
-        ["ru_pre90111", "ru_pre90139", "ghi789", "ru_pre90789"])
-    self.gp_unit_validator.process_one_gpunit(gp_unit)
-
-    expected_children = dict({
-        "ru_pre90111": set(["abc123", "def456"]),
-        "ru_pre90139": set(["ghi789"]),
-        "ghi789": set(["xyz123"]),
-        "ru0002": set(["ru_pre90183", "abc123", "def456", "xyz123"])
-    })
-    self.assertEqual(expected_children, self.gp_unit_validator.children)
-
-  # process_gpunit_collection test
-  def testItEstablishesChildrenAndLeafNodesForGivenCollection(self):
-    gp_collection_string = """
-      <GpUnitCollection>
-        <GpUnit objectId="ru0002">
-          <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
-          <Name>Virginia</Name>
-          <Type>state</Type>
-        </GpUnit>
-        <GpUnit objectId="ru0003">
-          <ComposingGpUnitIds></ComposingGpUnitIds>
-          <Name>Massachusetts</Name>
-          <Type>state</Type>
-        </GpUnit>
-        <GpUnit>
-          <ComposingGpUnitIds>xyz987</ComposingGpUnitIds>
-          <Name>New York</Name>
-          <Type>state</Type>
-        </GpUnit>
-      </GpUnitCollection>
-    """
-    gp_collection = etree.fromstring(gp_collection_string)
-
-    mock = MagicMock()
-    self.gp_unit_validator.process_one_gpunit = mock
-
-    self.gp_unit_validator.process_gpunit_collection(gp_collection)
-
-    expected_defined = set(["ru0002", "ru0003"])
-    expected_leaf_noes = set(["ru0003"])
-    expected_children = dict({"ru0002": set(["abc123"])})
-    self.assertEqual(expected_defined, self.gp_unit_validator.defined_gpunits)
-    self.assertEqual(expected_leaf_noes, self.gp_unit_validator.leaf_nodes)
-    self.assertEqual(expected_children, self.gp_unit_validator.children)
-    self.assertEqual(3, mock.call_count)
-
-  # find_duplicates tests
-  def testIgnoresCollectionsWithUniqueUnits(self):
-    self.gp_unit_validator.children = dict({
-        "ru_pre90111": set(["abc123"]),
-        "ru_pre90139": set(["def456"]),
-    })
-    self.gp_unit_validator.find_duplicates()
-
-  def testRaisesAnErrorIfThereAreDuplicateUnits(self):
-    self.gp_unit_validator.children = dict({
-        "ru_pre90111": set(["abc123"]),
-        "ru_pre90139": set(["abc123"]),
-    })
-    with self.assertRaises(base.ElectionError):
-      self.gp_unit_validator.find_duplicates()
-
-  # check tests
-  def testSkipsCheckIfNoRootOrCollection(self):
-    validator = rules.DuplicateGpUnits(etree.ElementTree(), None)
-    validator.check()
-
-    no_collection = io.BytesIO(b"""<?xml version="1.0" encoding="UTF-8"?>
-      <Report/>
-    """)
-    election_tree = etree.parse(no_collection)
-    validator = rules.DuplicateGpUnits(election_tree, None)
-    validator.check()
-
-  def testItProcessesCollectionAndFindsDuplicates(self):
-    root_string = io.BytesIO(b"""<?xml version="1.0" encoding="UTF-8"?>
-      <Report>
-        <GpUnitCollection>
-          <GpUnit objectId="ru0002">
-            <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
-            <Name>Virginia</Name>
-            <Type>state</Type>
-          </GpUnit>
-          <GpUnit objectId="ru0003">
-            <ComposingGpUnitIds></ComposingGpUnitIds>
-            <Name>Massachusetts</Name>
-            <Type>state</Type>
-          </GpUnit>
-          <GpUnit>
-            <ComposingGpUnitIds>xyz987</ComposingGpUnitIds>
-            <Name>New York</Name>
-            <Type>state</Type>
-          </GpUnit>
-        </GpUnitCollection>
-      </Report>
-    """)
-    election_tree = etree.parse(root_string)
-    validator = rules.DuplicateGpUnits(election_tree, None)
-
-    process_mock = MagicMock()
-    validator.process_gpunit_collection = process_mock
-    duplicates_mock = MagicMock()
-    validator.find_duplicates = duplicates_mock
-
-    validator.check()
-    process_mock.assert_called_once()
-    duplicates_mock.assert_called_once()
+    with self.assertRaises(base.ElectionError) as cm:
+      self.gp_unit_validator.check(
+          etree.fromstring(self.root_string.format(test_string)))
+    self.assertIn("GpUnit with object_id ru0002 is duplicated",
+                  str(cm.exception))
+    self.assertIn("GpUnits ('ru0002', 'ru0004') are duplicates",
+                  str(cm.exception))
 
 
 class OtherTypeTest(absltest.TestCase):
