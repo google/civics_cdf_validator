@@ -1737,11 +1737,30 @@ class UniqueLabelTest(absltest.TestCase):
       label_validator.check(element)
 
 
-class ReusedCandidateTest(absltest.TestCase):
+class CandidatesReferencedOnceTest(absltest.TestCase):
 
-  _base_ballot_selections = """
+  _election_report = """
     <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <ContestCollection>
+        {}
+      </ContestCollection>
       {}
+    </ElectionReport>
+  """
+
+  _candidate_collection = """
+    <CandidateCollection>
+      <Candidate objectId="can99999a"/>
+      <Candidate objectId="can99999b" />
+      <Candidate objectId="can11111a" />
+      <Candidate objectId="can11111b" />
+      <Candidate objectId="can45678a" />
+      {}
+    </CandidateCollection>
+  """
+
+  _base_candidate_contest = """
+    <Contest objectId="con1234">
       <BallotSelection objectId="cs12345" xsi:type="CandidateSelection">
         <CandidateIds>can99999a can99999b</CandidateIds>
       </BallotSelection>
@@ -1751,60 +1770,126 @@ class ReusedCandidateTest(absltest.TestCase):
       <BallotSelection xsi:type="CandidateSelection">
         <CandidateIds>can45678a</CandidateIds>
       </BallotSelection>
-    </ElectionReport>
+    </Contest>
+  """
+
+  _base_retention_contest = """
+    <Contest objectId="con5678">
+      <CandidateId>can99999a</CandidateId>
+      <BallotSelection objectId="cs12345" xsi:type="BallotMeasureSelection">
+        <Selection>
+          <Text language="en">Yes</Text>
+        </Selection>
+      </BallotSelection>
+      <BallotSelection objectId="cs98765" xsi:type="BallotMeasureSelection">
+        <Selection>
+          <Text language="en">No</Text>
+        </Selection>
+      </BallotSelection>
+    </Contest>
   """
 
   # _register_candidates test
-  def testShouldMapCandidateIdsToTheirCandidateSelectionIds(self):
-    election_tree = etree.fromstring(self._base_ballot_selections)
-    cand_validator = rules.ReusedCandidate(election_tree, None)
-
-    expected_seen_candidates = dict({
-        "can99999a": ["cs12345"],
-        "can99999b": ["cs12345"],
-        "can11111a": ["cs98765"],
-        "can11111b": ["cs98765"],
-    })
-    cand_validator._register_candidates()
-    self.assertEqual(expected_seen_candidates, cand_validator.seen_candidates)
-
-  def testIgnoreBallotsWithNoCandidateIds(self):
-    no_candidate = """
-      <BallotSelection objectId="cs33333" xsi:type="CandidateSelection">
-      </BallotSelection>
-    """
-    root_string = self._base_ballot_selections.format(no_candidate)
+  def testMapsCandIdsToTheContestsThatReferenceThem_CandContest(self):
+    candidate_string = self._candidate_collection.format(
+        "<Candidate objectId='can54321'/>")
+    root_string = self._election_report.format(
+        self._base_candidate_contest, candidate_string)
     election_tree = etree.fromstring(root_string)
-    cand_validator = rules.ReusedCandidate(election_tree, None)
+    cand_validator = rules.CandidatesReferencedOnce(election_tree, None)
 
     expected_seen_candidates = dict({
-        "can99999a": ["cs12345"],
-        "can99999b": ["cs12345"],
-        "can11111a": ["cs98765"],
-        "can11111b": ["cs98765"],
+        "can99999a": ["con1234"],
+        "can99999b": ["con1234"],
+        "can11111a": ["con1234"],
+        "can11111b": ["con1234"],
+        "can45678a": ["con1234"],
+        "can54321": [],
     })
     cand_validator._register_candidates()
-    self.assertEqual(expected_seen_candidates, cand_validator.seen_candidates)
+    self.assertEqual(
+        expected_seen_candidates, cand_validator.candidate_registry)
+
+  def testMapsCandIdsToTheContestsThatReferenceThem_RetentionContest(self):
+    candidate_string = self._candidate_collection.format(
+        "<Candidate objectId='can54321'/>")
+    root_string = self._election_report.format(
+        self._base_retention_contest, candidate_string)
+    election_tree = etree.fromstring(root_string)
+    cand_validator = rules.CandidatesReferencedOnce(election_tree, None)
+
+    expected_seen_candidates = dict({
+        "can99999a": ["con5678"],
+        "can99999b": [],
+        "can11111a": [],
+        "can11111b": [],
+        "can45678a": [],
+        "can54321": [],
+    })
+    cand_validator._register_candidates()
+    self.assertEqual(
+        expected_seen_candidates, cand_validator.candidate_registry)
+
+  def testMapsCandIdsToTheContestsThatReferenceThem_MultiContest(self):
+    candidate_string = self._candidate_collection.format(
+        "<Candidate objectId='can54321'/>")
+    two_contests = self._base_candidate_contest + self._base_retention_contest
+    root_string = self._election_report.format(two_contests, candidate_string)
+    election_tree = etree.fromstring(root_string)
+    cand_validator = rules.CandidatesReferencedOnce(election_tree, None)
+
+    expected_seen_candidates = dict({
+        "can99999a": ["con1234", "con5678"],
+        "can99999b": ["con1234"],
+        "can11111a": ["con1234"],
+        "can11111b": ["con1234"],
+        "can45678a": ["con1234"],
+        "can54321": [],
+    })
+    cand_validator._register_candidates()
+    self.assertEqual(
+        expected_seen_candidates, cand_validator.candidate_registry)
 
   # check tests
-  def testItChecksThatEachCandidateOnlyMapsToOneCandidateSelection(self):
-    election_tree = etree.fromstring(self._base_ballot_selections)
-    candidate_validator = rules.ReusedCandidate(election_tree, None)
+  def testItChecksThatEachCandidateOnlyMapsToOneContest(self):
+    root_string = self._election_report.format(
+        self._base_candidate_contest, self._candidate_collection)
+    election_tree = etree.fromstring(root_string)
+    candidate_validator = rules.CandidatesReferencedOnce(election_tree, None)
 
     candidate_validator.check()
 
-  def testRaisesAnErrorIfACandidateMapsToMultipleSelections(self):
-    duplicate_selections = """
-      <BallotSelection objectId="cs98765" xsi:type="CandidateSelection">
-        <CandidateIds>can11111a can11111b can99999a</CandidateIds>
-      </BallotSelection>
-    """
-    root_string = self._base_ballot_selections.format(duplicate_selections)
+  def testRaisesAnErrorIfACandidateMapsToMultipleContests(self):
+    two_contests = self._base_candidate_contest + self._base_retention_contest
+    root_string = self._election_report.format(
+        two_contests, self._candidate_collection)
     election_tree = etree.fromstring(root_string)
-    candidate_validator = rules.ReusedCandidate(election_tree, None)
+    candidate_validator = rules.CandidatesReferencedOnce(election_tree, None)
 
-    with self.assertRaises(base.ElectionTreeError):
+    with self.assertRaises(base.ElectionTreeError) as ete:
       candidate_validator.check()
+    self.assertIn(
+        "The Election File contains invalid Candidate references",
+        str(ete.exception))
+    self.assertIn("can99999a", ete.exception.error_log[0].message)
+    self.assertIn("con1234", ete.exception.error_log[0].message)
+    self.assertIn("con5678", ete.exception.error_log[0].message)
+
+  def testRaisesAnErrorIfACandidateIsNotReferencedInAContest(self):
+    candidate_string = self._candidate_collection.format(
+        "<Candidate objectId='can54321'/>")
+    root_string = self._election_report.format(
+        self._base_candidate_contest, candidate_string)
+    election_tree = etree.fromstring(root_string)
+    candidate_validator = rules.CandidatesReferencedOnce(election_tree, None)
+
+    with self.assertRaises(base.ElectionTreeError) as ete:
+      candidate_validator.check()
+    self.assertIn(
+        "The Election File contains invalid Candidate references",
+        str(ete.exception))
+    self.assertIn("can54321 is not referenced",
+                  ete.exception.error_log[0].message)
 
 
 class ProperBallotSelectionTest(absltest.TestCase):
@@ -2579,46 +2664,6 @@ class MissingPartyAffiliationTest(absltest.TestCase):
       party_validator.check()
     self.assertIn("No defined Party for par0003 found in the feed.",
                   str(ee.exception))
-
-
-class CandidateNotReferencedTest(absltest.TestCase):
-
-  _election_report = """
-    <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-      <Election>
-        <CandidateCollection>
-          <Candidate objectId="can11111a"/>
-          <Candidate objectId="can11111b"/>
-          <Candidate objectId="can22222a"/>
-          <Candidate objectId="can22222b"/>
-        </CandidateCollection>
-        <Contest objectId="cc20002" xsi:type="CandidateContest">
-          <BallotSelection objectId="cs11111" xsi:type="CandidateSelection">
-            <CandidateIds>can11111a can11111b</CandidateIds>
-          </BallotSelection>
-          <BallotSelection objectId="cs22222" xsi:type="CandidateSelection">
-            <CandidateIds>{}</CandidateIds>
-          </BallotSelection>
-          <BallotSelection objectId="cs22222" xsi:type="CandidateSelection"/>
-        </Contest>
-      </Election>
-    </ElectionReport>
-  """
-
-  def testEachCandidateIsReferencedInAnElection(self):
-    contest_string = self._election_report.format("can22222a can22222b")
-    election_tree = etree.fromstring(contest_string)
-
-    reference_validator = rules.CandidateNotReferenced(election_tree, None)
-    reference_validator.check()
-
-  def testRaisesAnErrorIfACandidateIsNoteReferenced(self):
-    contest_string = self._election_report.format("can22222b")
-    election_tree = etree.fromstring(contest_string)
-
-    reference_validator = rules.CandidateNotReferenced(election_tree, None)
-    with self.assertRaises(base.ElectionTreeError):
-      reference_validator.check()
 
 
 class DuplicateContestNamesTest(absltest.TestCase):

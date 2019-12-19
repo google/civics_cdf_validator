@@ -354,6 +354,19 @@
         </ExternalIdentifiers>
         <PartyId>par0004</PartyId>
       </Candidate>
+      <Candidate objectId="can12345">
+        <BallotName>
+          <Text language="en">Dwayne Johnson</Text>
+        </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-rock</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>par0004</PartyId>
+      </Candidate>
     </CandidateCollection>
     <ContestCollection>
       <Contest objectId="cc20002" xsi:type="CandidateContest">
@@ -7457,7 +7470,7 @@
         <Name>Judicial Retention, Supreme Court</Name>
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
-        <CandidateId>can14444</CandidateId>
+        <CandidateId>can12345</CandidateId>
       </Contest>
     </ContestCollection>
     <CountStatus>

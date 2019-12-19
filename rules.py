@@ -822,7 +822,7 @@ class UniqueLabel(base.BaseRule):
         self.labels.add(element_label)
 
 
-class ReusedCandidate(base.TreeRule):
+class CandidatesReferencedOnce(base.TreeRule):
   """Candidate should be referred to by only one contest.
 
   A Candidate object should only ever be referenced from one contest. If a
@@ -831,37 +831,44 @@ class ReusedCandidate(base.TreeRule):
   """
 
   def __init__(self, election_tree, schema_file):
-    super(ReusedCandidate, self).__init__(election_tree, schema_file)
+    super(CandidatesReferencedOnce, self).__init__(election_tree, schema_file)
 
-    # Mapping of candidates and candidate selections.
-    self.seen_candidates = {}
+    # Mapping of candidates and contests that reference them.
+    self.candidate_registry = {}
+    self.error_log = []
 
   def _register_candidates(self):
-    candidate_selections = self.get_elements_by_class(self.election_tree,
-                                                      "CandidateSelection")
-    for candidate_selection in candidate_selections:
-      candidate_selection_id = candidate_selection.get("objectId", None)
-      candidate_ids = candidate_selection.find("CandidateIds")
-      if candidate_ids is None:
-        continue
-      for candidate_id in candidate_ids.text.split():
-        if candidate_selection_id:
-          self.seen_candidates.setdefault(candidate_id,
-                                          []).append(candidate_selection_id)
+    candidates = self.get_elements_by_class(self.election_tree, "Candidate")
+    for candidate in candidates:
+      cand_id = candidate.get("objectId", None)
+      self.candidate_registry[cand_id] = []
+
+    contests = self.get_elements_by_class(self.election_tree, "Contest")
+    for contest in contests:
+      contest_id = contest.get("objectId")
+      for child in contest.iter(tag=etree.Element):
+        if "CandidateId" in child.tag:
+          for cand_id in child.text.split():
+            self.candidate_registry[cand_id].append(contest_id)
 
   def check(self):
     self._register_candidates()
-    error_log = []
-    for cand_id, cand_select_ids in self.seen_candidates.items():
-      if len(cand_select_ids) > 1:
+    for cand_id, contest_ids in self.candidate_registry.items():
+      if len(contest_ids) > 1:
         error_message = ("A Candidate object should only ever be referenced"
-                         " from one CandidateSelection. Candidate %s is"
-                         " referenced by the following CandidateSelections "
-                         ":- %s") % (cand_id, ", ".join(cand_select_ids))
-        error_log.append(base.ErrorLogEntry(None, error_message))
-    if error_log:
+                         " in one Contest. Candidate {} is"
+                         " referenced by the following Contests"
+                         ": {}").format(cand_id, ", ".join(contest_ids))
+        self.error_log.append(base.ErrorLogEntry(None, error_message))
+      if not  contest_ids:
+        error_message = ("A Candidate should be referenced in a Contest. "
+                         "Candidate {0} is not referenced.").format(cand_id)
+        self.error_log.append(base.ErrorLogEntry(None, error_message))
+
+    if self.error_log:
       raise base.ElectionTreeError(
-          "The Election File contains reused Candidates", error_log)
+          "The Election File contains invalid Candidate references",
+          self.error_log)
 
 
 class ProperBallotSelection(base.BaseRule):
@@ -1187,47 +1194,6 @@ class MissingPartyAffiliation(base.ValidReferenceRule):
                         for party in party_collection
                         if party is not None and party.get("objectId", None))
     return all_parties
-
-
-class CandidateNotReferenced(base.TreeRule):
-  """Candidate should have AT LEAST one contest they are referred to.
-
-  A Candidate object that has no contests attached to them should be picked up
-  within this class and returned to the user as an error.
-  """
-
-  def __init__(self, election_tree, schema_file):
-    super(CandidateNotReferenced, self).__init__(election_tree, schema_file)
-    self.cand_to_cand_selection = {}
-
-  def check(self):
-    error_log = []
-    candidates = self.get_elements_by_class(self.election_tree, "Candidate")
-    for candidate in candidates:
-      cand_id = candidate.get("objectId", None)
-      self.cand_to_cand_selection[cand_id] = []
-
-    candidate_selections = self.get_elements_by_class(self.election_tree,
-                                                      "CandidateSelection")
-    for candidate_selection in candidate_selections:
-      candidate_selection_id = candidate_selection.get("objectId", None)
-      candidate_ids = candidate_selection.find("CandidateIds")
-      # if no candidate ids, skip to the next one
-      if candidate_ids is None or candidate_selection_id is None:
-        continue
-      for candidate_id in candidate_ids.text.split():
-        self.cand_to_cand_selection.setdefault(
-            candidate_id, []).append(candidate_selection_id)
-
-    for cand_id, cand_select_ids in self.cand_to_cand_selection.items():
-      if not cand_select_ids:
-        error_message = ("A Candidate object should be referenced from one"
-                         " CandidateSelection. Candidate {0} is not referenced"
-                         " by any CandidateSelections").format(cand_id)
-        error_log.append(base.ErrorLogEntry(None, error_message))
-    if error_log:
-      raise base.ElectionTreeError(
-          "The Election File contains unreferenced Candidates", error_log)
 
 
 class DuplicateContestNames(base.TreeRule):
@@ -1917,7 +1883,6 @@ COMMON_RULES = (
 )
 
 ELECTION_RULES = COMMON_RULES + (
-    CandidateNotReferenced,
     CandidatesMissingPartyData,
     CoalitionParties,
     DuplicateContestNames,
@@ -1927,7 +1892,7 @@ ELECTION_RULES = COMMON_RULES + (
     PartisanPrimaryHeuristic,
     PercentSum,
     ProperBallotSelection,
-    ReusedCandidate,
+    CandidatesReferencedOnce,
     VoteCountTypesCoherency,
     PartiesHaveValidColors,
     ValidateDuplicateColors,
