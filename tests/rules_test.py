@@ -2145,6 +2145,174 @@ class DuplicatedPartyAbbreviationTest(absltest.TestCase):
     self.parties_validator.check(element)
 
 
+class PersonHasUniqueFullNameTest(absltest.TestCase):
+
+  def setUp(self):
+    super(PersonHasUniqueFullNameTest, self).setUp()
+    self.people_validator = rules.PersonHasUniqueFullName(None, None)
+
+  def testEmptyPersonCollection(self):
+    root_string = """
+      <PersonCollection>
+      </PersonCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionTreeInfo) as cm:
+      self.people_validator.check(element)
+    self.assertIn("The feed contains people with duplicated name",
+                  str(cm.exception))
+
+  def testPersonCollectionWithDuplicatedFullNameWithoutBirthday(self):
+    root_string = """
+      <PersonCollection>
+        <Person objectId="per_gb_6459172">
+          <FullName>
+            <Text language="en">Jamie David Adams</Text>
+          </FullName>
+          <Gender>M</Gender>
+        </Person>
+        <Person objectId="per_gb_6436252">
+          <FullName>
+            <Text language="en">Jamie David Adams</Text>
+          </FullName>
+          <Gender>M</Gender>
+        </Person>
+      </PersonCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionTreeInfo) as cm:
+      self.people_validator.check(element)
+    self.assertIn("The feed contains people with duplicated name",
+                  str(cm.exception))
+
+  def testPersonCollectionWithDuplicatedFullNameWithBirthday(self):
+    root_string = """
+      <PersonCollection>
+        <Person objectId="per_gb_6456562">
+          <FirstName>Jamie</FirstName>
+          <FullName>
+            <Text language="en">Jamie David Adams</Text>
+          </FullName>
+          <Gender>M</Gender>
+          <LastName>Adams</LastName>
+          <MiddleName>David</MiddleName>
+          <DateOfBirth>1944-12-11</DateOfBirth>
+        </Person>
+        <Person objectId="per_gb_64201052">
+          <FirstName>Jamie</FirstName>
+          <FullName>
+            <Text language="en">Jamie David Adams</Text>
+          </FullName>
+          <Gender>M</Gender>
+          <LastName>Adams</LastName>
+          <MiddleName>David</MiddleName>
+          <DateOfBirth>1944-12-11</DateOfBirth>
+        </Person>
+      </PersonCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionTreeInfo) as cm:
+      self.people_validator.check(element)
+    self.assertIn("The feed contains people with duplicated name",
+                  str(cm.exception))
+
+  def testPersonCollectionWithDuplicatedFullNameButDifferentBirthday(self):
+    root_string = """
+      <PersonCollection>
+        <Person objectId="per_gb_600452">
+          <FirstName>Jamie</FirstName>
+          <FullName>
+            <Text language="en">Jamie David Adams</Text>
+          </FullName>
+          <Gender>M</Gender>
+          <LastName>Adams</LastName>
+          <MiddleName>David</MiddleName>
+          <DateOfBirth>1944-12-11</DateOfBirth>
+        </Person>
+        <Person objectId="per_gb_6456322">
+          <FirstName>Jamie</FirstName>
+          <FullName>
+            <Text language="en">Jamie David Adams</Text>
+          </FullName>
+          <Gender>M</Gender>
+          <LastName>Adams</LastName>
+          <MiddleName>David</MiddleName>
+          <DateOfBirth>1972-11-20</DateOfBirth>
+        </Person>
+      </PersonCollection>
+    """
+    element = etree.fromstring(root_string)
+    self.people_validator.check(element)
+
+  def testPersonCollectionWithoutFullNameButSameName(self):
+    root_string = """
+      <PersonCollection>
+        <Person objectId="per_gb_647452">
+          <FirstName>Jamie</FirstName>
+          <Gender>M</Gender>
+          <LastName>Adams</LastName>
+          <MiddleName>David</MiddleName>
+        </Person>
+        <Person objectId="per_gb_640052">
+          <FirstName>Jamie</FirstName>
+          <Gender>M</Gender>
+          <LastName>Adams</LastName>
+          <MiddleName>David</MiddleName>
+        </Person>
+      </PersonCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionTreeInfo) as cm:
+      self.people_validator.check(element)
+    self.assertIn("The feed contains people with duplicated name",
+                  str(cm.exception))
+
+  def testPersonCollectionWithoutInformation(self):
+    root_string = """
+      <PersonCollection>
+        <Person objectId="per_gb_6455552">
+          <Gender>M</Gender>
+        </Person>
+        <Person objectId="per_gb_6456322">
+          <Gender>M</Gender>
+        </Person>
+      </PersonCollection>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(base.ElectionTreeInfo) as cm:
+      self.people_validator.check(element)
+    self.assertIn("The feed contains people with duplicated name",
+                  str(cm.exception))
+
+  def testPersonCollectionWithoutAnyWarning(self):
+    root_string = """
+      <PersonCollection>
+        <Person objectId="per_gb_64532">
+          <FirstName>Jamie</FirstName>
+          <FullName>
+            <Text language="en">Jamie David Adams</Text>
+          </FullName>
+          <Gender>M</Gender>
+          <LastName>Adams</LastName>
+          <MiddleName>David</MiddleName>
+          <DateOfBirth>1992-12-20</DateOfBirth>
+        </Person>
+        <Person objectId="per_gb_647752">
+          <FirstName>Arthur</FirstName>
+          <FullName>
+            <Text language="en">Arthur Maupassant Maurice</Text>
+          </FullName>
+          <Gender>M</Gender>
+          <LastName>Maurice</LastName>
+          <MiddleName>Maupassant</MiddleName>
+          <DateOfBirth>1972-11-20</DateOfBirth>
+        </Person>
+      </PersonCollection>
+    """
+    element = etree.fromstring(root_string)
+    self.people_validator.check(element)
+
+
 class DuplicatedPartyNameTest(absltest.TestCase):
 
   def setUp(self):

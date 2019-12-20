@@ -15,6 +15,7 @@
 
 from __future__ import print_function
 
+import collections
 import csv
 import datetime
 import hashlib
@@ -935,6 +936,84 @@ class PartiesHaveValidColors(base.BaseRule):
         raise base.ElectionWarning(
             "Line %d: %s in Party %s is not a valid hex color." %
             (element.sourceline, color_val, party_object_id))
+
+
+class PersonHasUniqueFullName(base.BaseRule):
+  """A Person should be defined one time in <PersonCollection>.
+
+  The main purpose of this check is to spot redundant person definition.
+  If two people have the same full name and date of birhthday, a warning will
+  be raised. So, we can check if the feed is coherent.
+  """
+
+  def elements(self):
+    return ["PersonCollection"]
+
+  def extract_person_fullname(self, person):
+    """Extracts the person's fullname or builds it if needed."""
+    full_name_elt = person.find("FullName")
+    if full_name_elt is not None:
+      names = full_name_elt.findall("Text")
+      if names:
+        full_name_list = set()
+        for name in names:
+          if name.text:
+            full_name_list.add(name.text)
+        return full_name_list
+
+    full_name = ""
+    first_name_elt = person.find("FirstName")
+    if first_name_elt is not None and first_name_elt.text:
+      full_name += (first_name_elt.text + " ")
+    middle_name_elt = person.find("MiddleName")
+    if middle_name_elt is not None and middle_name_elt.text:
+      full_name += (middle_name_elt.text + " ")
+    last_name_elt = person.find("LastName")
+    if last_name_elt is not None and last_name_elt.text:
+      full_name += last_name_elt.text
+
+    return {full_name}
+
+  def check_specific(self, people):
+    person_def = collections.namedtuple("PersonDefinition",
+                                        ["fullname", "birthday"])
+    person_id_to_object_id = {}
+
+    info_log = []
+    for person in people:
+      person_object_id = person.get("objectId")
+      full_name_list = self.extract_person_fullname(person)
+      date_of_birthday = person.find("DateOfBirth")
+      birthday_val = "Undefined"
+      if date_of_birthday is not None and date_of_birthday.text:
+        birthday_val = date_of_birthday.text
+
+      for full_name_val in full_name_list:
+        person_id = person_def(full_name_val, birthday_val)
+        if person_id in person_id_to_object_id and person_id_to_object_id[
+            person_id] != person_object_id:
+          info_message = (
+              "Line %d: Person %s has same full name '%s' and birthday %s as "
+              "Person %s." %
+              (person.sourceline, person_object_id, full_name_val, birthday_val,
+               person_id_to_object_id[person_id]))
+          info_log.append(base.ErrorLogEntry(None, info_message))
+        else:
+          person_id_to_object_id[person_id] = person_object_id
+    return info_log
+
+  def check(self, element):
+    info_log = []
+    people = element.findall("Person")
+    if len(people) < 1:
+      info_message = (
+          "Line %d: <PersonCollection> does not have <Person> objects" %
+          (element.sourceline))
+      info_log.append(base.ErrorLogEntry(None, info_message))
+    info_log.extend(self.check_specific(people))
+    if info_log:
+      raise base.ElectionTreeInfo(
+          "The feed contains people with duplicated name", info_log)
 
 
 class ValidatePartyCollection(base.BaseRule):
@@ -1880,6 +1959,7 @@ COMMON_RULES = (
     ValidJurisdictionID,
     OfficesHaveJurisdictionID,
     ValidStableID,
+    PersonHasUniqueFullName,
 )
 
 ELECTION_RULES = COMMON_RULES + (
