@@ -4169,6 +4169,9 @@ class ValidURIAnnotationTest(absltest.TestCase):
         <Uri Annotation="personal-instagram">
           <![CDATA[https://www.instagram.com]]>
         </Uri>
+        <Uri Annotation="personal-linkedin">
+          <![CDATA[https://www.linkedin.com/michael]]>
+        </Uri>
       </ContactInformation>
     """
     self.valid_annotation.check(etree.fromstring(root_string))
