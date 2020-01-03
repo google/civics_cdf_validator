@@ -34,6 +34,8 @@ import requests
 from six.moves.urllib.parse import urlparse
 
 _PARTY_LEADERSHIP_TYPES = ["party-leader-id", "party-chair-id"]
+_IDENTIFIER_TYPES = frozenset(
+    ["local-level", "national-level", "ocd-id", "state-level"])
 
 
 def sourceline_prefix(element):
@@ -43,20 +45,46 @@ def sourceline_prefix(element):
     return ""
 
 
-def get_jurisdiction_elements(element):
-  """Helper to gather all Value entities with jurisdiction-ids."""
-  jurisdiction_elements = element.findall(
-      ".//AdditionalData[@type='jurisdiction-id']")
-
+def get_external_id_values(element, value_type, return_elements=False):
+  """Helper to gather all Values of external ids for a given type."""
   external_ids = element.findall(".//ExternalIdentifier")
+  values = []
   for extern_id in external_ids:
     id_type = extern_id.find("Type")
-    if (id_type is not None and id_type.text == "other"):
+    if id_type is None or not id_type.text:
+      continue
+    matches_type = False
+    id_text = id_type.text.strip()
+    if id_text in _IDENTIFIER_TYPES and id_text == value_type:
+      matches_type = True
+    elif id_text == "other":
       other_type = extern_id.find("OtherType")
-      if (other_type is not None and other_type.text == "jurisdiction-id"):
-        if extern_id.find("Value") is not None:
-          jurisdiction_elements.append(extern_id.find("Value"))
-  return jurisdiction_elements
+      if (other_type is not None and other_type.text
+          and other_type.text.strip() == value_type
+          and value_type not in _IDENTIFIER_TYPES):
+        matches_type = True
+    if matches_type:
+      value = extern_id.find("Value")
+      # Could include empty text; check in calling function.
+      # Not checked here because errors should be raised in some cases.
+      if value is not None and value.text:
+        if return_elements:
+          values.append(value)
+        else:
+          values.append(value.text)
+  return values
+
+
+def get_additional_type_values(element, value_type, return_elements=False):
+  """Helper to gather all nested additional type values for a given type."""
+  elements = element.findall(".//AdditionalData[@type='{}']".format(value_type))
+  if not return_elements:
+    return [
+        val.text
+        for val in elements
+        if val is not None and val.text and val.text.strip()
+    ]
+  return elements
 
 
 class Schema(base.TreeRule):
@@ -301,20 +329,22 @@ class ValidStableID(base.BaseRule):
     self.stable_id_matcher = re.compile(regex, flags=re.U)
 
   def elements(self):
-    return ["ExternalIdentifier"]
+    return ["ExternalIdentifiers"]
 
   def check(self, element):
-    type_element = element.find("Type")
-    if type_element is not None and type_element.text == "other":
-      other_type_element = element.find("OtherType")
-      if other_type_element is not None:
-        if other_type_element.text == "stable":
-          stable_id = element.find("Value")
-          if stable_id is not None and stable_id.text:
-            if not self.stable_id_matcher.match(stable_id.text):
-              raise base.ElectionError(
-                  "Stable id {} is not in the correct format.".format(
-                      stable_id.text))
+    stable_ids = get_external_id_values(element, "stable")
+    error_log = []
+    for s_id in stable_ids:
+      if not self.stable_id_matcher.match(s_id):
+        error_log.append(
+            base.ErrorLogEntry(
+                None,
+                "Stable id {} is not in the correct format.".format(s_id)))
+    if error_log:
+      raise base.ElectionError(
+          "The file contains the following Stable ID "
+          "error(s) \n{}".format("\n".join([e.message for e in error_log])),
+          error_log=error_log)
 
 
 class ElectoralDistrictOcdId(base.BaseRule):
@@ -467,55 +497,43 @@ class ElectoralDistrictOcdId(base.BaseRule):
     if not contest_id:
       return
     error_log = []
-    valid_ocd_id = False
-    referenced_gpunit = None
-    external_ids = []
-    for gpunit in self.gpunits:
-      if gpunit.get("objectId") == element.text:
-        referenced_gpunit = gpunit
-        external_ids = gpunit.findall(".//ExternalIdentifier")
-        for extern_id in external_ids:
-          id_type = extern_id.find("Type")
-          if id_type is not None and id_type.text == "ocd-id":
-            value = extern_id.find("Value")
-            if value is None or not hasattr(value, "text"):
-              continue
-            ocd_id = self._encode_ocdid_value(value.text)
-            valid_ocd_id = (
-                ocd_id in self.ocds and self.ocd_matcher.match(ocd_id))
-          if (id_type is not None and id_type.text != "ocd-id" and
-              id_type.text.lower() == "ocd-id"):
+    referenced_gpunits = [
+        g for g in self.gpunits if g.get("objectId", "") == element.text
+    ]
+    if not referenced_gpunits:
+      error_log.append(
+          base.ErrorLogEntry(
+              None, "Line %d. The ElectoralDistrictId element"
+              " for contest %s does not refer to a GpUnit. "
+              "Every ElectoralDistrictId MUST reference a GpUnit" %
+              (element.sourceline, contest_id)))
+    else:
+      referenced_gpunit = referenced_gpunits[0]
+      external_ids = get_external_id_values(referenced_gpunit, "ocd-id")
+      if not external_ids:
+        error_log.append(
+            base.ErrorLogEntry(
+                None, "Line %d. The GpUnit %s on line %d referenced by "
+                "contest %s does not have an ocd-id" %
+                (element.sourceline, element.text, referenced_gpunit.sourceline,
+                 contest_id)))
+      else:
+        for external_id in external_ids:
+          ocd_id = self._encode_ocdid_value(external_id)
+          valid_ocd_id = (
+              ocd_id in self.ocds and self.ocd_matcher.match(ocd_id))
+          if not valid_ocd_id:
             error_log.append(
                 base.ErrorLogEntry(
-                    None, "Line %d. The External Identifier case is incorrect"
-                    ". Should be ocd-id and not %s" %
-                    (id_type.sourceline, id_type.text)))
-    if referenced_gpunit is None:
-      error_log.append(
-          base.ErrorLogEntry(
-              None,
-              "Line %d. The ElectoralDistrictId element for contest %s does "
-              "not refer to a GpUnit. Every ElectoralDistrictId MUST "
-              "reference a GpUnit" % (element.sourceline, contest_id)))
-    if referenced_gpunit is not None and not external_ids:
-      error_log.append(
-          base.ErrorLogEntry(
-              None,
-              "Line %d. The GpUnit %s on line %d referenced by contest %s "
-              "does not have any external identifiers" %
-              (element.sourceline, element.text, referenced_gpunit.sourceline,
-               contest_id)))
-    if referenced_gpunit is not None and not valid_ocd_id:
-      error_log.append(
-          base.ErrorLogEntry(
-              None, "Line %d. The ElectoralDistrictId element for contest %s "
-              "refers to GpUnit %s on line %d that does not have a valid OCD "
-              "ID" % (element.sourceline, contest_id, element.text,
-                      referenced_gpunit.sourceline)))
+                    None, "Line %d. The ElectoralDistrictId element for "
+                    "contest %s refers to GpUnit %s on line %d that "
+                    "does not have a valid OCD ID (%s)" %
+                    (element.sourceline, contest_id, element.text,
+                     referenced_gpunit.sourceline, ocd_id)))
     if error_log:
       raise base.ElectionError(
-          "The file contains the following ElectoralDistrictId "
-          "error(s) \n{}".format("\n".join([e.message for e in error_log])),
+          ("The file contains the following ElectoralDistrictId error(s) \n{}"
+           .format("\n".join([e.message for e in error_log]))),
           error_log=error_log)
 
 
@@ -537,17 +555,14 @@ class GpUnitOcdId(ElectoralDistrictOcdId):
       return
     gpunit_type = element.find("Type")
     if gpunit_type is not None and gpunit_type.text in self.districts:
-      for extern_id in element.iter("ExternalIdentifier"):
-        id_type = extern_id.find("Type")
-        if id_type is not None and id_type.text == "ocd-id":
-          value = extern_id.find("Value")
-          if value is None or not hasattr(value, "text"):
-            continue
-          ocd_id = self._encode_ocdid_value(value.text)
-          if ocd_id not in self.ocds:
-            raise base.ElectionWarning(
-                "The OCD ID %s in GpUnit %s defined on line %d is "
-                "not valid" % (ocd_id, gpunit_id, value.sourceline))
+      external_id_elements = get_external_id_values(
+          element, "ocd-id", return_elements=True)
+      for extern_id in external_id_elements:
+        ocd_id = self._encode_ocdid_value(extern_id.text)
+        if ocd_id not in self.ocds:
+          raise base.ElectionWarning(
+              "The OCD ID %s in GpUnit %s defined on line %d is "
+              "not valid" % (ocd_id, gpunit_id, extern_id.sourceline))
 
 
 class DuplicateGpUnits(base.BaseRule):
@@ -1545,13 +1560,12 @@ class ValidEnumerations(base.BaseRule):
     type_element = element.find("Type")
     if type_element is not None and type_element.text == "other":
       other_type_element = element.find("OtherType")
-      if other_type_element is not None:
-        if other_type_element.text in self.valid_enumerations:
-          raise base.ElectionError(
-              "%sType of element %s is set to 'other' even though "
-              "'%s' is a valid enumeration" %
-              (sourceline_prefix(element), element.tag,
-               other_type_element.text))
+      if (other_type_element is not None and
+          other_type_element.text in self.valid_enumerations):
+        raise base.ElectionError(
+            "%sType of element %s is set to 'other' even though "
+            "'%s' is a valid enumeration" %
+            (sourceline_prefix(element), element.tag, other_type_element.text))
 
 
 class ValidateOcdidLowerCase(base.BaseRule):
@@ -1561,26 +1575,15 @@ class ValidateOcdidLowerCase(base.BaseRule):
   """
 
   def elements(self):
-    return ["ExternalIdentifier"]
+    return ["ExternalIdentifiers"]
 
   def check(self, element):
-    id_type = element.find("Type")
-    if id_type is None:
-      return
-    id_type_text = id_type.text
-    if id_type_text != "ocd-id":
-      return
-    id_value = element.find("Value")
-    if id_value is None:
-      return
-    ocdid = id_value.text
-    if ocdid is None or not ocdid.strip():
-      return
-    if not ocdid.islower():
-      raise base.ElectionWarning(
-          "%sOCD-ID %s is not in all lower case letters. "
-          "Valid OCD-IDs should be all lowercase." %
-          (sourceline_prefix(element), ocdid))
+    for ocd_id in get_external_id_values(element, "ocd-id"):
+      if not ocd_id.islower():
+        raise base.ElectionWarning(
+            "%sOCD-ID %s is not in all lower case letters. "
+            "Valid OCD-IDs should be all lowercase." %
+            (sourceline_prefix(element), ocd_id))
 
 
 class ContestHasMultipleOffices(base.BaseRule):
@@ -1848,12 +1851,12 @@ class OfficesHaveJurisdictionID(base.BaseRule):
     return ["Office"]
 
   def check(self, element):
-    jurisdiction_values = [
-        el.text
-        for el in get_jurisdiction_elements(element)
-        if el.text and el.text.strip()
-    ]
-
+    jurisdiction_values = get_additional_type_values(element, "jurisdiction-id")
+    jurisdiction_values.extend([
+        j_id.strip()
+        for j_id in get_external_id_values(element, "jurisdiction-id")
+        if j_id.strip()
+    ])
     if not jurisdiction_values:
       raise base.ElectionError(
           ("Office {} is missing a jurisdiction-id.".format(
@@ -1873,7 +1876,9 @@ class ValidJurisdictionID(base.ValidReferenceRule):
 
   def _gather_reference_values(self):
     root = self.election_tree.getroot()
-    return {elem.text for elem in get_jurisdiction_elements(root) if elem.text}
+    jurisdiction_values = get_additional_type_values(root, "jurisdiction-id")
+    jurisdiction_values.extend(get_external_id_values(root, "jurisdiction-id"))
+    return set(jurisdiction_values)
 
   def _gather_defined_values(self):
     gp_unit_elements = self.election_tree.getroot().findall(".//GpUnit")
