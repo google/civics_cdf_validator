@@ -4752,6 +4752,117 @@ class ElectionEndDatesTest(absltest.TestCase):
       self.date_validator.check(election)
 
 
+class GpUnitsHaveInternationalizedNameTest(absltest.TestCase):
+
+  def setUp(self):
+    super(GpUnitsHaveInternationalizedNameTest, self).setUp()
+    self.gpunits_intl_name_validator = rules.GpUnitsHaveInternationalizedName(
+        None, None)
+
+  def testHasExactlyOneInternationalizedNameWithText(self):
+    root_string = """
+    <GpUnit objectId="ru0002">
+      <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+      <InternationalizedName>
+        <Text language="en">Wisconsin District 7</Text>
+      </InternationalizedName>
+    </GpUnit>
+    """
+    self.gpunits_intl_name_validator.check(etree.fromstring(root_string))
+
+  def testHasExactlyOneInternationalizedNameWithMultipleTextElements(self):
+    root_string = """
+    <GpUnit objectId="ru0002">
+      <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+      <InternationalizedName>
+        <Text language="en">Wisconsin District 7</Text>
+        <Text language="ru">Монгольский округ 7</Text>
+      </InternationalizedName>
+    </GpUnit>
+    """
+    self.gpunits_intl_name_validator.check(etree.fromstring(root_string))
+
+  def testNoInternationalizedNameElement(self):
+    root_string = """
+    <GpUnit objectId="ru0002">
+      <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+    </GpUnit>
+    """
+    with self.assertRaises(base.ElectionError) as cm:
+      self.gpunits_intl_name_validator.check(etree.fromstring(root_string))
+    self.assertIn("required to have exactly one InterationalizedName element.",
+                  str(cm.exception))
+
+  def testInternationalizedNameElementNoSubelements(self):
+    root_string = """
+    <GpUnit objectId="ru0002">
+      <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+      <InternationalizedName/>
+    </GpUnit>
+    """
+    with self.assertRaises(base.ElectionError) as cm:
+      self.gpunits_intl_name_validator.check(etree.fromstring(root_string))
+    self.assertIn("is required to have one or more Text elements.",
+                  str(cm.exception))
+
+  def testInternationalizedNameNoText(self):
+    root_string = """
+    <GpUnit objectId="ru0002">
+      <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+      <InternationalizedName>
+        <Text language="en"></Text>
+      </InternationalizedName>
+    </GpUnit>
+    """
+    with self.assertRaises(base.ElectionError) as cm:
+      self.gpunits_intl_name_validator.check(etree.fromstring(root_string))
+    self.assertIn("does not have a text value", str(cm.exception))
+
+  def testInternationalizedNameTextValueIsWhitespace(self):
+    root_string = """
+    <GpUnit objectId="ru0002">
+      <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+      <InternationalizedName>
+        <Text language="en">                 </Text>
+      </InternationalizedName>
+    </GpUnit>
+    """
+    with self.assertRaises(base.ElectionError) as cm:
+      self.gpunits_intl_name_validator.check(etree.fromstring(root_string))
+    self.assertIn("does not have a text value", str(cm.exception))
+
+  def testOneTextElementDoesNotHaveValue(self):
+    root_string = """
+    <GpUnit objectId="ru0002">
+      <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+      <InternationalizedName>
+        <Text language="en">Russia</Text>
+        <Text language="ru"></Text>
+      </InternationalizedName>
+    </GpUnit>
+    """
+    with self.assertRaises(base.ElectionError) as cm:
+      self.gpunits_intl_name_validator.check(etree.fromstring(root_string))
+    self.assertIn("does not have a text value", str(cm.exception))
+
+  def testMoreThanOneInternationalizedNameFails(self):
+    root_string = """
+    <GpUnit objectId="ru0002">
+      <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+      <InternationalizedName>
+        <Text language="en"></Text>
+      </InternationalizedName>
+      <InternationalizedName>
+        <Text language="en">USA</Text>
+      </InternationalizedName>
+    </GpUnit>
+    """
+    with self.assertRaises(base.ElectionError) as cm:
+      self.gpunits_intl_name_validator.check(etree.fromstring(root_string))
+    self.assertIn("required to have exactly one InterationalizedName element.",
+                  str(cm.exception))
+
+
 class RulesTest(absltest.TestCase):
 
   def testAllRulesIncluded(self):

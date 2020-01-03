@@ -154,7 +154,7 @@ class HungarianStyleNotation(base.BaseRule):
     return self.elements_prefix.keys()
 
   def check(self, element):
-    object_id = element.get("objectId", None)
+    object_id = element.get("objectId")
     tag = self.get_element_class(element)
     if object_id:
       if not object_id.startswith(self.elements_prefix[tag]):
@@ -471,7 +471,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
     referenced_gpunit = None
     external_ids = []
     for gpunit in self.gpunits:
-      if gpunit.get("objectId", None) == element.text:
+      if gpunit.get("objectId") == element.text:
         referenced_gpunit = gpunit
         external_ids = gpunit.findall(".//ExternalIdentifier")
         for extern_id in external_ids:
@@ -604,7 +604,7 @@ class GpUnitsHaveSingleRoot(base.TreeRule):
     gpunit_ids = set()
     composing_gpunits = set()
     for element in self.get_elements_by_class(self.election_tree, "GpUnit"):
-      object_id = element.get("objectId", None)
+      object_id = element.get("objectId")
       if object_id is not None:
         gpunit_ids.add(object_id)
       composing_gpunit = element.find("ComposingGpUnitIds")
@@ -664,7 +664,7 @@ class GpUnitsCyclesRefsValidation(base.TreeRule):
 
   def check(self):
     for element in self.get_elements_by_class(self.election_tree, "GpUnit"):
-      object_id = element.get("objectId", None)
+      object_id = element.get("objectId")
       if object_id is None:
         continue
       self.edges[object_id] = []
@@ -700,7 +700,7 @@ class OtherType(base.BaseRule):
       for elem in element.iter():
         tag = self.strip_schema_ns(elem)
         if tag == "element":
-          elem_name = elem.get("name", None)
+          elem_name = elem.get("name")
           if elem_name and elem_name == "OtherType":
             eligible_elements.append(element.get("name"))
     return eligible_elements
@@ -790,7 +790,7 @@ class CoalitionParties(base.TreeRule):
       if (party_id is None or not party_id.text or not party_id.text.strip()):
         raise base.ElectionError(
             "Line %d. Coalition %s must define PartyIDs" %
-            (coalition.sourceline, coalition.get("objectId", None)))
+            (coalition.sourceline, coalition.get("objectId")))
 
 
 class UniqueLabel(base.BaseRule):
@@ -806,14 +806,14 @@ class UniqueLabel(base.BaseRule):
     for _, element in etree.iterwalk(schema_tree):
       tag = self.strip_schema_ns(element)
       if tag == "element":
-        elem_type = element.get("type", None)
+        elem_type = element.get("type")
         if elem_type == "InternationalizedText":
           if element.get("name") not in eligible_elements:
             eligible_elements.append(element.get("name"))
     return eligible_elements
 
   def check(self, element):
-    element_label = element.get("label", None)
+    element_label = element.get("label")
     if element_label:
       if element_label in self.labels:
         raise base.ElectionError(
@@ -897,8 +897,8 @@ class ProperBallotSelection(base.BaseRule):
     for selection in selections:
       selection_tag = self.get_element_class(selection)
       if selection_tag != self.con_sel_mapping[tag]:
-        contest_id = element.get("objectId", None)
-        selection_id = selection.get("objectId", None)
+        contest_id = element.get("objectId")
+        selection_id = selection.get("objectId")
         raise base.ElectionError(
             "Line %d. The Contest %s does not contain the right "
             "BallotSelection. %s must have a %s but contains a "
@@ -1269,9 +1269,11 @@ class MissingPartyAffiliation(base.ValidReferenceRule):
     all_parties = set()
     party_collection = self.election_tree.getroot().find("PartyCollection")
     if party_collection is not None:
-      all_parties = set(party.attrib["objectId"]
-                        for party in party_collection
-                        if party is not None and party.get("objectId", None))
+      all_parties = {
+          party.attrib["objectId"]
+          for party in party_collection
+          if party is not None and party.get("objectId")
+      }
     return all_parties
 
 
@@ -1293,7 +1295,7 @@ class DuplicateContestNames(base.TreeRule):
       tag = self.strip_schema_ns(element)
       if tag != "Contest":
         continue
-      object_id = element.get("objectId", None)
+      object_id = element.get("objectId")
       name = element.find("Name")
       if name is None or not name.text:
         error_message = "Contest {0} is missing a <Name> ".format(object_id)
@@ -1413,8 +1415,7 @@ class OfficeMissingOfficeHolderPersonData(base.ValidReferenceRule):
     all_people = set()
     person_collection = self.election_tree.getroot().find("PersonCollection")
     if person_collection is not None:
-      all_people = set(
-          person.attrib["objectId"] for person in person_collection)
+      all_people = {person.attrib["objectId"] for person in person_collection}
     return all_people
 
 
@@ -1525,14 +1526,14 @@ class ValidEnumerations(base.BaseRule):
     for element in schema_tree.iter():
       tag = self.strip_schema_ns(element)
       if tag == "enumeration":
-        elem_val = element.get("value", None)
+        elem_val = element.get("value")
         if elem_val and elem_val != "other":
           self.valid_enumerations.append(elem_val)
       elif tag == "complexType":
         for elem in element.iter():
           tag = self.strip_schema_ns(elem)
           if tag == "element":
-            elem_name = elem.get("name", None)
+            elem_name = elem.get("name")
             if elem_name and element.get("name") and elem_name == "OtherType":
               if element.get("name") == "ExternalIdentifiers":
                 eligible_elements.append("ExternalIdentifier")
@@ -1667,7 +1668,7 @@ class PartyLeadershipMustExist(base.ValidReferenceRule):
     persons = root.find("PersonCollection")
     all_person_ids = set()
     if persons is not None:
-      all_person_ids = set(person.attrib["objectId"] for person in persons)
+      all_person_ids = {person.attrib["objectId"] for person in persons}
     return all_person_ids
 
 
@@ -1757,7 +1758,7 @@ class URIValidator(base.BaseRule):
     except UnicodeEncodeError:
       discrepencies.append("not ascii encoded")
 
-    if parsed_url.scheme not in set(["http", "https"]):
+    if parsed_url.scheme not in {"http", "https"}:
       discrepencies.append("protocol - invalid")
     if not parsed_url.netloc:
       discrepencies.append("domain - missing")
@@ -1872,12 +1873,11 @@ class ValidJurisdictionID(base.ValidReferenceRule):
 
   def _gather_reference_values(self):
     root = self.election_tree.getroot()
-    return set(
-        [elem.text for elem in get_jurisdiction_elements(root) if elem.text])
+    return {elem.text for elem in get_jurisdiction_elements(root) if elem.text}
 
   def _gather_defined_values(self):
     gp_unit_elements = self.election_tree.getroot().findall(".//GpUnit")
-    return set([elem.get("objectId", None) for elem in gp_unit_elements])
+    return {elem.get("objectId") for elem in gp_unit_elements}
 
 
 class ElectionStartDates(base.DateRule):
@@ -1926,6 +1926,38 @@ class ElectionEndDates(base.DateRule):
       raise base.ElectionError("The election dates are invalid: ", error_log)
 
 
+class GpUnitsHaveInternationalizedName(base.BaseRule):
+  """GpUnits must have at least one non-empty InternationlizedName element."""
+
+  def elements(self):
+    return ["GpUnit"]
+
+  def check(self, element):
+    intl_names = element.findall("InternationalizedName")
+    missing_names = []
+    if intl_names is None or not intl_names or len(intl_names) > 1:
+      raise base.ElectionError(
+          ("GpUnit {} is required to have "
+           "exactly one InterationalizedName element.".format(
+               element.get("object_id", ""))))
+    intl_name = intl_names[0]
+    name_texts = intl_name.findall("Text")
+    if name_texts is None or not name_texts:
+      raise base.ElectionError(
+          ("GpUnit InternationalizedName on line {} is required to have "
+           "one or more Text elements.".format(intl_name.sourceline)))
+    for name_text in name_texts:
+      if name_text is None or not (name_text.text and name_text.text.strip()):
+        missing_names.append(
+            "InternationalizedName on line {} does not have a text value."
+            .format(intl_name.sourceline))
+    if missing_names:
+      raise base.ElectionError(
+          ("GpUnit {} must not have empty InternationalizedName "
+           "Text elements. {}".format(
+               element.get("object_id", ""), "\n".join(missing_names))))
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
@@ -1963,6 +1995,7 @@ COMMON_RULES = (
     ValidStableID,
     PersonHasUniqueFullName,
     PersonsMissingPartyData,
+    GpUnitsHaveInternationalizedName,
 )
 
 ELECTION_RULES = COMMON_RULES + (
