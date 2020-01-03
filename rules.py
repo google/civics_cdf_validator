@@ -1962,6 +1962,7 @@ COMMON_RULES = (
     OfficesHaveJurisdictionID,
     ValidStableID,
     PersonHasUniqueFullName,
+    PersonsMissingPartyData,
 )
 
 ELECTION_RULES = COMMON_RULES + (
@@ -1991,7 +1992,6 @@ ELECTION_RULES = COMMON_RULES + (
 OFFICEHOLDER_RULES = COMMON_RULES + (
     PersonHasOffice,
     ProhibitElectionData,
-    PersonsMissingPartyData,
     OfficeMissingOfficeHolderPersonData,
 )
 

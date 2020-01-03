@@ -1578,6 +1578,7 @@
       <LastName>WASHBURNE</LastName>
       <MiddleName>J.</MiddleName>
       <Nickname>JAKE</Nickname>
+      <PartyId>par0001</PartyId>
       <Title>
         <Text language="en">General Registrar Physical</Text>
       </Title>
@@ -1597,12 +1598,14 @@
       <FirstName>Barack</FirstName>
       <LastName>Obama</LastName>
       <MiddleName>H.</MiddleName>
+      <PartyId>par0002</PartyId>
     </Person>
     <Person objectId="per10861b">
       <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>person-per10861b</Value></ExternalIdentifier></ExternalIdentifiers>
       <FirstName>Joseph</FirstName>
       <LastName>Biden</LastName>
       <MiddleName>R.</MiddleName>
+      <PartyId>par0006</PartyId>
     </Person>
     <Person objectId="per10862a">
       <ContactInformation label="ci10862a">
@@ -1615,12 +1618,14 @@
       <FirstName>Willard</FirstName>
       <LastName>Romney</LastName>
       <MiddleName>Mitt</MiddleName>
+      <PartyId>par0005</PartyId>
     </Person>
     <Person objectId="per10862b">
       <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>person-per10862b</Value></ExternalIdentifier></ExternalIdentifiers>
       <FirstName>Paul</FirstName>
       <LastName>Ryan</LastName>
       <MiddleName>D.</MiddleName>
+      <PartyId>par0004</PartyId>
     </Person>
     <Person objectId="per10961">
       <ContactInformation label="ci10961">
@@ -1634,6 +1639,7 @@
       <FirstName>Ken</FirstName>
       <LastName>Cuccinelli</LastName>
       <MiddleName>T.</MiddleName>
+      <PartyId>par0003</PartyId>
       <Suffix>II</Suffix>
     </Person>
     <Person objectId="per10962">
@@ -1647,6 +1653,7 @@
       <FirstName>Robert</FirstName>
       <LastName>Sarvis</LastName>
       <MiddleName>C.</MiddleName>
+      <PartyId>par0002</PartyId>
     </Person>
     <Person objectId="per10963">
       <ContactInformation label="ci10963">
@@ -1660,6 +1667,7 @@
       <FirstName>Terry</FirstName>
       <LastName>McAuliffe</LastName>
       <MiddleName>R.</MiddleName>
+      <PartyId>par0001</PartyId>
     </Person>
     <Person objectId="per10966">
       <ContactInformation label="ci10966">
@@ -1673,6 +1681,7 @@
       <FirstName>Ralph</FirstName>
       <LastName>Northam</LastName>
       <MiddleName>S.</MiddleName>
+      <PartyId>par0001</PartyId>
     </Person>
     <Person objectId="per10967">
       <ContactInformation label="ci10967">
@@ -1687,6 +1696,7 @@
       <FirstName>E.</FirstName>
       <LastName>Jackson</LastName>
       <MiddleName>W.</MiddleName>
+      <PartyId>par0003</PartyId>
     </Person>
     <Person objectId="per10964">
       <ContactInformation label="ci10964">
@@ -1700,6 +1710,7 @@
       <FirstName>Mark</FirstName>
       <LastName>Obenshain</LastName>
       <MiddleName>D.</MiddleName>
+      <PartyId>par0004</PartyId>
     </Person>
     <Person objectId="per10965">
       <ContactInformation label="ci10965">
@@ -1713,12 +1724,14 @@
       <FirstName>Mark</FirstName>
       <LastName>Herring</LastName>
       <MiddleName>R.</MiddleName>
+      <PartyId>par0005</PartyId>
     </Person>
     <Person objectId="per14444">
       <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>person-per14444</Value></ExternalIdentifier></ExternalIdentifiers>
       <FirstName>Cleo</FirstName>
       <LastName>Powell</LastName>
       <MiddleName>E.</MiddleName>
+      <PartyId>par0002</PartyId>
     </Person>
     <Person objectId="per10422">
       <ContactInformation label="ci10422">
@@ -1733,6 +1746,7 @@
       <LastName>Landes</LastName>
       <MiddleName>Steven</MiddleName>
       <Nickname>Steve</Nickname>
+      <PartyId>par0001</PartyId>
     </Person>
     <Person objectId="per10388">
       <ContactInformation label="ci10388">
@@ -1746,6 +1760,7 @@
       <FirstName>David</FirstName>
       <LastName>Toscano</LastName>
       <MiddleName>J.</MiddleName>
+      <PartyId>par0005</PartyId>
     </Person>
     <Person objectId="per10466">
       <ContactInformation label="ci10466">
@@ -1759,6 +1774,7 @@
       <FirstName>C.</FirstName>
       <LastName>Fariss</LastName>
       <MiddleName>Matt</MiddleName>
+      <PartyId>par0004</PartyId>
     </Person>
     <Person objectId="per10438">
       <ContactInformation label="ci10438">
@@ -1771,6 +1787,7 @@
       <FirstName>Robert</FirstName>
       <LastName>Bell</LastName>
       <MiddleName>B.</MiddleName>
+      <PartyId>par0003</PartyId>
       <Suffix>III</Suffix>
     </Person>
     <Person objectId="per10079">
@@ -1785,6 +1802,7 @@
       <FirstName>Jane</FirstName>
       <LastName>Dittmar</LastName>
       <MiddleName>D.</MiddleName>
+      <PartyId>par0006</PartyId>
     </Person>
     <Person objectId="per10080">
       <ContactInformation label="ci10080">
@@ -1799,6 +1817,7 @@
       <LastName>Burket</LastName>
       <MiddleName>L.</MiddleName>
       <Nickname>Cindi</Nickname>
+      <PartyId>par0004</PartyId>
     </Person>
     <Person objectId="per10075">
       <ContactInformation label="ci10075">
@@ -1811,6 +1830,7 @@
       <FirstName>Diantha</FirstName>
       <LastName>McKeel</LastName>
       <MiddleName>H.</MiddleName>
+      <PartyId>par0001</PartyId>
     </Person>
     <Person objectId="per10076">
       <ContactInformation label="ci10076">
@@ -1823,6 +1843,7 @@
       <FirstName>B.</FirstName>
       <LastName>Seay</LastName>
       <MiddleName>Phillip</MiddleName>
+      <PartyId>par0002</PartyId>
     </Person>
     <Person objectId="per10073">
       <ContactInformation label="ci10073">
@@ -1836,6 +1857,7 @@
       <FirstName>Liz</FirstName>
       <LastName>Palmer</LastName>
       <MiddleName>A.</MiddleName>
+      <PartyId>par0003</PartyId>
     </Person>
     <Person objectId="per10074">
       <ContactInformation label="ci10074">
@@ -1849,6 +1871,7 @@
       <FirstName>Duane</FirstName>
       <LastName>Snow</LastName>
       <MiddleName>E.</MiddleName>
+      <PartyId>par0002</PartyId>
     </Person>
     <Person objectId="per10077">
       <ContactInformation label="ci10077">
@@ -1862,6 +1885,7 @@
       <FirstName>Rodney</FirstName>
       <LastName>Thomas</LastName>
       <MiddleName>S.</MiddleName>
+      <PartyId>par0003</PartyId>
     </Person>
     <Person objectId="per10078">
       <ContactInformation label="ci10078">
@@ -1876,6 +1900,7 @@
       <LastName>Sheffield</LastName>
       <MiddleName>L.</MiddleName>
       <Nickname>Brad</Nickname>
+      <PartyId>par0001</PartyId>
     </Person>
     <Person objectId="per10214">
       <ContactInformation label="ci10214">
@@ -1888,6 +1913,7 @@
       <FirstName>Pamela</FirstName>
       <LastName>Moynihan</LastName>
       <MiddleName>R.</MiddleName>
+      <PartyId>par0004</PartyId>
     </Person>
     <Person objectId="per10215">
       <ContactInformation label="ci10215">
@@ -1900,6 +1926,7 @@
       <FirstName>Eric</FirstName>
       <LastName>Strucko</LastName>
       <MiddleName>J.</MiddleName>
+      <PartyId>par0001</PartyId>
     </Person>
     <Person objectId="per10213">
       <ContactInformation label="ci10213">
@@ -1913,6 +1940,7 @@
       <LastName>Acuff</LastName>
       <MiddleName>L.</MiddleName>
       <Nickname>Kate</Nickname>
+      <PartyId>par0002</PartyId>
     </Person>
   </PersonCollection>
   <SequenceStart>1</SequenceStart>
