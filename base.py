@@ -18,87 +18,9 @@ from __future__ import print_function
 
 import datetime
 
+from election_results_xml_validator import loggers
 from election_results_xml_validator import stats
 from lxml import etree
-
-
-# pylint: disable=g-bad-exception-name
-class ElectionException(Exception):
-  """Base class for all the errors in this script."""
-  error_message = None
-  description = None
-  error_log = []
-
-  def __init__(self, message):
-    super(ElectionException, self).__init__()
-    self.error_message = message
-
-  def __str__(self):
-    return repr(self.error_message)
-
-
-class ElectionError(ElectionException):
-  """An error that prevents the feed from being processed successfully."""
-
-  description = "Error"
-
-  def __init__(self, message, error_log=None):
-    super(ElectionError, self).__init__(message)
-    if error_log:
-      self.error_log = error_log
-
-
-class ElectionTreeError(ElectionError):
-  """Special exception for Tree Rules."""
-
-  def __init__(self, message, error_log):
-    super(ElectionTreeError, self).__init__(message)
-    self.error_log = error_log
-
-
-# pylint: disable=g-bad-exception-name
-class ElectionWarning(ElectionException):
-  """An issue that should be fixed.
-
-  It will not stop the feed from being successfully processed but may lead to
-  undefined errors.
-  """
-
-  description = "Warning"
-
-  def __init__(self, message, warning_log=None):
-    super(ElectionWarning, self).__init__(message)
-    if warning_log:
-      self.error_log = warning_log
-
-
-# pylint: disable=g-bad-exception-name
-class ElectionInfo(ElectionException):
-  """Information that user needs to know about following XML best practices."""
-
-  description = "Info"
-
-  def __init__(self, message, error_log=None):
-    super(ElectionInfo, self).__init__(message)
-    if error_log:
-      self.error_log = error_log
-
-
-class ElectionTreeInfo(ElectionInfo):
-  """Special exception for Tree Rules."""
-
-  def __init__(self, message, error_log):
-    super(ElectionTreeInfo, self).__init__(message)
-    self.error_log = error_log
-
-
-class ErrorLogEntry(object):
-  line = None
-  message = None
-
-  def __init__(self, line, message):
-    self.line = line
-    self.message = message
 
 
 class SchemaHandler(object):
@@ -162,7 +84,7 @@ class BaseRule(SchemaHandler):
       ElectionException: the rule must have the option_name attribute.
     """
     if not hasattr(self, option.option_name):
-      raise ElectionException("Invalid attribute set")
+      raise loggers.ElectionException("Invalid attribute set")
     setattr(self, option.option_name, option.option_value)
 
   def setup(self):
@@ -208,8 +130,9 @@ class ValidReferenceRule(TreeRule):
     invalid_references = reference_ids - defined_ids
 
     if invalid_references:
-      raise ElectionError("No defined {} for {} found in the feed.".format(
-          self.missing_element, ", ".join(invalid_references)))
+      raise loggers.ElectionError("No defined {} for {} found in the feed."
+                                  .format(self.missing_element,
+                                          ", ".join(invalid_references)))
 
 
 class DateRule(BaseRule):
@@ -244,7 +167,7 @@ class DateRule(BaseRule):
           self.start_elem.text, "%Y-%m-%d").date()
     except ValueError:
       error_message = "The StartDate text should be of the format yyyy-mm-dd"
-      error_log.append(ErrorLogEntry(
+      error_log.append(loggers.ErrorLogEntry(
           self.start_elem.sourceline, error_message))
 
     self.end_elem = election_element.find("EndDate")
@@ -253,12 +176,13 @@ class DateRule(BaseRule):
           self.end_elem.text, "%Y-%m-%d").date()
     except ValueError:
       error_message = "The EndDate text should be of the format yyyy-mm-dd"
-      error_log.append(ErrorLogEntry(
+      error_log.append(loggers.ErrorLogEntry(
           self.end_elem.sourceline, error_message))
 
     if error_log:
-      raise ElectionError("The format for the election dates are invalid: ",
-                          error_log)
+      raise loggers.ElectionError(
+          "The format for the election dates are invalid: ",
+          error_log)
 
 
 class RuleOption(object):
@@ -274,7 +198,9 @@ class RuleOption(object):
 class RulesRegistry(SchemaHandler):
   """Registry of rules and the elements they check."""
 
-  _SEVERITIES = (ElectionInfo, ElectionWarning, ElectionError)
+  _SEVERITIES = (loggers.ElectionInfo,
+                 loggers.ElectionWarning,
+                 loggers.ElectionError)
 
   _TOP_LEVEL_ENTITIES = set(
       ["Party", "GpUnit", "Office", "Person", "Candidate", "Contest"])
@@ -399,14 +325,14 @@ class RulesRegistry(SchemaHandler):
       self.election_tree = etree.parse(self.election_file)
     except etree.LxmlError as e:
       print("Fatal Error. XML file could not be parsed. {}".format(e))
-      self.exception_counts[ElectionError] += 1
+      self.exception_counts[loggers.ElectionError] += 1
       self.total_count += 1
       return
     self.register_rules()
     for rule in self.registry.get("tree", []):
       try:
         rule.check()
-      except ElectionException as e:
+      except loggers.ElectionException as e:
         self.exception_handler(rule, e)
     for _, element in etree.iterwalk(self.election_tree, events=("end",)):
       tag = self.get_element_class(element)
@@ -417,5 +343,5 @@ class RulesRegistry(SchemaHandler):
       for element_rule in self.registry[tag]:
         try:
           element_rule.check(element)
-        except ElectionException as e:
+        except loggers.ElectionException as e:
           self.exception_handler(element_rule, e)

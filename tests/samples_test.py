@@ -9,6 +9,7 @@ import os
 from absl import flags
 from absl.testing import absltest
 from election_results_xml_validator import base
+from election_results_xml_validator import loggers
 from election_results_xml_validator import rules
 import pytest
 
@@ -75,9 +76,9 @@ class SamplesTest(absltest.TestCase):
 
     registry.check_rules()
     self.assertEqual(expected_errors,
-                     registry.exception_counts[base.ElectionError])
+                     registry.exception_counts[loggers.ElectionError])
     self.assertEqual(expected_warnings,
-                     registry.exception_counts[base.ElectionWarning])
+                     registry.exception_counts[loggers.ElectionWarning])
 
 
 if __name__ == '__main__':

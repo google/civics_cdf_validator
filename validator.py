@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """NIST CDF validation library.
 
 A set of rules that can be used to validate a NIST 1500-100 file containing
@@ -30,6 +29,7 @@ import re
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from election_results_xml_validator import base
+from election_results_xml_validator import loggers
 from election_results_xml_validator import rules
 from election_results_xml_validator import version
 import github
@@ -83,8 +83,7 @@ def _validate_country_codes(parser, arg):
 
   github_api = github.Github()
   country_ids = github_api.get_repo(
-      "opencivicdata/ocd-division-ids"
-  ).get_contents("identifiers")
+      "opencivicdata/ocd-division-ids").get_contents("identifiers")
   valid_codes = []
 
   for content_file in country_ids:
@@ -258,11 +257,11 @@ def main():
     errors = []
 
     for election_file in xml_files:
-      print("\n--------- Results after validating file: {0} "
-            .format(election_file))
+      print("\n--------- Results after validating file: {0} ".format(
+          election_file))
 
-      if (not election_file.endswith(".xml")
-          or not os.stat(election_file).st_size):
+      if (not election_file.endswith(".xml") or
+          not os.stat(election_file).st_size):
         print("{0} is not a valid XML file.".format(election_file))
         errors.append(3)
         continue
@@ -277,15 +276,16 @@ def main():
       registry.print_exceptions(options.severity, options.verbose)
       if options.verbose:
         registry.count_stats()
-      if registry.exception_counts[base.ElectionError]:
+      if registry.exception_counts[loggers.ElectionError]:
         errors.append(3)
-      elif registry.exception_counts[base.ElectionWarning]:
+      elif registry.exception_counts[loggers.ElectionWarning]:
         errors.append(2)
-      elif registry.exception_counts[base.ElectionInfo]:
+      elif registry.exception_counts[loggers.ElectionInfo]:
         errors.append(1)
       else:
         errors.append(0)
     return max(errors)
+
 
 if __name__ == "__main__":
   main()

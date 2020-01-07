@@ -6,6 +6,7 @@ import io
 import sys
 from absl.testing import absltest
 from election_results_xml_validator import base
+from election_results_xml_validator import loggers
 from lxml import etree
 from mock import patch
 
@@ -36,7 +37,7 @@ class ValidReferenceRuleTest(absltest.TestCase):
   @patch.object(base.ValidReferenceRule, "_gather_defined_values",
                 testMockGatherDefined)
   def testRaisesAnErrorIfAValueDoesNotReferenceADefinedValue(self):
-    with self.assertRaises(base.ElectionError) as ee:
+    with self.assertRaises(loggers.ElectionError) as ee:
       base.ValidReferenceRule(None, None).check()
     self.assertIn("id-5", str(ee.exception))
     self.assertIn("id-6", str(ee.exception))
@@ -77,7 +78,7 @@ class DateRuleTest(absltest.TestCase):
     election_string = self.election_string.format(
         start_date_time, end_date_time)
     election = etree.fromstring(election_string)
-    with self.assertRaises(base.ElectionError):
+    with self.assertRaises(loggers.ElectionError):
       self.date_validator.gather_dates(election)
 
 
