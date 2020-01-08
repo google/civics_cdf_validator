@@ -296,9 +296,9 @@ class RulesRegistry(SchemaHandler):
             for error in exception.error_log:
               if error.line is not None:
                 print(" " * 14 +
-                      "Line {0}: {1}".format(error.line, error.message))
+                      u"Line {0}: {1}".format(error.line, error.message))
               else:
-                print(" " * 14 + "{0}".format(error.message))
+                print(" " * 14 + u"{0}".format(error.message))
 
   def count_stats(self):
     """Aggregates the counts for each top level entity."""
