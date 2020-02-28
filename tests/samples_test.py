@@ -58,6 +58,10 @@ class SamplesTest(absltest.TestCase):
         expected_warnings=19,
         expected_errors=18)
 
+  def testBallotMeasureContestSampleFeed(self):
+    self._TestFile('ballot_measure_contest_sample_feed.xml',
+                   self.election_rules)
+
   def _TestFile(self, filename, rules_to_check,
                 expected_errors=0, expected_warnings=0):
     sample_file = os.path.join(
@@ -75,6 +79,7 @@ class SamplesTest(absltest.TestCase):
         rule_classes_to_check=rules_to_check)
 
     registry.check_rules()
+    registry.print_exceptions(0, True)
     self.assertEqual(expected_errors,
                      registry.exception_counts[loggers.ElectionError])
     self.assertEqual(expected_warnings,

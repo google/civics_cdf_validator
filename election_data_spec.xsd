@@ -209,7 +209,7 @@
                     <xs:element minOccurs="0" name="ConStatement" type="InternationalizedText" />
                     <xs:element minOccurs="0" name="EffectOfAbstain" type="InternationalizedText" />
                     <xs:element minOccurs="0" name="FullText" type="InternationalizedText" />
-                    <xs:element minOccurs="0" name="InfoUri" type="AnnotatedUri" />
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="InfoUri" type="AnnotatedUri" />
                     <xs:element minOccurs="0" name="PassageThreshold" type="InternationalizedText" />
                     <xs:element minOccurs="0" name="ProStatement" type="InternationalizedText" />
                     <xs:element minOccurs="0" name="SummaryText" type="InternationalizedText" />
@@ -223,6 +223,7 @@
         <xs:complexContent>
             <xs:extension base="BallotSelection">
                 <xs:sequence>
+                    <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
                     <xs:element name="Selection" type="InternationalizedText" />
                 </xs:sequence>
             </xs:extension>

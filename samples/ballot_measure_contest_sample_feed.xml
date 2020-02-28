@@ -1,0 +1,102 @@
+<ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Election>
+    <ContestCollection>
+      <Contest objectId="bmc0" xsi:type="BallotMeasureContest">
+        <BallotSelection objectId="bms00" xsi:type="BallotMeasureSelection">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>bmc0_yes</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+          <Selection>
+            <Text language="en">Yes</Text>
+          </Selection>
+        </BallotSelection>
+        <BallotSelection objectId="bms01" xsi:type="BallotMeasureSelection">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>bmc0_no</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+          <Selection>
+            <Text language="en">No</Text>
+          </Selection>
+        </BallotSelection>
+        <BallotSubTitle>
+          <Text language="en">Farm Animal Confinement Initiative</Text>
+        </BallotSubTitle>
+        <BallotTitle>
+          <Text language="en">
+            Contest for California Proposition 12
+          </Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru_ca_1</ElectoralDistrictId>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>bmc0</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>
+          Contest for California Proposition 12, Farm Animal Confinement Initiative (2018)
+        </Name>
+        <ConStatement>
+          <Text language="en">No means the measure will not be enacted
+          </Text>
+        </ConStatement>
+        <InfoUri Annotation="FullText">
+          https://example-government.gov/ballot-measures/California_Proposition_12_2018
+        </InfoUri>
+        <InfoUri Annotation="wikipedia">
+          https://en.wikipedia.org/wiki/2018_California_Proposition_12
+        </InfoUri>
+        <ProStatement>
+          <Text language="en">Yes means the measure will be enacted
+          </Text>
+        </ProStatement>
+        <SummaryText>
+          <Text language="en">
+            The proposition establishes new minimum requirements on farmers to provide more space for egg-laying hens, breeding pigs, and calves raised for veal. California businesses will be banned from selling eggs or uncooked pork or veal that came from animals housed in ways that did not meet these requirements.
+          </Text>
+        </SummaryText>
+      </Contest>
+    </ContestCollection>
+    <ElectionScopeId>ru_ca_1</ElectionScopeId>
+    <Name>
+      <Text language="en">GENERAL ELECTION</Text>
+    </Name>
+    <StartDate>2018-11-05</StartDate>
+    <EndDate>2018-11-05</EndDate>
+    <Type>general</Type>
+  </Election>
+  <Format>precinct-level</Format>
+  <GeneratedDate>2018-11-05T14:25:28</GeneratedDate>
+  <GpUnitCollection>
+    <GpUnit objectId="ru_ca_1" xsi:type="ReportingUnit">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-28ns7d</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:ca</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>California</Name>
+      <Type>state</Type>
+    </GpUnit>
+  </GpUnitCollection>
+  <Issuer>Data Partner X</Issuer>
+  <IssuerAbbreviation>DPX</IssuerAbbreviation>
+  <SequenceStart>1</SequenceStart>
+  <SequenceEnd>1</SequenceEnd>
+  <Status>certified</Status>
+  <VendorApplicationId>Hand-generated</VendorApplicationId>
+</ElectionReport>
