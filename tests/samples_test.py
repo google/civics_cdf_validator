@@ -62,6 +62,10 @@ class SamplesTest(absltest.TestCase):
     self._TestFile('ballot_measure_contest_sample_feed.xml',
                    self.election_rules)
 
+  def testBallotMeasureContestWithResultsSampleFeed(self):
+    self._TestFile('ballot_measure_contest_sample_feed_with_results.xml',
+                   self.election_rules)
+
   def _TestFile(self, filename, rules_to_check,
                 expected_errors=0, expected_warnings=0):
     sample_file = os.path.join(
