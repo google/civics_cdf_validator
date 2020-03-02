@@ -839,8 +839,8 @@ class UniqueLabel(base.BaseRule):
         self.labels.add(element_label)
 
 
-class CandidatesReferencedOnce(base.TreeRule):
-  """Candidate should be referred to by only one contest.
+class CandidatesReferencedOnce(base.BaseRule):
+  """Candidate should be referred to by only one contest for an election.
 
   A Candidate object should only ever be referenced from one contest. If a
   Person is running in multiple Contests, then that Person is a Candidate
@@ -849,28 +849,37 @@ class CandidatesReferencedOnce(base.TreeRule):
 
   def __init__(self, election_tree, schema_file):
     super(CandidatesReferencedOnce, self).__init__(election_tree, schema_file)
-
-    # Mapping of candidates and contests that reference them.
-    self.candidate_registry = {}
     self.error_log = []
 
-  def _register_candidates(self):
-    candidates = self.get_elements_by_class(self.election_tree, "Candidate")
+  def elements(self):
+    return ["Election"]
+
+  def _register_candidates(self, election):
+    candidate_registry = {}
+    candidates = self.get_elements_by_class(election, "Candidate")
     for candidate in candidates:
       cand_id = candidate.get("objectId", None)
-      self.candidate_registry[cand_id] = []
+      candidate_registry[cand_id] = []
 
-    contests = self.get_elements_by_class(self.election_tree, "Contest")
+    contests = self.get_elements_by_class(election, "Contest")
     for contest in contests:
       contest_id = contest.get("objectId")
       for child in contest.iter(tag=etree.Element):
         if "CandidateId" in child.tag:
           for cand_id in child.text.split():
-            self.candidate_registry[cand_id].append(contest_id)
+            # bug in case the cand_id is an invalid one
+            if cand_id not in candidate_registry:
+              error_message = (
+                  "Contest {} refer to a non existing candidate {}.").format(
+                      contest_id, cand_id)
+              self.error_log.append(loggers.ErrorLogEntry(None, error_message))
+              continue
+            candidate_registry[cand_id].append(contest_id)
+    return candidate_registry
 
-  def check(self):
-    self._register_candidates()
-    for cand_id, contest_ids in self.candidate_registry.items():
+  def check(self, element):
+    candidate_registry = self._register_candidates(element)
+    for cand_id, contest_ids in candidate_registry.items():
       if len(contest_ids) > 1:
         error_message = ("A Candidate object should only ever be referenced"
                          " in one Contest. Candidate {} is"
@@ -881,7 +890,6 @@ class CandidatesReferencedOnce(base.TreeRule):
         error_message = ("A Candidate should be referenced in a Contest. "
                          "Candidate {0} is not referenced.").format(cand_id)
         self.error_log.append(loggers.ErrorLogEntry(None, error_message))
-
     if self.error_log:
       raise loggers.ElectionTreeError(
           "The Election File contains invalid Candidate references",
@@ -1294,24 +1302,25 @@ class MissingPartyAffiliation(base.ValidReferenceRule):
     return all_parties
 
 
-class DuplicateContestNames(base.TreeRule):
-  """Check that the file contains unique ContestNames.
+class DuplicateContestNames(base.BaseRule):
+  """Check that an election contains unique ContestNames.
 
   Add Warning if duplicate ContestName found.
   """
 
-  def check(self):
-    # Mapping for <Name> and its Contest ObjectId.
-    name_contest_id = {}
-    error_log = []
+  def elements(self):
+    return ["ContestCollection"]
 
-    # TODO(kaminer) Avoid the iterwalk by extending BaseRule
-    # and only checking ContestCollection. Verify with Justin
-    # Get the object ids associated with each contest name.
-    for _, element in etree.iterwalk(self.election_tree):
-      tag = self.strip_schema_ns(element)
-      if tag != "Contest":
-        continue
+  def check(self, election_elt):
+    # Mapping for <Name> and its Contest ObjectId.
+    error_log = []
+    name_contest_id = {}
+    contest_elts = election_elt.findall("Contest")
+    if contest_elts is None:
+      error_message = "ContestCollection is Empty."
+      error_log.append(
+          loggers.ErrorLogEntry(election_elt.sourceline, error_message))
+    for element in contest_elts:
       object_id = element.get("objectId")
       name = element.find("Name")
       if name is None or not name.text:
@@ -1351,6 +1360,7 @@ class CheckIdentifiers(base.TreeRule):
       if nist_obj not in nist_objects:
         continue
       object_id = element.get("objectId")
+
       external_identifiers = element.find("ExternalIdentifiers")
       if external_identifiers is None:
         err_message = "{0} {1} is missing a stable ExternalIdentifier".format(
