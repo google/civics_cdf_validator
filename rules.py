@@ -472,7 +472,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
   def _get_latest_file_blob_sha(self):
     """Returns the GitHub blob SHA of country-*.csv."""
     blob_sha = None
-    dir_contents = self.github_repo.get_dir_contents(self.GITHUB_DIR)
+    dir_contents = self.github_repo.get_contents(self.GITHUB_DIR)
     for content_file in dir_contents:
       if content_file.name == self.github_file:
         blob_sha = content_file.sha

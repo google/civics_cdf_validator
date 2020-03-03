@@ -692,7 +692,7 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
             "sha": "abc123"
         }), None)
     repo = github.Repository.Repository(None, {}, {}, None)
-    repo.get_dir_contents = MagicMock(return_value=[content_file])
+    repo.get_contents = MagicMock(return_value=[content_file])
     self.ocdid_validator.github_repo = repo
     self.ocdid_validator.github_file = "country-ar.csv"
 
@@ -706,7 +706,7 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
             "sha": "abc123"
         }), None)
     repo = github.Repository.Repository(None, {}, {}, None)
-    repo.get_dir_contents = MagicMock(return_value=[content_file])
+    repo.get_contents = MagicMock(return_value=[content_file])
     self.ocdid_validator.github_repo = repo
     self.ocdid_validator.github_file = "country-us.csv"
 
