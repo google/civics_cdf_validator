@@ -38,6 +38,7 @@
     <xs:simpleType name="CandidatePreElectionStatus">
         <xs:restriction base="xs:string">
             <xs:enumeration value="filed" />
+            <xs:enumeration value="self-declared" />
             <xs:enumeration value="qualified" />
             <xs:enumeration value="withdrawn" />
             <xs:enumeration value="write-in" />
