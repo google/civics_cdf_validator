@@ -109,6 +109,24 @@ def arg_parser():
   parser = argparse.ArgumentParser(description=description)
   subparsers = parser.add_subparsers(dest="cmd")
   parser_validate = subparsers.add_parser("validate")
+  add_validate_parser_args(parser, parser_validate)
+  parser_list = subparsers.add_parser("list")
+  add_parser_rules_filter_args(parser, parser_list)
+  return parser
+
+
+def add_validate_parser_args(parser, parser_validate):
+  add_validate_parser_input_file_args(parser, parser_validate)
+  add_validate_parser_output_args(parser, parser_validate)
+  add_validate_parser_ocd_id_args(parser, parser_validate)
+  add_parser_rules_filter_args(parser, parser_validate)
+  parser_validate.add_argument(
+      "--required_languages",
+      help="Languages required by the AllLanguages check.",
+      required=False)
+
+
+def add_validate_parser_input_file_args(parser, parser_validate):
   parser_validate.add_argument(
       "-x",
       "--xsd",
@@ -122,14 +140,56 @@ def arg_parser():
       nargs="+",
       metavar="election_files",
       type=lambda x: _validate_path(parser, x))
+
+
+def add_validate_parser_output_args(parser, parser_validate):
+  """Enriches cmd "validate" parser with output display config."""
+  parser_validate.add_argument(
+      "--verbose",
+      "-v",
+      action="store_true",
+      help="Print out detailed log messages. Defaults to False",
+      required=False)
+  parser_validate.add_argument(
+      "--severity",
+      "-s",
+      type=lambda x: _validate_severity(parser, x),
+      help="Minimum issue severity level - error, warning or info",
+      required=False)
+
+
+def add_validate_parser_ocd_id_args(parser, parser_validate):
+  """Enriches cmd "validate" parser with ocdId related arguments."""
   parser_validate.add_argument(
       "--ocdid_file",
       help="Local ocd-id csv file path",
       required=False,
       metavar="csv_file",
       type=lambda x: _validate_path(parser, x))
+  parser_validate.add_argument(
+      "-c",
+      help="Two letter country code for OCD IDs.",
+      metavar="country",
+      type=lambda x: _validate_country_codes(parser, x),
+      required=False,
+      default="us")
+  parser_validate.add_argument(
+      "-g",
+      help="Skip check to see if there is a new OCD ID file on Github."
+      "Defaults to True",
+      action="store_true",
+      required=False)
 
-  group = parser_validate.add_mutually_exclusive_group(required=False)
+
+def add_parser_rules_filter_args(parser, cmd_parser):
+  """Enriches cmd parser with rules related arguments."""
+  cmd_parser.add_argument(
+      "-e",
+      help="Comma separated list of rules to be excluded.",
+      required=False,
+      type=lambda x: _validate_rules(parser, x))
+
+  group = cmd_parser.add_mutually_exclusive_group(required=False)
   group.add_argument(
       "-i",
       help="Comma separated list of rules to be validated.",
@@ -143,43 +203,6 @@ def arg_parser():
       required=False,
       default="election",
       type=ruleset_type)
-
-  parser_validate.add_argument(
-      "-e",
-      help="Comma separated list of rules to be excluded.",
-      required=False,
-      type=lambda x: _validate_rules(parser, x))
-  parser_validate.add_argument(
-      "--verbose",
-      "-v",
-      action="store_true",
-      help="Print out detailed log messages. Defaults to False",
-      required=False)
-  parser_validate.add_argument(
-      "--severity",
-      "-s",
-      type=lambda x: _validate_severity(parser, x),
-      help="Minimum issue severity level - error, warning or info",
-      required=False)
-  parser_validate.add_argument(
-      "-g",
-      help="Skip check to see if there is a new OCD ID file on Github."
-      "Defaults to True",
-      action="store_true",
-      required=False)
-  parser_validate.add_argument(
-      "-c",
-      help="Two letter country code for OCD IDs.",
-      metavar="country",
-      type=lambda x: _validate_country_codes(parser, x),
-      required=False,
-      default="us")
-  parser_validate.add_argument(
-      "--required_languages",
-      help="Languages required by the AllLanguages check.",
-      required=False)
-  subparsers.add_parser("list")
-  return parser
 
 
 def ruleset_type(enum_string):
@@ -204,87 +227,102 @@ def print_metadata(filename):
       int(codecs.encode(digest.finalize(), "hex"), 16)))
 
 
-def main():
-  p = arg_parser()
-  options = p.parse_args()
-  if options.cmd == "list":
-    print("Available rules are :")
-    for rule in sorted(rules.ALL_RULES, key=lambda x: x.__name__):
-      print("\t" + rule.__name__ + " - " + rule.__doc__.split("\n")[0])
-    return
-  elif options.cmd == "validate":
+def display_rules_details(options):
+  """Display rules set details based on user input."""
+  print("Selected rules details:")
+  rules_to_display = filter_all_rules_using_user_arg(options)
+  for rule in sorted(rules_to_display, key=lambda x: x.__name__):
+    print("\t{} - {}".format(rule.__name__, rule.__doc__.split("\n")[0]))
+
+
+def filter_all_rules_using_user_arg(options):
+  """Extract a sublist from ALL_RULES list using the user input."""
+  if options.i:
+    rule_names = options.i
+  else:
     if options.rule_set == rules.RuleSet.ELECTION:
       rule_names = [x.__name__ for x in rules.ELECTION_RULES]
     elif options.rule_set == rules.RuleSet.OFFICEHOLDER:
       rule_names = [x.__name__ for x in rules.OFFICEHOLDER_RULES]
     else:
       raise AssertionError("Invalid rule_set: " + options.rule_set)
-
-    if options.i:
-      rule_names = options.i
-    elif options.e:
+    if options.e:
       rule_names = set(rule_names) - set(options.e)
 
-    rule_options = {}
-    if options.g:
-      rule_options.setdefault("ElectoralDistrictOcdId", []).append(
-          base.RuleOption("check_github", False))
-      rule_options.setdefault("GpUnitOcdId", []).append(
-          base.RuleOption("check_github", False))
-    if options.c:
-      rule_options.setdefault("ElectoralDistrictOcdId", []).append(
-          base.RuleOption("country_code", options.c))
-      rule_options.setdefault("GpUnitOcdId", []).append(
-          base.RuleOption("country_code", options.c))
-    if options.ocdid_file:
-      rule_options.setdefault("ElectoralDistrictOcdId", []).append(
-          base.RuleOption("local_file", options.ocdid_file))
-      rule_options.setdefault("GpUnitOcdId", []).append(
-          base.RuleOption("local_file", options.ocdid_file))
-    if options.required_languages:
-      rule_options.setdefault("AllLanguages", []).append(
-          base.RuleOption("required_languages",
-                          str.split(options.required_languages, ",")))
-    rule_classes_to_check = [
-        x for x in rules.ALL_RULES if x.__name__ in rule_names
-    ]
+  rule_classes_to_check = [
+      x for x in rules.ALL_RULES if x.__name__ in rule_names
+  ]
+  return rule_classes_to_check
 
-    if isinstance(options.election_files, list):
-      xml_files = options.election_files
+
+def feed_validation(options):
+  """Validate the input feed depending on the user parameters."""
+  rule_options = {}
+  if options.g:
+    rule_options.setdefault("ElectoralDistrictOcdId", []).append(
+        base.RuleOption("check_github", False))
+    rule_options.setdefault("GpUnitOcdId", []).append(
+        base.RuleOption("check_github", False))
+  if options.c:
+    rule_options.setdefault("ElectoralDistrictOcdId", []).append(
+        base.RuleOption("country_code", options.c))
+    rule_options.setdefault("GpUnitOcdId", []).append(
+        base.RuleOption("country_code", options.c))
+  if options.ocdid_file:
+    rule_options.setdefault("ElectoralDistrictOcdId", []).append(
+        base.RuleOption("local_file", options.ocdid_file))
+    rule_options.setdefault("GpUnitOcdId", []).append(
+        base.RuleOption("local_file", options.ocdid_file))
+  if options.required_languages:
+    rule_options.setdefault("AllLanguages", []).append(
+        base.RuleOption("required_languages",
+                        str.split(options.required_languages, ",")))
+  rule_classes_to_check = filter_all_rules_using_user_arg(options)
+
+  if isinstance(options.election_files, list):
+    xml_files = options.election_files
+  else:
+    xml_files = [options.election_files]
+
+  errors = []
+  for election_file in xml_files:
+    print("\n--------- Results after validating file: {0} "
+          .format(election_file))
+    if (not election_file.endswith(".xml")
+        or not os.stat(election_file).st_size):
+      print("{0} is not a valid XML file.".format(election_file))
+      errors.append(3)
+      continue
+
+    print_metadata(election_file)
+    registry = base.RulesRegistry(
+        election_file=election_file,
+        schema_file=options.xsd,
+        rule_classes_to_check=rule_classes_to_check,
+        rule_options=rule_options)
+    registry.check_rules()
+    registry.print_exceptions(options.severity, options.verbose)
+    if options.verbose:
+      registry.count_stats()
+    if registry.exception_counts[loggers.ElectionError]:
+      errors.append(3)
+    elif registry.exception_counts[loggers.ElectionWarning]:
+      errors.append(2)
+    elif registry.exception_counts[loggers.ElectionInfo]:
+      errors.append(1)
     else:
-      xml_files = [options.election_files]
+      errors.append(0)
+  return max(errors)
 
-    errors = []
 
-    for election_file in xml_files:
-      print("\n--------- Results after validating file: {0} ".format(
-          election_file))
-
-      if (not election_file.endswith(".xml") or
-          not os.stat(election_file).st_size):
-        print("{0} is not a valid XML file.".format(election_file))
-        errors.append(3)
-        continue
-
-      print_metadata(election_file)
-      registry = base.RulesRegistry(
-          election_file=election_file,
-          schema_file=options.xsd,
-          rule_classes_to_check=rule_classes_to_check,
-          rule_options=rule_options)
-      registry.check_rules()
-      registry.print_exceptions(options.severity, options.verbose)
-      if options.verbose:
-        registry.count_stats()
-      if registry.exception_counts[loggers.ElectionError]:
-        errors.append(3)
-      elif registry.exception_counts[loggers.ElectionWarning]:
-        errors.append(2)
-      elif registry.exception_counts[loggers.ElectionInfo]:
-        errors.append(1)
-      else:
-        errors.append(0)
-    return max(errors)
+def main():
+  p = arg_parser()
+  options = p.parse_args()
+  if options.cmd == "list":
+    display_rules_details(options)
+    return None
+  elif options.cmd == "validate":
+    return feed_validation(options)
 
 
 if __name__ == "__main__":

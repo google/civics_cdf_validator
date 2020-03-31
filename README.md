@@ -18,13 +18,29 @@ in order to build lxml.
 
 # USAGE
 
+## Supported feeds
+You can use `election_results_xml_validator` to check different types of feed:
+
+* Officeholder
+* Candidate / results
+
 ## List rules
 
-You can list the validation rules that the script contains and the description
-of each rule by running the following command
+You can list the default validation rules attached with a brief desciption of
+each by using the "list" command:
 
 ```
 election_results_xml_validator list
+```
+
+You can also customize the displayed list by specifing your set of rules or at
+least you can filter the default list using paramters as the feed type / ignore
+rules flag.
+
+For more details, you can use the command help :
+
+```
+election_results_xml_validator list --help
 ```
 
 ## Validate a file
