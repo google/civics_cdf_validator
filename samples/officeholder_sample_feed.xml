@@ -64,6 +64,11 @@
           <OtherType>stable</OtherType>
           <Value>stable-off0</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>
         <Text language="en">United States Senator</Text>
@@ -81,6 +86,11 @@
           <Type>other</Type>
           <OtherType>stable</OtherType>
           <Value>stable-off1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>

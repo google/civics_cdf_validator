@@ -1322,6 +1322,13 @@
   <OfficeCollection>
     <Office objectId="off9999a">
       <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
@@ -1333,6 +1340,13 @@
     </Office>
     <Office objectId="off9999b">
       <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
@@ -1344,6 +1358,13 @@
     </Office>
     <Office objectId="off0000">
       <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
@@ -1355,6 +1376,13 @@
     </Office>
     <Office objectId="off0001">
       <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
@@ -1366,6 +1394,13 @@
     </Office>
     <Office objectId="off20005">
       <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
@@ -1377,6 +1412,13 @@
     </Office>
     <Office objectId="off20006">
       <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>false</IsPartisan>
       <Name>
@@ -1393,6 +1435,13 @@
       -->
     <Office objectId="off20024">
       <ElectoralDistrictId>ru0150</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
@@ -1404,6 +1453,13 @@
     </Office>
     <Office objectId="off20025">
       <ElectoralDistrictId>ru0311</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
@@ -1415,6 +1471,13 @@
     </Office>
     <Office objectId="off20033">
       <ElectoralDistrictId>ru0107</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
@@ -1426,6 +1489,13 @@
     </Office>
     <Office objectId="off20100">
       <ElectoralDistrictId>ru0076</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
@@ -1438,6 +1508,13 @@
     <!-- Board of Supervisors -->
     <Office objectId="off20262">
       <ElectoralDistrictId>ru0103</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
@@ -1449,6 +1526,13 @@
     </Office>
     <Office objectId="off20305">
       <ElectoralDistrictId>ru0054</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
@@ -1460,6 +1544,13 @@
     </Office>
     <Office objectId="off20350">
       <ElectoralDistrictId>ru0030</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
@@ -1471,6 +1562,13 @@
     </Office>
     <Office objectId="off20355">
       <ElectoralDistrictId>ru0081</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
@@ -1483,6 +1581,13 @@
     <!-- School board -->
     <Office objectId="off20449">
       <ElectoralDistrictId>ru0081</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
@@ -1494,6 +1599,13 @@
     </Office>
     <Office objectId="off20473">
       <ElectoralDistrictId>ru0030</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
@@ -1505,6 +1617,13 @@
     </Office>
     <Office objectId="off20476">
       <ElectoralDistrictId>ru0054</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>

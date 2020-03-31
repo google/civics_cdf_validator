@@ -1901,6 +1901,38 @@ class ValidJurisdictionID(base.ValidReferenceRule):
     return {elem.get("objectId") for elem in gp_unit_elements}
 
 
+class OfficesHaveValidOfficeLevel(base.BaseRule):
+  """Each office must have a valid office-level."""
+
+  def elements(self):
+    return ["Office"]
+
+  def check(self, element):
+    valid_office_level_values = {
+        "Country", "Municipality", "Neighbourhood", "District", "Region",
+        "International", "Ward", "Administrative Area 1",
+        "Administrative Area 2"
+    }
+    office_level_values = [
+        ol_id.strip()
+        for ol_id in get_external_id_values(element, "office-level")
+        if ol_id.strip()
+    ]
+    if not office_level_values:
+      raise loggers.ElectionError(
+          ("Office {} is missing an office-level.".format(
+              element.get("objectId", ""))))
+    if len(office_level_values) > 1:
+      raise loggers.ElectionError(
+          ("Office {} has more than one office-level.".format(
+              element.get("objectId", ""))))
+    office_level_value = office_level_values[0]
+    if office_level_value not in valid_office_level_values:
+      raise loggers.ElectionError(
+          ("Office {} has invalid office-level {}.".format(
+              element.get("objectId", ""), office_level_value)))
+
+
 class ElectionStartDates(base.DateRule):
   """Election elements should contain valid start dates.
 
@@ -2013,6 +2045,7 @@ COMMON_RULES = (
     GpUnitsCyclesRefsValidation,
     ValidJurisdictionID,
     OfficesHaveJurisdictionID,
+    OfficesHaveValidOfficeLevel,
     ValidStableID,
     PersonHasUniqueFullName,
     PersonsMissingPartyData,

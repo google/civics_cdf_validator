@@ -4569,6 +4569,112 @@ class ValidJurisdictionIDTest(absltest.TestCase):
     self.assertIn("ru-gpu99", str(ee.exception))
 
 
+class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
+
+  def setUp(self):
+    super(OfficesHaveValidOfficeLevelTest, self).setUp()
+    self.root_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <OfficeCollection>
+          {}
+        </OfficeCollection>
+      </ElectionReport>
+    """
+    self.offices_validator = rules.OfficesHaveValidOfficeLevel(None, None)
+
+  def testOfficeHasOfficeLevelByExternalIdentifier(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off1">
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>office-level</OtherType>
+               <Value>District</Value>
+             </ExternalIdentifier>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    self.offices_validator.check(element)
+
+  def testOfficeDoesNotHaveOfficeLevelByExternalIdentifier(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off2">
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <Value>Region</Value>
+             </ExternalIdentifier>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.offices_validator.check(element)
+    self.assertIn("is missing an office-level", str(cm.exception))
+
+  def testOfficeDoesNotHaveOfficeLevelTextByExternalIdentifier(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off2">
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>office-level</OtherType>
+               <Value></Value>
+             </ExternalIdentifier>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.offices_validator.check(element)
+    self.assertIn("is missing an office-level", str(cm.exception))
+
+  def testOfficeHasMoreThanOneOfficeLevelsbyExternalIdentifier(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off1">
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>office-level</OtherType>
+               <Value>Country</Value>
+             </ExternalIdentifier>
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>office-level</OtherType>
+               <Value>International</Value>
+             </ExternalIdentifier>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.offices_validator.check(element)
+    self.assertIn("has more than one office-level", str(cm.exception))
+
+  def testOfficeLevelTextIsWhitespaceByExternalIdentifier(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off2">
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>office-level</OtherType>
+               <Value>  </Value>
+             </ExternalIdentifier>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.offices_validator.check(element)
+    self.assertIn("is missing an office-level", str(cm.exception))
+
+  def testInvalidOfficeLevel(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off2">
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>office-level</OtherType>
+               <Value>invalidvalue</Value>
+             </ExternalIdentifier>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.offices_validator.check(element)
+    self.assertIn("has invalid office-level", str(cm.exception))
+
+
 class GpUnitsHaveSingleRootTest(absltest.TestCase):
 
   def setUp(self):
