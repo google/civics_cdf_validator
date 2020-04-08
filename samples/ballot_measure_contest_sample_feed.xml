@@ -31,7 +31,7 @@
         </BallotSubTitle>
         <BallotTitle>
           <Text language="en">
-            Contest for California Proposition 12
+            California Proposition 12, Farm Animal Confinement Initiative (2018)
           </Text>
         </BallotTitle>
         <ElectoralDistrictId>ru_ca_1</ElectoralDistrictId>
@@ -43,13 +43,18 @@
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>
-          Contest for California Proposition 12, Farm Animal Confinement Initiative (2018)
+          California Proposition 12, Farm Animal Confinement Initiative (2018)
         </Name>
+        <BallotText>
+          <Text language="en">
+            Establishes minimum requirements for confining certain farm animals. Prohibits sales of meat and egg products from animals confined in noncomplying manner. Fiscal Impact: Potential decrease in state income tax revenues from farm businesses, likely not more than several million dollars annually. State costs up to $10 million annually to enforce the measure.
+          </Text>
+        </BallotText>
         <ConStatement>
           <Text language="en">No means the measure will not be enacted
           </Text>
         </ConStatement>
-        <InfoUri Annotation="FullText">
+        <InfoUri Annotation="fulltext">
           https://example-government.gov/ballot-measures/California_Proposition_12_2018
         </InfoUri>
         <InfoUri Annotation="wikipedia">

@@ -6145,6 +6145,13 @@
               <Count>10743</Count>
             </VoteCounts>
           </VoteCountsCollection>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>bms30001a</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
           <Selection label="bms30001at">
             <Text language="en">Yes</Text>
           </Selection>
@@ -6572,12 +6579,19 @@
               <Count>16360</Count>
             </VoteCounts>
           </VoteCountsCollection>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>bms30001b</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
           <Selection label="bms30001bt">
             <Text language="en">No</Text>
           </Selection>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">State of the State</Text>
+          <Text language="en">Virginia Referendum 3, Renewable Energy Standards Initiative</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
         <ExternalIdentifiers>
@@ -6587,17 +6601,17 @@
             <Value>vageneral-cont-2013-va15-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Referendum on Virginia</Name>
+        <Name>Virginia Referendum 3, Renewable Energy Standards Initiative</Name>
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
+        <BallotText>
+          <Text language="en">Shall Article 4 of the Virginia Constitution be amended to require, beginning in calendar year 2022, that all providers of electric utility services who sell electricity to retail customers for consumption in Virginia generate or acquire incrementally larger percentages of electricity from renewable energy resources so that by calendar year 2030 not less than 50 percent of the total amount of electricity sold by each provider to its retail customers in Virginia comes from renewable energy resources?</Text>
+        </BallotText>
         <ConStatement label="bmc30001con">
-          <Text language="en">This is no good.</Text>
+          <Text language="en">A "no" vote opposes this initiative, thus keeping the existing requirement that electric utilities acquire 25 percent of their electricity from renewable resources by 2025.</Text>
         </ConStatement>
-        <EffectOfAbstain label="bmc30001abs">
-          <Text language="en">Nothing will happen.</Text>
-        </EffectOfAbstain>
         <ProStatement label="bmc30001pro">
-          <Text language="en">Everything will be great.</Text>
+          <Text language="en">A "yes" vote supports this initiative to require electric utilities to acquire 50 percent of their electricity from renewable resources by 2030.</Text>
         </ProStatement>
         <Type>referendum</Type>
       </Contest>

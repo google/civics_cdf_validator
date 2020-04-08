@@ -88,6 +88,24 @@ def get_additional_type_values(element, value_type, return_elements=False):
   return elements
 
 
+def get_language_to_text_map(element):
+  """Return a map of languages to text in an InternationalizedText element."""
+  language_map = {}
+  if element is None:
+    return language_map
+  intl_strings = element.findall("Text")
+
+  for intl_string in intl_strings:
+    text = intl_string.text
+    if text is None or not text:
+      continue
+    language = intl_string.get("language")
+    if language is None or not language:
+      continue
+    language_map[language] = text
+  return language_map
+
+
 class Schema(base.TreeRule):
   """Checks if election file validates against the provided schema."""
 
@@ -2011,6 +2029,76 @@ class GpUnitsHaveInternationalizedName(base.BaseRule):
                element.get("object_id", ""), "\n".join(missing_names))))
 
 
+class FullTextMaxLength(base.BaseRule):
+  """FullText field should not be longer than MAX_LENGTH."""
+
+  MAX_LENGTH = 30000  # about 8-10 pages of text, 4500-5000 words
+
+  def elements(self):
+    return ["FullText"]
+
+  def check(self, element):
+    intl_text_list = element.findall("Text")
+    for intl_text in intl_text_list:
+      if len(intl_text.text) > self.MAX_LENGTH:
+        raise loggers.ElectionWarning(
+            "FullText is longer than %s characters.  Please remove and "
+            "include a link to the full text via InfoUri with Annotation "
+            "'fulltext'." % (self.MAX_LENGTH))
+
+
+class FullTextOrBallotText(base.BaseRule):
+  """Warn if BallotText is missing and FullText is short."""
+
+  SUGGESTION_CUTOFF_LENGTH = 2500  # about 3 paragraphs, 250-300 words
+
+  def elements(self):
+    return ["BallotMeasureContest"]
+
+  def check(self, element):
+    full_text_map = get_language_to_text_map(element.find("FullText"))
+    if not full_text_map:
+      return
+
+    ballot_text_map = get_language_to_text_map(element.find("BallotText"))
+    for language, full_text_string in full_text_map.items():
+      if language not in ballot_text_map.keys(
+      ) and len(full_text_string) < self.SUGGESTION_CUTOFF_LENGTH:
+        raise loggers.ElectionWarning(
+            "Line: %d. Language: %s.  BallotText is missing but FullText is "
+            "present for the same language. Please confirm that FullText "
+            "contains only supplementary text and not text on the ballot "
+            "itself." % (element.sourceline, language))
+
+
+class BallotTitle(base.BaseRule):
+  """BallotTitle must exist and should usually be shorter than BallotText."""
+
+  def elements(self):
+    return ["BallotMeasureContest"]
+
+  def check(self, element):
+    ballot_title_map = get_language_to_text_map(element.find("BallotTitle"))
+    if not ballot_title_map:
+      raise loggers.ElectionError(
+          "Line %d. BallotMeasureContest is missing BallotTitle." %
+          (element.sourceline))
+
+    ballot_text_map = get_language_to_text_map(element.find("BallotText"))
+    if not ballot_text_map:
+      raise loggers.ElectionWarning(
+          "Line %d. BallotText is missing. Please confirm that the ballot "
+          " text/question is not in BallotTitle." % (element.sourceline))
+
+    for language, ballot_title_string in ballot_title_map.items():
+      if language not in ballot_text_map.keys() or len(
+          ballot_text_map[language]) < len(ballot_title_string):
+        raise loggers.ElectionWarning(
+            "Line: %d. Language: %s. BallotText is missing or shorter than "
+            "BallotTitle. Please confirm that the ballot text/question is not "
+            "in BallotTitle." % (element.sourceline, language))
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
@@ -2074,6 +2162,9 @@ ELECTION_RULES = COMMON_RULES + (
     DuplicatedPartyName,
     DuplicatedPartyAbbreviation,
     MissingPartyNameTranslation,
+    FullTextMaxLength,
+    FullTextOrBallotText,
+    BallotTitle,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (

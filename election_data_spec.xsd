@@ -207,6 +207,7 @@
         <xs:complexContent>
             <xs:extension base="Contest">
                 <xs:sequence>
+                    <xs:element minOccurs="0" name="BallotText" type="InternationalizedText" />
                     <xs:element minOccurs="0" name="ConStatement" type="InternationalizedText" />
                     <xs:element minOccurs="0" name="EffectOfAbstain" type="InternationalizedText" />
                     <xs:element minOccurs="0" name="FullText" type="InternationalizedText" />

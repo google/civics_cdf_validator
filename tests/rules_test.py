@@ -5332,6 +5332,249 @@ class GetExternalIDValuesTest(absltest.TestCase):
         self.assertIn(el, test_values)
 
 
+class FullTextMaxLengthTest(absltest.TestCase):
+
+  def setUp(self):
+    super(FullTextMaxLengthTest, self).setUp()
+    self.length_validator = rules.FullTextMaxLength(None, None)
+
+  def testMakesSureFullTextIsBelowLimit(self):
+    contest_string = """
+        <FullText>
+          <Text language="en">Short full text of a ballot measure</Text>
+          <Text language="it">Breve testo completo di un referendum</Text>
+        </FullText>
+    """
+    element = etree.fromstring(contest_string)
+
+    self.length_validator.check(element)
+
+  def testIgnoresFullTextWithNoTextStrings(self):
+    contest_string_no_full_text = """
+      <FullText>
+      </FullText>
+    """
+    element = etree.fromstring(contest_string_no_full_text)
+
+    self.length_validator.check(element)
+
+  def testRaisesWarningIfTextIsTooLong(self):
+    contest_string = """
+      <FullText>
+        <Text language="en">Long text continues...{}</Text>
+      </FullText>
+        """.format("x" * 30000)
+
+    with self.assertRaises(loggers.ElectionWarning):
+      self.length_validator.check(etree.fromstring(contest_string))
+
+  def testRaisesWarningIfAnyTextIsTooLong(self):
+    contest_string = """
+      <FullText>
+        <Text language="en">Short full text of a ballot measure</Text>
+        <Text language="es">Long text continues...{}</Text>
+      </FullText>
+        """.format("x" * 30000)
+
+    with self.assertRaises(loggers.ElectionWarning):
+      self.length_validator.check(etree.fromstring(contest_string))
+
+
+class FullTextOrBallotTextTest(absltest.TestCase):
+
+  def setUp(self):
+    super(FullTextOrBallotTextTest, self).setUp()
+    self.text_validator = rules.FullTextOrBallotText(None, None)
+
+  def testBallotTextWithLongFullText(self):
+    contest_string = """
+        <BallotMeasureContest>
+          <BallotText>
+            <Text language="en">Should the measure be enacted?</Text>
+          </BallotText>
+          <FullText>
+            <Text language="en">Long ballot measure text continues... {}</Text>
+          </FullText>
+        </BallotMeasureContest>
+    """.format("x" * 2500)
+    self.text_validator.check(etree.fromstring(contest_string))
+
+  def testBallotTextWithShortFullText(self):
+    contest_string = """
+        <BallotMeasureContest>
+          <BallotText>
+            <Text language="en">Should the measure be enacted?</Text>
+          </BallotText>
+          <FullText>
+            <Text language="en">Shorter but still valid full measure text</Text>
+          </FullText>
+        </BallotMeasureContest>
+    """
+    self.text_validator.check(etree.fromstring(contest_string))
+
+  def testBallotTextWithNoFullText(self):
+    contest_string = """
+        <BallotMeasureContest>
+          <BallotText>
+            <Text language="en">Should the measure be enacted?</Text>
+          </BallotText>
+        </BallotMeasureContest>
+    """
+    self.text_validator.check(etree.fromstring(contest_string))
+
+  def testMissingBallotTextElementWithShortFullText(self):
+    contest_string = """
+        <BallotMeasureContest>
+          <FullText>
+            <Text language="en">Should the measure be enacted?</Text>
+          </FullText>
+        </BallotMeasureContest>
+    """
+    with self.assertRaises(loggers.ElectionWarning):
+      self.text_validator.check(etree.fromstring(contest_string))
+
+  def testLanguageMismatchWithShortFullText(self):
+    contest_string = """
+        <BallotMeasureContest>
+          <BallotText>
+            <Text language="en">Should the measure be enacted?</Text>
+          </BallotText>
+          <FullText>
+            <Text language="es">¿Se debe promulgar la medida?</Text>
+          </FullText>
+        </BallotMeasureContest>
+    """
+    with self.assertRaises(loggers.ElectionWarning):
+      self.text_validator.check(etree.fromstring(contest_string))
+
+  def testLanguageMismatchWithLongFullText(self):
+    contest_string = """
+        <BallotMeasureContest>
+          <BallotText>
+            <Text language="en">Should the measure be enacted?</Text>
+          </BallotText>
+          <FullText>
+            <Text language="es">El texto de medida continúa...{}</Text>
+          </FullText>
+        </BallotMeasureContest>
+    """.format("x" * 2500)
+    self.text_validator.check(etree.fromstring(contest_string))
+
+  def testMissingBallotTextWithShortFullText(self):
+    contest_string = """
+        <BallotMeasureContest>
+          <BallotText></BallotText>
+          <FullText>
+            <Text language="en">Should the measure be enacted?</Text>
+          </FullText>
+        </BallotMeasureContest>
+    """
+    with self.assertRaises(loggers.ElectionWarning):
+      self.text_validator.check(etree.fromstring(contest_string))
+
+  def testMissingBallotTextElementWithLongFullText(self):
+    contest_string = """
+        <BallotMeasureContest>
+          <FullText>
+            <Text language="en">Long ballot text continues... {}</Text>
+          </FullText>
+        </BallotMeasureContest>
+    """.format("x" * 2500)
+    self.text_validator.check(etree.fromstring(contest_string))
+
+  def testMissingBallotTextAndFullMeasureTextElements(self):
+    contest_string = """
+        <BallotMeasureContest>
+        </BallotMeasureContest>
+    """
+    self.text_validator.check(etree.fromstring(contest_string))
+
+
+class BallotTitleTest(absltest.TestCase):
+
+  def setUp(self):
+    super(BallotTitleTest, self).setUp()
+    self.text_validator = rules.BallotTitle(None, None)
+
+  def testBallotTitleShorterThanBallotText(self):
+    contest_string = """
+        <BallotMeasureContest>
+          <BallotTitle>
+            <Text language="en">State Consitution Minimum Wage Referendum 2020</Text>
+          </BallotTitle>
+          <BallotText>
+            <Text language="en">Should the state constitution be ammended to establish a minimum wage of $12/hour by 2030?</Text>
+          </BallotText>
+        </BallotMeasureContest>
+    """
+    self.text_validator.check(etree.fromstring(contest_string))
+
+  def testLanguageMismatch(self):
+    contest_string = """
+        <BallotMeasureContest>
+          <BallotTitle>
+            <Text language="en">State Consitution Minimum Wage Referendum 2020</Text>
+          </BallotTitle>
+          <BallotText>
+            <Text language="es">Should the state constitution be ammended to establish a minimum wage of $12/hour by 2030?</Text>
+          </BallotText>
+        </BallotMeasureContest>
+    """
+    with self.assertRaises(loggers.ElectionWarning):
+      self.text_validator.check(etree.fromstring(contest_string))
+
+  def testExtraBallotTextLanguage(self):
+    contest_string = """
+        <BallotMeasureContest>
+          <BallotTitle>
+            <Text language="en">State Consitution Minimum Wage Referendum 2020</Text>
+          </BallotTitle>
+          <BallotText>
+            <Text language="en">Should the state constitution be ammended to establish a minimum wage of $12/hour by 2030?</Text>
+            <Text language="es">¿Debería modificarse la constitución estatal para establecer un salario mínimo de $ 12 / hora para 2030?</Text>
+          </BallotText>
+        </BallotMeasureContest>
+    """
+    self.text_validator.check(etree.fromstring(contest_string))
+
+  def testExtraBallotTitleLanguage(self):
+    contest_string = """
+        <BallotMeasureContest>
+          <BallotTitle>
+            <Text language="en">State Consitution Minimum Wage Referendum 2020</Text>
+            <Text language="es">Referéndum de Salario Mínimo de la Consorción Estatal 2020</Text>
+          </BallotTitle>
+          <BallotText>
+            <Text language="en">Should the state constitution be ammended to establish a minimum wage of $12/hour by 2030?</Text>
+          </BallotText>
+        </BallotMeasureContest>
+    """
+    with self.assertRaises(loggers.ElectionWarning):
+      self.text_validator.check(etree.fromstring(contest_string))
+
+  def testBallotTitleIncludesBallotText(self):
+    contest_string = """
+        <BallotMeasureContest>
+          <BallotTitle>
+            <Text language="en">Should the state constitution be ammended to establish a minimum wage of $12/hour by 2030?</Text>
+          </BallotTitle>
+        </BallotMeasureContest>
+    """
+    with self.assertRaises(loggers.ElectionWarning):
+      self.text_validator.check(etree.fromstring(contest_string))
+
+  def testMissingBallotTitle(self):
+    contest_string = """
+        <BallotMeasureContest>
+          <BallotText>
+            <Text language="en">Should the state constitution be ammended to establish a minimum wage of $12/hour by 2030?</Text>
+          </BallotText>
+        </BallotMeasureContest>
+    """
+    with self.assertRaises(loggers.ElectionError):
+      self.text_validator.check(etree.fromstring(contest_string))
+
+
 class RulesTest(absltest.TestCase):
 
   def testAllRulesIncluded(self):
