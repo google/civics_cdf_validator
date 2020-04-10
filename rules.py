@@ -2099,6 +2099,65 @@ class BallotTitle(base.BaseRule):
             "in BallotTitle." % (element.sourceline, language))
 
 
+class ImproperCandidateContest(base.TreeRule):
+  """Detect CandidateContest elements that should be a BallotMeasureContest."""
+
+  _BALLOT_SELECTION_OPTIONS = frozenset({"yes", "no", "for", "against"})
+
+  def _gather_contest_candidates(self, contest):
+    """Return candidate ids for given contest element."""
+    candidate_ids = []
+    cand_id_elems = contest.findall("BallotSelection//CandidateIds")
+    for cand_id_elem in cand_id_elems:
+      for cand_id in cand_id_elem.text.split():
+        candidate_ids.append(cand_id)
+    return candidate_ids
+
+  def _gather_invalid_candidates(self):
+    """Return candidate ids that appear to be BallotMeasureSelections."""
+    invalid_candidates = []
+    candidates = self.get_elements_by_class(
+        self.election_tree, "CandidateCollection//Candidate")
+    for candidate in candidates:
+      ballot_name = candidate.find(".//BallotName/Text[@language='en']")
+      if ballot_name is not None:
+        if ballot_name.text.lower() in self._BALLOT_SELECTION_OPTIONS:
+          invalid_candidates.append(candidate.get("objectId"))
+    return invalid_candidates
+
+  def check(self):
+    candidate_contest_mapping = {}
+    candidate_contests = self.get_elements_by_class(
+        self.election_tree, "CandidateContest")
+    for cc in candidate_contests:
+      cand_ids = self._gather_contest_candidates(cc)
+      contest_id = cc.get("objectId")
+      candidate_contest_mapping[contest_id] = cand_ids
+
+    invalid_candidates = self._gather_invalid_candidates()
+
+    error_log = []
+    for contest_id, cand_ids in candidate_contest_mapping.items():
+      flagged_candidates = []
+      for cand_id in cand_ids:
+        if cand_id in invalid_candidates:
+          flagged_candidates.append(cand_id)
+      if flagged_candidates:
+        warning_message = ("Candidates {} should be BallotMeasureSelection "
+                           "elements. Similarly, Contest {} should be changed "
+                           "to a BallotMeasureContest instead of a "
+                           "CandidateContest.").format(
+                               ", ".join(flagged_candidates), contest_id)
+        error_log.append(loggers.ErrorLogEntry(None, warning_message))
+
+    if invalid_candidates:
+      warning_message = ("There are CandidateContests that appear to be "
+                         "BallotMeasureContests based on the "
+                         "BallotName values.")
+      raise loggers.ElectionWarning("There are misformatted contests.",
+                                    error_log)
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
@@ -2165,6 +2224,7 @@ ELECTION_RULES = COMMON_RULES + (
     FullTextMaxLength,
     FullTextOrBallotText,
     BallotTitle,
+    ImproperCandidateContest,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (

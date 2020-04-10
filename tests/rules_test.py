@@ -5575,6 +5575,100 @@ class BallotTitleTest(absltest.TestCase):
       self.text_validator.check(etree.fromstring(contest_string))
 
 
+class ImproperCandidateContestTest(absltest.TestCase):
+
+  _base_report = """
+    <xml>
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest objectId="con987" xsi:type="CandidateContest">
+              <BallotSelection xsi:type="CandidateSelection">
+                <CandidateIds>can123</CandidateIds>
+              </BallotSelection>
+              <BallotSelection xsi:type="CandidateSelection">
+                <CandidateIds>can456</CandidateIds>
+              </BallotSelection>
+             </Contest>
+          </ContestCollection>
+          <CandidateCollection>
+            <Candidate objectId="can123">
+              <BallotName>
+                <Text language="en">{}</Text>
+              </BallotName>
+            </Candidate>
+            <Candidate objectId="can456">
+              <BallotName>
+                <Text language="en">{}</Text>
+              </BallotName>
+            </Candidate>
+            <Candidate objectId="can789">
+              <BallotName>
+                <Text language="es">No</Text>
+              </BallotName>
+            </Candidate>
+          </CandidateCollection>
+        </Election>
+      </ElectionReport>
+    </xml>
+  """
+
+  # _gather_contest_candidates test
+  def testReturnsListOfCandidateIdsInGiventContest(self):
+    contest = """
+      <Contest objectId="con987">
+        <BallotSelection>
+          <CandidateIds>can123 can987</CandidateIds>
+        </BallotSelection>
+        <BallotSelection>
+          <CandidateIds>can456</CandidateIds>
+        </BallotSelection>
+      </Contest>
+    """
+    contest_elem = etree.fromstring(contest)
+    contest_validator = rules.ImproperCandidateContest(None, None)
+
+    expected_ids = ["can123", "can987", "can456"]
+    actual_ids = contest_validator._gather_contest_candidates(contest_elem)
+
+    self.assertEqual(expected_ids, actual_ids)
+
+  # _gather_invalid_candidates test
+  def testReturnsCandidateIdsThatAppearToBeBallotSelections(self):
+    candidate_election = self._base_report.format(
+        "Yes", "Larry David")
+    root = etree.fromstring(candidate_election)
+    contest_validator = rules.ImproperCandidateContest(root, None)
+
+    expected_cand = ["can123"]
+    actual_cand = contest_validator._gather_invalid_candidates()
+
+    self.assertEqual(expected_cand, actual_cand)
+
+  # check tests
+  def testCandidatesDontHaveTypicalBallotSelectionOptionsAsName(self):
+    candidate_election = self._base_report.format(
+        "Jerry Seinfeld", "Larry David")
+    root = etree.fromstring(candidate_election)
+    contest_validator = rules.ImproperCandidateContest(root, None)
+
+    contest_validator.check()
+
+  def testCandidatesWithBallotSelectionsOptionsGetFlagged(self):
+    candidate_election = self._base_report.format(
+        "Yes", "No")
+    root = etree.fromstring(candidate_election)
+    contest_validator = rules.ImproperCandidateContest(root, None)
+
+    with self.assertRaises(loggers.ElectionWarning) as ew:
+      contest_validator.check()
+
+    self.assertIn("There are misformatted contests.", str(ew.exception))
+    self.assertIn("can123", ew.exception.error_log[0].message)
+    self.assertIn("can456", ew.exception.error_log[0].message)
+    self.assertIn("con987", ew.exception.error_log[0].message)
+
+
 class RulesTest(absltest.TestCase):
 
   def testAllRulesIncluded(self):
