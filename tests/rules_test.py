@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Unit test for rules.py."""
 
+import collections
 import datetime
 import inspect
 import io
@@ -4109,6 +4110,254 @@ class URIValidatorTest(absltest.TestCase):
       self.uri_validator.check(etree.fromstring(multiple_issues))
     self.assertIn("protocol - invalid", str(ee.exception))
     self.assertIn("domain - missing", str(ee.exception))
+
+
+class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
+
+  _base_person_collection = """
+    <PersonCollection>
+      <Person objectId="per1">
+        <ContactInformation>
+          <Uri Annotation="personal-facebook">{0[facebook]}</Uri>
+          <Uri Annotation="campaign-website">{0[website]}</Uri>
+          <Uri Annotation="wikipedia">{0[wikipedia]}</Uri>
+        </ContactInformation>
+      </Person>
+      <Person objectId="per2">
+        <ContactInformation>
+          <Uri Annotation="personal-facebook">{1[facebook]}</Uri>
+          <Uri Annotation="campaign-website">{1[website]}</Uri>
+          <Uri Annotation="wikipedia">{1[wikipedia]}</Uri>
+        </ContactInformation>
+      </Person>
+    </PersonCollection>
+  """
+
+  _base_party_collection = """
+    <PartyCollection>
+      <Party objectId="par1">
+        <ContactInformation>
+          <Uri Annotation="party-facebook">{0[facebook]}</Uri>
+          <Uri Annotation="campaign-website">{0[website]}</Uri>
+          <Uri Annotation="wikipedia">{0[wikipedia]}</Uri>
+        </ContactInformation>
+      </Party>
+      <Party objectId="par2">
+        <ContactInformation>
+          <Uri Annotation="party-facebook">{1[facebook]}</Uri>
+          <Uri Annotation="campaign-website">{1[website]}</Uri>
+          <Uri Annotation="wikipedia">{1[wikipedia]}</Uri>
+        </ContactInformation>
+      </Party>
+    </PartyCollection>
+  """
+
+  _office_collection = """
+    <OfficeCollection>
+      <Office objectId="off1">
+        <ContactInformation>
+          <Uri Annotation="wikipedia">https://wikipedia.com/ignorethisdup</Uri>
+        </ContactInformation>
+      </Office>
+      <Office objectId="off2">
+        <ContactInformation>
+          <Uri Annotation="wikipedia">https://wikipedia.com/ignorethisdup</Uri>
+        </ContactInformation>
+      </Office>
+    </OfficeCollection>
+  """
+
+  # _count_uris_by_category_type
+  def testReturnsADictWithCountsForEachAnnotationPlatformAndValue(self):
+    facebook_uri = "<Uri Annotation='personal-facebook'>{}</Uri>"
+    person_website_uri = "<Uri Annotation='personal-website'>{}</Uri>"
+    party_website_uri = "<Uri Annotation='party-website'>{}</Uri>"
+    wikipedia_uri = "<Uri Annotation='wikipedia'>{}</Uri>"
+
+    fb_one = facebook_uri.format("www.facebook.com/michael_scott")
+    fb_two = facebook_uri.format("www.facebook.com/dwight_shrute")
+    personal_one = person_website_uri.format("www.michaelscott.com")
+    personal_two = person_website_uri.format("www.dwightshrute.com")
+    party_one = party_website_uri.format("www.dundermifflin.com")
+    party_two = party_website_uri.format("www.sabre.com")
+    wiki_one = wikipedia_uri.format("www.wikipedia.com/dundermifflin")
+    wiki_two = wikipedia_uri.format("www.wikipedia.com/dundermifflin")
+
+    uri_elements = [
+        etree.fromstring(fb_one), etree.fromstring(fb_two),
+        etree.fromstring(personal_one), etree.fromstring(personal_two),
+        etree.fromstring(party_one), etree.fromstring(party_two),
+        etree.fromstring(wiki_one), etree.fromstring(wiki_two),
+    ]
+
+    expected_counter = {
+        "facebook": collections.Counter({
+            "www.facebook.com/michael_scott": 1,
+            "www.facebook.com/dwight_shrute": 1,
+        }),
+        "website": collections.Counter({
+            "www.michaelscott.com": 1,
+            "www.dwightshrute.com": 1,
+            "www.dundermifflin.com": 1,
+            "www.sabre.com": 1,
+        }),
+        "wikipedia": collections.Counter({
+            "www.wikipedia.com/dundermifflin": 2,
+        })
+    }
+    uri_validator = rules.UniqueURIPerAnnotationCategory(None, None)
+    actual_counter = uri_validator._count_uris_by_category(uri_elements)
+
+    self.assertEqual(expected_counter, actual_counter)
+
+  def testChecksURIsWithNoAnnotation(self):
+    uri_element = "<Uri>{}</Uri>"
+
+    uri_one = uri_element.format("www.facebook.com/michael_scott")
+    uri_two = uri_element.format("www.facebook.com/dwight_shrute")
+    uri_three = uri_element.format("www.facebook.com/dwight_shrute")
+
+    uri_elements = [
+        etree.fromstring(uri_one), etree.fromstring(uri_two),
+        etree.fromstring(uri_three)
+    ]
+
+    expected_counter = {
+        "": collections.Counter({
+            "www.facebook.com/michael_scott": 1,
+            "www.facebook.com/dwight_shrute": 2,
+        }),
+    }
+    uri_validator = rules.UniqueURIPerAnnotationCategory(None, None)
+    actual_counter = uri_validator._count_uris_by_category(uri_elements)
+
+    self.assertEqual(expected_counter, actual_counter)
+
+  # check tests
+  def testURIsAreUniqueWithinEachCategory(self):
+    person_one = {
+        "facebook": "https://www.facebook.com/michael_scott",
+        "website": "https://michaelscott2020.com",
+        "wikipedia": "https://wikipedia.com/miachel_scott",
+    }
+    person_two = {
+        "facebook": "https://www.facebook.com/dwight_shrute",
+        "website": "https://dwightshrute2020.com",
+        "wikipedia": "https://wikipedia.com/dwight_shrute",
+    }
+    party_one = {
+        "facebook": "https://www.facebook.com/dunder_mifflin",
+        "website": "https://dundermifflin2020.com",
+        "wikipedia": "https://wikipedia.com/dunder_mifflin",
+    }
+    party_two = {
+        "facebook": "https://www.facebook.com/sabre",
+        "website": "https://sabre2020.com",
+        "wikipedia": "https://wikipedia.com/sabre",
+    }
+
+    person_feed = self._base_person_collection.format(person_one, person_two)
+    party_feed = self._base_party_collection.format(party_one, party_two)
+    election_feed = """
+      <ElectionReport>
+        {}
+        {}
+        {}
+      </ElectionReport>
+    """.format(person_feed, party_feed, self._office_collection)
+    election_tree = etree.fromstring(election_feed)
+
+    uri_validator = rules.UniqueURIPerAnnotationCategory(election_tree, None)
+    uri_validator.check()
+
+  def testDuplicateURIsOfDifferentAnnotationsAreValid(self):
+    # personal-facebook and party-facebook are different annotation types
+    person_one = {
+        "facebook": "https://www.facebook.com/michael_scott",
+        "website": "https://michaelscott2020.com",
+        "wikipedia": "https://wikipedia.com/miachel_scott",
+    }
+    person_two = {
+        "facebook": "https://www.facebook.com/dwight_shrute",
+        "website": "https://dwightshrute2020.com",
+        "wikipedia": "https://wikipedia.com/dwight_shrute",
+    }
+    party_one = {
+        "facebook": "https://www.facebook.com/dunder_mifflin",
+        "website": "https://dundermifflin2020.com",
+        "wikipedia": "https://facebook.com/dunder_mifflin",
+    }
+    party_two = {
+        "facebook": "https://www.facebook.com/sabre",
+        "website": "https://sabre2020.com",
+        "wikipedia": "https://www.facebook.com/sabre",
+    }
+
+    person_feed = self._base_person_collection.format(person_one, person_two)
+    party_feed = self._base_party_collection.format(party_one, party_two)
+    election_feed = """
+      <ElectionReport>
+        {}
+        {}
+      </ElectionReport>
+    """.format(person_feed, party_feed)
+    election_tree = etree.fromstring(election_feed)
+
+    uri_validator = rules.UniqueURIPerAnnotationCategory(election_tree, None)
+    uri_validator.check()
+
+  def testThrowsErrorIfThereAreDuplicatesWithinCategory(self):
+    person_one = {
+        "facebook": "https://www.facebook.com/michael_scott",
+        "website": "https://michaelscott2020.com",
+        "wikipedia": "https://wikipedia.com/dunder_mifflin",
+    }
+    person_two = {
+        "facebook": "https://www.facebook.com/dwight_shrute",
+        "website": "https://dwightshrute2020.com",
+        "wikipedia": "https://wikipedia.com/dunder_mifflin",
+    }
+    party_one = {
+        "facebook": "https://www.facebook.com/dunder_mifflin",
+        "website": "https://dundermifflin2020.com",
+        "wikipedia": "https://wikipedia.com/dunder_mifflin",
+    }
+    party_two = {
+        "facebook": "https://www.facebook.com/sabre",
+        "website": "https://sabre2020.com",
+        "wikipedia": "https://wikipedia.com/dunder_mifflin",
+    }
+
+    person_feed = self._base_person_collection.format(person_one, person_two)
+    party_feed = self._base_party_collection.format(party_one, party_two)
+    election_feed = """
+      <ElectionReport>
+        {}
+        {}
+      </ElectionReport>
+    """.format(person_feed, party_feed)
+    election_tree = etree.fromstring(election_feed)
+
+    uri_validator = rules.UniqueURIPerAnnotationCategory(election_tree, None)
+    with self.assertRaises(loggers.ElectionError) as ee:
+      uri_validator.check()
+    self.assertEqual(("'There are duplicate URIs in the feed. URIs should be "
+                      "unique for each category.'"), str(ee.exception))
+    self.assertEqual(("The annotation type wikipedia contains duplicate"
+                      " value: https://wikipedia.com/dunder_mifflin. "
+                      "It appears 4 times."),
+                     ee.exception.error_log[0].message)
+
+  def testOfficeURIsAreNotIncludedInCheck(self):
+    election_feed = """
+      <ElectionReport>
+        {}
+      </ElectionReport>
+    """.format(self._office_collection)
+    election_tree = etree.fromstring(election_feed)
+
+    uri_validator = rules.UniqueURIPerAnnotationCategory(election_tree, None)
+    uri_validator.check()
 
 
 class ValidURIAnnotationTest(absltest.TestCase):

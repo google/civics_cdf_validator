@@ -1805,6 +1805,60 @@ class URIValidator(base.BaseRule):
           .format(url.encode("ascii", "ignore"), ", ".join(discrepencies)))
 
 
+class UniqueURIPerAnnotationCategory(base.TreeRule):
+  """Check that annotated URIs for each category are unique.
+
+  Ex: No ballotpedia URIs can be the same.
+  """
+
+  def _count_uris_by_category(self, uri_elements):
+    """For given list of Uri elements return nested counts of Uri values.
+
+    Args:
+      uri_elements: List of Uri elements
+    Returns:
+      Top level dict contains Annotation values as keys with counter as value.
+      Counter contains Uri value as keys with count as value.
+    """
+    uri_counter = {}
+    for uri in uri_elements:
+      annotation = uri.get("Annotation", "").strip()
+      annotation_elements = annotation.split("-")
+      annotation_platform = ""
+      if annotation_elements:
+        annotation_platform = annotation_elements[-1]
+
+      uri_value = uri.text
+
+      if annotation_platform not in uri_counter.keys():
+        uri_counter[annotation_platform] = collections.Counter()
+
+      uri_counter[annotation_platform].update([uri_value])
+
+    return uri_counter
+
+  def check(self):
+    all_uri_elements = self.get_elements_by_class(self.election_tree, "Uri")
+    office_uri_elements = self.get_elements_by_class(
+        self.election_tree, "Office//ContactInformation//Uri")
+    uri_elements = set(all_uri_elements) - set(office_uri_elements)
+    annotation_counter = self._count_uris_by_category(uri_elements)
+
+    error_log = []
+    for annotation, value_counter in annotation_counter.items():
+      for uri, count in value_counter.items():
+        if count > 1:
+          error_message = ("The annotation type {} contains duplicate value:"
+                           " {}. It appears {} times.").format(
+                               annotation, uri, count)
+          error_log.append(loggers.ErrorLogEntry(None, error_message))
+
+    if error_log:
+      raise loggers.ElectionError(("There are duplicate URIs in the feed. "
+                                   "URIs should be unique for each category."),
+                                  error_log)
+
+
 class ValidURIAnnotation(base.BaseRule):
   """Validate annotations on candidate/officeholder URLs.
 
@@ -2188,6 +2242,7 @@ COMMON_RULES = (
     MissingPartyAffiliation,
     PartyLeadershipMustExist,
     URIValidator,
+    UniqueURIPerAnnotationCategory,
     ValidURIAnnotation,
     GpUnitsCyclesRefsValidation,
     ValidJurisdictionID,
