@@ -162,13 +162,13 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Rafael</FirstName>
+      <LastName>Cruz</LastName>
+      <MiddleName>Edward</MiddleName>
+      <Nickname>Ted Cruz</Nickname>
       <FullName>
         <Text language="en">Rafael Edward "Ted" Cruz</Text>
       </FullName>
       <Gender>Male</Gender>
-      <LastName>Cruz</LastName>
-      <MiddleName>Edward</MiddleName>
-      <Nickname>Ted Cruz</Nickname>
       <PartyId>par0</PartyId>
     </Person>
     <Person objectId="per1">
@@ -186,11 +186,11 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Bernie</FirstName>
+      <LastName>Sanders</LastName>
       <FullName>
         <Text language="en">Bernie Sanders</Text>
       </FullName>
       <Gender>Male</Gender>
-      <LastName>Sanders</LastName>
       <PartyId>par1</PartyId>
     </Person>
     <Person objectId="per2">
@@ -210,12 +210,12 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Lebron</FirstName>
+      <LastName>King</LastName>
+      <MiddleName>Marcus</MiddleName>
       <FullName>
         <Text language="en">Lebron "Party Leader" King</Text>
       </FullName>
       <Gender>Male</Gender>
-      <LastName>King</LastName>
-      <MiddleName>Marcus</MiddleName>
       <PartyId>par1</PartyId>
     </Person>
   </PersonCollection>

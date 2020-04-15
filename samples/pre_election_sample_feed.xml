@@ -2017,6 +2017,9 @@
       <LastName>WASHBURNE</LastName>
       <MiddleName>J.</MiddleName>
       <Nickname>JAKE</Nickname>
+      <FullName>
+        <Text language="en">Jake Washburne</Text>
+      </FullName>
       <PartyId>par0001</PartyId>
       <Title>
         <Text language="en">General Registrar Physical</Text>
@@ -2043,6 +2046,9 @@
       <FirstName>Barack</FirstName>
       <LastName>Obama</LastName>
       <MiddleName>H.</MiddleName>
+      <FullName>
+        <Text language="en">Barack Obama</Text>
+      </FullName>
       <PartyId>par0002</PartyId>
     </Person>
     <Person objectId="per10861b">
@@ -2056,6 +2062,9 @@
       <FirstName>Joseph</FirstName>
       <LastName>Biden</LastName>
       <MiddleName>R.</MiddleName>
+      <FullName>
+        <Text language="en">Joe Biden</Text>
+      </FullName>
       <PartyId>par0006</PartyId>
     </Person>
     <Person objectId="per10862a">
@@ -2075,6 +2084,9 @@
       <FirstName>Willard</FirstName>
       <LastName>Romney</LastName>
       <MiddleName>Mitt</MiddleName>
+      <FullName>
+        <Text language="en">Mitt Romney</Text>
+      </FullName>
       <PartyId>par0005</PartyId>
     </Person>
     <Person objectId="per10862b">
@@ -2088,6 +2100,9 @@
       <FirstName>Paul</FirstName>
       <LastName>Ryan</LastName>
       <MiddleName>D.</MiddleName>
+      <FullName>
+        <Text language="en">Paul Ryan</Text>
+      </FullName>
       <PartyId>par0004</PartyId>
     </Person>
     <Person objectId="per10961">
@@ -2108,6 +2123,9 @@
       <FirstName>Ken</FirstName>
       <LastName>Cuccinelli</LastName>
       <MiddleName>T.</MiddleName>
+      <FullName>
+        <Text language="en">Ken Cuccinelli</Text>
+      </FullName>
       <PartyId>par0003</PartyId>
       <Suffix>II</Suffix>
     </Person>
@@ -2128,6 +2146,9 @@
       <FirstName>Robert</FirstName>
       <LastName>Sarvis</LastName>
       <MiddleName>C.</MiddleName>
+      <FullName>
+        <Text language="en">Robert Sarvis</Text>
+      </FullName>
       <PartyId>par0002</PartyId>
     </Person>
     <Person objectId="per10963">
@@ -2148,6 +2169,9 @@
       <FirstName>Terry</FirstName>
       <LastName>McAuliffe</LastName>
       <MiddleName>R.</MiddleName>
+      <FullName>
+        <Text language="en">Terry McAuliffe</Text>
+      </FullName>
       <PartyId>par0001</PartyId>
     </Person>
     <Person objectId="per10966">
@@ -2167,6 +2191,9 @@
       <FirstName>Ralph</FirstName>
       <LastName>Northam</LastName>
       <MiddleName>S.</MiddleName>
+      <FullName>
+        <Text language="en">Ralph Northam</Text>
+      </FullName>
       <PartyId>par0001</PartyId>
     </Person>
     <Person objectId="per10967">
@@ -2188,6 +2215,9 @@
       <FirstName>E.</FirstName>
       <LastName>Jackson</LastName>
       <MiddleName>W.</MiddleName>
+      <FullName>
+        <Text language="en">E.W. Jackson</Text>
+      </FullName>
       <PartyId>par0003</PartyId>
     </Person>
     <Person objectId="per10964">
@@ -2208,6 +2238,9 @@
       <FirstName>Mark</FirstName>
       <LastName>Obenshain</LastName>
       <MiddleName>D.</MiddleName>
+      <FullName>
+        <Text language="en">Mark Obenshain</Text>
+      </FullName>
       <PartyId>par0004</PartyId>
     </Person>
     <Person objectId="per10965">
@@ -2228,6 +2261,9 @@
       <FirstName>Mark</FirstName>
       <LastName>Herring</LastName>
       <MiddleName>R.</MiddleName>
+      <FullName>
+        <Text language="en">Mark Herring</Text>
+      </FullName>
       <PartyId>par0005</PartyId>
     </Person>
     <Person objectId="per14444">
@@ -2241,6 +2277,9 @@
       <FirstName>Cleo</FirstName>
       <LastName>Powell</LastName>
       <MiddleName>E.</MiddleName>
+      <FullName>
+        <Text language="en">Cleo Powell</Text>
+      </FullName>
       <PartyId>par0002</PartyId>
     </Person>
     <Person objectId="per10422">
@@ -2262,6 +2301,9 @@
       <LastName>Landes</LastName>
       <MiddleName>Steven</MiddleName>
       <Nickname>Steve</Nickname>
+      <FullName>
+        <Text language="en">Steve Landes</Text>
+      </FullName>
       <PartyId>par0001</PartyId>
     </Person>
     <Person objectId="per10388">
@@ -2282,6 +2324,9 @@
       <FirstName>David</FirstName>
       <LastName>Toscano</LastName>
       <MiddleName>J.</MiddleName>
+      <FullName>
+        <Text language="en">David Toscano</Text>
+      </FullName>
       <PartyId>par0005</PartyId>
     </Person>
     <Person objectId="per10466">
@@ -2302,6 +2347,9 @@
       <FirstName>C.</FirstName>
       <LastName>Fariss</LastName>
       <MiddleName>Matt</MiddleName>
+      <FullName>
+        <Text language="en">Matt Fariss</Text>
+      </FullName>
       <PartyId>par0004</PartyId>
     </Person>
     <Person objectId="per10438">
@@ -2321,6 +2369,9 @@
       <FirstName>Robert</FirstName>
       <LastName>Bell</LastName>
       <MiddleName>B.</MiddleName>
+      <FullName>
+        <Text language="en">Robert Bell</Text>
+      </FullName>
       <PartyId>par0003</PartyId>
       <Suffix>III</Suffix>
     </Person>
@@ -2342,6 +2393,9 @@
       <FirstName>Jane</FirstName>
       <LastName>Dittmar</LastName>
       <MiddleName>D.</MiddleName>
+      <FullName>
+        <Text language="en">Jane Dittmar</Text>
+      </FullName>
       <PartyId>par0006</PartyId>
     </Person>
     <Person objectId="per10080">
@@ -2363,6 +2417,9 @@
       <LastName>Burket</LastName>
       <MiddleName>L.</MiddleName>
       <Nickname>Cindi</Nickname>
+      <FullName>
+        <Text language="en">Cindi Burket</Text>
+      </FullName>
       <PartyId>par0004</PartyId>
     </Person>
     <Person objectId="per10075">
@@ -2382,6 +2439,9 @@
       <FirstName>Diantha</FirstName>
       <LastName>McKeel</LastName>
       <MiddleName>H.</MiddleName>
+      <FullName>
+        <Text language="en">Diantha McKeel</Text>
+      </FullName>
       <PartyId>par0001</PartyId>
     </Person>
     <Person objectId="per10076">
@@ -2401,6 +2461,9 @@
       <FirstName>B.</FirstName>
       <LastName>Seay</LastName>
       <MiddleName>Phillip</MiddleName>
+      <FullName>
+        <Text language="en">Phillip Seay</Text>
+      </FullName>
       <PartyId>par0002</PartyId>
     </Person>
     <Person objectId="per10073">
@@ -2421,6 +2484,9 @@
       <FirstName>Liz</FirstName>
       <LastName>Palmer</LastName>
       <MiddleName>A.</MiddleName>
+      <FullName>
+        <Text language="en">Liz Palmer</Text>
+      </FullName>
       <PartyId>par0003</PartyId>
     </Person>
     <Person objectId="per10074">
@@ -2441,6 +2507,9 @@
       <FirstName>Duane</FirstName>
       <LastName>Snow</LastName>
       <MiddleName>E.</MiddleName>
+      <FullName>
+        <Text language="en">Duane Snow</Text>
+      </FullName>
       <PartyId>par0002</PartyId>
     </Person>
     <Person objectId="per10077">
@@ -2461,6 +2530,9 @@
       <FirstName>Rodney</FirstName>
       <LastName>Thomas</LastName>
       <MiddleName>S.</MiddleName>
+      <FullName>
+        <Text language="en">Rodney Thomas</Text>
+      </FullName>
       <PartyId>par0003</PartyId>
     </Person>
     <Person objectId="per10078">
@@ -2482,6 +2554,9 @@
       <LastName>Sheffield</LastName>
       <MiddleName>L.</MiddleName>
       <Nickname>Brad</Nickname>
+      <FullName>
+        <Text language="en">Brad Sheffield</Text>
+      </FullName>
       <PartyId>par0001</PartyId>
     </Person>
     <Person objectId="per10214">
@@ -2501,6 +2576,9 @@
       <FirstName>Pamela</FirstName>
       <LastName>Moynihan</LastName>
       <MiddleName>R.</MiddleName>
+      <FullName>
+        <Text language="en">Pamela Moynihan</Text>
+      </FullName>
       <PartyId>par0004</PartyId>
     </Person>
     <Person objectId="per10215">
@@ -2520,6 +2598,9 @@
       <FirstName>Eric</FirstName>
       <LastName>Strucko</LastName>
       <MiddleName>J.</MiddleName>
+      <FullName>
+        <Text language="en">Eric Strucko</Text>
+      </FullName>
       <PartyId>par0001</PartyId>
     </Person>
     <Person objectId="per10213">
@@ -2540,6 +2621,9 @@
       <LastName>Acuff</LastName>
       <MiddleName>L.</MiddleName>
       <Nickname>Kate</Nickname>
+      <FullName>
+        <Text language="en">Kate Acuff</Text>
+      </FullName>
       <PartyId>par0002</PartyId>
     </Person>
   </PersonCollection>
