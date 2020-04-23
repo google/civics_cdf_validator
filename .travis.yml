@@ -5,7 +5,7 @@ python:
 install:
 - pip install .
 script:
-- election_results_xml_validator list
+- civics_cdf_validator list
 - python setup.py test
 deploy:
   provider: pypi

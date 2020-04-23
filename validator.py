@@ -28,10 +28,10 @@ import re
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
-from election_results_xml_validator import base
-from election_results_xml_validator import loggers
-from election_results_xml_validator import rules
-from election_results_xml_validator import version
+from civics_cdf_validator import base
+from civics_cdf_validator import loggers
+from civics_cdf_validator import rules
+from civics_cdf_validator import version
 import github
 
 

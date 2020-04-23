@@ -18,8 +18,8 @@ from __future__ import print_function
 
 import datetime
 
-from election_results_xml_validator import loggers
-from election_results_xml_validator import stats
+from civics_cdf_validator import loggers
+from civics_cdf_validator import stats
 from lxml import etree
 
 

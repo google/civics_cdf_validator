@@ -5,7 +5,7 @@ import inspect
 import time
 
 from absl.testing import absltest
-from election_results_xml_validator import rules
+from civics_cdf_validator import rules
 import github
 from lxml import etree
 from mock import create_autospec

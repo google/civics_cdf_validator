@@ -25,8 +25,8 @@ import re
 import shutil
 import sys
 
-from election_results_xml_validator import base
-from election_results_xml_validator import loggers
+from civics_cdf_validator import base
+from civics_cdf_validator import loggers
 import enum
 import github
 import language_tags

@@ -31,13 +31,13 @@ else:
 
 ENTRY_POINTS = {
     'console_scripts': [
-        'election_results_xml_validator = '
-        'election_results_xml_validator.validator:main',
+        'civics_cdf_validator = '
+        'civics_cdf_validator.validator:main',
     ],
 }
 
 setup(
-    name='election_results_xml_validator',
+    name='civics_cdf_validator',
     version=version.__version__,
     author='Google Civics',
     author_email='election-results-xml-validator@google.com',
@@ -45,10 +45,10 @@ setup(
     maintainer_email='election-results-xml-validator@google.com',
     license='Apache License',
     description='Checks if an election feed follows best practices',
-    long_description='election_results_xml_validator is a script that checks '
+    long_description='civics_cdf_validator is a script that checks '
     'if an election data feed follows best practices and outputs errors, '
     'warnings and info messages for common issues.',
-    url='https://github.com/google/election_results_xml_validator',
+    url='https://github.com/google/civics_cdf_validator',
     install_requires=[
         'cryptography>=2.5',
         'lxml>=3.3.4',
@@ -63,6 +63,6 @@ setup(
         'mock==3.0.5',
     ],
     entry_points=ENTRY_POINTS,
-    package_dir={'election_results_xml_validator': ''},
-    packages=['election_results_xml_validator'],
+    package_dir={'civics_cdf_validator': ''},
+    packages=['civics_cdf_validator'],
 )

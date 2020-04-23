@@ -1,4 +1,4 @@
-"""Tests for google3.third_party.py.election_results_xml_validator."""
+"""Tests for google3.third_party.py.civics_cdf_validator."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -8,9 +8,9 @@ import os
 
 from absl import flags
 from absl.testing import absltest
-from election_results_xml_validator import base
-from election_results_xml_validator import loggers
-from election_results_xml_validator import rules
+from civics_cdf_validator import base
+from civics_cdf_validator import loggers
+from civics_cdf_validator import rules
 import pytest
 
 
@@ -70,12 +70,12 @@ class SamplesTest(absltest.TestCase):
                 expected_errors=0, expected_warnings=0):
     sample_file = os.path.join(
         FLAGS.test_srcdir,
-        'google3/third_party/py/election_results_xml_validator/'
+        'google3/third_party/py/civics_cdf_validator/'
         'samples/' + filename)
     schema_file = os.path.join(
         FLAGS.test_srcdir,
-        'google3/third_party/py/election_results_xml_validator/'
-        'election_data_spec.xsd')
+        'google3/third_party/py/civics_cdf_validator/'
+        'civics_cdf_spec.xsd')
     registry = base.RulesRegistry(
         election_file=sample_file,
         schema_file=schema_file,

@@ -7,9 +7,9 @@ import inspect
 import io
 
 from absl.testing import absltest
-from election_results_xml_validator import base
-from election_results_xml_validator import loggers
-from election_results_xml_validator import rules
+from civics_cdf_validator import base
+from civics_cdf_validator import loggers
+from civics_cdf_validator import rules
 import github
 from lxml import etree
 from mock import MagicMock
