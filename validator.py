@@ -1,4 +1,4 @@
-# Copyright 2019 Google LLC
+# Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,12 +26,12 @@ import codecs
 import os
 import re
 
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes
 from civics_cdf_validator import base
 from civics_cdf_validator import loggers
 from civics_cdf_validator import rules
 from civics_cdf_validator import version
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
 import github
 
 
