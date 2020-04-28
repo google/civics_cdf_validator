@@ -22,7 +22,7 @@ See https://developers.google.com/elections-data/reference/
 from __future__ import print_function
 
 import argparse
-import codecs
+import hashlib
 import os
 import re
 
@@ -30,8 +30,6 @@ from civics_cdf_validator import base
 from civics_cdf_validator import loggers
 from civics_cdf_validator import rules
 from civics_cdf_validator import version
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes
 import github
 
 
@@ -219,12 +217,11 @@ def print_metadata(filename):
   print("Validator version: {}".format(version.__version__))
 
   blocksize = 65536
-  digest = hashes.Hash(hashes.SHA512_256(), backend=default_backend())
+  digest = hashlib.new("sha3_256")
   with open(filename, "rb") as f:
     for block in iter(lambda: f.read(blocksize), b""):
       digest.update(block)
-  print("SHA-512/256 checksum: 0x{:x}".format(
-      int(codecs.encode(digest.finalize(), "hex"), 16)))
+  print("SHA3-256 checksum: 0x{}".format(digest.hexdigest()))
 
 
 def display_rules_details(options):
