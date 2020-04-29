@@ -2212,6 +2212,31 @@ class ImproperCandidateContest(base.TreeRule):
                                     error_log)
 
 
+class RequiredFields(base.BaseRule):
+  """Check for required fields for given entity types and field names.
+
+  To add a field, include the entity and field in the _element_field_mapping
+  and add the entity to the elements list.
+  """
+
+  _element_field_mapping = {
+      "Person": "FullName//Text",
+  }
+
+  def elements(self):
+    return ["Person"]
+
+  def check(self, element):
+    required_field_tag = self._element_field_mapping[element.tag]
+    required_field = element.find(required_field_tag)
+    if (required_field is None or required_field.text is None
+        or not required_field.text.strip()):
+      raise loggers.ElectionError(
+          "Line {}. Element {} (objectId: {}) is missing required "
+          "field {}.".format(element.sourceline, element.tag,
+                             element.get("objectId"), required_field_tag))
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
@@ -2252,6 +2277,7 @@ COMMON_RULES = (
     PersonHasUniqueFullName,
     PersonsMissingPartyData,
     GpUnitsHaveInternationalizedName,
+    RequiredFields,
 )
 
 ELECTION_RULES = COMMON_RULES + (

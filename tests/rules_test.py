@@ -5918,6 +5918,68 @@ class ImproperCandidateContestTest(absltest.TestCase):
     self.assertIn("con987", ew.exception.error_log[0].message)
 
 
+class RequiredFieldsTest(absltest.TestCase):
+
+  def setUp(self):
+    super(RequiredFieldsTest, self).setUp()
+    self.field_validator = rules.RequiredFields(None, None)
+
+  def testEachElementHasCorrespondingRequiredField(self):
+    elements = self.field_validator.elements()
+    registered_elements = self.field_validator._element_field_mapping.keys()
+    self.assertEqual(elements, list(registered_elements))
+
+  def testElementsListUpdated(self):
+    expected_elements = ["Person"]
+    self.assertEqual(expected_elements, self.field_validator.elements())
+
+  def testRequiredFieldIsPresent_Person(self):
+    person = """
+      <Person>
+        <FullName>
+          <Text language="en">Michael Scott</Text>
+         </FullName>
+      </Person>
+    """
+    self.field_validator.check(etree.fromstring(person))
+
+  def testThrowsErrorIfFieldIsMissing(self):
+    person = """
+      <Person objectId="123">
+      </Person>
+    """
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.field_validator.check(etree.fromstring(person))
+    self.assertIn(("Element Person (objectId: 123) is missing required field"
+                   " FullName//Text."), str(ee.exception))
+
+  def testThrowsErrorIfFieldIsEmpty(self):
+    person = """
+      <Person objectId="123">
+        <FullName>
+          <Text language="en"></Text>
+         </FullName>
+      </Person>
+    """
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.field_validator.check(etree.fromstring(person))
+    self.assertIn(("Element Person (objectId: 123) is missing required field"
+                   " FullName//Text."), str(ee.exception))
+
+  def testThrowsErrorIfFieldIsWhiteSpace(self):
+    person = """
+      <Person objectId="123">
+        <FullName>
+          <Text language="en">   </Text>
+        </FullName>
+      </Person>
+    """
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.field_validator.check(etree.fromstring(person))
+    self.assertIn(("Element Person (objectId: 123) is missing required field"
+                   " FullName//Text."), str(ee.exception))
+
+
 class RulesTest(absltest.TestCase):
 
   def testAllRulesIncluded(self):

@@ -2014,6 +2014,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>RICHARD</FirstName>
+      <FullName>
+        <Text language="en">Richard J. Washburne</Text>
+      </FullName>
       <LastName>WASHBURNE</LastName>
       <MiddleName>J.</MiddleName>
       <Nickname>JAKE</Nickname>
@@ -2041,6 +2044,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Barack</FirstName>
+      <FullName>
+        <Text language="en">Barack Obama</Text>
+      </FullName>
       <LastName>Obama</LastName>
       <MiddleName>H.</MiddleName>
       <PartyId>par0002</PartyId>
@@ -2054,6 +2060,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Joseph</FirstName>
+      <FullName>
+        <Text language="en">Joe Biden</Text>
+      </FullName>
       <LastName>Biden</LastName>
       <MiddleName>R.</MiddleName>
       <PartyId>par0006</PartyId>
@@ -2073,6 +2082,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Willard</FirstName>
+      <FullName>
+        <Text language="en">Mitt Romney</Text>
+      </FullName>
       <LastName>Romney</LastName>
       <MiddleName>Mitt</MiddleName>
       <PartyId>par0005</PartyId>
@@ -2086,6 +2098,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Paul</FirstName>
+      <FullName>
+        <Text language="en">Paul Ryan</Text>
+      </FullName>
       <LastName>Ryan</LastName>
       <MiddleName>D.</MiddleName>
       <PartyId>par0004</PartyId>
@@ -2106,6 +2121,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Ken</FirstName>
+      <FullName>
+        <Text language="en">Ken Cuccinelli</Text>
+      </FullName>
       <LastName>Cuccinelli</LastName>
       <MiddleName>T.</MiddleName>
       <PartyId>par0003</PartyId>
@@ -2126,6 +2144,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Robert</FirstName>
+      <FullName>
+        <Text language="en">Robert Sarvis</Text>
+      </FullName>
       <LastName>Sarvis</LastName>
       <MiddleName>C.</MiddleName>
       <PartyId>par0002</PartyId>
@@ -2146,6 +2167,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Terry</FirstName>
+      <FullName>
+        <Text language="en">Terry McAuliffe</Text>
+      </FullName>
       <LastName>McAuliffe</LastName>
       <MiddleName>R.</MiddleName>
       <PartyId>par0001</PartyId>
@@ -2165,6 +2189,9 @@
           <Value>person-per10966</Value>
         </ExternalIdentifier></ExternalIdentifiers>
       <FirstName>Ralph</FirstName>
+      <FullName>
+        <Text language="en">Ralph Northam</Text>
+      </FullName>
       <LastName>Northam</LastName>
       <MiddleName>S.</MiddleName>
       <PartyId>par0001</PartyId>
@@ -2186,6 +2213,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>E.</FirstName>
+      <FullName>
+        <Text language="en">E. W. Jackson</Text>
+      </FullName>
       <LastName>Jackson</LastName>
       <MiddleName>W.</MiddleName>
       <PartyId>par0003</PartyId>
@@ -2206,6 +2236,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Mark</FirstName>
+      <FullName>
+        <Text language="en">Mark Obenshain</Text>
+      </FullName>
       <LastName>Obenshain</LastName>
       <MiddleName>D.</MiddleName>
       <PartyId>par0004</PartyId>
@@ -2226,6 +2259,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Mark</FirstName>
+      <FullName>
+        <Text language="en">Mark Herring</Text>
+      </FullName>
       <LastName>Herring</LastName>
       <MiddleName>R.</MiddleName>
       <PartyId>par0005</PartyId>
@@ -2239,6 +2275,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Cleo</FirstName>
+      <FullName>
+        <Text language="en">Cleo Powell</Text>
+      </FullName>
       <LastName>Powell</LastName>
       <MiddleName>E.</MiddleName>
       <PartyId>par0002</PartyId>
@@ -2259,6 +2298,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>R.</FirstName>
+      <FullName>
+        <Text language="en">Steven Landes</Text>
+      </FullName>
       <LastName>Landes</LastName>
       <MiddleName>Steven</MiddleName>
       <Nickname>Steve</Nickname>
@@ -2280,6 +2322,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>David</FirstName>
+      <FullName>
+        <Text language="en">David Toscano</Text>
+      </FullName>
       <LastName>Toscano</LastName>
       <MiddleName>J.</MiddleName>
       <PartyId>par0005</PartyId>
@@ -2300,6 +2345,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>C.</FirstName>
+      <FullName>
+        <Text language="en">Matt Fariss</Text>
+      </FullName>
       <LastName>Fariss</LastName>
       <MiddleName>Matt</MiddleName>
       <PartyId>par0004</PartyId>
@@ -2319,6 +2367,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Robert</FirstName>
+      <FullName>
+        <Text language="en">Robert Bell</Text>
+      </FullName>
       <LastName>Bell</LastName>
       <MiddleName>B.</MiddleName>
       <PartyId>par0003</PartyId>
@@ -2340,6 +2391,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Jane</FirstName>
+      <FullName>
+        <Text language="en">Jane Dittmar</Text>
+      </FullName>
       <LastName>Dittmar</LastName>
       <MiddleName>D.</MiddleName>
       <PartyId>par0006</PartyId>
@@ -2360,6 +2414,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>C.</FirstName>
+      <FullName>
+        <Text language="en">Cindi Burket</Text>
+      </FullName>
       <LastName>Burket</LastName>
       <MiddleName>L.</MiddleName>
       <Nickname>Cindi</Nickname>
@@ -2380,6 +2437,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Diantha</FirstName>
+      <FullName>
+        <Text language="en">Diantha McKeel</Text>
+      </FullName>
       <LastName>McKeel</LastName>
       <MiddleName>H.</MiddleName>
       <PartyId>par0001</PartyId>
@@ -2399,6 +2459,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>B.</FirstName>
+      <FullName>
+        <Text language="en">Phillip Seay</Text>
+      </FullName>
       <LastName>Seay</LastName>
       <MiddleName>Phillip</MiddleName>
       <PartyId>par0002</PartyId>
@@ -2419,6 +2482,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Liz</FirstName>
+      <FullName>
+        <Text language="en">Liz Palmer</Text>
+      </FullName>
       <LastName>Palmer</LastName>
       <MiddleName>A.</MiddleName>
       <PartyId>par0003</PartyId>
@@ -2439,6 +2505,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Duane</FirstName>
+      <FullName>
+        <Text language="en">Duane Snow</Text>
+      </FullName>
       <LastName>Snow</LastName>
       <MiddleName>E.</MiddleName>
       <PartyId>par0002</PartyId>
@@ -2459,6 +2528,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Rodney</FirstName>
+      <FullName>
+        <Text language="en">Rodney Thomas</Text>
+      </FullName>
       <LastName>Thomas</LastName>
       <MiddleName>S.</MiddleName>
       <PartyId>par0003</PartyId>
@@ -2479,6 +2551,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>J.</FirstName>
+      <FullName>
+        <Text language="en">Brad Sheffield</Text>
+      </FullName>
       <LastName>Sheffield</LastName>
       <MiddleName>L.</MiddleName>
       <Nickname>Brad</Nickname>
@@ -2499,6 +2574,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Pamela</FirstName>
+      <FullName>
+        <Text language="en">Pamela Moynihan</Text>
+      </FullName>
       <LastName>Moynihan</LastName>
       <MiddleName>R.</MiddleName>
       <PartyId>par0004</PartyId>
@@ -2518,6 +2596,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Eric</FirstName>
+      <FullName>
+        <Text language="en">Eric Strucko</Text>
+      </FullName>
       <LastName>Strucko</LastName>
       <MiddleName>J.</MiddleName>
       <PartyId>par0001</PartyId>
@@ -2537,6 +2618,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>K.</FirstName>
+      <FullName>
+        <Text language="en">Kate Acuff</Text>
+      </FullName>
       <LastName>Acuff</LastName>
       <MiddleName>L.</MiddleName>
       <Nickname>Kate</Nickname>
