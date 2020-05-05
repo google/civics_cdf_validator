@@ -3061,6 +3061,95 @@ class CheckIdentifiersTest(absltest.TestCase):
       rules.CheckIdentifiers(election_tree, None).check()
 
 
+class CandidatesReferencePersonTest(absltest.TestCase):
+
+  # _gather_reference_values tests
+  def testReturnsPersonIdsFromCandidates(self):
+    root_string = """
+      <xml>
+        <CandidateCollection>
+          <Candidate><PersonId>p1</PersonId></Candidate>
+          <Candidate><PersonId>p2</PersonId></Candidate>
+        </CandidateCollection>
+      </xml>
+    """
+    tree = etree.ElementTree(etree.fromstring(root_string))
+    candidate_validator = rules.CandidatesReferencePerson(tree, None)
+
+    reference_values = candidate_validator._gather_reference_values()
+    expected_reference_values = set(["p1", "p2"])
+    self.assertEqual(expected_reference_values, reference_values)
+
+  # _gather_defined_values tests
+  def testReturnsObjectIdsFromPersonCollectionPeople(self):
+    root_string = """
+      <xml>
+        <PersonCollection>
+          <Person objectId="p1"/>
+          <Person objectId="p2"/>
+          <Person objectId="p3"/>
+        </PersonCollection>
+      </xml>
+    """
+    tree = etree.ElementTree(etree.fromstring(root_string))
+    candidate_validator = rules.CandidatesReferencePerson(tree, None)
+
+    reference_values = candidate_validator._gather_defined_values()
+    expected_reference_values = set(["p1", "p2", "p3"])
+    self.assertEqual(expected_reference_values, reference_values)
+
+  def testReturnsEmptySetIfNoPersonCollectionPresent(self):
+    root_string = """
+      <xml>
+      </xml>
+    """
+    tree = etree.ElementTree(etree.fromstring(root_string))
+    candidate_validator = rules.CandidatesReferencePerson(tree, None)
+
+    reference_values = candidate_validator._gather_defined_values()
+    expected_reference_values = set()
+    self.assertEqual(expected_reference_values, reference_values)
+
+  # check tests
+  def testCheckEachCandidateHasValidPersonReference(self):
+    root_string = io.BytesIO(b"""
+      <xml>
+        <CandidateCollection>
+          <Candidate><PersonId>p1</PersonId></Candidate>
+          <Candidate><PersonId>p2</PersonId></Candidate>
+        </CandidateCollection>
+        <PersonCollection>
+          <Person objectId="p1"/>
+          <Person objectId="p2"/>
+        </PersonCollection>
+      </xml>
+    """)
+    tree = etree.parse(root_string)
+    candidate_validator = rules.CandidatesReferencePerson(tree, None)
+    candidate_validator.check()
+
+  def testRaisesErrorIfCandidatePersonIdHasNoMatchingPersonElement(self):
+    root_string = io.BytesIO(b"""
+      <xml>
+        <CandidateCollection>
+          <Candidate><PersonId>p1</PersonId></Candidate>
+          <Candidate><PersonId>p3</PersonId></Candidate>
+        </CandidateCollection>
+        <PersonCollection>
+          <Person objectId="p1"/>
+          <Person objectId="p2"/>
+        </PersonCollection>
+      </xml>
+    """)
+    tree = etree.parse(root_string)
+    candidate_validator = rules.CandidatesReferencePerson(tree, None)
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      candidate_validator.check()
+    self.assertIn("No defined Person for p3 found in the feed.",
+                  str(ee.exception))
+
+
 class OfficeMissingOfficeHolderPersonDataTest(absltest.TestCase):
 
   # _gather_reference_values tests
@@ -5930,7 +6019,7 @@ class RequiredFieldsTest(absltest.TestCase):
     self.assertEqual(elements, list(registered_elements))
 
   def testElementsListUpdated(self):
-    expected_elements = ["Person"]
+    expected_elements = ["Person", "Candidate"]
     self.assertEqual(expected_elements, self.field_validator.elements())
 
   def testRequiredFieldIsPresent_Person(self):
@@ -5943,7 +6032,15 @@ class RequiredFieldsTest(absltest.TestCase):
     """
     self.field_validator.check(etree.fromstring(person))
 
-  def testThrowsErrorIfFieldIsMissing(self):
+  def testRequiredFieldIsPresent_Candidate(self):
+    candidate = """
+      <Candidate>
+        <PersonId>per12345</PersonId>
+      </Candidate>
+    """
+    self.field_validator.check(etree.fromstring(candidate))
+
+  def testThrowsErrorIfFieldIsMissing_Person(self):
     person = """
       <Person objectId="123">
       </Person>
@@ -5952,6 +6049,16 @@ class RequiredFieldsTest(absltest.TestCase):
       self.field_validator.check(etree.fromstring(person))
     self.assertIn(("Element Person (objectId: 123) is missing required field"
                    " FullName//Text."), str(ee.exception))
+
+  def testThrowsErrorIfFieldIsMissing_Candidate(self):
+    candidate = """
+      <Candidate objectId="123">
+      </Candidate>
+    """
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.field_validator.check(etree.fromstring(candidate))
+    self.assertIn(("Element Candidate (objectId: 123) is missing required field"
+                   " PersonId."), str(ee.exception))
 
   def testThrowsErrorIfFieldIsEmpty(self):
     person = """

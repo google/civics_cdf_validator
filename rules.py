@@ -1433,6 +1433,32 @@ class CandidatesMissingPartyData(base.BaseRule):
           (element.sourceline, element.get("objectId")))
 
 
+class CandidatesReferencePerson(base.ValidReferenceRule):
+  """Each candidate must reference a valid person via the PersonId field."""
+
+  def __init__(self, election_tree, schema_file):
+    super(CandidatesReferencePerson,
+          self).__init__(election_tree, schema_file, "Person")
+
+  def _gather_reference_values(self):
+    reference_values = set()
+    candidates = self.get_elements_by_class(self.election_tree, "Candidate")
+
+    for candidate in candidates:
+      person_id = candidate.find("PersonId")
+      if person_id is not None and person_id.text is not None:
+        reference_values.add(person_id.text)
+
+    return reference_values
+
+  def _gather_defined_values(self):
+    all_people = set()
+    person_collection = self.election_tree.getroot().find("PersonCollection")
+    if person_collection is not None:
+      all_people = {person.attrib["objectId"] for person in person_collection}
+    return all_people
+
+
 class OfficeMissingOfficeHolderPersonData(base.ValidReferenceRule):
   """Each Office must have Persons occupying it.
 
@@ -2221,10 +2247,11 @@ class RequiredFields(base.BaseRule):
 
   _element_field_mapping = {
       "Person": "FullName//Text",
+      "Candidate": "PersonId",
   }
 
   def elements(self):
-    return ["Person"]
+    return ["Person", "Candidate"]
 
   def check(self, element):
     required_field_tag = self._element_field_mapping[element.tag]
@@ -2306,6 +2333,7 @@ ELECTION_RULES = COMMON_RULES + (
     FullTextOrBallotText,
     BallotTitle,
     ImproperCandidateContest,
+    CandidatesReferencePerson,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (

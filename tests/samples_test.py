@@ -55,7 +55,6 @@ class SamplesTest(absltest.TestCase):
     self._TestFile(
         'pre_election_sample_feed.xml',
         self.election_rules,
-        expected_warnings=19,
         expected_errors=18)
 
   def testBallotMeasureContestSampleFeed(self):

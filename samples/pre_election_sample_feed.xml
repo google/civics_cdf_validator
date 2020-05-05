@@ -768,6 +768,7 @@
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <PartyId>par0004</PartyId>
+        <PersonId>per12345</PersonId>
       </Candidate>
     </CandidateCollection>
     <ContestCollection>
@@ -2032,9 +2033,9 @@
         <Email>president@whitehouse.gov</Email>
         <Phone>202-456-1111</Phone>
         <Phone annotation="TDD">202-456-6213</Phone>
-        <Uri>http://www.whitehouse.gov</Uri>
-        <Uri>https://www.facebook.com/WhiteHouse</Uri>
-        <Uri>https://twitter.com/WhiteHouse</Uri>
+        <Uri Annotation="official-website">http://www.whitehouse.gov</Uri>
+        <Uri Annotation="official-facebook">https://www.facebook.com/WhiteHouse</Uri>
+        <Uri Annotation="official-twitter">https://twitter.com/WhiteHouse</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -2072,7 +2073,7 @@
         <AddressLine>Post Office Box 149756</AddressLine>
         <AddressLine>Boston, MA 02114-9756</AddressLine>
         <Email>info@mittromney.com</Email>
-        <Uri>http://www.mittromney.com</Uri>
+        <Uri Annotation="personal-website">http://www.mittromney.com</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -2111,7 +2112,7 @@
         <AddressLine>Fairfax, VA 22030</AddressLine>
         <Email>ken@cuccinelli.com</Email>
         <Phone>8047863808</Phone>
-        <Uri>http://www.cuccinelli.com</Uri>
+        <Uri Annotation="personal-website">http://www.cuccinelli.com</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -2134,7 +2135,7 @@
         <AddressLine>PO Box 224</AddressLine>
         <AddressLine>Annandale, VA 22003</AddressLine>
         <Email>info@robertsarvis.com</Email>
-        <Uri>http://www.robertsarvis.com</Uri>
+        <Uri Annotation="personal-website">http://www.robertsarvis.com</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -2157,7 +2158,7 @@
         <AddressLine>Arlington, VA 22209</AddressLine>
         <Email>info@terrymcauliffe.com</Email>
         <Phone>7038227604</Phone>
-        <Uri>http://www.terrymcauliffe.com</Uri>
+        <Uri Annotation="personal-website">http://www.terrymcauliffe.com</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -2180,7 +2181,7 @@
         <AddressLine>Richmond, VA 23218</AddressLine>
         <Email>ralph@ralphnortham.com</Email>
         <Phone>7576954188</Phone>
-        <Uri>http://www.northamforlg.com</Uri>
+        <Uri Annotation="campaign-website">http://www.northamforlg.com</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -2203,7 +2204,7 @@
         <AddressLine>Chesapeake, VA 23328</AddressLine>
         <Email>jackson@jacksonforlg.com</Email>
         <Phone>7578024246</Phone>
-        <Uri>http://www.jacksonforlg.com</Uri>
+        <Uri Annotation="campaign-website">http://www.jacksonforlg.com</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -2226,7 +2227,7 @@
         <AddressLine>Harrisonburg, VA 228030555</AddressLine>
         <Email>campaign@markobenshain.com</Email>
         <Phone>5404371451</Phone>
-        <Uri>http://www.markobenshain.com</Uri>
+        <Uri Annotation="personal-website">http://www.markobenshain.com</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -2249,7 +2250,7 @@
         <AddressLine>Leesburg, VA 201787428</AddressLine>
         <Email>kevin@herringforag.com</Email>
         <Phone>7036699090</Phone>
-        <Uri>http://www.herringforag.com</Uri>
+        <Uri Annotation="campaign-website">http://www.herringforag.com</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -2288,7 +2289,7 @@
         <AddressLine>Verona, VA 24482</AddressLine>
         <Email>steve@stevelandes.com</Email>
         <Phone>5402555335</Phone>
-        <Uri>http://www.stevelandes.com</Uri>
+        <Uri Annotation="personal-website">http://www.stevelandes.com</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -2312,7 +2313,7 @@
         <AddressLine>Charlottesville, VA 22902</AddressLine>
         <Email>david@davidtoscano.com</Email>
         <Phone>4342201660</Phone>
-        <Uri>http://www.davidtoscano.com</Uri>
+        <Uri Annotation="personal-website">http://www.davidtoscano.com</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -2335,7 +2336,7 @@
         <AddressLine>Rustburg, VA 24588</AddressLine>
         <Email>friendsofmattfariss@gmail.com</Email>
         <Phone>4348615929</Phone>
-        <Uri>http://www.mattfariss.com</Uri>
+        <Uri Annotation="personal-website">http://www.mattfariss.com</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -2357,7 +2358,7 @@
         <AddressLine>2309 Finch Court</AddressLine>
         <AddressLine>Charlottesville, VA 22911</AddressLine>
         <Email>robbellgop@aol.com</Email>
-        <Uri>http://www.delegaterobbell.com</Uri>
+        <Uri Annotation="personal-website">http://www.delegaterobbell.com</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -2381,7 +2382,7 @@
         <AddressLine>Keswick, VA 229479169</AddressLine>
         <Email>Jane4supervisor@gmail.com</Email>
         <Phone>4349842100</Phone>
-        <Uri>http://www.Jane4supervisor.com</Uri>
+        <Uri Annotation="campaign-website">http://www.Jane4supervisor.com</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -2404,7 +2405,7 @@
         <AddressLine>Free Union, VA 229400318</AddressLine>
         <Email>cincha@aol.com</Email>
         <Phone>4342494564</Phone>
-        <Uri>http://www.cindiburket.com</Uri>
+        <Uri Annotation="personal-website">http://www.cindiburket.com</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -2472,7 +2473,7 @@
         <AddressLine>Ivy, VA 229450315</AddressLine>
         <Email>Liz@LizPalmerforSupervisor.com</Email>
         <Phone>4349891595</Phone>
-        <Uri>http://LizPalmerforSupervisor.com</Uri>
+        <Uri Annotation="campaign-website">http://LizPalmerforSupervisor.com</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -2495,7 +2496,7 @@
         <AddressLine>Charlottesville, VA 229017749</AddressLine>
         <Email>duanesnow@gmail.com</Email>
         <Phone>4342953682</Phone>
-        <Uri>http://snowforsupervisor.com</Uri>
+        <Uri Annotation="campaign-website">http://snowforsupervisor.com</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -2518,7 +2519,7 @@
         <AddressLine>Charlottesville, VA 229011012</AddressLine>
         <Email>rodney@charlottesvillepress.com</Email>
         <Phone>4349781290</Phone>
-        <Uri>http://www.RodneyThomas2013.com</Uri>
+        <Uri Annotation="campaign-website">http://www.RodneyThomas2013.com</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -2541,7 +2542,7 @@
         <AddressLine>Charlottesville, VA 229013201</AddressLine>
         <Email>bsheffield@andaregroup.com</Email>
         <Phone>4349895562</Phone>
-        <Uri>http://www.bradsheffield2013.com</Uri>
+        <Uri Annotation="campaign-website">http://www.bradsheffield2013.com</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -2624,6 +2625,27 @@
       <LastName>Acuff</LastName>
       <MiddleName>L.</MiddleName>
       <Nickname>Kate</Nickname>
+      <PartyId>par0002</PartyId>
+    </Person>
+    <Person objectId="per12345">
+      <ContactInformation>
+        <AddressLine>4 Privet Drive</AddressLine>
+        <AddressLine>Sample, HI 99999</AddressLine>
+        <Email>dwayne@therock.com</Email>
+        <Phone>1234567890</Phone>
+      </ContactInformation>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>person-per12345</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FirstName>Dwayne</FirstName>
+      <FullName>
+        <Text language="en">Dwayne Johnson</Text>
+      </FullName>
+      <LastName>Johnson</LastName>
       <PartyId>par0002</PartyId>
     </Person>
   </PersonCollection>
