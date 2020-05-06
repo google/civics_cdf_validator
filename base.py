@@ -235,7 +235,7 @@ class RulesRegistry(SchemaHandler):
         for option in self.rule_options[rule.__name__]:
           rule_instance.set_option(option)
       rule_instance.setup()
-      for element in rule_instance.elements():
+      for element in set(rule_instance.elements()):
         if element in self.registry:
           self.registry[element].append(rule_instance)
         else:

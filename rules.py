@@ -322,12 +322,12 @@ class ValidIDREF(base.BaseRule):
 
   def elements(self):
     schema_tree = etree.parse(self.schema_file)
-    eligible_elements = []
+    eligible_elements = set()
     for _, element in etree.iterwalk(schema_tree):
       tag = self.strip_schema_ns(element)
       if (tag and tag == "element" and
           element.get("type") in ("xs:IDREF", "xs:IDREFS")):
-        eligible_elements.append(element.get("name"))
+        eligible_elements.add(element.get("name"))
     return eligible_elements
 
   def check(self, element):

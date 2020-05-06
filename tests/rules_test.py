@@ -487,6 +487,12 @@ class ValidIDREFTest(absltest.TestCase):
             <xs:element minOccurs="0" name="OfficeHolderPersonIds" type="xs:IDREFS" />
         </xs:sequence>
       </xs:complexType>
+      <xs:complexType name="Contest">
+        <xs:sequence>
+            <xs:element minOccurs="0" name="ElectoralDistrictId" type="xs:IDREF" />
+            <xs:element minOccurs="0" name="BallotTitle" type="InternationalText" />
+        </xs:sequence>
+      </xs:complexType>
     </xs:schema>
   """)
 
@@ -514,7 +520,7 @@ class ValidIDREFTest(absltest.TestCase):
 
     element = etree.fromstring(root_string)
     id_ref_validator = rules.ValidIDREF(element, ValidIDREFTest._schema_file)
-    expected_elements = ["ElectoralDistrictId", "OfficeHolderPersonIds"]
+    expected_elements = set(["ElectoralDistrictId", "OfficeHolderPersonIds"])
 
     self.assertEqual(id_ref_validator.elements(), expected_elements)
 
