@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Unit test for rules.py."""
 
-import collections
 import datetime
 import inspect
 import io
@@ -4207,6 +4206,53 @@ class URIValidatorTest(absltest.TestCase):
     self.assertIn("domain - missing", str(ee.exception))
 
 
+class ParentHierarchyObjectIdStrTest(absltest.TestCase):
+
+  def testParentHierarchyIsEmpty(self):
+    uri = "<Uri>www.facebook.com/michael_scott</Uri>"
+    uri_element = etree.fromstring(uri)
+    actual_value = rules.get_parent_hierarchy_object_id_str(uri_element)
+    self.assertEqual("Uri", actual_value)
+
+  def testParentHierarchyStopWhenObjectIdIsdefined(self):
+    election_feed = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per1">
+            <ContactInformation>
+              <Uri Annotation="personal-facebook">www.facebook.com/michael_scott
+              </Uri>
+            </ContactInformation>
+          </Person>
+        </PersonCollection>
+      </ElectionReport>
+    """
+    election_tree = etree.fromstring(election_feed)
+    uri_element = election_tree.find(
+        "PersonCollection/Person/ContactInformation/Uri")
+
+    actual_value = rules.get_parent_hierarchy_object_id_str(uri_element)
+    self.assertEqual("Person:per1 > ContactInformation > Uri", actual_value)
+
+  def testParentHierarchyToTheTopIfNoObjectIdIsdefined(self):
+    election_feed = """
+      <ElectionReport>
+        <Election>
+          <ContactInformation>
+            <Uri Annotation="personal-facebook">www.facebook.com/michael_scott
+            </Uri>
+          </ContactInformation>
+        </Election>
+      </ElectionReport>
+    """
+    election_tree = etree.fromstring(election_feed)
+    uri_element = election_tree.find("Election/ContactInformation/Uri")
+
+    actual_value = rules.get_parent_hierarchy_object_id_str(uri_element)
+    self.assertEqual("ElectionReport > Election > ContactInformation > Uri",
+                     actual_value)
+
+
 class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
 
   _base_person_collection = """
@@ -4262,8 +4308,8 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
     </OfficeCollection>
   """
 
-  # _count_uris_by_category_type
-  def testReturnsADictWithCountsForEachAnnotationPlatformAndValue(self):
+  # _extract_uris_by_category_type
+  def testReturnsADictWithEmptyPathsForEachAnnotationPlatformAndValue(self):
     facebook_uri = "<Uri Annotation='personal-facebook'>{}</Uri>"
     person_website_uri = "<Uri Annotation='personal-website'>{}</Uri>"
     party_website_uri = "<Uri Annotation='party-website'>{}</Uri>"
@@ -4285,25 +4331,25 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
         etree.fromstring(wiki_one), etree.fromstring(wiki_two),
     ]
 
-    expected_counter = {
-        "facebook": collections.Counter({
-            "www.facebook.com/michael_scott": 1,
-            "www.facebook.com/dwight_shrute": 1,
-        }),
-        "website": collections.Counter({
-            "www.michaelscott.com": 1,
-            "www.dwightshrute.com": 1,
-            "www.dundermifflin.com": 1,
-            "www.sabre.com": 1,
-        }),
-        "wikipedia": collections.Counter({
-            "www.wikipedia.com/dundermifflin": 2,
-        })
+    expected_mapping = {
+        "facebook": {
+            "www.facebook.com/michael_scott": ["Uri"],
+            "www.facebook.com/dwight_shrute": ["Uri"],
+        },
+        "website": {
+            "www.michaelscott.com": ["Uri"],
+            "www.dwightshrute.com": ["Uri"],
+            "www.dundermifflin.com": ["Uri"],
+            "www.sabre.com": ["Uri"],
+        },
+        "wikipedia": {
+            "www.wikipedia.com/dundermifflin": ["Uri", "Uri"],
+        }
     }
     uri_validator = rules.UniqueURIPerAnnotationCategory(None, None)
-    actual_counter = uri_validator._count_uris_by_category(uri_elements)
+    actual_mapping = uri_validator._extract_uris_by_category(uri_elements)
 
-    self.assertEqual(expected_counter, actual_counter)
+    self.assertEqual(expected_mapping, actual_mapping)
 
   def testChecksURIsWithNoAnnotation(self):
     uri_element = "<Uri>{}</Uri>"
@@ -4317,16 +4363,16 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
         etree.fromstring(uri_three)
     ]
 
-    expected_counter = {
-        "": collections.Counter({
-            "www.facebook.com/michael_scott": 1,
-            "www.facebook.com/dwight_shrute": 2,
-        }),
+    expected_mapping = {
+        "": {
+            "www.facebook.com/michael_scott": ["Uri"],
+            "www.facebook.com/dwight_shrute": ["Uri", "Uri"],
+        },
     }
     uri_validator = rules.UniqueURIPerAnnotationCategory(None, None)
-    actual_counter = uri_validator._count_uris_by_category(uri_elements)
+    actual_mapping = uri_validator._extract_uris_by_category(uri_elements)
 
-    self.assertEqual(expected_counter, actual_counter)
+    self.assertEqual(expected_mapping, actual_mapping)
 
   # check tests
   def testURIsAreUniqueWithinEachCategory(self):
@@ -4438,10 +4484,18 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
       uri_validator.check()
     self.assertEqual(("'There are duplicate URIs in the feed. URIs should be "
                       "unique for each category.'"), str(ee.exception))
-    self.assertEqual(("The annotation type wikipedia contains duplicate"
-                      " value: https://wikipedia.com/dunder_mifflin. "
-                      "It appears 4 times."),
-                     ee.exception.error_log[0].message)
+    self.assertIn(("The annotation type wikipedia contains duplicate"
+                   " value: https://wikipedia.com/dunder_mifflin. "
+                   "It appears 4 times in the following elements:"),
+                  ee.exception.error_log[0].message)
+    self.assertIn(("'Party:par2 > ContactInformation > Uri'"),
+                  ee.exception.error_log[0].message)
+    self.assertIn(("'Person:per1 > ContactInformation > Uri'"),
+                  ee.exception.error_log[0].message)
+    self.assertIn(("'Person:per2 > ContactInformation > Uri'"),
+                  ee.exception.error_log[0].message)
+    self.assertIn(("'Party:par1 > ContactInformation > Uri'"),
+                  ee.exception.error_log[0].message)
 
   def testOfficeURIsAreNotIncludedInCheck(self):
     election_feed = """

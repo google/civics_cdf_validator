@@ -106,6 +106,21 @@ def get_language_to_text_map(element):
   return language_map
 
 
+def get_parent_hierarchy_object_id_str(elt):
+  """Get the elt path from the 1st parent with an objectId / ElectionReport."""
+
+  elt_hierarchy = []
+  current_elt = elt
+  while current_elt is not None:
+    if current_elt.get("objectId"):
+      elt_hierarchy.append(current_elt.tag + ":" + current_elt.get("objectId"))
+      break
+    else:
+      elt_hierarchy.append(current_elt.tag)
+    current_elt = current_elt.getparent()
+  return " > ".join(elt_hierarchy[::-1])
+
+
 class Schema(base.TreeRule):
   """Checks if election file validates against the provided schema."""
 
@@ -1837,16 +1852,16 @@ class UniqueURIPerAnnotationCategory(base.TreeRule):
   Ex: No ballotpedia URIs can be the same.
   """
 
-  def _count_uris_by_category(self, uri_elements):
-    """For given list of Uri elements return nested counts of Uri values.
+  def _extract_uris_by_category(self, uri_elements):
+    """For given list of Uri elements return nested paths of Uri values.
 
     Args:
       uri_elements: List of Uri elements
     Returns:
-      Top level dict contains Annotation values as keys with counter as value.
-      Counter contains Uri value as keys with count as value.
+      Top level dict contains Annotation values as keys with uri/paths mapping
+      as value.
     """
-    uri_counter = {}
+    uri_mapping = {}
     for uri in uri_elements:
       annotation = uri.get("Annotation", "").strip()
       annotation_elements = annotation.split("-")
@@ -1856,27 +1871,31 @@ class UniqueURIPerAnnotationCategory(base.TreeRule):
 
       uri_value = uri.text
 
-      if annotation_platform not in uri_counter.keys():
-        uri_counter[annotation_platform] = collections.Counter()
+      if annotation_platform not in uri_mapping.keys():
+        uri_mapping[annotation_platform] = {}
 
-      uri_counter[annotation_platform].update([uri_value])
-
-    return uri_counter
+      elt_hierarchy = get_parent_hierarchy_object_id_str(uri)
+      if uri_mapping[annotation_platform].get(uri_value):
+        uri_mapping[annotation_platform][uri_value].append(elt_hierarchy)
+      else:
+        uri_mapping[annotation_platform][uri_value] = [elt_hierarchy]
+    return uri_mapping
 
   def check(self):
     all_uri_elements = self.get_elements_by_class(self.election_tree, "Uri")
     office_uri_elements = self.get_elements_by_class(
         self.election_tree, "Office//ContactInformation//Uri")
     uri_elements = set(all_uri_elements) - set(office_uri_elements)
-    annotation_counter = self._count_uris_by_category(uri_elements)
+    annotation_mapper = self._extract_uris_by_category(uri_elements)
 
     error_log = []
-    for annotation, value_counter in annotation_counter.items():
-      for uri, count in value_counter.items():
-        if count > 1:
+    for annotation, value_counter in annotation_mapper.items():
+      for uri, hierarchy_list in value_counter.items():
+        if len(hierarchy_list) > 1:
           error_message = ("The annotation type {} contains duplicate value:"
-                           " {}. It appears {} times.").format(
-                               annotation, uri, count)
+                           " {}. It appears {} times in the following elements:"
+                           " {}").format(annotation, uri, len(hierarchy_list),
+                                         hierarchy_list)
           error_log.append(loggers.ErrorLogEntry(None, error_message))
 
     if error_log:
