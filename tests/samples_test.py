@@ -41,21 +41,38 @@ class SamplesTest(absltest.TestCase):
     self._TestFile(
         'post_election_sample_feed_precincts.xml',
         self.election_rules,
-        expected_errors=1,
+        expected_errors=19,
+    )
+
+  def testPostRetentionContestSampleFeedSummary(self):
+    self._TestFile(
+        'post_retention_contest_sample_feed_summary.xml',
+        self.election_rules,
+    )
+
+  def testPreRetentionContestSampleFeed(self):
+    self._TestFile(
+        'pre_retention_contest_sample_feed.xml',
+        self.election_rules,
+        )
+
+  def testPostRetentionContestSampleFeedPrecincts(self):
+    self._TestFile(
+        'post_retention_contest_sample_feed_precincts.xml',
+        self.election_rules,
+        expected_errors=19,
     )
 
   def testPostElectionSampleFeedSummary(self):
     self._TestFile(
         'post_election_sample_feed_summary.xml',
         self.election_rules,
-        expected_errors=1,
     )
 
   def testPreElectionSampleFeed(self):
     self._TestFile(
         'pre_election_sample_feed.xml',
-        self.election_rules,
-        expected_errors=18)
+        self.election_rules)
 
   def testBallotMeasureContestSampleFeed(self):
     self._TestFile('ballot_measure_contest_sample_feed.xml',

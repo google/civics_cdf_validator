@@ -1,0 +1,189 @@
+<?xml version="1.0"?>
+<ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Election>
+    <CandidateCollection>
+      <Candidate objectId="can12345">
+        <BallotName>
+          <Text language="en">Dwayne Johnson</Text>
+        </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-rock</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>par0004</PartyId>
+        <PersonId>per12345</PersonId>
+      </Candidate>
+    </CandidateCollection>
+    <ContestCollection>
+      <Contest objectId="rc40001" xsi:type="RetentionContest">
+        <BallotSelection objectId="bms40001a" xsi:type="BallotMeasureSelection">
+          <VoteCountsCollection>
+            <VoteCounts>
+              <GpUnitId>ru0002</GpUnitId>
+              <Type>absentee</Type>
+              <Count>1296</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru0002</GpUnitId>
+              <Type>early</Type>
+              <Count>1007</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru0002</GpUnitId>
+              <Type>election-day</Type>
+              <Count>5249</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru0002</GpUnitId>
+              <Type>total</Type>
+              <Count>7552</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+          <Selection label="bms40001at">
+            <Text language="en">Yes</Text>
+          </Selection>
+        </BallotSelection>
+        <BallotSelection objectId="bms40001b" xsi:type="BallotMeasureSelection">
+          <VoteCountsCollection>
+            <VoteCounts>
+              <GpUnitId>ru0002</GpUnitId>
+              <Type>absentee</Type>
+              <Count>2600</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru0002</GpUnitId>
+              <Type>early</Type>
+              <Count>8621</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru0002</GpUnitId>
+              <Type>election-day</Type>
+              <Count>2552</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru0002</GpUnitId>
+              <Type>total</Type>
+              <Count>13773</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+          <Selection label="bms40001bt">
+            <Text language="en">No</Text>
+          </Selection>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Retention of Supreme Court Justice</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-va16-country-us</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>Judicial Retention, Supreme Court</Name>
+        <SubUnitsReported>21</SubUnitsReported>
+        <TotalSubUnits>31</TotalSubUnits>
+        <CandidateId>can12345</CandidateId>
+      </Contest>
+    </ContestCollection>
+    <CountStatus>
+      <Status>completed</Status>
+      <Type>early</Type>
+    </CountStatus>
+    <CountStatus>
+      <Status>in-process</Status>
+      <Type>election-day</Type>
+    </CountStatus>
+    <ElectionScopeId>ru0002</ElectionScopeId>
+    <Name>
+      <Text language="en">2013 Virginia Retention of Supreme Court Justice</Text>
+    </Name>
+    <StartDate>2013-11-05</StartDate>
+    <EndDate>2013-11-05</EndDate>
+    <Type>general</Type>
+  </Election>
+  <Format>summary-contest</Format>
+  <GeneratedDate>2013-11-05T14:25:28</GeneratedDate>
+  <GpUnitCollection>
+    <GpUnit objectId="ru0002" xsi:type="ReportingUnit">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>fips</Type>
+          <Value>51</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>Virginia</Name>
+      <Type>state</Type>
+    </GpUnit>
+  </GpUnitCollection>
+  <Issuer>Commonwealth of Virginia</Issuer>
+  <IssuerAbbreviation>VA</IssuerAbbreviation>
+  <PartyCollection>
+     <Party objectId="par0002">
+      <InternationalizedAbbreviation>
+        <Text language="en">LIB</Text>
+      </InternationalizedAbbreviation>
+      <Color>f5f500</Color>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>vageneral-pty-2013-libertarian</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>
+        <Text language="en">Libertarian</Text>
+      </Name>
+    </Party>
+    <Party objectId="par0004">
+      <InternationalizedAbbreviation>
+        <Text language="en">IND</Text>
+      </InternationalizedAbbreviation>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>vageneral-pty-2013-independent</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>
+        <Text language="en">Independent</Text>
+      </Name>
+    </Party>
+  </PartyCollection>
+  <PersonCollection>
+    <Person objectId="per12345">
+      <ContactInformation>
+        <AddressLine>4 Privet Drive</AddressLine>
+        <AddressLine>Sample, HI 99999</AddressLine>
+        <Email>dwayne@therock.com</Email>
+        <Phone>1234567890</Phone>
+      </ContactInformation>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>person-per12345</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FirstName>Dwayne</FirstName>
+      <FullName>
+        <Text language="en">Dwayne Johnson</Text>
+      </FullName>
+      <LastName>Johnson</LastName>
+      <PartyId>par0002</PartyId>
+    </Person>
+  </PersonCollection>
+  <SequenceStart>1</SequenceStart>
+  <SequenceEnd>1</SequenceEnd>
+  <Status>unofficial-partial</Status>
+  <VendorApplicationId>Hand-Generated v0.1</VendorApplicationId>
+</ElectionReport>

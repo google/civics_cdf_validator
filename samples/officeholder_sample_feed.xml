@@ -108,6 +108,9 @@
   </OfficeCollection>
   <PartyCollection>
     <Party objectId="par0">
+      <InternationalizedAbbreviation>
+        <Text language="en">R</Text>
+      </InternationalizedAbbreviation>
       <ContactInformation>
         <Uri Annotation="wikipedia">https://en.wikipedia.org/wiki/Republican_Party_(United_States)</Uri>
         <Uri Annotation="official-twitter">https://twitter.com/GOP</Uri>
@@ -124,6 +127,9 @@
       </Name>
     </Party>
     <Party objectId="par1">
+      <InternationalizedAbbreviation>
+        <Text language="en">D</Text>
+      </InternationalizedAbbreviation>
       <ContactInformation>
         <Uri Annotation="wikipedia">https://en.wikipedia.org/wiki/Democratic_Party_(United_States)</Uri>
         <Uri Annotation="official-twitter">https://twitter.com/TheDemocrats</Uri>
