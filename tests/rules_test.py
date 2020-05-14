@@ -2955,115 +2955,265 @@ class ValidStableIDTest(absltest.TestCase):
     self.assertIn("is not in the correct format.", str(cm.exception))
 
 
-class CheckIdentifiersTest(absltest.TestCase):
+class MissingStableIdsTest(absltest.TestCase):
 
-  _base_report = """
-    <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-      <Contest objectId="cc11111">
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Value>{}</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-      </Contest>
-      <Candidate objectId="cc22222">
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Value>{}</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-      </Candidate>
-      <Party objectId="cc33333">
-        {}
-      </Party>
-      <Office>
-        My cool office
+  def setUp(self):
+    super(MissingStableIdsTest, self).setUp()
+    self.missing_ids_validator = rules.MissingStableIds(None, None)
+    self.root_string = """
+      {}
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>{}</OtherType>
+          <Value>{}</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      {}
+    """
+
+  def testStableIdPresentForOffice(self):
+    test_string = self.root_string.format(
+        "<Office objectId='off1'>", "stable", "stable-off0", "</Office>")
+    element = etree.fromstring(test_string)
+    self.missing_ids_validator.check(element)
+
+  def testStableIdPresentForCandidate(self):
+    test_string = self.root_string.format(
+        "<Candidate objectId='can1'>", "stable", "stable-can1", "</Candidate>")
+    element = etree.fromstring(test_string)
+    self.missing_ids_validator.check(element)
+
+  def testStableIdPresentForContest(self):
+    test_string = self.root_string.format(
+        "<Contest objectId='cont1'>", "stable", "stable-cont1", "</Contest>")
+    element = etree.fromstring(test_string)
+    self.missing_ids_validator.check(element)
+
+  def testStableIdPresentForParty(self):
+    test_string = self.root_string.format(
+        "<Party objectId='par1'>", "stable", "stable-par1", "</Party>")
+    element = etree.fromstring(test_string)
+    self.missing_ids_validator.check(element)
+
+  def testStableIdPresentForPerson(self):
+    test_string = self.root_string.format(
+        "<Person objectId='off1'>", "stable", "stable-per0", "</Person>")
+    element = etree.fromstring(test_string)
+    self.missing_ids_validator.check(element)
+
+  def testStableIdPresentForBallotMeasureSelection(self):
+    test_string = self.root_string.format(
+        "<BallotSelection objectId='bms1'>",
+        "stable", "stable-bms1", "</BallotSelection>")
+    element = etree.fromstring(test_string)
+    self.missing_ids_validator.check(element)
+
+  def testStableIdPresentForReportingUnit(self):
+    test_string = self.root_string.format(
+        "<GpUnit objectId='ru0001'>", "stable",
+        "stable-ru0001", "</GpUnit>")
+    element = etree.fromstring(test_string)
+    self.missing_ids_validator.check(element)
+
+  def testStableIdPresentForCoalition(self):
+    test_string = self.root_string.format(
+        "<Coalition objectId='coa01'>", "stable",
+        "stable-coa01", "</Coalition>")
+    element = etree.fromstring(test_string)
+    self.missing_ids_validator.check(element)
+
+  def testStableIdMissingForOffice(self):
+    test_string = self.root_string.format("<Office objectId='off1'>",
+                                          "some-other-id", "some-other-value",
+                                          "</Office>")
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
+
+  def testStableIdMissingForCandidate(self):
+    test_string = self.root_string.format("<Candidate objectId='can1'>",
+                                          "some-other-id", "some-other-value",
+                                          "</Candidate>")
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
+
+  def testStableIdMissingForContest(self):
+    test_string = self.root_string.format("<Contest objectId='con1'>",
+                                          "some-other-id", "some-other-value",
+                                          "</Contest>")
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
+
+  def testStableIdMissingForParty(self):
+    test_string = self.root_string.format("<Party objectId='par1'>",
+                                          "some-other-id", "some-other-value",
+                                          "</Party>")
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
+
+  def testStableIdMissingForPerson(self):
+    test_string = self.root_string.format("<Person objectId='per1'>",
+                                          "some-other-id", "some-other-value",
+                                          "</Person>")
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
+
+  def testStableIdMissingForCoalition(self):
+    test_string = self.root_string.format("<Coalition objectId='coa1'>",
+                                          "some-other-id", "some-other-value",
+                                          "</Coalition>")
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
+
+  def testStableIdMissingForBallotSelection(self):
+    test_string = self.root_string.format("<BallotSelection objectId='bms1'>",
+                                          "some-other-id", "some-other-value",
+                                          "</BallotSelection>")
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
+
+  def testStableIdMissingForGpUnit(self):
+    test_string = self.root_string.format("<GpUnit objectId='off1'>",
+                                          "some-other-id", "some-other-value",
+                                          "</GpUnit>")
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
+
+  def testStableIdEmptyTextForOffice(self):
+    test_string = self.root_string.format(
+        "<Office objectId='off1'>", "stable", "", "</Office>")
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
+
+  def testStableIdEmptyTextForCandidate(self):
+    test_string = self.root_string.format(
+        "<Candidate objectId='can1'>", "stable", "", "</Candidate>")
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
+
+  def testStableIdEmptyTextForContest(self):
+    test_string = self.root_string.format(
+        "<Contest objectId='con1'>", "stable", "", "</Contest>")
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
+
+  def testStableIdEmptyTextForParty(self):
+    test_string = self.root_string.format(
+        "<Party objectId='par1'>", "stable", "", "</Party>")
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
+
+  def testStableIdEmptyTextForPerson(self):
+    test_string = self.root_string.format(
+        "<Person objectId='per1'>", "stable", "", "</Person>")
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
+
+  def testStableIdEmptyTextForCoalition(self):
+    test_string = self.root_string.format(
+        "<Coalition objectId='coa1'>", "stable", "", "</Coalition>")
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
+
+  def testStableIdEmptyTextForBallotMeasureSelection(self):
+    test_string = self.root_string.format(
+        "<BallotSelection objectId='bms1'>", "stable", "", "</BallotSelection>")
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
+
+  def testStableIdEmptyTextForReportingUnit(self):
+    test_string = self.root_string.format(
+        "<GpUnit objectId='ru001'>", "stable", "", "</GpUnit>")
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
+
+  def testMissingIdentifierBlockForOffice(self):
+    test_string = """
+      <Office objectId="off0">
       </Office>
-    </ElectionReport>
-  """
-
-  def testCandidateContestPartyElementsHaveExternalIds(self):
-    party_external_ids = """
-      <ExternalIdentifiers>
-        <ExternalIdentifier>
-          <Value>party id</Value>
-        </ExternalIdentifier>
-      </ExternalIdentifiers>
     """
-    root_string = self._base_report.format("contest id", "candidate id",
-                                           party_external_ids)
-    election_tree = etree.fromstring(root_string)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
 
-    rules.CheckIdentifiers(election_tree, None).check()
-
-  def testIgnoresExternalIdentifiersForContestStages(self):
-    contest_stages = """
-      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-        <Contest objectId="cc11111">
-          <ExternalIdentifiers>
-            <ExternalIdentifier>
-              <Type>other</Type>
-              <OtherType>contest-stage</OtherType>
-              <Value>projections</Value>
-            </ExternalIdentifier>
-          </ExternalIdentifiers>
-        </Contest>
-        <Contest objectId="cc22222">
-          <ExternalIdentifiers>
-            <ExternalIdentifier>
-              <Type>other</Type>
-              <OtherType>contest-stage</OtherType>
-              <Value>projections</Value>
-            </ExternalIdentifier>
-          </ExternalIdentifiers>
-        </Contest>
-      </ElectionReport>
+  def testMissingIdentifierBlockForCoalition(self):
+    test_string = """
+      <Coalition objectId="coa1">
+      </Coalition>
     """
-    election_tree = etree.fromstring(contest_stages)
-    rules.CheckIdentifiers(election_tree, None).check()
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
 
-  def testRaisesErrorIfExternalIdentifiersMissing(self):
-    root_string = self._base_report.format("contest id", "candidate id", "")
-    election_tree = etree.fromstring(root_string)
-
-    with self.assertRaises(loggers.ElectionTreeError):
-      rules.CheckIdentifiers(election_tree, None).check()
-
-  def testRaisesErrorIfExternalIdentifierMissing(self):
-    root_string = self._base_report.format("contest id", "candidate id",
-                                           "<ExternalIdentifiers/>")
-    election_tree = etree.fromstring(root_string)
-
-    with self.assertRaises(loggers.ElectionTreeError):
-      rules.CheckIdentifiers(election_tree, None).check()
-
-  def testRaisesErrorIfValueMissing(self):
-    party_external_ids = """
-      <ExternalIdentifiers>
-        <ExternalIdentifier/>
-      </ExternalIdentifiers>
+  def testMissingIdentifierBlockForBallotMeasureSelection(self):
+    test_string = """
+      <BallotSelection objectId="bms">
+      </BallotSelection>
     """
-    root_string = self._base_report.format("contest id", "candidate id",
-                                           party_external_ids)
-    election_tree = etree.fromstring(root_string)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
 
-    with self.assertRaises(loggers.ElectionTreeError):
-      rules.CheckIdentifiers(election_tree, None).check()
-
-  def testRaisesErrorIfDuplicateExternalIdValues(self):
-    party_external_ids = """
-      <ExternalIdentifiers>
-        <ExternalIdentifier>
-          <Value>party id</Value>
-        </ExternalIdentifier>
-      </ExternalIdentifiers>
+  def testMissingIdentifierBlockForReportingUnit(self):
+    test_string = """
+      <GpUnit objectId="ru001">
+      </GpUnit>
     """
-    root_string = self._base_report.format("this id rocks", "this id rocks",
-                                           party_external_ids)
-    election_tree = etree.fromstring(root_string)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
 
-    with self.assertRaises(loggers.ElectionTreeError):
-      rules.CheckIdentifiers(election_tree, None).check()
+  def testMissingIdentifierBlockForCandidate(self):
+    test_string = """
+      <Candidate objectId="can1">
+      </Candidate>
+    """
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
+
+  def testMissingIdentifierBlockForContest(self):
+    test_string = """
+      <Contest objectId="con1">
+      </Contest>
+    """
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
+
+  def testMissingIdentifierBlockForParty(self):
+    test_string = """
+      <Party objectId="par1">
+      </Party>
+    """
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
+
+  def testMissingIdentifierBlockForPerson(self):
+    test_string = """
+      <Person objectId="off0">
+      </Person>
+    """
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.missing_ids_validator.check(element)
 
 
 class CandidatesReferencePersonTest(absltest.TestCase):

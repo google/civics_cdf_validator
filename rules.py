@@ -1374,60 +1374,26 @@ class DuplicateContestNames(base.BaseRule):
           "The Election File contains duplicate contest names.", error_log)
 
 
-class CheckIdentifiers(base.TreeRule):
-  """Check that the NIST objects in the feed have an <ExternalIdentifier> block.
+class MissingStableIds(base.BaseRule):
+  """Check that each NIST object in the feed have a stable Id.
 
-  Add an error message if the block is missing.
+  Add an error message if stable id is missing from the object.
   """
 
-  _SKIPPABLE_TYPES = ["contest-stage"]
+  def elements(self):
+    return [
+        "Candidate", "Contest", "Party", "Person", "Coalition",
+        "BallotMeasureSelection", "Office", "ReportingUnit"
+    ]
 
-  def check(self):
-    identifier_values = {}
-    error_log = []
-    # TODO(kaminer) Turn this rule into a BaseRule by returning
-    # this list from elements function.
-    nist_objects = ("Candidate", "Contest", "Party", "Person")
-    for _, element in etree.iterwalk(self.election_tree):
-      nist_obj = self.strip_schema_ns(element)
-      if nist_obj not in nist_objects:
-        continue
-      object_id = element.get("objectId")
-
-      external_identifiers = element.find("ExternalIdentifiers")
-      if external_identifiers is None:
-        err_message = "{0} {1} is missing a stable ExternalIdentifier".format(
-            nist_obj, object_id)
-        error_log.append(loggers.ErrorLogEntry(element.sourceline, err_message))
-        continue
-      identifier = external_identifiers.find("ExternalIdentifier")
-      if identifier is None:
-        err_message = "{0} {1} is missing a stable ExternalIdentifier.".format(
-            nist_obj, object_id)
-        error_log.append(loggers.ErrorLogEntry(element.sourceline, err_message))
-        continue
-      value = identifier.find("Value")
-      if value is None or not value.text:
-        err_message = "{0} {1} is missing a stable ExternalIdentifier.".format(
-            nist_obj, object_id)
-        error_log.append(loggers.ErrorLogEntry(element.sourceline, err_message))
-        continue
-      id_type = identifier.find("Type")
-      if id_type is not None and id_type.text == "other":
-        other_type = identifier.find("OtherType")
-        if other_type is not None and other_type.text in self._SKIPPABLE_TYPES:
-          continue
-      identifier_values.setdefault(value.text, []).append(object_id)
-    for value_text, obj_ids in identifier_values.items():
-      if len(obj_ids) > 1:
-        err_message = ("Stable ExternalIdentifier '{0}' is used for the "
-                       "following {1} objectIds: {2}").format(
-                           value_text, len(obj_ids), ", ".join(obj_ids))
-        error_log.append(loggers.ErrorLogEntry(None, err_message))
-    if error_log:
-      raise loggers.ElectionTreeError(
-          "The Election File has following issues with the identifiers:",
-          error_log)
+  def check(self, element):
+    element_name = self.strip_schema_ns(element)
+    object_id = element.get("objectId")
+    stable_ids = get_external_id_values(element, "stable")
+    if not stable_ids:
+      raise loggers.ElectionError(
+          "Line: %d. %s element with object id %s is missing a stable id" %
+          (element.sourceline, element_name, object_id))
 
 
 class CandidatesMissingPartyData(base.BaseRule):
@@ -2294,7 +2260,6 @@ class RuleSet(enum.Enum):
 COMMON_RULES = (
     AllCaps,
     AllLanguages,
-    CheckIdentifiers,
     DuplicateGpUnits,
     DuplicateID,
     EmptyText,
@@ -2302,6 +2267,7 @@ COMMON_RULES = (
     GpUnitOcdId,
     HungarianStyleNotation,
     LanguageCode,
+    MissingStableIds,
     OtherType,
     OptionalAndEmpty,
     Schema,

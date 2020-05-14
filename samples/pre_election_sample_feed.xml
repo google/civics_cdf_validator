@@ -789,6 +789,11 @@
       </ComposingGpUnitIds>
       <ExternalIdentifiers>
         <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va</Value>
         </ExternalIdentifier>
@@ -804,6 +809,11 @@
       <ComposingGpUnitIds>ru0030 ru0081 ru0054 ru0103</ComposingGpUnitIds>
       <ExternalIdentifiers>
         <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0001</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/county:albemarle</Value>
         </ExternalIdentifier>
@@ -818,6 +828,11 @@
     <GpUnit objectId="ru0150" xsi:type="ReportingUnit">
       <ExternalIdentifiers>
         <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0150</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/sldl:25</Value>
         </ExternalIdentifier>
@@ -828,6 +843,11 @@
     </GpUnit>
     <GpUnit objectId="ru0311" xsi:type="ReportingUnit">
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0311</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/sldl:57</Value>
@@ -840,6 +860,11 @@
     <GpUnit objectId="ru0076" xsi:type="ReportingUnit">
       <ExternalIdentifiers>
         <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0076</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/sldl:58</Value>
         </ExternalIdentifier>
@@ -850,6 +875,11 @@
     </GpUnit>
     <GpUnit objectId="ru0107" xsi:type="ReportingUnit">
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0107</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/sldl:59</Value>
@@ -862,6 +892,11 @@
     <GpUnit objectId="ru0030" xsi:type="ReportingUnit">
       <ExternalIdentifiers>
         <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0030</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:samuel_miller</Value>
         </ExternalIdentifier>
@@ -872,6 +907,11 @@
     </GpUnit>
     <GpUnit objectId="ru0054" xsi:type="ReportingUnit">
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0054</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:jack_jouett</Value>
@@ -884,6 +924,11 @@
     <GpUnit objectId="ru0081" xsi:type="ReportingUnit">
       <ExternalIdentifiers>
         <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0081</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:rio</Value>
         </ExternalIdentifier>
@@ -894,6 +939,11 @@
     </GpUnit>
     <GpUnit objectId="ru0103" xsi:type="ReportingUnit">
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0103</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:scottsville</Value>
@@ -910,6 +960,11 @@
     <Office objectId="off9999a">
       <ElectoralDistrictId>ru0002</ElectoralDistrictId>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off9999a</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>office-level</OtherType>
@@ -935,6 +990,11 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off9999b</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
         </ExternalIdentifier>
@@ -956,6 +1016,11 @@
     <Office objectId="off0000">
       <ElectoralDistrictId>ru0002</ElectoralDistrictId>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off0000</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>office-level</OtherType>
@@ -981,6 +1046,11 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off0001</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
         </ExternalIdentifier>
@@ -1002,6 +1072,11 @@
     <Office objectId="off20005">
       <ElectoralDistrictId>ru0002</ElectoralDistrictId>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20005</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>office-level</OtherType>
@@ -1032,6 +1107,11 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20024</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
         </ExternalIdentifier>
@@ -1053,6 +1133,11 @@
     <Office objectId="off20025">
       <ElectoralDistrictId>ru0311</ElectoralDistrictId>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20025</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>office-level</OtherType>
@@ -1078,6 +1163,11 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20033</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
         </ExternalIdentifier>
@@ -1099,6 +1189,11 @@
     <Office objectId="off20100">
       <ElectoralDistrictId>ru0076</ElectoralDistrictId>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20100</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>office-level</OtherType>
@@ -1125,6 +1220,11 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20262</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
         </ExternalIdentifier>
@@ -1146,6 +1246,11 @@
     <Office objectId="off20305">
       <ElectoralDistrictId>ru0054</ElectoralDistrictId>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20305</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>office-level</OtherType>
@@ -1171,6 +1276,11 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20350</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
         </ExternalIdentifier>
@@ -1192,6 +1302,11 @@
     <Office objectId="off20355">
       <ElectoralDistrictId>ru0081</ElectoralDistrictId>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20355</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>office-level</OtherType>
@@ -1218,6 +1333,11 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20449</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
         </ExternalIdentifier>
@@ -1241,6 +1361,11 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20473</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
         </ExternalIdentifier>
@@ -1262,6 +1387,11 @@
     <Office objectId="off20476">
       <ElectoralDistrictId>ru0054</ElectoralDistrictId>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20476</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>office-level</OtherType>

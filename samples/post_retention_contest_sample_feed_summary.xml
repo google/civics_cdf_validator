@@ -42,6 +42,13 @@
               <Count>7552</Count>
             </VoteCounts>
           </VoteCountsCollection>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>bmc_bms40001a</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
           <Selection label="bms40001at">
             <Text language="en">Yes</Text>
           </Selection>
@@ -69,6 +76,13 @@
               <Count>13773</Count>
             </VoteCounts>
           </VoteCountsCollection>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>bmc_bms40001b</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
           <Selection label="bms40001bt">
             <Text language="en">No</Text>
           </Selection>
@@ -111,6 +125,11 @@
   <GpUnitCollection>
     <GpUnit objectId="ru0002" xsi:type="ReportingUnit">
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0002</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va</Value>
