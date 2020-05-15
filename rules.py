@@ -319,39 +319,90 @@ class ValidIDREF(base.BaseRule):
   """Check that IDREFs are valid.
 
   Every field of type IDREF should actually reference a value that exists in a
-  field of type ID.
+  field of type ID. Additionaly the referenced value should be an objectId
+  of the proper reference type for the given field.
   """
 
   def __init__(self, election_tree, schema_file):
     super(ValidIDREF, self).__init__(election_tree, schema_file)
-    self.all_object_ids = set()
-    for _, element in etree.iterwalk(self.election_tree, events=("end",)):
-      if "objectId" not in element.attrib:
-        continue
-      else:
-        obj_id = element.get("objectId")
-        if not obj_id:
-          continue
-        else:
-          self.all_object_ids.add(obj_id)
+    self.object_id_mapping = {}
+    self.element_reference_mapping = {}
 
-  def elements(self):
+  _REFERENCE_TYPE_OVERRIDES = {
+      "ElectoralDistrictId": "GpUnit",
+      "ElectionScopeId": "GpUnit",
+      "AuthorityId": "Person",
+      "AuthorityIds": "Person"
+  }
+
+  def setup(self):
+    object_id_map = self._gather_object_ids_by_type()
+    self.object_id_mapping = object_id_map
+
+    element_reference_map = self._gather_reference_mapping()
+    self.element_reference_mapping = element_reference_map
+
+  def _gather_object_ids_by_type(self):
+    """Create a mapping of element types to set of objectIds of same type."""
+
+    type_obj_id_mapping = dict()
+    for _, element in etree.iterwalk(self.election_tree, events=("end",)):
+      if "objectId" in element.attrib:
+        obj_type = element.tag
+        obj_id = element.get("objectId")
+        if obj_id:
+          type_obj_id_mapping.setdefault(obj_type, set([])).add(obj_id)
+    return type_obj_id_mapping
+
+  def _gather_reference_mapping(self):
+    """Create a mapping of each IDREF(S) element to their reference type."""
+
+    reference_mapping = dict()
     schema_tree = etree.parse(self.schema_file)
-    eligible_elements = set()
     for _, element in etree.iterwalk(schema_tree):
       tag = self.strip_schema_ns(element)
       if (tag and tag == "element" and
           element.get("type") in ("xs:IDREF", "xs:IDREFS")):
-        eligible_elements.add(element.get("name"))
-    return eligible_elements
+        elem_name = element.get("name")
+        reference_type = self._determine_reference_type(elem_name)
+        reference_mapping[elem_name] = reference_type
+    return reference_mapping
+
+  def _determine_reference_type(self, name):
+    """Determines the XML type being referenced by an IDREF(S) element."""
+
+    for elem_type in self.object_id_mapping.keys():
+      type_id = elem_type + "Id"
+      if name.endswith(type_id) or name.endswith(type_id + "s"):
+        return elem_type
+    if name in self._REFERENCE_TYPE_OVERRIDES:
+      return self._REFERENCE_TYPE_OVERRIDES[name]
+    return None
+
+  def elements(self):
+    return list(self.element_reference_mapping.keys())
 
   def check(self, element):
+    error_log = []
+
+    element_name = element.tag
+    element_reference_type = self.element_reference_mapping[element_name]
+    reference_object_ids = self.object_id_mapping.get(
+        element_reference_type, [])
     if element.text:
       id_references = element.text.split()
       for id_ref in id_references:
-        if id_ref not in self.all_object_ids:
-          raise loggers.ElectionError("Line %d. %s is not a valid IDREF." %
-                                      (element.sourceline, id_ref))
+        if id_ref not in reference_object_ids:
+          err_message = ("Line {}. {}. {} is not a valid IDREF. {} should"
+                         " contain an objectId from a {} element.").format(
+                             element.sourceline,
+                             get_parent_hierarchy_object_id_str(element),
+                             id_ref, element_name, element_reference_type)
+          error_log.append(loggers.ErrorLogEntry(None, err_message))
+    if error_log:
+      raise loggers.ElectionError(("There are {} invalid IDREF elements "
+                                   "present.").format(
+                                       len(error_log)), error_log)
 
 
 class ValidStableID(base.BaseRule):
@@ -1300,41 +1351,6 @@ class MissingPartyAbbreviationTranslation(ValidatePartyCollection):
     return info_log
 
 
-class MissingPartyAffiliation(base.ValidReferenceRule):
-  """Each Person/Candidate PartyId must have an associated Party.
-
-  A PartyId that has no Party that references them should be picked up
-  within this class and returned to the user as an error.
-  """
-
-  def __init__(self, election_tree, schema_file):
-    super(MissingPartyAffiliation, self).__init__(election_tree, schema_file,
-                                                  "Party")
-
-  def _gather_reference_values(self):
-    root = self.election_tree.getroot()
-    check_party_ids = set()
-
-    party_ids = root.findall(".//CandidateCollection//Candidate//PartyId")
-    party_ids += root.findall(".//PersonCollection//Person//PartyId")
-
-    for elem in party_ids:
-      if elem.text and elem.text.strip():
-        check_party_ids.add(elem.text.strip())
-    return check_party_ids
-
-  def _gather_defined_values(self):
-    all_parties = set()
-    party_collection = self.election_tree.getroot().find("PartyCollection")
-    if party_collection is not None:
-      all_parties = {
-          party.attrib["objectId"]
-          for party in party_collection
-          if party is not None and party.get("objectId")
-      }
-    return all_parties
-
-
 class DuplicateContestNames(base.BaseRule):
   """Check that an election contains unique ContestNames.
 
@@ -1412,65 +1428,6 @@ class CandidatesMissingPartyData(base.BaseRule):
       raise loggers.ElectionWarning(
           "Line %d: Candidate %s is missing party data" %
           (element.sourceline, element.get("objectId")))
-
-
-class CandidatesReferencePerson(base.ValidReferenceRule):
-  """Each candidate must reference a valid person via the PersonId field."""
-
-  def __init__(self, election_tree, schema_file):
-    super(CandidatesReferencePerson,
-          self).__init__(election_tree, schema_file, "Person")
-
-  def _gather_reference_values(self):
-    reference_values = set()
-    candidates = self.get_elements_by_class(self.election_tree, "Candidate")
-
-    for candidate in candidates:
-      person_id = candidate.find("PersonId")
-      if person_id is not None and person_id.text is not None:
-        reference_values.add(person_id.text)
-
-    return reference_values
-
-  def _gather_defined_values(self):
-    all_people = set()
-    person_collection = self.election_tree.getroot().find("PersonCollection")
-    if person_collection is not None:
-      all_people = {person.attrib["objectId"] for person in person_collection}
-    return all_people
-
-
-class OfficeMissingOfficeHolderPersonData(base.ValidReferenceRule):
-  """Each Office must have Persons occupying it.
-
-  An Office object that has no OfficeHolderPersonIds in it should be
-  picked up within this class and returned as an error to the user.
-  """
-
-  def __init__(self, election_tree, schema_file):
-    super(OfficeMissingOfficeHolderPersonData,
-          self).__init__(election_tree, schema_file, "Person")
-
-  def _gather_reference_values(self):
-    root = self.election_tree.getroot()
-    reference_values = set()
-
-    officeholder_ids = root.findall(
-        ".//OfficeCollection//Office//OfficeHolderPersonIds")
-
-    for elem in officeholder_ids:
-      if elem.text and elem.text.strip():
-        reference_values.update(elem.text.strip().split())
-      else:
-        raise loggers.ElectionError("Office is missing IDs of Officeholders.")
-    return reference_values
-
-  def _gather_defined_values(self):
-    all_people = set()
-    person_collection = self.election_tree.getroot().find("PersonCollection")
-    if person_collection is not None:
-      all_people = {person.attrib["objectId"] for person in person_collection}
-    return all_people
 
 
 class PersonsMissingPartyData(base.BaseRule):
@@ -1673,8 +1630,6 @@ class PersonHasOffice(base.ValidReferenceRule):
         id_obj = office.find("OfficeHolderPersonIds")
         if id_obj is not None and id_obj.text:
           ids = id_obj.text.strip().split()
-          # TODO(kaminer): OfficeMissingOfficeHolderPersonData allows more
-          # than one id. Evaluate contradiction.
           if len(ids) > 1:
             raise loggers.ElectionError(
                 "Office object {} has {} OfficeHolders. Must have exactly one."
@@ -2276,7 +2231,6 @@ COMMON_RULES = (
     ValidIDREF,
     ValidateOcdidLowerCase,
     PersonsHaveValidGender,
-    MissingPartyAffiliation,
     PartyLeadershipMustExist,
     URIValidator,
     UniqueURIPerAnnotationCategory,
@@ -2318,13 +2272,11 @@ ELECTION_RULES = COMMON_RULES + (
     FullTextOrBallotText,
     BallotTitle,
     ImproperCandidateContest,
-    CandidatesReferencePerson,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (
     PersonHasOffice,
     ProhibitElectionData,
-    OfficeMissingOfficeHolderPersonData,
 )
 
 ALL_RULES = frozenset(COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES)
