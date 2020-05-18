@@ -4581,26 +4581,19 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
 
   def setUp(self):
     super(OfficesHaveJurisdictionIDTest, self).setUp()
-    self.root_string = """
-      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-        <OfficeCollection>
-          {}
-        </OfficeCollection>
-      </ElectionReport>
-    """
     self.offices_validator = rules.OfficesHaveJurisdictionID(None, None)
 
   def testOfficeHasJurisdictionIDByAdditionalData(self):
-    test_string = self.root_string.format("""
+    test_string = """
           <Office objectId="off1">
             <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
           </Office>
-        """)
+        """
     element = etree.fromstring(test_string)
     self.offices_validator.check(element)
 
   def testOfficeHasJurisdictionIDByExternalIdentifier(self):
-    test_string = self.root_string.format("""
+    test_string = """
           <Office objectId="off1">
              <ExternalIdentifier>
                <Type>other</Type>
@@ -4608,60 +4601,61 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
                <Value>ru_pt_999</Value>
              </ExternalIdentifier>
           </Office>
-        """)
+        """
     element = etree.fromstring(test_string)
     self.offices_validator.check(element)
 
   def testOfficeDoesNotHaveJurisdictionIDByAdditionalData(self):
-    test_string = self.root_string.format("""
+    test_string = """
           <Office objectId="off2">
             <AdditionalData>ru-gpu4</AdditionalData>
           </Office>
-        """)
+        """
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertIn("is missing a jurisdiction-id", str(cm.exception))
+    self.assertIn("Office off2 is missing a jurisdiction-id", str(cm.exception))
 
   def testOfficeDoesNotHaveJurisdictionIDTextByAdditionalData(self):
-    test_string = self.root_string.format("""
+    test_string = """
           <Office objectId="off2">
             <AdditionalData type="jurisdiction-id"></AdditionalData>
           </Office>
-        """)
+        """
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertIn("is missing a jurisdiction-id", str(cm.exception))
+    self.assertIn("Office off2 is missing a jurisdiction-id", str(cm.exception))
 
   def testOfficeHasMoreThanOneJurisdictionIDbyAdditionalData(self):
-    test_string = self.root_string.format("""
+    test_string = """
           <Office objectId="off1">
             <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
             <AdditionalData type="jurisdiction-id">ru-gpu3</AdditionalData>
           </Office>
-        """)
+        """
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertIn("has more than one jurisdiction-id", str(cm.exception))
+    self.assertIn("Office off1 has more than one jurisdiction-id",
+                  str(cm.exception))
 
   def testOfficeDoesNotHaveJurisdictionIDByExternalIdentifier(self):
-    test_string = self.root_string.format("""
+    test_string = """
           <Office objectId="off2">
              <ExternalIdentifier>
                <Type>other</Type>
                <Value>ru-gpu3</Value>
              </ExternalIdentifier>
           </Office>
-        """)
+        """
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertIn("is missing a jurisdiction-id", str(cm.exception))
+    self.assertIn("Office off2 is missing a jurisdiction-id", str(cm.exception))
 
   def testOfficeDoesNotHaveJurisdictionIDTextByExternalIdentifier(self):
-    test_string = self.root_string.format("""
+    test_string = """
           <Office objectId="off2">
              <ExternalIdentifier>
                <Type>other</Type>
@@ -4669,14 +4663,14 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
                <Value></Value>
              </ExternalIdentifier>
           </Office>
-        """)
+        """
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertIn("is missing a jurisdiction-id", str(cm.exception))
+    self.assertIn("Office off2 is missing a jurisdiction-id", str(cm.exception))
 
   def testOfficeHasMoreThanOneJurisdictionIDbyExternalIdentifier(self):
-    test_string = self.root_string.format("""
+    test_string = """
           <Office objectId="off1">
              <ExternalIdentifier>
                <Type>other</Type>
@@ -4689,14 +4683,15 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
                <Value>ru_pt_800</Value>
              </ExternalIdentifier>
           </Office>
-        """)
+        """
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertIn("has more than one jurisdiction-id", str(cm.exception))
+    self.assertIn("Office off1 has more than one jurisdiction-id",
+                  str(cm.exception))
 
   def testJurisdictionIDTextIsWhitespaceByExternalIdentifier(self):
-    test_string = self.root_string.format("""
+    test_string = """
           <Office objectId="off2">
              <ExternalIdentifier>
                <Type>other</Type>
@@ -4704,22 +4699,22 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
                <Value>  </Value>
              </ExternalIdentifier>
           </Office>
-        """)
+        """
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertIn("is missing a jurisdiction-id", str(cm.exception))
+    self.assertIn("Office off2 is missing a jurisdiction-id", str(cm.exception))
 
   def testJurisdictionIDTextIsWhitespaceByAdditionalData(self):
-    test_string = self.root_string.format("""
+    test_string = """
           <Office objectId="off2">
             <AdditionalData type="jurisdiction-id">    </AdditionalData>
           </Office>
-        """)
+        """
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertIn("is missing a jurisdiction-id", str(cm.exception))
+    self.assertIn("Office off2 is missing a jurisdiction-id", str(cm.exception))
 
 
 class ValidJurisdictionIDTest(absltest.TestCase):
@@ -5196,8 +5191,9 @@ class GpUnitsHaveInternationalizedNameTest(absltest.TestCase):
     """
     with self.assertRaises(loggers.ElectionError) as cm:
       self.gpunits_intl_name_validator.check(etree.fromstring(root_string))
-    self.assertIn("required to have exactly one InterationalizedName element.",
-                  str(cm.exception))
+    self.assertIn(
+        "GpUnit ru0002 is required to have exactly one InterationalizedName"
+        " element.", str(cm.exception))
 
   def testInternationalizedNameElementNoSubelements(self):
     root_string = """
@@ -5208,8 +5204,10 @@ class GpUnitsHaveInternationalizedNameTest(absltest.TestCase):
     """
     with self.assertRaises(loggers.ElectionError) as cm:
       self.gpunits_intl_name_validator.check(etree.fromstring(root_string))
-    self.assertIn("is required to have one or more Text elements.",
-                  str(cm.exception))
+    self.assertIn("GpUnit ru0002", str(cm.exception))
+    self.assertIn(
+        "is required to have one or more Text elements.",
+        str(cm.exception))
 
   def testInternationalizedNameNoText(self):
     root_string = """
@@ -5222,6 +5220,7 @@ class GpUnitsHaveInternationalizedNameTest(absltest.TestCase):
     """
     with self.assertRaises(loggers.ElectionError) as cm:
       self.gpunits_intl_name_validator.check(etree.fromstring(root_string))
+    self.assertIn("GpUnit ru0002", str(cm.exception))
     self.assertIn("does not have a text value", str(cm.exception))
 
   def testInternationalizedNameTextValueIsWhitespace(self):
@@ -5235,6 +5234,7 @@ class GpUnitsHaveInternationalizedNameTest(absltest.TestCase):
     """
     with self.assertRaises(loggers.ElectionError) as cm:
       self.gpunits_intl_name_validator.check(etree.fromstring(root_string))
+    self.assertIn("GpUnit ru0002", str(cm.exception))
     self.assertIn("does not have a text value", str(cm.exception))
 
   def testOneTextElementDoesNotHaveValue(self):
@@ -5249,6 +5249,7 @@ class GpUnitsHaveInternationalizedNameTest(absltest.TestCase):
     """
     with self.assertRaises(loggers.ElectionError) as cm:
       self.gpunits_intl_name_validator.check(etree.fromstring(root_string))
+    self.assertIn("GpUnit ru0002", str(cm.exception))
     self.assertIn("does not have a text value", str(cm.exception))
 
   def testMoreThanOneInternationalizedNameFails(self):
@@ -5265,8 +5266,8 @@ class GpUnitsHaveInternationalizedNameTest(absltest.TestCase):
     """
     with self.assertRaises(loggers.ElectionError) as cm:
       self.gpunits_intl_name_validator.check(etree.fromstring(root_string))
-    self.assertIn("required to have exactly one InterationalizedName element.",
-                  str(cm.exception))
+    self.assertIn("GpUnit ru0002 is required to have exactly one "
+                  "InterationalizedName element.", str(cm.exception))
 
 
 class GetAdditionalTypeValuesTest(absltest.TestCase):

@@ -1911,14 +1911,13 @@ class OfficesHaveJurisdictionID(base.BaseRule):
         for j_id in get_external_id_values(element, "jurisdiction-id")
         if j_id.strip()
     ])
+    object_id = element.get("objectId")
     if not jurisdiction_values:
       raise loggers.ElectionError(
-          ("Office {} is missing a jurisdiction-id.".format(
-              element.get("object_id", ""))))
+          "Office {} is missing a jurisdiction-id.".format(object_id))
     if len(jurisdiction_values) > 1:
       raise loggers.ElectionError(
-          ("Office {} has more than one jurisdiction-id.".format(
-              element.get("object_id", ""))))
+          "Office {} has more than one jurisdiction-id.".format(object_id))
 
 
 class ValidJurisdictionID(base.ValidReferenceRule):
@@ -2026,27 +2025,26 @@ class GpUnitsHaveInternationalizedName(base.BaseRule):
   def check(self, element):
     intl_names = element.findall("InternationalizedName")
     missing_names = []
+    object_id = element.get("objectId", "")
     if intl_names is None or not intl_names or len(intl_names) > 1:
       raise loggers.ElectionError(
-          ("GpUnit {} is required to have "
-           "exactly one InterationalizedName element.".format(
-               element.get("object_id", ""))))
+          "GpUnit {} is required to have exactly one InterationalizedName element."
+          .format(object_id))
     intl_name = intl_names[0]
     name_texts = intl_name.findall("Text")
     if name_texts is None or not name_texts:
       raise loggers.ElectionError(
-          ("GpUnit InternationalizedName on line {} is required to have "
-           "one or more Text elements.".format(intl_name.sourceline)))
+          ("GpUnit {} InternationalizedName on line {} is required to have one "
+           "or more Text elements.".format(object_id, intl_name.sourceline)))
     for name_text in name_texts:
       if name_text is None or not (name_text.text and name_text.text.strip()):
         missing_names.append(
-            "InternationalizedName on line {} does not have a text value."
-            .format(intl_name.sourceline))
+            "GpUnit {} InternationalizedName on line {} does not have a text value."
+            .format(object_id, intl_name.sourceline))
     if missing_names:
       raise loggers.ElectionError(
-          ("GpUnit {} must not have empty InternationalizedName "
-           "Text elements. {}".format(
-               element.get("object_id", ""), "\n".join(missing_names))))
+          ("GpUnit {} must not have empty InternationalizedName Text elements. "
+           "{}".format(object_id, "\n".join(missing_names))))
 
 
 class FullTextMaxLength(base.BaseRule):
