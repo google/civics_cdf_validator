@@ -1594,11 +1594,11 @@ class ContestHasMultipleOffices(base.BaseRule):
     if office_ids is not None and office_ids.text:
       ids = office_ids.text.split()
       if len(ids) > 1:
-        raise loggers.ElectionError(
+        raise loggers.ElectionWarning(
             "Contest {} has more than one associated office.".format(
                 element.get("objectId", "")))
     else:
-      raise loggers.ElectionError(
+      raise loggers.ElectionWarning(
           "Contest {} has no associated offices.".format(
               element.get("objectId", "")))
 

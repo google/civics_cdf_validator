@@ -3578,7 +3578,7 @@ class ContestHasMultipleOfficesTest(absltest.TestCase):
         "<OfficeIds>off-ar1-ara off-ar1-arb</OfficeIds>")
     element = etree.fromstring(root_string)
 
-    with self.assertRaises(loggers.ElectionError) as cm:
+    with self.assertRaises(loggers.ElectionWarning) as cm:
       self.contest_offices_validator.check(element)
     self.assertIn("has more than one associated office.", str(cm.exception))
 
@@ -3586,7 +3586,7 @@ class ContestHasMultipleOfficesTest(absltest.TestCase):
     root_string = self.base_string.format("<OfficeIds></OfficeIds>")
     element = etree.fromstring(root_string)
 
-    with self.assertRaises(loggers.ElectionError) as cm:
+    with self.assertRaises(loggers.ElectionWarning) as cm:
       self.contest_offices_validator.check(element)
     self.assertIn("has no associated offices.", str(cm.exception))
 
