@@ -408,6 +408,36 @@ class ValidIDREF(base.BaseRule):
                                        len(error_log)), error_log)
 
 
+class OfficesHaveElectoralDistrictsWithOCDID(base.BaseRule):
+  """Ensure that the ElectoralDistricts in Office objects have OCDIDs."""
+
+  def find_gpunit_ocdid(self, gpunit_id):
+    gpunit_element = self.election_tree.find(
+        './GpUnitCollection/GpUnit[@objectId="{}"]'.format(gpunit_id))
+    if gpunit_element is None:
+      return None
+    ocdids = get_external_id_values(gpunit_element, "ocd-id")
+    if not ocdids:
+      return None
+    return ocdids
+
+  def elements(self):
+    return ["Office"]
+
+  def check(self, element):
+    object_id = element.get("objectId")
+    elect_dist_id_elem = element.find("ElectoralDistrictId")
+    if elect_dist_id_elem is None or not elect_dist_id_elem.text:
+      raise loggers.ElectionWarning(
+          "The Office %s is missing ElectoralDistrictId." % object_id)
+    electoral_dist_id = elect_dist_id_elem.text.strip()
+    ocdids = self.find_gpunit_ocdid(electoral_dist_id)
+    if ocdids is None:
+      raise loggers.ElectionError(
+          "The ElectoralDistrict %s in Office %s does not have OCD-ID" %
+          (electoral_dist_id, object_id))
+
+
 class ValidStableID(base.BaseRule):
   """Ensure stable-ids are in the correct format."""
 
@@ -2285,6 +2315,7 @@ COMMON_RULES = (
     HungarianStyleNotation,
     LanguageCode,
     MissingStableIds,
+    OfficesHaveElectoralDistrictsWithOCDID,
     OtherType,
     OptionalAndEmpty,
     Schema,

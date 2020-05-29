@@ -3318,6 +3318,99 @@ class MissingStableIdsTest(absltest.TestCase):
       self.missing_ids_validator.check(element)
 
 
+class OfficesHaveElectoralDistrictsWithOCDIDTest(absltest.TestCase):
+
+  def setUp(self):
+    super(OfficesHaveElectoralDistrictsWithOCDIDTest, self).setUp()
+    self.election_tree_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <GpUnitCollection>
+        <GpUnit objectId="ru001" xsi:type="ReportingUnit">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:us/state:va/sldl:25</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </GpUnit>
+        <GpUnit objectId="ru002" xsi:type="ReportingUnit">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:us/state:va/sldl:26</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </GpUnit>
+        <GpUnit objectId="ru003" xsi:type="ReportingUnit">
+        {}
+        </GpUnit>
+      </GpUnitCollection>
+      </ElectionReport>
+    """
+    self.verify_electoral_ids = rules.OfficesHaveElectoralDistrictsWithOCDID(
+        None, None)
+    self.root_string = """
+      <Office objectId="off9999a">{}</Office>
+    """
+
+  def testOcdIdPresentInElectoralDistrictForOffice(self):
+    element_tree = etree.fromstring(self.election_tree_string.format(""))
+    test_string = self.root_string.format(
+        "<ElectoralDistrictId>ru001</ElectoralDistrictId>")
+    element = etree.fromstring(test_string)
+    self.verify_electoral_ids = rules.OfficesHaveElectoralDistrictsWithOCDID(
+        element_tree, None)
+    self.verify_electoral_ids.check(element)
+
+  def testWrongElectoralDistrictForOffice(self):
+    ext_identifier_string = """
+    <ExternalIdentifiers>
+      <ExternalIdentifier>
+        <Type>ocd-id</Type>
+        <Value>ocd-division/country:us/state:va</Value>
+      </ExternalIdentifier>
+    </ExternalIdentifiers>
+    """
+    election_tree = self.election_tree_string.format(ext_identifier_string)
+    element_tree = etree.fromstring(election_tree)
+    self.verify_electoral_ids = rules.OfficesHaveElectoralDistrictsWithOCDID(
+        element_tree, None)
+    test_string = self.root_string.format(
+        "<ElectoralDistrictId>ru004</ElectoralDistrictId>")
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.verify_electoral_ids.check(element)
+
+  def testElectoralDistrictIdEmptyForOffice(self):
+    ext_identifier_string = """
+    <ExternalIdentifiers>
+      <ExternalIdentifier>
+        <Type>ocd-id</Type>
+        <Value>ocd-division/country:us/state:va/sldl:27</Value>
+      </ExternalIdentifier>
+    </ExternalIdentifiers>
+    """
+    election_tree = self.election_tree_string.format(ext_identifier_string)
+    element_tree = etree.fromstring(election_tree)
+    self.verify_electoral_ids = rules.OfficesHaveElectoralDistrictsWithOCDID(
+        element_tree, None)
+    test_string = self.root_string.format(
+        "<ElectoralDistrictId></ElectoralDistrictId>")
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionWarning):
+      self.verify_electoral_ids.check(element)
+
+  def testOcdIdMissingInElectoralDistrictForOffice(self):
+    element_tree = etree.fromstring(self.election_tree_string.format(""))
+    self.verify_electoral_ids = rules.OfficesHaveElectoralDistrictsWithOCDID(
+        element_tree, None)
+    test_string = self.root_string.format(
+        "<ElectoralDistrictId>ru003</ElectoralDistrictId>")
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.verify_electoral_ids.check(element)
+
+
 class PersonsMissingPartyDataTest(absltest.TestCase):
 
   def setUp(self):
