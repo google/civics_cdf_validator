@@ -61,10 +61,10 @@ class SchemaHandler(object):
 class BaseRule(SchemaHandler):
   """Base class for rules."""
 
-  def __init__(self, election_tree, schema_file):
+  def __init__(self, election_tree, schema_tree):
     super(BaseRule, self).__init__()
     self.election_tree = election_tree
-    self.schema_file = schema_file
+    self.schema_tree = schema_tree
 
   def elements(self):
     """Return a list of all the elements this rule checks."""
@@ -104,8 +104,8 @@ class TreeRule(BaseRule):
 class ValidReferenceRule(TreeRule):
   """Rule that makes sure reference values are properly defined."""
 
-  def __init__(self, election_tree, schema_file, missing_element="data"):
-    super(ValidReferenceRule, self).__init__(election_tree, schema_file)
+  def __init__(self, election_tree, schema_tree, missing_element="data"):
+    super(ValidReferenceRule, self).__init__(election_tree, schema_tree)
     self.missing_element = missing_element
 
   def _gather_reference_values(self):
@@ -230,7 +230,7 @@ class RulesRegistry(SchemaHandler):
       A dictionary of elements and rules that check each element
     """
     for rule in self.rule_classes_to_check:
-      rule_instance = rule(self.election_tree, self.schema_file)
+      rule_instance = rule(self.election_tree, self.schema_tree)
       if rule.__name__ in self.rule_options.keys():
         for option in self.rule_options[rule.__name__]:
           rule_instance.set_option(option)
@@ -322,6 +322,7 @@ class RulesRegistry(SchemaHandler):
   def check_rules(self):
     """Checks all rules."""
     try:
+      self.schema_tree = etree.parse(self.schema_file)
       self.election_tree = etree.parse(self.election_file)
     except etree.LxmlError as e:
       print("Fatal Error. XML file could not be parsed. {}".format(e))

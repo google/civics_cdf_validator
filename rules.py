@@ -125,9 +125,8 @@ class Schema(base.TreeRule):
   """Checks if election file validates against the provided schema."""
 
   def check(self):
-    schema_tree = etree.parse(self.schema_file)
     try:
-      schema = etree.XMLSchema(etree=schema_tree)
+      schema = etree.XMLSchema(etree=self.schema_tree)
     except etree.XMLSchemaParseError as e:
       raise loggers.ElectionError(
           "The schema file could not be parsed correctly %s" % str(e))
@@ -148,14 +147,13 @@ class Schema(base.TreeRule):
 class OptionalAndEmpty(base.BaseRule):
   """Checks for optional and empty fields."""
 
-  def __init__(self, election_tree, schema_file):
-    super(OptionalAndEmpty, self).__init__(election_tree, schema_file)
+  def __init__(self, election_tree, schema_tree):
+    super(OptionalAndEmpty, self).__init__(election_tree, schema_tree)
     self.previous = None
 
   def elements(self):
-    schema_tree = etree.parse(self.schema_file)
     eligible_elements = []
-    for _, element in etree.iterwalk(schema_tree):
+    for _, element in etree.iterwalk(self.schema_tree):
       tag = self.strip_schema_ns(element)
       if tag and tag == "element" and element.get("minOccurs") == "0":
         eligible_elements.append(element.get("name"))
@@ -323,8 +321,8 @@ class ValidIDREF(base.BaseRule):
   of the proper reference type for the given field.
   """
 
-  def __init__(self, election_tree, schema_file):
-    super(ValidIDREF, self).__init__(election_tree, schema_file)
+  def __init__(self, election_tree, schema_tree):
+    super(ValidIDREF, self).__init__(election_tree, schema_tree)
     self.object_id_mapping = {}
     self.element_reference_mapping = {}
 
@@ -358,8 +356,7 @@ class ValidIDREF(base.BaseRule):
     """Create a mapping of each IDREF(S) element to their reference type."""
 
     reference_mapping = dict()
-    schema_tree = etree.parse(self.schema_file)
-    for _, element in etree.iterwalk(schema_tree):
+    for _, element in etree.iterwalk(self.schema_tree):
       tag = self.strip_schema_ns(element)
       if (tag and tag == "element" and
           element.get("type") in ("xs:IDREF", "xs:IDREFS")):
@@ -408,8 +405,8 @@ class ValidIDREF(base.BaseRule):
 class ValidStableID(base.BaseRule):
   """Ensure stable-ids are in the correct format."""
 
-  def __init__(self, election_tree, schema_file):
-    super(ValidStableID, self).__init__(election_tree, schema_file)
+  def __init__(self, election_tree, schema_tree):
+    super(ValidStableID, self).__init__(election_tree, schema_tree)
     regex = r"^[a-zA-Z0-9_-]+$"
     self.stable_id_matcher = re.compile(regex, flags=re.U)
 
@@ -441,8 +438,8 @@ class ElectoralDistrictOcdId(base.BaseRule):
   # Reference http://docs.opencivicdata.org/en/latest/proposals/0002.html
   OCD_PATTERN = r"^ocd-division\/country:[a-z]{2}(\/(\w|-)+:(\w|-|\.|~)+)*$"
 
-  def __init__(self, election_tree, schema_file):
-    super(ElectoralDistrictOcdId, self).__init__(election_tree, schema_file)
+  def __init__(self, election_tree, schema_tree):
+    super(ElectoralDistrictOcdId, self).__init__(election_tree, schema_tree)
     self.gpunits = []
     self.check_github = True
     self.country_code = None
@@ -475,19 +472,19 @@ class ElectoralDistrictOcdId(base.BaseRule):
       countries_file = self.local_file
     else:
       cache_directory = os.path.expanduser(self.CACHE_DIR)
-      countries_file = "{0}/{1}".format(cache_directory, self.github_file)
+      countries_filename = "{0}/{1}".format(cache_directory, self.github_file)
 
-      if not os.path.exists(countries_file):
+      if not os.path.exists(countries_filename):
         # Only initialize `github_repo` if there's no cached file.
         github_api = github.Github()
         self.github_repo = github_api.get_repo(self.GITHUB_REPO)
         if not os.path.exists(cache_directory):
           os.makedirs(cache_directory)
-        self._download_data(countries_file)
+        self._download_data(countries_filename)
       else:
         if self.check_github:
           last_mod_date = datetime.datetime.fromtimestamp(
-              os.path.getmtime(countries_file))
+              os.path.getmtime(countries_filename))
 
           seconds_since_mod = (datetime.datetime.now() -
                                last_mod_date).total_seconds()
@@ -498,20 +495,13 @@ class ElectoralDistrictOcdId(base.BaseRule):
             self.github_repo = github_api.get_repo(self.GITHUB_REPO)
             # Re-download the file if the file on GitHub was updated.
             if last_mod_date < self._get_latest_commit_date():
-              self._download_data(countries_file)
+              self._download_data(countries_filename)
             # Update the timestamp to reflect last GitHub check.
-            os.utime(countries_file, None)
+            os.utime(countries_filename, None)
+      countries_file = open(countries_filename, encoding="utf-8")
     ocd_id_codes = set()
-
-    # CSVs read in Python3 must be specified as UTF-8.
-    if sys.version_info.major < 3:
-      with open(countries_file) as csvfile:
-        csv_reader = csv.DictReader(csvfile)
-        self._read_csv(csv_reader, ocd_id_codes)
-    else:
-      with open(countries_file, encoding="utf-8") as csvfile:
-        csv_reader = csv.DictReader(csvfile)
-        self._read_csv(csv_reader, ocd_id_codes)
+    csv_reader = csv.DictReader(countries_file)
+    self._read_csv(csv_reader, ocd_id_codes)
 
     return ocd_id_codes
 
@@ -692,8 +682,8 @@ class DuplicateGpUnits(base.BaseRule):
 class GpUnitsHaveSingleRoot(base.TreeRule):
   """Ensure that GpUnits form a single-rooted tree."""
 
-  def __init__(self, election_tree, schema_file):
-    super(GpUnitsHaveSingleRoot, self).__init__(election_tree, schema_file)
+  def __init__(self, election_tree, schema_tree):
+    super(GpUnitsHaveSingleRoot, self).__init__(election_tree, schema_tree)
     self.error_log = []
 
   def check(self):
@@ -734,9 +724,9 @@ class GpUnitsHaveSingleRoot(base.TreeRule):
 class GpUnitsCyclesRefsValidation(base.TreeRule):
   """Ensure that GpUnits form a valid tree and no cycles are present."""
 
-  def __init__(self, election_tree, schema_file):
+  def __init__(self, election_tree, schema_tree):
     super(GpUnitsCyclesRefsValidation, self).__init__(election_tree,
-                                                      schema_file)
+                                                      schema_tree)
     self.edges = dict()  # Used to maintain the record of connected edges
     self.visited = {}  # Used to store status of the nodes as visited or not.
     self.error_log = []
@@ -793,10 +783,9 @@ class OtherType(base.BaseRule):
   """
 
   def elements(self):
-    schema_tree = etree.parse(self.schema_file)
     eligible_elements = []
-    for element in schema_tree.iterfind("{%s}complexType" %
-                                        self._XSCHEMA_NAMESPACE):
+    for element in self.schema_tree.iterfind("{%s}complexType" %
+                                             self._XSCHEMA_NAMESPACE):
       for elem in element.iter():
         tag = self.strip_schema_ns(elem)
         if tag == "element":
@@ -825,8 +814,8 @@ class PartisanPrimary(base.BaseRule):
   """
   election_type = None
 
-  def __init__(self, election_tree, schema_file):
-    super(PartisanPrimary, self).__init__(election_tree, schema_file)
+  def __init__(self, election_tree, schema_tree):
+    super(PartisanPrimary, self).__init__(election_tree, schema_tree)
     # There can only be one election element in a file.
     election_elem = self.election_tree.find("Election")
     if election_elem is not None:
@@ -896,14 +885,13 @@ class CoalitionParties(base.TreeRule):
 class UniqueLabel(base.BaseRule):
   """Labels should be unique within a file."""
 
-  def __init__(self, election_tree, schema_file):
-    super(UniqueLabel, self).__init__(election_tree, schema_file)
+  def __init__(self, election_tree, schema_tree):
+    super(UniqueLabel, self).__init__(election_tree, schema_tree)
     self.labels = set()
 
   def elements(self):
-    schema_tree = etree.parse(self.schema_file)
     eligible_elements = []
-    for _, element in etree.iterwalk(schema_tree):
+    for _, element in etree.iterwalk(self.schema_tree):
       tag = self.strip_schema_ns(element)
       if tag == "element":
         elem_type = element.get("type")
@@ -931,8 +919,8 @@ class CandidatesReferencedOnce(base.BaseRule):
   several times over, but a Candida(te|cy) can't span contests.
   """
 
-  def __init__(self, election_tree, schema_file):
-    super(CandidatesReferencedOnce, self).__init__(election_tree, schema_file)
+  def __init__(self, election_tree, schema_tree):
+    super(CandidatesReferencedOnce, self).__init__(election_tree, schema_tree)
     self.error_log = []
 
   def elements(self):
@@ -1532,9 +1520,8 @@ class ValidEnumerations(base.BaseRule):
   valid_enumerations = []
 
   def elements(self):
-    schema_tree = etree.parse(self.schema_file)
     eligible_elements = []
-    for element in schema_tree.iter():
+    for element in self.schema_tree.iter():
       tag = self.strip_schema_ns(element)
       if tag == "enumeration":
         elem_val = element.get("value")
@@ -1642,8 +1629,8 @@ class PersonHasOffice(base.ValidReferenceRule):
 class PartyLeadershipMustExist(base.ValidReferenceRule):
   """Each party leader or party chair should refer to a person in the feed."""
 
-  def __init__(self, election_tree, schema_file):
-    super(PartyLeadershipMustExist, self).__init__(election_tree, schema_file,
+  def __init__(self, election_tree, schema_tree):
+    super(PartyLeadershipMustExist, self).__init__(election_tree, schema_tree,
                                                    "Person")
 
   def _gather_reference_values(self):
@@ -1923,8 +1910,8 @@ class OfficesHaveJurisdictionID(base.BaseRule):
 class ValidJurisdictionID(base.ValidReferenceRule):
   """Each jurisdiction id should refer to a valid GpUnit."""
 
-  def __init__(self, election_tree, schema_file):
-    super(ValidJurisdictionID, self).__init__(election_tree, schema_file,
+  def __init__(self, election_tree, schema_tree):
+    super(ValidJurisdictionID, self).__init__(election_tree, schema_tree,
                                               "GpUnit")
 
   def _gather_reference_values(self):

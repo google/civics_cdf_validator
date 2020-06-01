@@ -18,7 +18,7 @@ from mock import patch
 
 class SchemaTest(absltest.TestCase):
 
-  _schema_file = io.BytesIO(b"""<?xml version="1.0" encoding="UTF-8"?>
+  _schema_tree = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8"?>
     <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
       <xs:element name="Report"/>
       <xs:complexType name="Person">
@@ -43,18 +43,18 @@ class SchemaTest(absltest.TestCase):
     """
 
     election_tree = etree.fromstring(root_string)
-    schema_validator = rules.Schema(election_tree, SchemaTest._schema_file)
+    schema_validator = rules.Schema(election_tree, SchemaTest._schema_tree)
     schema_validator.check()
 
   def testRaisesErrorForSchemaParseFailure(self):
-    schema_file = io.BytesIO(b"""<?xml version="1.0" encoding="UTF-8"?>
+    schema_tree = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8"?>
       <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
         <xs:element name="Report" type="CoolNewType"/>
       </xs:schema>
     """)
 
     election_tree = etree.fromstring("<Report/>")
-    schema_validator = rules.Schema(election_tree, schema_file)
+    schema_validator = rules.Schema(election_tree, schema_tree)
 
     with self.assertRaises(loggers.ElectionError) as ee:
       schema_validator.check()
@@ -71,7 +71,7 @@ class SchemaTest(absltest.TestCase):
     """
 
     election_tree = etree.fromstring(root_string)
-    schema_validator = rules.Schema(election_tree, SchemaTest._schema_file)
+    schema_validator = rules.Schema(election_tree, SchemaTest._schema_tree)
 
     with self.assertRaises(loggers.ElectionTreeError) as ete:
       schema_validator.check()
@@ -86,7 +86,7 @@ class OptionalAndEmptyTest(absltest.TestCase):
     self.optionality_validator = rules.OptionalAndEmpty(None, None)
 
   def testOnlyChecksOptionalElements(self):
-    schema_file = io.BytesIO(b"""
+    schema_tree = etree.fromstring(b"""
       <element>
         <element minOccurs="0" name="ThingOne" />
         <element minOccurs="1" name="ThingTwo" />
@@ -95,7 +95,7 @@ class OptionalAndEmptyTest(absltest.TestCase):
       </element>
     """)
 
-    self.optionality_validator = rules.OptionalAndEmpty(None, schema_file)
+    self.optionality_validator = rules.OptionalAndEmpty(None, schema_tree)
     eligible_elements = self.optionality_validator.elements()
 
     self.assertLen(eligible_elements, 2)
@@ -475,7 +475,7 @@ class DuplicateIDTest(absltest.TestCase):
 
 class ValidIDREFTest(absltest.TestCase):
 
-  _schema_file = io.BytesIO(b"""<?xml version="1.0" encoding="UTF-8"?>
+  _schema_tree = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8"?>
     <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
       <xs:element name="Report"/>
       <xs:complexType name="Office">
@@ -562,7 +562,7 @@ class ValidIDREFTest(absltest.TestCase):
 
   # _gather_reference_mapping test
   def testReturnsMapOfIDREFsToReferenceTypes(self):
-    id_ref_validator = rules.ValidIDREF(None, self._schema_file)
+    id_ref_validator = rules.ValidIDREF(None, ValidIDREFTest._schema_tree)
     id_ref_validator.object_id_mapping = {
         "Person": set(["per001", "per002"]),
         "Candidate": set(["can001"])
@@ -1490,7 +1490,7 @@ class OtherTypeTest(absltest.TestCase):
     self.other_type_validator = rules.OtherType(None, None)
 
   def testOnlyChecksComplexTypesThatContainOtherTypeElement(self):
-    schema_file = io.BytesIO(b"""<?xml version="1.0" encoding="UTF-8"?>
+    schema_tree = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8"?>
       <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
         <xs:element name="Report"/>
         <xs:complexType name="Device">
@@ -1504,7 +1504,7 @@ class OtherTypeTest(absltest.TestCase):
       </xs:schema>
     """)
 
-    validator = rules.OtherType(None, schema_file)
+    validator = rules.OtherType(None, schema_tree)
 
     expected_elements = ["Device"]
     eligible_elements = validator.elements()
@@ -1853,7 +1853,7 @@ class CoalitionPartiesTest(absltest.TestCase):
 class UniqueLabelTest(absltest.TestCase):
 
   def testChecksElementsWithTypeInternationalizedText(self):
-    schema_file = io.BytesIO(b"""<?xml version="1.0" encoding="UTF-8"?>
+    schema_tree = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8"?>
       <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
         <xs:element name="Report" type="CoolNewType">
           <xs:complexType name="ContactInformation">
@@ -1872,7 +1872,7 @@ class UniqueLabelTest(absltest.TestCase):
       </xs:schema>
     """)
 
-    label_validator = rules.UniqueLabel(None, schema_file)
+    label_validator = rules.UniqueLabel(None, schema_tree)
     self.assertEqual(["Directions"], label_validator.elements())
 
   def testMakesSureAllLabelsAreUnique(self):
@@ -3415,7 +3415,7 @@ class ValidEnumerationsTest(absltest.TestCase):
     self.enum_validator = rules.ValidEnumerations(None, None)
 
   def testElementsGathersValidEnumerationsAndReturnsElementsWithOtherType(self):
-    schema_file = io.BytesIO(b"""<?xml version="1.0" encoding="UTF-8"?>
+    schema_tree = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8"?>
       <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
         <xs:element name="Report"/>
         <xs:simpleType name="BallotMeasureType">
@@ -3436,7 +3436,7 @@ class ValidEnumerationsTest(absltest.TestCase):
         </xs:complexType>
       </xs:schema>
     """)
-    enum_validator = rules.ValidEnumerations(None, schema_file)
+    enum_validator = rules.ValidEnumerations(None, schema_tree)
     expected_enumerations = ["ballot-measure", "initiative", "referendum"]
     expected_elements = ["Person"]
 

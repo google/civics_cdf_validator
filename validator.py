@@ -212,16 +212,16 @@ def ruleset_type(enum_string):
     raise argparse.ArgumentTypeError(msg)
 
 
-def print_metadata(filename):
+def print_metadata(file):
   """Prints metadata associated with this run of the validator."""
   print("Validator version: {}".format(version.__version__))
 
   blocksize = 65536
   digest = hashlib.new("sha3_256")
-  with open(filename, "rb") as f:
-    for block in iter(lambda: f.read(blocksize), b""):
-      digest.update(block)
+  for block in iter(lambda: file.read(blocksize), b""):
+    digest.update(block)
   print("SHA3-256 checksum: 0x{}".format(digest.hexdigest()))
+  file.seek(0)
 
 
 def display_rules_details(options):
@@ -276,20 +276,10 @@ def feed_validation(options):
                         str.split(options.required_languages, ",")))
   rule_classes_to_check = filter_all_rules_using_user_arg(options)
 
-  if isinstance(options.election_files, list):
-    xml_files = options.election_files
-  else:
-    xml_files = [options.election_files]
-
   errors = []
-  for election_file in xml_files:
-    print("\n--------- Results after validating file: {0} "
-          .format(election_file))
-    if (not election_file.endswith(".xml")
-        or not os.stat(election_file).st_size):
-      print("{0} is not a valid XML file.".format(election_file))
-      errors.append(3)
-      continue
+  for election_file in options.election_files:
+    print("\n--------- Results after validating file: {0} ".format(
+        election_file.name))
 
     print_metadata(election_file)
     registry = base.RulesRegistry(
@@ -319,7 +309,19 @@ def main():
     display_rules_details(options)
     return None
   elif options.cmd == "validate":
-    return feed_validation(options)
+    options.election_files = [
+        open(file, "rb") for file in options.election_files
+    ]
+    options.xsd = open(options.xsd, "r")
+    if options.ocdid_file:
+      options.ocdid_file = open(options.ocdid_file, encoding="utf-8")
+    return_value = feed_validation(options)
+    for file in options.election_files:
+      file.close()
+    options.xsd.close()
+    if options.ocdid_file:
+      options.ocdid_file.close()
+    return return_value
 
 
 if __name__ == "__main__":
