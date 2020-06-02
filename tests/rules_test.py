@@ -16,6 +16,29 @@ from mock import mock_open
 from mock import patch
 
 
+class HelpersTest(absltest.TestCase):
+
+  # element_has_text tests
+  def testReturnsTrueIfElementHasText(self):
+    element_string = "<FirstName>Jerry</FirstName>"
+    elem_has_text = rules.element_has_text(etree.fromstring(element_string))
+    self.assertTrue(elem_has_text)
+
+  def testReturnsFalseIfElementIsNone(self):
+    elem_has_text = rules.element_has_text(None)
+    self.assertFalse(elem_has_text)
+
+  def testReturnsFalseIfElementHasNoText(self):
+    element_string = "<FirstName></FirstName>"
+    elem_has_text = rules.element_has_text(etree.fromstring(element_string))
+    self.assertFalse(elem_has_text)
+
+  def testReturnsFalseIfElementHasAllWhiteSpace(self):
+    element_string = "<FirstName>   </FirstName>"
+    elem_has_text = rules.element_has_text(etree.fromstring(element_string))
+    self.assertFalse(elem_has_text)
+
+
 class SchemaTest(absltest.TestCase):
 
   _schema_tree = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8"?>
@@ -5100,6 +5123,9 @@ class ElectionStartDatesTest(absltest.TestCase):
     </Election>
     """
 
+  def testChecksElectionElements(self):
+    self.assertEqual(["Election"], self.date_validator.elements())
+
   def testStartDatesAreNotFlaggedIfNotInThePast(self):
     election_string = self.election_string.format(
         self.today + datetime.timedelta(days=1),
@@ -5115,6 +5141,12 @@ class ElectionStartDatesTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionWarning):
       self.date_validator.check(election)
 
+  def testIgnoresElectionsWithNoStartDateElement(self):
+    election_string = """
+      <Election></Election>
+    """
+    self.date_validator.check(etree.fromstring(election_string))
+
 
 class ElectionEndDatesTest(absltest.TestCase):
 
@@ -5128,6 +5160,9 @@ class ElectionEndDatesTest(absltest.TestCase):
       <EndDate>{}</EndDate>
     </Election>
     """
+
+  def testChecksElectionElements(self):
+    self.assertEqual(["Election"], self.date_validator.elements())
 
   def testEndDatesAreNotFlaggedIfNotInThePast(self):
     election_string = self.election_string.format(
@@ -5151,6 +5186,98 @@ class ElectionEndDatesTest(absltest.TestCase):
     election = etree.fromstring(election_string)
     with self.assertRaises(loggers.ElectionError):
       self.date_validator.check(election)
+
+  def testThrowsErrorForPastEndDatesWithNoStartDateElement(self):
+    election_string = """
+      <Election>
+        <EndDate>2012-01-01</EndDate>
+      </Election>
+    """
+    with self.assertRaises(loggers.ElectionError):
+      self.date_validator.check(etree.fromstring(election_string))
+
+  def testIgnoresElectionsWithNoEndDateElement(self):
+    election_string = """
+      <Election>
+        <StartDate>2012-01-01</StartDate>
+      </Election>
+    """
+    self.date_validator.check(etree.fromstring(election_string))
+
+
+class OfficeTermDatesTest(absltest.TestCase):
+
+  def setUp(self):
+    super(OfficeTermDatesTest, self).setUp()
+    self.date_validator = rules.OfficeTermDates(None, None)
+    self.office_string = """
+      <Office objectId="off1">
+        <OfficeHolderPersonIds>per0</OfficeHolderPersonIds>
+        <Term>
+          <StartDate>{}</StartDate>
+          <EndDate>{}</EndDate>
+        </Term>
+      </Office>
+    """
+
+  def testChecksOfficeElements(self):
+    self.assertEqual(["Office"], self.date_validator.elements())
+
+  def testIgnoresOfficesWithNoOfficeHolderPersonIds(self):
+    empty_office = """
+      <Office>
+      </Office>
+    """
+    self.date_validator.check(etree.fromstring(empty_office))
+
+  def testRaisesWarningForOfficesWithOfficeHolderPersonIdsButNoTerm(self):
+    empty_office = """
+      <Office objectId="off1">
+        <OfficeHolderPersonIds>per1</OfficeHolderPersonIds>
+      </Office>
+    """
+    with self.assertRaises(loggers.ElectionWarning) as ew:
+      self.date_validator.check(etree.fromstring(empty_office))
+    self.assertEqual("'Office (objectId: off1) is missing a Term'",
+                     str(ew.exception))
+
+  def testChecksEndDateIsAfterStartDate(self):
+    office_string = self.office_string.format("2020-01-01", "2020-01-02")
+    self.date_validator.check(etree.fromstring(office_string))
+
+  def testRaisesErrorIfEndDateIsBeforeStartDate(self):
+    office_string = self.office_string.format("2020-01-03", "2020-01-02")
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.date_validator.check(etree.fromstring(office_string))
+    self.assertEqual("'The Office term dates are invalid.'", str(ee.exception))
+    self.assertIn("The dates (start: 2020-01-03, end: 2020-01-02) are invalid",
+                  ee.exception.error_log[0].message)
+    self.assertIn("The end date must be the same or after the start date.",
+                  ee.exception.error_log[0].message)
+
+  def testRaisesWarningIfStartDateNotAssigned(self):
+    office_string = """
+      <Office objectId="off1">
+        <OfficeHolderPersonIds>per0</OfficeHolderPersonIds>
+        <Term>
+        </Term>
+      </Office>
+    """
+    with self.assertRaises(loggers.ElectionWarning) as ee:
+      self.date_validator.check(etree.fromstring(office_string))
+    self.assertEqual(("'Office (objectId: off1) is missing a Term > "
+                      "StartDate.'"), str(ee.exception))
+
+  def testIgnoresIfStartDateAssignedButNotEndDate(self):
+    office_string = """
+      <Office>
+        <OfficeHolderPersonIds>per0</OfficeHolderPersonIds>
+        <Term>
+          <StartDate>2012-01-01</StartDate>
+        </Term>
+      </Office>
+    """
+    self.date_validator.check(etree.fromstring(office_string))
 
 
 class GpUnitsHaveInternationalizedNameTest(absltest.TestCase):
@@ -5981,11 +6108,9 @@ class RequiredFieldsTest(absltest.TestCase):
   def testEachElementHasCorrespondingRequiredField(self):
     elements = self.field_validator.elements()
     registered_elements = self.field_validator._element_field_mapping.keys()
-    self.assertEqual(elements, list(registered_elements))
 
-  def testElementsListUpdated(self):
-    expected_elements = ["Person", "Candidate"]
-    self.assertEqual(expected_elements, self.field_validator.elements())
+    for registered_element in registered_elements:
+      self.assertIn(registered_element, elements)
 
   def testRequiredFieldIsPresent_Person(self):
     person = """
@@ -6013,7 +6138,7 @@ class RequiredFieldsTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError) as ee:
       self.field_validator.check(etree.fromstring(person))
     self.assertIn(("Element Person (objectId: 123) is missing required field"
-                   " FullName//Text."), str(ee.exception))
+                   " FullName//Text."), str(ee.exception.error_log[0].message))
 
   def testThrowsErrorIfFieldIsMissing_Candidate(self):
     candidate = """
@@ -6023,7 +6148,7 @@ class RequiredFieldsTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError) as ee:
       self.field_validator.check(etree.fromstring(candidate))
     self.assertIn(("Element Candidate (objectId: 123) is missing required field"
-                   " PersonId."), str(ee.exception))
+                   " PersonId."), str(ee.exception.error_log[0].message))
 
   def testThrowsErrorIfFieldIsEmpty(self):
     person = """
@@ -6036,7 +6161,7 @@ class RequiredFieldsTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError) as ee:
       self.field_validator.check(etree.fromstring(person))
     self.assertIn(("Element Person (objectId: 123) is missing required field"
-                   " FullName//Text."), str(ee.exception))
+                   " FullName//Text."), str(ee.exception.error_log[0].message))
 
   def testThrowsErrorIfFieldIsWhiteSpace(self):
     person = """
@@ -6049,7 +6174,7 @@ class RequiredFieldsTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError) as ee:
       self.field_validator.check(etree.fromstring(person))
     self.assertIn(("Element Person (objectId: 123) is missing required field"
-                   " FullName//Text."), str(ee.exception))
+                   " FullName//Text."), str(ee.exception.error_log[0].message))
 
 
 class RulesTest(absltest.TestCase):

@@ -121,6 +121,11 @@ def get_parent_hierarchy_object_id_str(elt):
   return " > ".join(elt_hierarchy[::-1])
 
 
+def element_has_text(element):
+  return (element is not None and element.text is not None
+          and not element.text.isspace())
+
+
 class Schema(base.TreeRule):
   """Checks if election file validates against the provided schema."""
 
@@ -1964,13 +1969,19 @@ class ElectionStartDates(base.DateRule):
   as validator could conceivably be run during an ongoing election.
   """
 
+  def elements(self):
+    return ["Election"]
+
   def check(self, element):
     self.gather_dates(element)
-    start_delta = (self.start_date - self.today).days
-    if start_delta < 0:
+
+    if self.start_date:
+      self.check_for_date_not_in_past(self.start_date, self.start_elem)
+
+    if self.error_log:
       error_message = """The start date {} is in the past. Please double
       check that this is expected.""".format(self.start_date)
-      raise loggers.ElectionWarning(error_message)
+      raise loggers.ElectionWarning(error_message, self.error_log)
 
 
 class ElectionEndDates(base.DateRule):
@@ -1980,27 +1991,52 @@ class ElectionEndDates(base.DateRule):
   before the start date.
   """
 
+  def elements(self):
+    return ["Election"]
+
   def check(self, element):
     self.gather_dates(element)
-    error_log = []
 
-    end_delta = (self.end_date - self.today).days
-    if end_delta < 0:
-      error_message = """The end date {} is invalid as it is
-      in the past.""".format(self.end_date)
-      error_log.append(
-          loggers.ErrorLogEntry(self.end_elem.sourceline, error_message))
+    if self.end_date:
+      self.check_for_date_not_in_past(self.end_date, self.end_elem)
+      if self.start_date:
+        self.check_end_after_start()
 
-    start_end_delta = (self.end_date - self.start_date).days
-    if start_end_delta < 0:
-      error_message = """The election dates (start: {}, end: {}) are invalid.
-      The end date must be the same or after the start date.""".format(
-          self.start_date, self.end_date)
-      error_log.append(
-          loggers.ErrorLogEntry(self.end_elem.sourceline, error_message))
+    if self.error_log:
+      raise loggers.ElectionError("The election dates are invalid: ",
+                                  self.error_log)
 
-    if error_log:
-      raise loggers.ElectionError("The election dates are invalid: ", error_log)
+
+class OfficeTermDates(base.DateRule):
+  """Office elements should contain valid term dates.
+
+  Offices with OfficeHolderPersonIds should have a Term declared. Given
+  term should have a start date. If term also has an end date then end date
+  should come after start date.
+  """
+
+  def elements(self):
+    return ["Office"]
+
+  def check(self, element):
+    off_per_id = element.find("OfficeHolderPersonIds")
+    if element_has_text(off_per_id):
+      term = element.find("Term")
+      if term is None:
+        raise loggers.ElectionWarning(("Office (objectId: {}) is missing a "
+                                       "Term").format(element.get("objectId")))
+
+      self.gather_dates(term)
+      if self.start_date is None:
+        raise loggers.ElectionWarning(
+            ("Office (objectId: {}) is missing a Term > StartDate.").format(
+                element.get("objectId")))
+      elif self.end_date is not None:
+        self.check_end_after_start()
+
+    if self.error_log:
+      raise loggers.ElectionError("The Office term dates are invalid.",
+                                  self.error_log)
 
 
 class GpUnitsHaveInternationalizedName(base.BaseRule):
@@ -2171,22 +2207,38 @@ class RequiredFields(base.BaseRule):
   """
 
   _element_field_mapping = {
-      "Person": "FullName//Text",
-      "Candidate": "PersonId",
+      "Person": [
+          "FullName//Text",
+      ],
+      "Candidate": [
+          "PersonId",
+      ],
+      "Election": [
+          "StartDate",
+          "EndDate",
+      ],
   }
 
   def elements(self):
-    return ["Person", "Candidate"]
+    return list(self._element_field_mapping.keys())
 
   def check(self, element):
-    required_field_tag = self._element_field_mapping[element.tag]
-    required_field = element.find(required_field_tag)
-    if (required_field is None or required_field.text is None
-        or not required_field.text.strip()):
-      raise loggers.ElectionError(
-          "Line {}. Element {} (objectId: {}) is missing required "
-          "field {}.".format(element.sourceline, element.tag,
-                             element.get("objectId"), required_field_tag))
+    error_log = []
+
+    required_field_tags = self._element_field_mapping[element.tag]
+    for field_tag in required_field_tags:
+      required_field = element.find(field_tag)
+      if (required_field is None or required_field.text is None
+          or not required_field.text.strip()):
+        error_log.append(
+            loggers.ErrorLogEntry(None, (
+                "Line {}. Element {} (objectId: {}) is missing required "
+                "field {}.").format(element.sourceline, element.tag,
+                                    element.get("objectId"), field_tag)))
+
+    if error_log:
+      raise loggers.ElectionError("{} is missing required fields.".format(
+          element.tag), error_log)
 
 
 class RuleSet(enum.Enum):
@@ -2262,6 +2314,7 @@ ELECTION_RULES = COMMON_RULES + (
 OFFICEHOLDER_RULES = COMMON_RULES + (
     PersonHasOffice,
     ProhibitElectionData,
+    OfficeTermDates,
 )
 
 ALL_RULES = frozenset(COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES)
