@@ -1973,6 +1973,7 @@ class ElectionStartDates(base.DateRule):
     return ["Election"]
 
   def check(self, element):
+    self.reset_instance_vars()
     self.gather_dates(element)
 
     if self.start_date:
@@ -1995,6 +1996,7 @@ class ElectionEndDates(base.DateRule):
     return ["Election"]
 
   def check(self, element):
+    self.reset_instance_vars()
     self.gather_dates(element)
 
     if self.end_date:
@@ -2019,6 +2021,7 @@ class OfficeTermDates(base.DateRule):
     return ["Office"]
 
   def check(self, element):
+    self.reset_instance_vars()
     off_per_id = element.find("OfficeHolderPersonIds")
     if element_has_text(off_per_id):
       term = element.find("Term")

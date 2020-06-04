@@ -56,6 +56,46 @@ class DateRuleTest(absltest.TestCase):
     </Election>
     """
 
+  # reset_instance_vars test
+  def testResetsInstanceVarsToInitialState(self):
+    start_elem = etree.fromstring("<StartDate>2020-01-01</StartDate>")
+    end_elem = etree.fromstring("<EndDate>2020-01-03</EndDate>")
+    start_date = self.today + datetime.timedelta(days=1)
+    end_date = self.today + datetime.timedelta(days=2)
+
+    validator_with_values = base.DateRule(None, None)
+    validator_with_values.start_elem = start_elem
+    validator_with_values.start_date = start_date
+    validator_with_values.end_elem = end_elem
+    validator_with_values.end_date = end_date
+    validator_with_values.error_log = ["This is no longer empty"]
+
+    fresh_validator = base.DateRule(None, None)
+
+    self.assertNotEqual(
+        validator_with_values.start_elem, fresh_validator.start_elem)
+    self.assertNotEqual(
+        validator_with_values.start_date, fresh_validator.start_date)
+    self.assertNotEqual(
+        validator_with_values.end_elem, fresh_validator.end_elem)
+    self.assertNotEqual(
+        validator_with_values.end_date, fresh_validator.end_date)
+    self.assertNotEqual(
+        validator_with_values.error_log, fresh_validator.error_log)
+
+    validator_with_values.reset_instance_vars()
+
+    self.assertEqual(
+        validator_with_values.start_elem, fresh_validator.start_elem)
+    self.assertEqual(
+        validator_with_values.start_date, fresh_validator.start_date)
+    self.assertEqual(
+        validator_with_values.end_elem, fresh_validator.end_elem)
+    self.assertEqual(
+        validator_with_values.end_date, fresh_validator.end_date)
+    self.assertEqual(
+        validator_with_values.error_log, fresh_validator.error_log)
+
   # gather_dates tests
   def testSetStartAndEndDatesAsInstanceVariables(self):
     start_date = self.today + datetime.timedelta(days=1)

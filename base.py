@@ -151,6 +151,18 @@ class DateRule(BaseRule):
     self.end_date = None
     self.error_log = []
 
+  def reset_instance_vars(self):
+    """Reset instance variables to initial state.
+
+    Due to ordered procedure of validator, instance vars created in init
+    are not getting reset when same rule is run on different elements.
+    """
+    self.start_elem = None
+    self.start_date = None
+    self.end_elem = None
+    self.end_date = None
+    self.error_log = []
+
   def gather_dates(self, element):
     """Gather StartDate and EndDate values for the provided element.
 
