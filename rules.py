@@ -27,6 +27,7 @@ import sys
 
 from civics_cdf_validator import base
 from civics_cdf_validator import loggers
+from civics_cdf_validator import office_utils
 import enum
 import github
 import language_tags
@@ -1937,11 +1938,6 @@ class OfficesHaveValidOfficeLevel(base.BaseRule):
     return ["Office"]
 
   def check(self, element):
-    valid_office_level_values = {
-        "Country", "Municipality", "Neighbourhood", "District", "Region",
-        "International", "Ward", "Administrative Area 1",
-        "Administrative Area 2"
-    }
     office_level_values = [
         ol_id.strip()
         for ol_id in get_external_id_values(element, "office-level")
@@ -1956,10 +1952,36 @@ class OfficesHaveValidOfficeLevel(base.BaseRule):
           ("Office {} has more than one office-level.".format(
               element.get("objectId", ""))))
     office_level_value = office_level_values[0]
-    if office_level_value not in valid_office_level_values:
+    if office_level_value not in office_utils.valid_office_level_values:
       raise loggers.ElectionError(
           ("Office {} has invalid office-level {}.".format(
               element.get("objectId", ""), office_level_value)))
+
+
+class OfficesHaveValidOfficeRole(base.BaseRule):
+  """Each office must have a valid office-role."""
+
+  def elements(self):
+    return ["Office"]
+
+  def check(self, element):
+    office_role_values = [
+        office_role_value.strip()
+        for office_role_value in get_external_id_values(element, "office-role")
+    ]
+    if not office_role_values:
+      raise loggers.ElectionError(
+          ("Office {} is missing an office-role.".format(
+              element.get("objectId", ""))))
+    if len(office_role_values) > 1:
+      raise loggers.ElectionError(
+          ("Office {} has more than one office-role.".format(
+              element.get("objectId", ""))))
+    office_role_value = office_role_values[0]
+    if office_role_value not in office_utils.valid_office_role_values:
+      raise loggers.ElectionError(
+          ("Office {} has invalid office-role {}.".format(
+              element.get("objectId", ""), office_role_value)))
 
 
 class ElectionStartDates(base.DateRule):
@@ -2279,6 +2301,7 @@ COMMON_RULES = (
     ValidJurisdictionID,
     OfficesHaveJurisdictionID,
     OfficesHaveValidOfficeLevel,
+    OfficesHaveValidOfficeRole,
     ValidStableID,
     PersonHasUniqueFullName,
     PersonsMissingPartyData,

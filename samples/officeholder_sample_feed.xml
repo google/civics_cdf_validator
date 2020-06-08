@@ -69,6 +69,11 @@
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>upper house</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>
         <Text language="en">United States Senator</Text>
@@ -92,6 +97,11 @@
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>upper house</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>
         <Text language="en">United States Senator</Text>
@@ -103,7 +113,6 @@
       <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
       <AdditionalData type="government-body">United States Senate</AdditionalData>
       <AdditionalData type="office-level">Country</AdditionalData>
-      <AdditionalData type="office-role">Upper house</AdditionalData>
     </Office>
   </OfficeCollection>
   <PartyCollection>

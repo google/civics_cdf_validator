@@ -5102,6 +5102,112 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
     self.assertIn("has invalid office-level", str(cm.exception))
 
 
+class OfficesHaveValidOfficeRoleTest(absltest.TestCase):
+
+  def setUp(self):
+    super(OfficesHaveValidOfficeRoleTest, self).setUp()
+    self.root_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <OfficeCollection>
+          {}
+        </OfficeCollection>
+      </ElectionReport>
+    """
+    self.offices_validator = rules.OfficesHaveValidOfficeRole(None, None)
+
+  def testOfficeHasOfficeRole(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off1">
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>office-role</OtherType>
+               <Value>upper house</Value>
+             </ExternalIdentifier>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    self.offices_validator.check(element)
+
+  def testOfficeDoesNotHaveOfficeRole(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off2">
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <Value>Region</Value>
+             </ExternalIdentifier>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.offices_validator.check(element)
+    self.assertIn("is missing an office-role", str(cm.exception))
+
+  def testOfficeDoesNotHaveOfficeRoleText(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off2">
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>office-role</OtherType>
+               <Value></Value>
+             </ExternalIdentifier>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.offices_validator.check(element)
+    self.assertIn("is missing an office-role", str(cm.exception))
+
+  def testOfficeHasMoreThanOneOfficeRoles(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off1">
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>office-role</OtherType>
+               <Value>upper house</Value>
+             </ExternalIdentifier>
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>office-role</OtherType>
+               <Value>head of state</Value>
+             </ExternalIdentifier>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.offices_validator.check(element)
+    self.assertIn("has more than one office-role", str(cm.exception))
+
+  def testOfficeRoleTextIsWhitespace(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off2">
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>office-role</OtherType>
+               <Value>  </Value>
+             </ExternalIdentifier>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.offices_validator.check(element)
+    self.assertIn("has invalid office-role", str(cm.exception))
+
+  def testInvalidOfficeRole(self):
+    test_string = self.root_string.format("""
+          <Office objectId="off2">
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>office-role</OtherType>
+               <Value>invalidvalue</Value>
+             </ExternalIdentifier>
+          </Office>
+        """)
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.offices_validator.check(element)
+    self.assertIn("has invalid office-role", str(cm.exception))
+
+
 class GpUnitsHaveSingleRootTest(absltest.TestCase):
 
   def setUp(self):

@@ -975,6 +975,11 @@
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0002</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>president</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
@@ -1002,6 +1007,11 @@
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>vice president</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1031,6 +1041,11 @@
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0002</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>state executive</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
@@ -1059,6 +1074,11 @@
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0002</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>deputy state executive</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
@@ -1086,6 +1106,11 @@
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>attorney general</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1120,6 +1145,11 @@
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0150</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>state lower house</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
@@ -1147,6 +1177,11 @@
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0311</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>state lower house</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1176,6 +1211,11 @@
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0107</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>state lower house</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
@@ -1189,6 +1229,11 @@
     <Office objectId="off20100">
       <ElectoralDistrictId>ru0076</ElectoralDistrictId>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>state lower house</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
@@ -1233,6 +1278,11 @@
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0103</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>county council</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
@@ -1260,6 +1310,11 @@
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0054</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>county council</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1289,6 +1344,11 @@
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0030</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>county council</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
@@ -1316,6 +1376,11 @@
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0081</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>county council</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1346,6 +1411,11 @@
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0081</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>school board</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
@@ -1369,10 +1439,15 @@
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
         </ExternalIdentifier>
-        <ExternalIdentifier>
+       <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0030</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>school board</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1401,6 +1476,11 @@
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0054</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>school board</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
