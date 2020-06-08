@@ -381,20 +381,6 @@
         <PartyId>par0004</PartyId>
         <PersonId>per10213</PersonId>
       </Candidate>
-      <Candidate objectId="can12345">
-        <BallotName>
-          <Text language="en">Dwayne Johnson</Text>
-        </BallotName>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-rock</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <PartyId>par0004</PartyId>
-        <PersonId>per12345</PersonId>
-      </Candidate>
     </CandidateCollection>
     <ContestCollection>
       <Contest objectId="cc20002" xsi:type="CandidateContest">
@@ -1269,171 +1255,6 @@
         <NumberElected>1</NumberElected>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="bmc30001" xsi:type="BallotMeasureContest">
-        <BallotSelection objectId="bms30001a" xsi:type="BallotMeasureSelection">
-          <VoteCountsCollection>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>absentee</Type>
-              <Count>2667</Count>
-            </VoteCounts>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>early</Type>
-              <Count>1757</Count>
-            </VoteCounts>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>election-day</Type>
-              <Count>5314</Count>
-            </VoteCounts>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>total</Type>
-              <Count>9738</Count>
-            </VoteCounts>
-          </VoteCountsCollection>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>bms30001a</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-          <Selection label="bms30001at">
-            <Text language="en">Yes</Text>
-          </Selection>
-        </BallotSelection>
-        <BallotSelection objectId="bms30001b" xsi:type="BallotMeasureSelection">
-          <VoteCountsCollection>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>absentee</Type>
-              <Count>4066</Count>
-            </VoteCounts>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>early</Type>
-              <Count>559</Count>
-            </VoteCounts>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>election-day</Type>
-              <Count>2178</Count>
-            </VoteCounts>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>total</Type>
-              <Count>6803</Count>
-            </VoteCounts>
-          </VoteCountsCollection>
-          <ExternalIdentifiers>
-            <ExternalIdentifier>
-              <Type>other</Type>
-              <OtherType>stable</OtherType>
-              <Value>bms30001b</Value>
-            </ExternalIdentifier>
-          </ExternalIdentifiers>
-          <Selection label="bms30001bt">
-            <Text language="en">No</Text>
-          </Selection>
-        </BallotSelection>
-        <BallotTitle>
-          <Text language="en">Virginia Referendum 3, Renewable Energy Standards Initiative</Text>
-        </BallotTitle>
-        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-va15-country-us</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <Name>Virginia Referendum 3, Renewable Energy Standards Initiative</Name>
-        <SubUnitsReported>21</SubUnitsReported>
-        <TotalSubUnits>31</TotalSubUnits>
-        <BallotText>
-          <Text language="en">Shall Article 4 of the Virginia Constitution be amended to require, beginning in calendar year 2022, that all providers of electric utility services who sell electricity to retail customers for consumption in Virginia generate or acquire incrementally larger percentages of electricity from renewable energy resources so that by calendar year 2030 not less than 50 percent of the total amount of electricity sold by each provider to its retail customers in Virginia comes from renewable energy resources?</Text>
-        </BallotText>
-        <ConStatement label="bmc30001con">
-          <Text language="en">A "no" vote opposes this initiative, thus keeping the existing requirement that electric utilities acquire 25 percent of their electricity from renewable resources by 2025.</Text>
-        </ConStatement>
-        <ProStatement label="bmc30001pro">
-          <Text language="en">A "yes" vote supports this initiative to require electric utilities to acquire 50 percent of their electricity from renewable resources by 2030.</Text>
-        </ProStatement>
-        <Type>referendum</Type>
-      </Contest>
-      <Contest objectId="rc40001" xsi:type="RetentionContest">
-        <BallotSelection objectId="bms40001a" xsi:type="BallotMeasureSelection">
-          <VoteCountsCollection>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>absentee</Type>
-              <Count>1296</Count>
-            </VoteCounts>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>early</Type>
-              <Count>1007</Count>
-            </VoteCounts>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>election-day</Type>
-              <Count>5249</Count>
-            </VoteCounts>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>total</Type>
-              <Count>7552</Count>
-            </VoteCounts>
-          </VoteCountsCollection>
-          <Selection label="bms40001at">
-            <Text language="en">Yes</Text>
-          </Selection>
-        </BallotSelection>
-        <BallotSelection objectId="bms40001b" xsi:type="BallotMeasureSelection">
-          <VoteCountsCollection>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>absentee</Type>
-              <Count>2600</Count>
-            </VoteCounts>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>early</Type>
-              <Count>8621</Count>
-            </VoteCounts>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>election-day</Type>
-              <Count>2552</Count>
-            </VoteCounts>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>total</Type>
-              <Count>13773</Count>
-            </VoteCounts>
-          </VoteCountsCollection>
-          <Selection label="bms40001bt">
-            <Text language="en">No</Text>
-          </Selection>
-        </BallotSelection>
-        <BallotTitle>
-          <Text language="en">Retention of Supreme Court Justice</Text>
-        </BallotTitle>
-        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-va16-country-us</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <Name>Judicial Retention, Supreme Court</Name>
-        <SubUnitsReported>21</SubUnitsReported>
-        <TotalSubUnits>31</TotalSubUnits>
-        <CandidateId>can12345</CandidateId>
-      </Contest>
     </ContestCollection>
     <CountStatus>
       <Status>completed</Status>
@@ -1455,13 +1276,15 @@
   <GeneratedDate>2013-11-05T14:25:28</GeneratedDate>
   <GpUnitCollection>
     <GpUnit objectId="ru0002" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90111 ru_pre90139 ru_pre90183 ru_pre90348sp0000 ru_pre90348sp0001
-      ru_pre90614 ru_pre90666 ru_pre90929 ru_pre90994sp0000 ru_pre90994sp0001 ru_pre91089sp0000
-      ru_pre91089sp0001 ru_pre91298 ru_pre91602 ru_pre91781sp0000 ru_pre91781sp0001 ru_pre91918
-      ru_pre91999 ru_pre92065 ru_pre92087 ru_pre92140 ru_pre92145 ru_pre92171sp0000 ru_pre92171sp0001
-      ru_pre92175 ru_pre92306 ru_pre92320 ru_pre92353 ru_pre92360 ru_pre92426
-      ru_preXXXXX</ComposingGpUnitIds>
+      <ComposingGpUnitIds>
+        ru0311 ru0001 ru0150 ru0076 ru0107
+      </ComposingGpUnitIds>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0002</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va</Value>
@@ -1472,23 +1295,16 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>Virginia</Name>
-      <ElectionAdministration>
-        <ContactInformation label="ci60000">
-          <AddressLine>Washington Building First Floor</AddressLine>
-          <AddressLine>1100 Bank Street</AddressLine>
-          <AddressLine>Richmond, VA 23219</AddressLine>
-          <Name>State Board of Elections</Name>
-        </ContactInformation>
-      </ElectionAdministration>
       <Type>state</Type>
     </GpUnit>
     <GpUnit objectId="ru0001" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90111 ru_pre90139 ru_pre90183 ru_pre90348sp0000 ru_pre90348sp0001
-      ru_pre90614 ru_pre90666 ru_pre90929 ru_pre90994sp0000 ru_pre90994sp0001 ru_pre91089sp0000
-      ru_pre91089sp0001 ru_pre91298 ru_pre91602 ru_pre91781sp0000 ru_pre91781sp0001 ru_pre91918
-      ru_pre91999 ru_pre92065 ru_pre92087 ru_pre92140 ru_pre92145 ru_pre92171sp0000 ru_pre92171sp0001
-      ru_pre92175 ru_pre92306 ru_pre92320 ru_pre92353 ru_pre92360 ru_pre92426</ComposingGpUnitIds>
+      <ComposingGpUnitIds>ru0030 ru0081 ru0054 ru0103</ComposingGpUnitIds>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0001</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/county:albemarle</Value>
@@ -1502,9 +1318,12 @@
       <Type>county</Type>
     </GpUnit>
     <GpUnit objectId="ru0150" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90348sp0000 ru_pre90348sp0001 ru_pre92087 ru_pre92145 ru_pre92306
-      ru_pre92360 ru_pre92426</ComposingGpUnitIds>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0150</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/sldl:25</Value>
@@ -1515,9 +1334,12 @@
       <Type>state-house</Type>
     </GpUnit>
     <GpUnit objectId="ru0311" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90111 ru_pre90139 ru_pre90666 ru_pre90994sp0000 ru_pre91602
-      ru_pre91781sp0000 ru_pre91781sp0001 ru_pre91999 ru_pre92175</ComposingGpUnitIds>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0311</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/sldl:57</Value>
@@ -1528,10 +1350,12 @@
       <Type>state-house</Type>
     </GpUnit>
     <GpUnit objectId="ru0076" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90183 ru_pre90614 ru_pre90929 ru_pre90994sp0001 ru_pre91089sp0000
-      ru_pre91089sp0001 ru_pre91298 ru_pre91781sp0000 ru_pre92140 ru_pre92171sp0000 ru_pre92171sp0001
-      ru_pre92320 ru_pre92353</ComposingGpUnitIds>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0076</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/sldl:58</Value>
@@ -1542,8 +1366,12 @@
       <Type>state-house</Type>
     </GpUnit>
     <GpUnit objectId="ru0107" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre91918 ru_pre92065</ComposingGpUnitIds>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0107</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/sldl:59</Value>
@@ -1554,8 +1382,12 @@
       <Type>state-house</Type>
     </GpUnit>
     <GpUnit objectId="ru0030" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre91918 ru_pre92065 ru_pre92360 ru_pre92426</ComposingGpUnitIds>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0030</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:samuel_miller</Value>
@@ -1566,9 +1398,12 @@
       <Type>county-council</Type>
     </GpUnit>
     <GpUnit objectId="ru0054" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90111 ru_pre90348sp0000 ru_pre90348sp0001 ru_pre91602
-      ru_pre92306</ComposingGpUnitIds>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0054</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:jack_jouett</Value>
@@ -1579,9 +1414,12 @@
       <Type>county-council</Type>
     </GpUnit>
     <GpUnit objectId="ru0081" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90139 ru_pre90666 ru_pre91298 ru_pre91781sp0000 ru_pre91781sp0001
-      ru_pre92175</ComposingGpUnitIds>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0081</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:rio</Value>
@@ -1592,9 +1430,12 @@
       <Type>county-council</Type>
     </GpUnit>
     <GpUnit objectId="ru0103" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90929 ru_pre91999 ru_pre92171sp0000 ru_pre92171sp0001
-      ru_pre92320</ComposingGpUnitIds>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0103</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:scottsville</Value>
@@ -1604,176 +1445,14 @@
       <Number>4</Number>
       <Type>county-council</Type>
     </GpUnit>
-    <GpUnit objectId="ru_preXXXXX" xsi:type="ReportingUnit">
-      <Name>PLACEHOLDER -- REPRESENTS REST OF STATE OF VIRGINIA</Name>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre00000" xsi:type="ReportingUnit">
-      <Name>0000 - COUNTY-WIDE EARLY VOTING CENTER</Name>
-      <Number>0000</Number>
-      <Type>ballot-batch</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre99999" xsi:type="ReportingUnit">
-      <Name>9999 - PERMANENT MAIL-IN</Name>
-      <Number>9999</Number>
-      <Type>ballot-batch</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre90111" xsi:type="ReportingUnit">
-      <Name>203 - GEORGETOWN</Name>
-      <Number>0203</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre90139" xsi:type="ReportingUnit">
-      <Name>103 - BRANCHLANDS</Name>
-      <Number>0103</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre90183" xsi:type="ReportingUnit">
-      <Name>602 - FREE UNION</Name>
-      <Number>0602</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre90348sp0000" xsi:type="ReportingUnit">
-      <Name>201 - JACK JOUETT</Name>
-      <Number>0201</Number>
-      <Type>split-precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre90348sp0001" xsi:type="ReportingUnit">
-      <Name>201 - JACK JOUETT</Name>
-      <Number>0201</Number>
-      <Type>split-precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre90614" xsi:type="ReportingUnit">
-      <Name>503 - HOLLYMEAD</Name>
-      <Number>0503</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre90666" xsi:type="ReportingUnit">
-      <Name>105 - DUNLORA</Name>
-      <Number>0105</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre90929" xsi:type="ReportingUnit">
-      <Name>406 - STONE ROBINSON</Name>
-      <Number>0406</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre90994sp0000" xsi:type="ReportingUnit">
-      <Name>504 - FREE BRIDGE</Name>
-      <Number>0504</Number>
-      <Type>split-precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre90994sp0001" xsi:type="ReportingUnit">
-      <Name>504 - FREE BRIDGE</Name>
-      <Number>0504</Number>
-      <Type>split-precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre91089sp0000" xsi:type="ReportingUnit">
-      <Name>502 - STONY POINT</Name>
-      <Number>0502</Number>
-      <Type>split-precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre91089sp0001" xsi:type="ReportingUnit">
-      <Name>502 - STONY POINT</Name>
-      <Number>0502</Number>
-      <Type>split-precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre91298" xsi:type="ReportingUnit">
-      <Name>106 - NORTHSIDE</Name>
-      <Number>0106</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre91602" xsi:type="ReportingUnit">
-      <Name>202 - UNIVERSITY HALL</Name>
-      <Number>0202</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre91781sp0000" xsi:type="ReportingUnit">
-      <Name>101 - WOODBROOK</Name>
-      <Number>0101</Number>
-      <Type>split-precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre91781sp0001" xsi:type="ReportingUnit">
-      <Name>101 - WOODBROOK</Name>
-      <Number>0101</Number>
-      <Type>split-precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre91918" xsi:type="ReportingUnit">
-      <Name>302 - RED HILL</Name>
-      <Number>0302</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre91999" xsi:type="ReportingUnit">
-      <Name>405 - CALE</Name>
-      <Number>0405</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92065" xsi:type="ReportingUnit">
-      <Name>305 - COUNTRY GREEN</Name>
-      <Number>0305</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92087" xsi:type="ReportingUnit">
-      <Name>604 - BROWNSVILLE</Name>
-      <Number>0604</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92140" xsi:type="ReportingUnit">
-      <Name>501 - KESWICK</Name>
-      <Number>0501</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92145" xsi:type="ReportingUnit">
-      <Name>601 - CROZET</Name>
-      <Number>0601</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92171sp0000" xsi:type="ReportingUnit">
-      <Name>401 - SCOTTSVILLE</Name>
-      <Number>0401</Number>
-      <Type>split-precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92171sp0001" xsi:type="ReportingUnit">
-      <Name>401 - SCOTTSVILLE</Name>
-      <Number>0401</Number>
-      <Type>split-precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92175" xsi:type="ReportingUnit">
-      <Name>104 - AGNOR-HURT</Name>
-      <Number>0104</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92306" xsi:type="ReportingUnit">
-      <Name>204 - BELFIELD</Name>
-      <Number>0204</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92320" xsi:type="ReportingUnit">
-      <Name>402 - MONTICELLO</Name>
-      <Number>0402</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92353" xsi:type="ReportingUnit">
-      <Name>603 - EARLYSVILLE</Name>
-      <Number>0603</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92360" xsi:type="ReportingUnit">
-      <Name>301 - IVY</Name>
-      <Number>0301</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92426" xsi:type="ReportingUnit">
-      <Name>304 - EAST IVY</Name>
-      <Number>0304</Number>
-      <Type>precinct</Type>
-    </GpUnit>
   </GpUnitCollection>
   <Issuer>Commonwealth of Virginia</Issuer>
   <IssuerAbbreviation>VA</IssuerAbbreviation>
   <PartyCollection>
     <Party objectId="par0001">
-      <Abbreviation>REP</Abbreviation>
+      <InternationalizedAbbreviation>
+        <Text language="en">REP</Text>
+      </InternationalizedAbbreviation>
       <Color>e91d0e</Color>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -1787,7 +1466,9 @@
       </Name>
     </Party>
     <Party objectId="par0002">
-      <Abbreviation>LIB</Abbreviation>
+      <InternationalizedAbbreviation>
+        <Text language="en">LIB</Text>
+      </InternationalizedAbbreviation>
       <Color>f5f500</Color>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -1801,7 +1482,9 @@
       </Name>
     </Party>
     <Party objectId="par0003">
-      <Abbreviation>DEM</Abbreviation>
+      <InternationalizedAbbreviation>
+        <Text language="en">DEM</Text>
+      </InternationalizedAbbreviation>
       <Color>232066</Color>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -1815,7 +1498,9 @@
       </Name>
     </Party>
     <Party objectId="par0004">
-      <Abbreviation>IND</Abbreviation>
+      <InternationalizedAbbreviation>
+        <Text language="en">IND</Text>
+      </InternationalizedAbbreviation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1828,7 +1513,9 @@
       </Name>
     </Party>
     <Party objectId="par0005">
-      <Abbreviation>VN</Abbreviation>
+      <InternationalizedAbbreviation>
+        <Text language="en">VN</Text>
+      </InternationalizedAbbreviation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1841,7 +1528,9 @@
       </Name>
     </Party>
     <Party objectId="par0006">
-      <Abbreviation>PPN</Abbreviation>
+      <InternationalizedAbbreviation>
+        <Text language="en">PPN</Text>
+      </InternationalizedAbbreviation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -2478,27 +2167,6 @@
       <LastName>Acuff</LastName>
       <MiddleName>L.</MiddleName>
       <Nickname>Kate</Nickname>
-      <PartyId>par0002</PartyId>
-    </Person>
-    <Person objectId="per12345">
-      <ContactInformation>
-        <AddressLine>4 Privet Drive</AddressLine>
-        <AddressLine>Sample, HI 99999</AddressLine>
-        <Email>dwayne@therock.com</Email>
-        <Phone>1234567890</Phone>
-      </ContactInformation>
-      <ExternalIdentifiers>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>stable</OtherType>
-          <Value>person-per12345</Value>
-        </ExternalIdentifier>
-      </ExternalIdentifiers>
-      <FirstName>Dwayne</FirstName>
-      <FullName>
-        <Text language="en">Dwayne Johnson</Text>
-      </FullName>
-      <LastName>Johnson</LastName>
       <PartyId>par0002</PartyId>
     </Person>
   </PersonCollection>

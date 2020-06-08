@@ -56,9 +56,47 @@ class DateRuleTest(absltest.TestCase):
     </Election>
     """
 
-  def testChecksElectionElements(self):
-    self.assertEqual(["Election"], self.date_validator.elements())
+  # reset_instance_vars test
+  def testResetsInstanceVarsToInitialState(self):
+    start_elem = etree.fromstring("<StartDate>2020-01-01</StartDate>")
+    end_elem = etree.fromstring("<EndDate>2020-01-03</EndDate>")
+    start_date = self.today + datetime.timedelta(days=1)
+    end_date = self.today + datetime.timedelta(days=2)
 
+    validator_with_values = base.DateRule(None, None)
+    validator_with_values.start_elem = start_elem
+    validator_with_values.start_date = start_date
+    validator_with_values.end_elem = end_elem
+    validator_with_values.end_date = end_date
+    validator_with_values.error_log = ["This is no longer empty"]
+
+    fresh_validator = base.DateRule(None, None)
+
+    self.assertNotEqual(
+        validator_with_values.start_elem, fresh_validator.start_elem)
+    self.assertNotEqual(
+        validator_with_values.start_date, fresh_validator.start_date)
+    self.assertNotEqual(
+        validator_with_values.end_elem, fresh_validator.end_elem)
+    self.assertNotEqual(
+        validator_with_values.end_date, fresh_validator.end_date)
+    self.assertNotEqual(
+        validator_with_values.error_log, fresh_validator.error_log)
+
+    validator_with_values.reset_instance_vars()
+
+    self.assertEqual(
+        validator_with_values.start_elem, fresh_validator.start_elem)
+    self.assertEqual(
+        validator_with_values.start_date, fresh_validator.start_date)
+    self.assertEqual(
+        validator_with_values.end_elem, fresh_validator.end_elem)
+    self.assertEqual(
+        validator_with_values.end_date, fresh_validator.end_date)
+    self.assertEqual(
+        validator_with_values.error_log, fresh_validator.error_log)
+
+  # gather_dates tests
   def testSetStartAndEndDatesAsInstanceVariables(self):
     start_date = self.today + datetime.timedelta(days=1)
     end_date = self.today + datetime.timedelta(days=2)
@@ -80,6 +118,49 @@ class DateRuleTest(absltest.TestCase):
     election = etree.fromstring(election_string)
     with self.assertRaises(loggers.ElectionError):
       self.date_validator.gather_dates(election)
+
+  def testDoesNotAssignDatesIfElementsNotFound(self):
+    election_string = "<Election></Election>"
+    self.date_validator.gather_dates(etree.fromstring(election_string))
+    self.assertEqual(None, self.date_validator.start_date)
+    self.assertEqual(None, self.date_validator.start_elem)
+    self.assertEqual(None, self.date_validator.end_date)
+    self.assertEqual(None, self.date_validator.end_elem)
+
+  # check_for_date_not_in_past tests
+  def testProvidedDateIsNotInThePast(self):
+    future_date = self.today + datetime.timedelta(days=1)
+    self.date_validator.check_for_date_not_in_past(future_date, None)
+
+    self.assertEmpty(self.date_validator.error_log)
+
+  def testAddsToErrorLogIfDateInPast(self):
+    past_date = self.today - datetime.timedelta(days=1)
+    date_elem = etree.fromstring("<StartDate>2012-01-01</StartDate>")
+    self.date_validator.check_for_date_not_in_past(past_date, date_elem)
+
+    self.assertLen(self.date_validator.error_log, 1)
+    self.assertEqual("The date {} is in the past.".format(past_date),
+                     self.date_validator.error_log[0].message)
+
+  # check_end_after_start tests
+  def testEndDateComesAfterStartDate(self):
+    self.date_validator.start_date = self.today + datetime.timedelta(days=1)
+    self.date_validator.end_date = self.today + datetime.timedelta(days=2)
+    self.date_validator.check_end_after_start()
+
+    self.assertEmpty(self.date_validator.error_log)
+
+  def testAddsToErrorLogIfEndDateIsBeforeStartDate(self):
+    self.date_validator.start_date = self.today + datetime.timedelta(days=3)
+    self.date_validator.end_date = self.today + datetime.timedelta(days=2)
+    end_elem_string = "<EndDate>2012-01-01</EndDate>"
+    self.date_validator.end_elem = etree.fromstring(end_elem_string)
+    self.date_validator.check_end_after_start()
+
+    self.assertLen(self.date_validator.error_log, 1)
+    self.assertIn("The end date must be the same or after the start date.",
+                  self.date_validator.error_log[0].message)
 
 
 class RulesRegistryTest(absltest.TestCase):

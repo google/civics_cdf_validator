@@ -1,371 +1,6 @@
 <?xml version="1.0"?>
 <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Election>
-    <BallotStyleCollection>
-      <!-- The various ballot styles in use by the different precincts. -->
-      <BallotStyle objectId="bs00000">
-        <GpUnitIds>ru_pre00000 ru_pre99999 ru_pre90139 ru_pre90666 ru_pre91781sp0001 ru_pre92175</GpUnitIds>
-        <!-- If an OrderedContest has no OrderedBallotSelectionIds then the
-             ordering of the ballot selections will fall back on the defaults,
-             which are (a) the SequenceOrder in the BallotSelection element,
-             and (b) the ordering of BallotSelection elements in the Contest.
-          -->
-        <OrderedContest>
-          <ContestId>cc20002</ContestId>
-        </OrderedContest>
-        <!-- Contest cc20003 has three different representations between the
-             different BallotStyle objects. This is how to do ballot rotation.
-          -->
-        <OrderedContest>
-          <ContestId>cc20003</ContestId>
-          <OrderedBallotSelectionIds>cs10961 cs10962 cs10963</OrderedBallotSelectionIds>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20004</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20005</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20025</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20355</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20449</ContestId>
-        </OrderedContest>
-        <!-- This is a ballot measure -->
-        <OrderedContest>
-          <ContestId>bmc30001</ContestId>
-        </OrderedContest>
-        <!-- This is a retention contest -->
-        <OrderedContest>
-          <ContestId>rc40001</ContestId>
-        </OrderedContest>
-      </BallotStyle>
-      <BallotStyle objectId="bs00001">
-        <GpUnitIds>ru_pre91918 ru_pre92065</GpUnitIds>
-        <OrderedContest>
-          <ContestId>cc20002</ContestId>
-        </OrderedContest>
-        <!-- Notice the different ordering of ballot selections compared to the
-             first ballot style.
-          -->
-        <OrderedContest>
-          <ContestId>cc20003</ContestId>
-          <OrderedBallotSelectionIds>cs10962 cs10963 cs10961</OrderedBallotSelectionIds>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20004</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20005</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20033</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20350</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20473</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>bmc30001</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>rc40001</ContestId>
-        </OrderedContest>
-      </BallotStyle>
-      <BallotStyle objectId="bs00002">
-        <GpUnitIds>ru_pre90348sp0000 ru_pre90348sp0001 ru_pre92306</GpUnitIds>
-        <OrderedContest>
-          <ContestId>cc20002</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20003</ContestId>
-          <OrderedBallotSelectionIds>cs10963 cs10961 cs10962</OrderedBallotSelectionIds>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20004</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20005</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20024</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20305</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20476</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>bmc30001</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>rc40001</ContestId>
-        </OrderedContest>
-      </BallotStyle>
-      <BallotStyle objectId="bs00003">
-        <GpUnitIds>ru_pre90183 ru_pre90614 ru_pre90994sp0001 ru_pre91089sp0000 ru_pre91089sp0001
-        ru_pre92140 ru_pre92353</GpUnitIds>
-        <OrderedContest>
-          <ContestId>cc20002</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20003</ContestId>
-          <OrderedBallotSelectionIds>cs10961 cs10962 cs10963</OrderedBallotSelectionIds>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20004</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20005</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20100</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>bmc30001</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>rc40001</ContestId>
-        </OrderedContest>
-      </BallotStyle>
-      <BallotStyle objectId="bs00004">
-        <GpUnitIds>ru_pre92087 ru_pre92145</GpUnitIds>
-        <OrderedContest>
-          <ContestId>cc20003</ContestId>
-          <OrderedBallotSelectionIds>cs10962 cs10963 cs10961</OrderedBallotSelectionIds>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20004</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20005</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20024</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>bmc30001</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>rc40001</ContestId>
-        </OrderedContest>
-      </BallotStyle>
-      <BallotStyle objectId="bs00005">
-        <GpUnitIds>ru_pre90994sp0000</GpUnitIds>
-        <OrderedContest>
-          <ContestId>cc20002</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20003</ContestId>
-          <OrderedBallotSelectionIds>cs10963 cs10961 cs10962</OrderedBallotSelectionIds>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20004</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20005</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20025</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>bmc30001</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>rc40001</ContestId>
-        </OrderedContest>
-      </BallotStyle>
-      <BallotStyle objectId="bs00006">
-        <GpUnitIds>ru_pre92360 ru_pre92426</GpUnitIds>
-        <OrderedContest>
-          <ContestId>cc20002</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20003</ContestId>
-          <OrderedBallotSelectionIds>cs10961 cs10962 cs10963</OrderedBallotSelectionIds>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20004</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20005</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20024</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20350</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20473</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>bmc30001</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>rc40001</ContestId>
-        </OrderedContest>
-      </BallotStyle>
-      <BallotStyle objectId="bs00007">
-        <GpUnitIds>ru_pre91298</GpUnitIds>
-        <OrderedContest>
-          <ContestId>cc20002</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20003</ContestId>
-          <OrderedBallotSelectionIds>cs10962 cs10963 cs10961</OrderedBallotSelectionIds>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20004</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20005</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20100</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20355</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20449</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>bmc30001</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>rc40001</ContestId>
-        </OrderedContest>
-      </BallotStyle>
-      <BallotStyle objectId="bs00008">
-        <GpUnitIds>ru_pre91781sp0000</GpUnitIds>
-        <OrderedContest>
-          <ContestId>cc20002</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20003</ContestId>
-          <OrderedBallotSelectionIds>cs10963 cs10961 cs10962</OrderedBallotSelectionIds>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20004</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20005</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20025</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20100</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20355</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20449</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>bmc30001</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>rc40001</ContestId>
-        </OrderedContest>
-      </BallotStyle>
-      <BallotStyle objectId="bs00009">
-        <GpUnitIds>ru_pre90929 ru_pre92171sp0000 ru_pre92171sp0001 ru_pre92320</GpUnitIds>
-        <OrderedContest>
-          <ContestId>cc20002</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20003</ContestId>
-          <OrderedBallotSelectionIds>cs10961 cs10962 cs10963</OrderedBallotSelectionIds>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20004</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20005</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20100</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20262</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>bmc30001</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>rc40001</ContestId>
-        </OrderedContest>
-      </BallotStyle>
-      <BallotStyle objectId="bs00010">
-        <GpUnitIds>ru_pre90111 ru_pre91602</GpUnitIds>
-        <OrderedContest>
-          <ContestId>cc20002</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20003</ContestId>
-          <OrderedBallotSelectionIds>cs10962 cs10963 cs10961</OrderedBallotSelectionIds>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20004</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20005</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20025</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20305</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20476</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>bmc30001</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>rc40001</ContestId>
-        </OrderedContest>
-      </BallotStyle>
-      <BallotStyle objectId="bs00011">
-        <GpUnitIds>ru_pre91999</GpUnitIds>
-        <OrderedContest>
-          <ContestId>cc20002</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20003</ContestId>
-          <OrderedBallotSelectionIds>cs10963 cs10961 cs10962</OrderedBallotSelectionIds>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20004</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20005</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20025</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>cc20262</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>bmc30001</ContestId>
-        </OrderedContest>
-        <OrderedContest>
-          <ContestId>rc40001</ContestId>
-        </OrderedContest>
-      </BallotStyle>
-    </BallotStyleCollection>
     <CandidateCollection>
       <Candidate objectId="can10861a">
         <BallotName>
@@ -756,20 +391,6 @@
         <PartyId>par0004</PartyId>
         <PersonId>per10213</PersonId>
       </Candidate>
-      <Candidate objectId="can12345">
-        <BallotName>
-          <Text language="en">Dwayne Johnson</Text>
-        </BallotName>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-rock</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <PartyId>par0004</PartyId>
-        <PersonId>per12345</PersonId>
-      </Candidate>
     </CandidateCollection>
     <ContestCollection>
       <Contest objectId="cc20002" xsi:type="CandidateContest">
@@ -1054,7 +675,6 @@
         <OfficeIds>off20350</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-
       <Contest objectId="cc20355" xsi:type="CandidateContest">
         <BallotSelection objectId="cs10077" xsi:type="CandidateSelection">
           <CandidateIds>can10077</CandidateIds>
@@ -1078,7 +698,6 @@
         <OfficeIds>off20355</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-
       <Contest objectId="cc20449" xsi:type="CandidateContest">
         <BallotSelection objectId="cs10214" xsi:type="CandidateSelection">
           <CandidateIds>can10214</CandidateIds>
@@ -1099,7 +718,6 @@
         <OfficeIds>off20449</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-
       <Contest objectId="cc20473" xsi:type="CandidateContest">
         <BallotSelection objectId="cs10215" xsi:type="CandidateSelection">
           <CandidateIds>can10215 can14444</CandidateIds>
@@ -1119,7 +737,6 @@
         <OfficeIds>off20473</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-
       <Contest objectId="cc20476" xsi:type="CandidateContest">
         <BallotSelection objectId="cs10213" xsi:type="CandidateSelection">
           <CandidateIds>can10213</CandidateIds>
@@ -1139,90 +756,6 @@
         <NumberElected>1</NumberElected>
         <OfficeIds>off20476</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
-      </Contest>
-
-      <Contest objectId="bmc30001" xsi:type="BallotMeasureContest">
-        <!-- Ballot measure selections -->
-        <BallotSelection objectId="bms30001a" xsi:type="BallotMeasureSelection">
-          <ExternalIdentifiers>
-            <ExternalIdentifier>
-              <Type>other</Type>
-              <OtherType>stable</OtherType>
-              <Value>bms30001a</Value>
-            </ExternalIdentifier>
-          </ExternalIdentifiers>
-          <Selection label="bms30001at">
-            <Text language="en">Yes</Text>
-          </Selection>
-        </BallotSelection>
-        <BallotSelection objectId="bms30001b" xsi:type="BallotMeasureSelection">
-          <ExternalIdentifiers>
-            <ExternalIdentifier>
-              <Type>other</Type>
-              <OtherType>stable</OtherType>
-              <Value>bms30001b</Value>
-            </ExternalIdentifier>
-          </ExternalIdentifiers>
-          <Selection label="bms30001bt">
-            <Text language="en">No</Text>
-          </Selection>
-        </BallotSelection>
-        <BallotTitle>
-          <Text language="en">Virginia Referendum 3, Renewable Energy Standards Initiative</Text>
-        </BallotTitle>
-        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-va15-country-us</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <Name>Virginia Referendum 3, Renewable Energy Standards Initiative</Name>
-        <BallotText>
-          <Text language="en">Shall Article 4 of the Virginia Constitution be amended to require, beginning in calendar year 2022, that all providers of electric utility services who sell electricity to retail customers for consumption in Virginia generate or acquire incrementally larger percentages of electricity from renewable energy resources so that by calendar year 2030 not less than 50 percent of the total amount of electricity sold by each provider to its retail customers in Virginia comes from renewable energy resources?</Text>
-        </BallotText>
-        <ConStatement label="bmc30001con">
-          <Text language="en">A "no" vote opposes this initiative, thus keeping the existing requirement that electric utilities acquire 25 percent of their electricity from renewable resources by 2025.</Text>
-        </ConStatement>
-        <ProStatement label="bmc30001pro">
-          <Text language="en">A "yes" vote supports this initiative to require electric utilities to acquire 50 percent of their electricity from renewable resources by 2030.</Text>
-        </ProStatement>
-        <Type>referendum</Type>
-      </Contest>
-
-      <!--
-           Virginia does not actually elect their judges; this is for demonstration
-           and documentation purposes only.
-        -->
-      <Contest objectId="rc40001" xsi:type="RetentionContest">
-        <!-- Retention contest selections are actually BallotMeasureSelection
-             objects, and should use the 'bms' objectId prefix.
-          -->
-        <BallotSelection objectId="bms40001a" xsi:type="BallotMeasureSelection">
-          <Selection label="bms40001at">
-            <Text language="en">Yes</Text>
-          </Selection>
-        </BallotSelection>
-        <BallotSelection objectId="bms40001b" xsi:type="BallotMeasureSelection">
-          <Selection label="bms40001bt">
-            <Text language="en">No</Text>
-          </Selection>
-        </BallotSelection>
-        <BallotTitle>
-          <Text language="en">Retention of Supreme Court Justice</Text>
-        </BallotTitle>
-        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-va16-country-us</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <Name>Judicial Retention, Supreme Court</Name>
-        <CandidateId>can12345</CandidateId>
-        <OfficeId>off20006</OfficeId>
       </Contest>
     </ContestCollection>
     <!-- Note that there can be multiple CountStatus objects, reflecting the
@@ -1250,22 +783,16 @@
   <Format>precinct-level</Format>
   <GeneratedDate>2013-11-05T14:25:28</GeneratedDate>
   <GpUnitCollection>
-    <!-- ALL GPUNITS WHICH ARE NOT PRECINCTS SHOULD BE DEFINED IN TERMS OF THE
-         PRECINCTS THAT COMPOSE THEM.
-      -->
     <GpUnit objectId="ru0002" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90111 ru_pre90139 ru_pre90183 ru_pre90348sp0000 ru_pre90348sp0001
-      ru_pre90614 ru_pre90666 ru_pre90929 ru_pre90994sp0000 ru_pre90994sp0001 ru_pre91089sp0000
-      ru_pre91089sp0001 ru_pre91298 ru_pre91602 ru_pre91781sp0000 ru_pre91781sp0001 ru_pre91918
-      ru_pre91999 ru_pre92065 ru_pre92087 ru_pre92140 ru_pre92145 ru_pre92171sp0000 ru_pre92171sp0001
-      ru_pre92175 ru_pre92306 ru_pre92320 ru_pre92353 ru_pre92360 ru_pre92426
-      ru_preXXXXX</ComposingGpUnitIds>
-      <!-- All GpUnits which are referenced by a Contest.ElectoralScopeId field
-           MUST have an OCD-ID external identifier. It's how we reconcile Contest
-           information with our other internal data sets. If the OCD-ID is
-           missing then we will end up dropping the contest from our pipeline.
-        -->
+      <ComposingGpUnitIds>
+        ru0311 ru0001 ru0150 ru0076 ru0107
+      </ComposingGpUnitIds>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0002</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va</Value>
@@ -1276,23 +803,16 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>Virginia</Name>
-      <ElectionAdministration>
-        <ContactInformation label="ci60000">
-          <AddressLine>Washington Building First Floor</AddressLine>
-          <AddressLine>1100 Bank Street</AddressLine>
-          <AddressLine>Richmond, VA 23219</AddressLine>
-          <Name>State Board of Elections</Name>
-        </ContactInformation>
-      </ElectionAdministration>
       <Type>state</Type>
     </GpUnit>
     <GpUnit objectId="ru0001" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90111 ru_pre90139 ru_pre90183 ru_pre90348sp0000 ru_pre90348sp0001
-      ru_pre90614 ru_pre90666 ru_pre90929 ru_pre90994sp0000 ru_pre90994sp0001 ru_pre91089sp0000
-      ru_pre91089sp0001 ru_pre91298 ru_pre91602 ru_pre91781sp0000 ru_pre91781sp0001 ru_pre91918
-      ru_pre91999 ru_pre92065 ru_pre92087 ru_pre92140 ru_pre92145 ru_pre92171sp0000 ru_pre92171sp0001
-      ru_pre92175 ru_pre92306 ru_pre92320 ru_pre92353 ru_pre92360 ru_pre92426</ComposingGpUnitIds>
+      <ComposingGpUnitIds>ru0030 ru0081 ru0054 ru0103</ComposingGpUnitIds>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0001</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/county:albemarle</Value>
@@ -1303,26 +823,15 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>Albemarle County</Name>
-      <ElectionAdministration>
-        <ContactInformation label="ci60001">
-          <AddressLine>1600 5TH STREET</AddressLine>
-          <AddressLine>CHARLOTTESVILLE, VA 22902</AddressLine>
-          <Name>ALBEMARLE COUNTY VOTER REGISTRATION</Name>
-          <Schedule>
-            <Hours>
-              <StartTime>08:30:00-05:00</StartTime>
-              <EndTime>17:00:00-05:00</EndTime>
-            </Hours>
-          </Schedule>
-        </ContactInformation>
-        <ElectionOfficialPersonIds>per50001</ElectionOfficialPersonIds>
-      </ElectionAdministration>
       <Type>county</Type>
     </GpUnit>
     <GpUnit objectId="ru0150" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90348sp0000 ru_pre90348sp0001 ru_pre92087 ru_pre92145 ru_pre92306
-      ru_pre92360 ru_pre92426</ComposingGpUnitIds>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0150</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/sldl:25</Value>
@@ -1333,9 +842,12 @@
       <Type>state-house</Type>
     </GpUnit>
     <GpUnit objectId="ru0311" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90111 ru_pre90139 ru_pre90666 ru_pre90994sp0000 ru_pre91602
-      ru_pre91781sp0000 ru_pre91781sp0001 ru_pre91999 ru_pre92175</ComposingGpUnitIds>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0311</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/sldl:57</Value>
@@ -1346,10 +858,12 @@
       <Type>state-house</Type>
     </GpUnit>
     <GpUnit objectId="ru0076" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90183 ru_pre90614 ru_pre90929 ru_pre90994sp0001 ru_pre91089sp0000
-      ru_pre91089sp0001 ru_pre91298 ru_pre91781sp0000 ru_pre92140 ru_pre92171sp0000 ru_pre92171sp0001
-      ru_pre92320 ru_pre92353</ComposingGpUnitIds>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0076</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/sldl:58</Value>
@@ -1360,8 +874,12 @@
       <Type>state-house</Type>
     </GpUnit>
     <GpUnit objectId="ru0107" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre91918 ru_pre92065</ComposingGpUnitIds>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0107</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/sldl:59</Value>
@@ -1372,8 +890,12 @@
       <Type>state-house</Type>
     </GpUnit>
     <GpUnit objectId="ru0030" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre91918 ru_pre92065 ru_pre92360 ru_pre92426</ComposingGpUnitIds>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0030</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:samuel_miller</Value>
@@ -1384,9 +906,12 @@
       <Type>county-council</Type>
     </GpUnit>
     <GpUnit objectId="ru0054" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90111 ru_pre90348sp0000 ru_pre90348sp0001 ru_pre91602
-      ru_pre92306</ComposingGpUnitIds>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0054</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:jack_jouett</Value>
@@ -1397,9 +922,12 @@
       <Type>county-council</Type>
     </GpUnit>
     <GpUnit objectId="ru0081" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90139 ru_pre90666 ru_pre91298 ru_pre91781sp0000 ru_pre91781sp0001
-      ru_pre92175</ComposingGpUnitIds>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0081</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:rio</Value>
@@ -1410,9 +938,12 @@
       <Type>county-council</Type>
     </GpUnit>
     <GpUnit objectId="ru0103" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90929 ru_pre91999 ru_pre92171sp0000 ru_pre92171sp0001
-      ru_pre92320</ComposingGpUnitIds>
       <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0103</Value>
+        </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:scottsville</Value>
@@ -1421,179 +952,6 @@
       <Name>SCOTTSVILLE DISTRICT</Name>
       <Number>4</Number>
       <Type>county-council</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_preXXXXX" xsi:type="ReportingUnit">
-      <!-- This GpUnit is just here to represent the rest of the state since I
-           didn't feel like including all however many thousand precincts in
-           this one sample file. Real files should not have this and I will
-           find you and yell at you if they do...
-        -->
-      <Name>PLACEHOLDER -- REPRESENTS REST OF STATE OF VIRGINIA</Name>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre00000" xsi:type="ReportingUnit">
-      <Name>0000 - COUNTY-WIDE EARLY VOTING CENTER</Name>
-      <Number>0000</Number>
-      <Type>ballot-batch</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre99999" xsi:type="ReportingUnit">
-      <Name>9999 - PERMANENT MAIL-IN</Name>
-      <Number>9999</Number>
-      <Type>ballot-batch</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre90111" xsi:type="ReportingUnit">
-      <Name>203 - GEORGETOWN</Name>
-      <Number>0203</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre90139" xsi:type="ReportingUnit">
-      <Name>103 - BRANCHLANDS</Name>
-      <Number>0103</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre90183" xsi:type="ReportingUnit">
-      <Name>602 - FREE UNION</Name>
-      <Number>0602</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <!-- These next two items represent a precinct split. They have the same
-         Name as each other, but each represent one split within the precinct.
-      -->
-    <GpUnit objectId="ru_pre90348sp0000" xsi:type="ReportingUnit">
-      <Name>201 - JACK JOUETT</Name>
-      <Number>0201</Number>
-      <Type>split-precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre90348sp0001" xsi:type="ReportingUnit">
-      <Name>201 - JACK JOUETT</Name>
-      <Number>0201</Number>
-      <Type>split-precinct</Type>
-    </GpUnit>
-    <!-- End of this precinct split example. -->
-    <GpUnit objectId="ru_pre90614" xsi:type="ReportingUnit">
-      <Name>503 - HOLLYMEAD</Name>
-      <Number>0503</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre90666" xsi:type="ReportingUnit">
-      <Name>105 - DUNLORA</Name>
-      <Number>0105</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre90929" xsi:type="ReportingUnit">
-      <Name>406 - STONE ROBINSON</Name>
-      <Number>0406</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre90994sp0000" xsi:type="ReportingUnit">
-      <Name>504 - FREE BRIDGE</Name>
-      <Number>0504</Number>
-      <Type>split-precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre90994sp0001" xsi:type="ReportingUnit">
-      <Name>504 - FREE BRIDGE</Name>
-      <Number>0504</Number>
-      <Type>split-precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre91089sp0000" xsi:type="ReportingUnit">
-      <Name>502 - STONY POINT</Name>
-      <Number>0502</Number>
-      <Type>split-precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre91089sp0001" xsi:type="ReportingUnit">
-      <Name>502 - STONY POINT</Name>
-      <Number>0502</Number>
-      <Type>split-precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre91298" xsi:type="ReportingUnit">
-      <Name>106 - NORTHSIDE</Name>
-      <Number>0106</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre91602" xsi:type="ReportingUnit">
-      <Name>202 - UNIVERSITY HALL</Name>
-      <Number>0202</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre91781sp0000" xsi:type="ReportingUnit">
-      <Name>101 - WOODBROOK</Name>
-      <Number>0101</Number>
-      <Type>split-precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre91781sp0001" xsi:type="ReportingUnit">
-      <Name>101 - WOODBROOK</Name>
-      <Number>0101</Number>
-      <Type>split-precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre91918" xsi:type="ReportingUnit">
-      <Name>302 - RED HILL</Name>
-      <Number>0302</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre91999" xsi:type="ReportingUnit">
-      <Name>405 - CALE</Name>
-      <Number>0405</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92065" xsi:type="ReportingUnit">
-      <Name>305 - COUNTRY GREEN</Name>
-      <Number>0305</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92087" xsi:type="ReportingUnit">
-      <Name>604 - BROWNSVILLE</Name>
-      <Number>0604</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92140" xsi:type="ReportingUnit">
-      <Name>501 - KESWICK</Name>
-      <Number>0501</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92145" xsi:type="ReportingUnit">
-      <Name>601 - CROZET</Name>
-      <Number>0601</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92171sp0000" xsi:type="ReportingUnit">
-      <Name>401 - SCOTTSVILLE</Name>
-      <Number>0401</Number>
-      <Type>split-precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92171sp0001" xsi:type="ReportingUnit">
-      <Name>401 - SCOTTSVILLE</Name>
-      <Number>0401</Number>
-      <Type>split-precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92175" xsi:type="ReportingUnit">
-      <Name>104 - AGNOR-HURT</Name>
-      <Number>0104</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92306" xsi:type="ReportingUnit">
-      <Name>204 - BELFIELD</Name>
-      <Number>0204</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92320" xsi:type="ReportingUnit">
-      <Name>402 - MONTICELLO</Name>
-      <Number>0402</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92353" xsi:type="ReportingUnit">
-      <Name>603 - EARLYSVILLE</Name>
-      <Number>0603</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92360" xsi:type="ReportingUnit">
-      <Name>301 - IVY</Name>
-      <Number>0301</Number>
-      <Type>precinct</Type>
-    </GpUnit>
-    <GpUnit objectId="ru_pre92426" xsi:type="ReportingUnit">
-      <Name>304 - EAST IVY</Name>
-      <Number>0304</Number>
-      <Type>precinct</Type>
     </GpUnit>
   </GpUnitCollection>
   <Issuer>Commonwealth of Virginia</Issuer>
@@ -1604,8 +962,23 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off9999a</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>president</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1622,8 +995,23 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off9999b</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>vice president</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1640,8 +1028,23 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off0000</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>state executive</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1658,8 +1061,23 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off0001</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>deputy state executive</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1676,32 +1094,29 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20005</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>attorney general</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">Attorney General</Text>
-      </Name>
-      <Term>
-        <Type>full-term</Type>
-      </Term>
-    </Office>
-    <Office objectId="off20006">
-      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
-      <ExternalIdentifiers>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-      </ExternalIdentifiers>
-      <FilingDeadline>2013-01-01</FilingDeadline>
-      <IsPartisan>false</IsPartisan>
-      <Name>
-        <Text language="en">Justice, Supreme Court of Virginia</Text>
       </Name>
       <Term>
         <Type>full-term</Type>
@@ -1717,8 +1132,23 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20024</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0150</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>state lower house</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1735,8 +1165,23 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20025</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0311</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>state lower house</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1753,8 +1198,23 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20033</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0107</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>state lower house</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1771,8 +1231,23 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>state lower house</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20100</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0076</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1790,8 +1265,23 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20262</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0103</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>county council</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1808,8 +1298,23 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20305</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0054</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>county council</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1826,8 +1331,23 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20350</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0030</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>county council</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1844,8 +1364,23 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20355</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0081</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>county council</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1863,8 +1398,23 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20449</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0081</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>school board</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1881,8 +1431,23 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20473</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+       <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0030</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>school board</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1899,8 +1464,23 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20476</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
           <OtherType>office-level</OtherType>
           <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0054</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>school board</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
@@ -1920,7 +1500,9 @@
          and links to party logos.
       -->
     <Party objectId="par0001">
-      <Abbreviation>REP</Abbreviation>
+      <InternationalizedAbbreviation>
+        <Text language="en">REP</Text>
+      </InternationalizedAbbreviation>
       <Color>e91d0e</Color>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -1934,7 +1516,9 @@
       </Name>
     </Party>
     <Party objectId="par0002">
-      <Abbreviation>LIB</Abbreviation>
+      <InternationalizedAbbreviation>
+        <Text language="en">LIB</Text>
+      </InternationalizedAbbreviation>
       <Color>f5f500</Color>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -1948,7 +1532,9 @@
       </Name>
     </Party>
     <Party objectId="par0003">
-      <Abbreviation>DEM</Abbreviation>
+      <InternationalizedAbbreviation>
+        <Text language="en">DEM</Text>
+      </InternationalizedAbbreviation>
       <Color>232066</Color>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -1962,7 +1548,9 @@
       </Name>
     </Party>
     <Party objectId="par0004">
-      <Abbreviation>IND</Abbreviation>
+      <InternationalizedAbbreviation>
+        <Text language="en">IND</Text>
+      </InternationalizedAbbreviation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1975,7 +1563,9 @@
       </Name>
     </Party>
     <Party objectId="par0005">
-      <Abbreviation>VN</Abbreviation>
+      <InternationalizedAbbreviation>
+        <Text language="en">VN</Text>
+      </InternationalizedAbbreviation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1988,7 +1578,9 @@
       </Name>
     </Party>
     <Party objectId="par0006">
-      <Abbreviation>PPN</Abbreviation>
+      <InternationalizedAbbreviation>
+        <Text language="en">PPN</Text>
+      </InternationalizedAbbreviation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -2625,27 +2217,6 @@
       <LastName>Acuff</LastName>
       <MiddleName>L.</MiddleName>
       <Nickname>Kate</Nickname>
-      <PartyId>par0002</PartyId>
-    </Person>
-    <Person objectId="per12345">
-      <ContactInformation>
-        <AddressLine>4 Privet Drive</AddressLine>
-        <AddressLine>Sample, HI 99999</AddressLine>
-        <Email>dwayne@therock.com</Email>
-        <Phone>1234567890</Phone>
-      </ContactInformation>
-      <ExternalIdentifiers>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>stable</OtherType>
-          <Value>person-per12345</Value>
-        </ExternalIdentifier>
-      </ExternalIdentifiers>
-      <FirstName>Dwayne</FirstName>
-      <FullName>
-        <Text language="en">Dwayne Johnson</Text>
-      </FullName>
-      <LastName>Johnson</LastName>
       <PartyId>par0002</PartyId>
     </Person>
   </PersonCollection>

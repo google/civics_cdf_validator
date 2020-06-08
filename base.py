@@ -61,10 +61,10 @@ class SchemaHandler(object):
 class BaseRule(SchemaHandler):
   """Base class for rules."""
 
-  def __init__(self, election_tree, schema_file):
+  def __init__(self, election_tree, schema_tree):
     super(BaseRule, self).__init__()
     self.election_tree = election_tree
-    self.schema_file = schema_file
+    self.schema_tree = schema_tree
 
   def elements(self):
     """Return a list of all the elements this rule checks."""
@@ -104,8 +104,8 @@ class TreeRule(BaseRule):
 class ValidReferenceRule(TreeRule):
   """Rule that makes sure reference values are properly defined."""
 
-  def __init__(self, election_tree, schema_file, missing_element="data"):
-    super(ValidReferenceRule, self).__init__(election_tree, schema_file)
+  def __init__(self, election_tree, schema_tree, missing_element="data"):
+    super(ValidReferenceRule, self).__init__(election_tree, schema_tree)
     self.missing_element = missing_element
 
   def _gather_reference_values(self):
@@ -142,10 +142,28 @@ class DateRule(BaseRule):
   end date values.
   """
 
-  def elements(self):
-    return ["Election"]
+  def __init__(self, election_tree, schema_file):
+    super(DateRule, self).__init__(election_tree, schema_file)
+    self.today = datetime.datetime.now().date()
+    self.start_elem = None
+    self.start_date = None
+    self.end_elem = None
+    self.end_date = None
+    self.error_log = []
 
-  def gather_dates(self, election_element):
+  def reset_instance_vars(self):
+    """Reset instance variables to initial state.
+
+    Due to ordered procedure of validator, instance vars created in init
+    are not getting reset when same rule is run on different elements.
+    """
+    self.start_elem = None
+    self.start_date = None
+    self.end_elem = None
+    self.end_date = None
+    self.error_log = []
+
+  def gather_dates(self, element):
     """Gather StartDate and EndDate values for the provided element.
 
     An election element should have a start and end date in the desired format.
@@ -153,36 +171,53 @@ class DateRule(BaseRule):
     in validation checks.
 
     Args:
-      election_element: An election element.
+      element: A parent element that contains StartDate and EndDate children.
 
     Raises:
       ElectionError: dates need to be properly formatted.
     """
     error_log = []
-    self.today = datetime.datetime.now().date()
 
-    self.start_elem = election_element.find("StartDate")
-    try:
-      self.start_date = datetime.datetime.strptime(
-          self.start_elem.text, "%Y-%m-%d").date()
-    except ValueError:
-      error_message = "The StartDate text should be of the format yyyy-mm-dd"
-      error_log.append(loggers.ErrorLogEntry(
-          self.start_elem.sourceline, error_message))
+    self.start_elem = element.find("StartDate")
+    if self.start_elem is not None:
+      try:
+        self.start_date = datetime.datetime.strptime(
+            self.start_elem.text, "%Y-%m-%d").date()
+      except ValueError:
+        error_message = "The StartDate text should be of the format yyyy-mm-dd"
+        error_log.append(loggers.ErrorLogEntry(
+            self.start_elem.sourceline, error_message))
 
-    self.end_elem = election_element.find("EndDate")
-    try:
-      self.end_date = datetime.datetime.strptime(
-          self.end_elem.text, "%Y-%m-%d").date()
-    except ValueError:
-      error_message = "The EndDate text should be of the format yyyy-mm-dd"
-      error_log.append(loggers.ErrorLogEntry(
-          self.end_elem.sourceline, error_message))
+    self.end_elem = element.find("EndDate")
+    if self.end_elem is not None:
+      try:
+        self.end_date = datetime.datetime.strptime(
+            self.end_elem.text, "%Y-%m-%d").date()
+      except ValueError:
+        error_message = "The EndDate text should be of the format yyyy-mm-dd"
+        error_log.append(loggers.ErrorLogEntry(
+            self.end_elem.sourceline, error_message))
 
     if error_log:
       raise loggers.ElectionError(
           "The format for the election dates are invalid: ",
           error_log)
+
+  def check_for_date_not_in_past(self, date, date_elem):
+    delta = (date - self.today).days
+    if delta < 0:
+      error_message = """The date {} is in the past.""".format(date)
+      self.error_log.append(
+          loggers.ErrorLogEntry(date_elem.sourceline, error_message))
+
+  def check_end_after_start(self):
+    start_end_delta = (self.end_date - self.start_date).days
+    if start_end_delta < 0:
+      error_message = """The dates (start: {}, end: {}) are invalid.
+      The end date must be the same or after the start date.""".format(
+          self.start_date, self.end_date)
+      self.error_log.append(
+          loggers.ErrorLogEntry(self.end_elem.sourceline, error_message))
 
 
 class RuleOption(object):
@@ -230,12 +265,12 @@ class RulesRegistry(SchemaHandler):
       A dictionary of elements and rules that check each element
     """
     for rule in self.rule_classes_to_check:
-      rule_instance = rule(self.election_tree, self.schema_file)
+      rule_instance = rule(self.election_tree, self.schema_tree)
       if rule.__name__ in self.rule_options.keys():
         for option in self.rule_options[rule.__name__]:
           rule_instance.set_option(option)
       rule_instance.setup()
-      for element in rule_instance.elements():
+      for element in set(rule_instance.elements()):
         if element in self.registry:
           self.registry[element].append(rule_instance)
         else:
@@ -322,6 +357,7 @@ class RulesRegistry(SchemaHandler):
   def check_rules(self):
     """Checks all rules."""
     try:
+      self.schema_tree = etree.parse(self.schema_file)
       self.election_tree = etree.parse(self.election_file)
     except etree.LxmlError as e:
       print("Fatal Error. XML file could not be parsed. {}".format(e))

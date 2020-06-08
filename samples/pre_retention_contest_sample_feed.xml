@@ -1,0 +1,222 @@
+<?xml version="1.0"?>
+<ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Election>
+    <CandidateCollection>
+      <Candidate objectId="can12345">
+        <BallotName>
+          <Text language="en">Dwayne Johnson</Text>
+        </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cand-2013-va-rock</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>par0004</PartyId>
+        <PersonId>per12345</PersonId>
+      </Candidate>
+    </CandidateCollection>
+    <ContestCollection>
+      <!--
+           Virginia does not actually elect their judges; this is for demonstration
+           and documentation purposes only.
+        -->
+      <Contest objectId="rc40001" xsi:type="RetentionContest">
+        <!-- Retention contest selections are actually BallotMeasureSelection
+             objects, and should use the 'bms' objectId prefix.
+          -->
+        <BallotSelection objectId="bms40001a" xsi:type="BallotMeasureSelection">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>bmc_bms40001a</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+          <Selection label="bms40001at">
+            <Text language="en">Yes</Text>
+          </Selection>
+        </BallotSelection>
+        <BallotSelection objectId="bms40001b" xsi:type="BallotMeasureSelection">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>bmc_bms40001at</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+          <Selection label="bms40001bt">
+            <Text language="en">No</Text>
+          </Selection>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Retention of Supreme Court Justice</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-va16-country-us</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>Judicial Retention, Supreme Court</Name>
+        <CandidateId>can12345</CandidateId>
+        <OfficeId>off20006</OfficeId>
+      </Contest>
+    </ContestCollection>
+    <!-- Note that there can be multiple CountStatus objects, reflecting the
+         count status of different types of ballot batches.
+      -->
+    <CountStatus>
+      <Status>completed</Status>
+      <Type>early</Type>
+    </CountStatus>
+    <CountStatus>
+      <Status>in-process</Status>
+      <Type>election-day</Type>
+    </CountStatus>
+    <ElectionScopeId>ru0002</ElectionScopeId>
+    <Name>
+      <Text language="en">2013 Virginia Retention of Supreme Court Justice</Text>
+    </Name>
+    <StartDate>2013-11-05</StartDate>
+    <EndDate>2013-11-05</EndDate>
+    <Type>general</Type>
+  </Election>
+  <!-- This is a precinct-level report, so this means that all results should be
+       at the precinct level (as opposed to the county or other roll-up level.
+    -->
+  <Format>precinct-level</Format>
+  <GeneratedDate>2013-11-05T14:25:28</GeneratedDate>
+  <GpUnitCollection>
+    <!-- ALL GPUNITS WHICH ARE NOT PRECINCTS SHOULD BE DEFINED IN TERMS OF THE
+         PRECINCTS THAT COMPOSE THEM.
+      -->
+    <GpUnit objectId="ru0002" xsi:type="ReportingUnit">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>fips</Type>
+          <Value>51</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>Virginia</Name>
+      <ElectionAdministration>
+        <ContactInformation label="ci60000">
+          <AddressLine>Washington Building First Floor</AddressLine>
+          <AddressLine>1100 Bank Street</AddressLine>
+          <AddressLine>Richmond, VA 23219</AddressLine>
+          <Name>State Board of Elections</Name>
+        </ContactInformation>
+      </ElectionAdministration>
+      <Type>state</Type>
+    </GpUnit>
+  </GpUnitCollection>
+  <Issuer>Commonwealth of Virginia</Issuer>
+  <IssuerAbbreviation>VA</IssuerAbbreviation>
+  <OfficeCollection>
+    <Office objectId="off20006">
+      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>off20006</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>superior court</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>false</IsPartisan>
+      <Name>
+        <Text language="en">Justice, Supreme Court of Virginia</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+  </OfficeCollection>
+  <PartyCollection>
+     <Party objectId="par0002">
+      <InternationalizedAbbreviation>
+        <Text language="en">LIB</Text>
+      </InternationalizedAbbreviation>
+      <Color>f5f500</Color>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>vageneral-pty-2013-libertarian</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>
+        <Text language="en">Libertarian</Text>
+      </Name>
+    </Party>
+    <Party objectId="par0004">
+      <InternationalizedAbbreviation>
+        <Text language="en">IND</Text>
+      </InternationalizedAbbreviation>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>vageneral-pty-2013-independent</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>
+        <Text language="en">Independent</Text>
+      </Name>
+    </Party>
+  </PartyCollection>
+  <PersonCollection>
+    <Person objectId="per12345">
+      <ContactInformation>
+        <AddressLine>4 Privet Drive</AddressLine>
+        <AddressLine>Sample, HI 99999</AddressLine>
+        <Email>dwayne@therock.com</Email>
+        <Phone>1234567890</Phone>
+      </ContactInformation>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>person-per12345</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FirstName>Dwayne</FirstName>
+      <FullName>
+        <Text language="en">Dwayne Johnson</Text>
+      </FullName>
+      <LastName>Johnson</LastName>
+      <PartyId>par0002</PartyId>
+    </Person>
+  </PersonCollection>
+  <SequenceStart>1</SequenceStart>
+  <SequenceEnd>1</SequenceEnd>
+  <Status>unofficial-partial</Status>
+  <VendorApplicationId>Hand-Generated v0.1</VendorApplicationId>
+</ElectionReport>
