@@ -28,7 +28,6 @@ import sys
 from civics_cdf_validator import base
 from civics_cdf_validator import loggers
 from civics_cdf_validator import office_utils
-import enum
 import github
 import language_tags
 from lxml import etree
@@ -2266,12 +2265,6 @@ class RequiredFields(base.BaseRule):
           element.tag), error_log)
 
 
-class RuleSet(enum.Enum):
-  """Names for sets of rules used to validate a particular feed type."""
-  ELECTION = 1
-  OFFICEHOLDER = 2
-
-
 # To add new rules, create a new class, inherit the base rule,
 # and add it to the correct rule list.
 COMMON_RULES = (
@@ -2279,11 +2272,15 @@ COMMON_RULES = (
     AllLanguages,
     DuplicateGpUnits,
     DuplicateID,
+    DuplicatedPartyName,
+    DuplicatedPartyAbbreviation,
     EmptyText,
     Encoding,
     GpUnitOcdId,
     HungarianStyleNotation,
     LanguageCode,
+    MissingPartyAbbreviationTranslation,
+    MissingPartyNameTranslation,
     MissingStableIds,
     OtherType,
     OptionalAndEmpty,
@@ -2309,7 +2306,7 @@ COMMON_RULES = (
     RequiredFields,
 )
 
-ELECTION_RULES = COMMON_RULES + (
+ELECTION_DATA_RULES = COMMON_RULES + (
     CandidatesMissingPartyData,
     CoalitionParties,
     DuplicateContestNames,
@@ -2317,24 +2314,23 @@ ELECTION_RULES = COMMON_RULES + (
     OnlyOneElection,
     PartisanPrimary,
     PartisanPrimaryHeuristic,
-    PercentSum,
     ProperBallotSelection,
     CandidatesReferencedOnce,
-    VoteCountTypesCoherency,
-    PartiesHaveValidColors,
-    ValidateDuplicateColors,
     ElectionStartDates,
     ElectionEndDates,
     ContestHasMultipleOffices,
     GpUnitsHaveSingleRoot,
-    MissingPartyAbbreviationTranslation,
-    DuplicatedPartyName,
-    DuplicatedPartyAbbreviation,
-    MissingPartyNameTranslation,
     FullTextMaxLength,
     FullTextOrBallotText,
     BallotTitle,
     ImproperCandidateContest,
+)
+
+ELECTION_RESULTS_RULES = ELECTION_DATA_RULES + (
+    PercentSum,
+    VoteCountTypesCoherency,
+    PartiesHaveValidColors,
+    ValidateDuplicateColors,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (
@@ -2343,4 +2339,5 @@ OFFICEHOLDER_RULES = COMMON_RULES + (
     OfficeTermDates,
 )
 
-ALL_RULES = frozenset(COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES)
+ALL_RULES = frozenset(COMMON_RULES + ELECTION_RESULTS_RULES
+                      + OFFICEHOLDER_RULES)

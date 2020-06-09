@@ -22,6 +22,7 @@ See https://developers.google.com/elections-data/reference/
 from __future__ import print_function
 
 import argparse
+import enum
 import hashlib
 import os
 import re
@@ -31,6 +32,13 @@ from civics_cdf_validator import loggers
 from civics_cdf_validator import rules
 from civics_cdf_validator import version
 import github
+
+
+class RuleSet(enum.Enum):
+  """Names for sets of rules used to validate a particular feed type."""
+  ELECTION_RESULTS = 1
+  ELECTION_DATA = 2
+  OFFICEHOLDER = 3
 
 
 def _validate_path(parser, arg):
@@ -194,21 +202,21 @@ def add_parser_rules_filter_args(parser, cmd_parser):
       required=False,
       type=lambda x: _validate_rules(parser, x))
   group.add_argument(
-      "--rule_set",
-      "-r",
-      help="Pre-defined rule set: [{}].".format(", ".join(
-          s.name.lower() for s in rules.RuleSet)),
+      "--feed_type",
+      "-t",
+      help="Define feed type to select rule set: [{}].".format(", ".join(
+          s.name.lower() for s in RuleSet)),
       required=False,
-      default="election",
+      default="election_results",
       type=ruleset_type)
 
 
 def ruleset_type(enum_string):
   try:
-    return rules.RuleSet[enum_string.upper()]
+    return RuleSet[enum_string.upper()]
   except KeyError:
     msg = "Rule set must be one of [{}]".format(", ".join(
-        s.name.lower() for s in rules.RuleSet))
+        s.name.lower() for s in RuleSet))
     raise argparse.ArgumentTypeError(msg)
 
 
@@ -237,12 +245,14 @@ def filter_all_rules_using_user_arg(options):
   if options.i:
     rule_names = options.i
   else:
-    if options.rule_set == rules.RuleSet.ELECTION:
-      rule_names = [x.__name__ for x in rules.ELECTION_RULES]
-    elif options.rule_set == rules.RuleSet.OFFICEHOLDER:
+    if options.feed_type == RuleSet.ELECTION_RESULTS:
+      rule_names = [x.__name__ for x in rules.ELECTION_RESULTS_RULES]
+    elif options.feed_type == RuleSet.ELECTION_DATA:
+      rule_names = [x.__name__ for x in rules.ELECTION_DATA_RULES]
+    elif options.feed_type == RuleSet.OFFICEHOLDER:
       rule_names = [x.__name__ for x in rules.OFFICEHOLDER_RULES]
     else:
-      raise AssertionError("Invalid rule_set: " + options.rule_set)
+      raise AssertionError("Invalid feed_type: " + options.feed_type)
     if options.e:
       rule_names = set(rule_names) - set(options.e)
 
@@ -250,6 +260,13 @@ def filter_all_rules_using_user_arg(options):
       x for x in rules.ALL_RULES if x.__name__ in rule_names
   ]
   return rule_classes_to_check
+
+
+def print_header(election_file, options):
+  print("\n--------- Results after validating file: {0} ".format(
+      election_file.name))
+  print_metadata(election_file)
+  print("Selected feed type : {0}\n".format(options.feed_type.name.lower()))
 
 
 def feed_validation(options):
@@ -278,10 +295,7 @@ def feed_validation(options):
 
   errors = []
   for election_file in options.election_files:
-    print("\n--------- Results after validating file: {0} ".format(
-        election_file.name))
-
-    print_metadata(election_file)
+    print_header(election_file, options)
     registry = base.RulesRegistry(
         election_file=election_file,
         schema_file=options.xsd,

@@ -30,7 +30,7 @@ class SamplesTest(absltest.TestCase):
     # removing date rules from these tests.
     date_rules = {rules.ElectionStartDates, rules.ElectionEndDates}
     self.election_rules = (
-        set(rules.ELECTION_RULES) - ocd_id_rules - date_rules)
+        set(rules.ELECTION_RESULTS_RULES) - ocd_id_rules - date_rules)
     self.officeholder_rules = (
         set(rules.OFFICEHOLDER_RULES) - ocd_id_rules)
 
