@@ -23,6 +23,10 @@ from civics_cdf_validator import stats
 from lxml import etree
 
 
+class Toto:
+  pass
+
+
 class SchemaHandler(object):
   """Base class for anything that parses an XML schema document."""
   _XSCHEMA_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
