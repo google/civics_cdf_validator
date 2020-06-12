@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """Unit test for rules.py."""
 
+import collections
 import datetime
+import hashlib
 import inspect
 import io
 import time
@@ -18,6 +20,183 @@ from mock import patch
 
 
 class HelpersTest(absltest.TestCase):
+
+  # get_external_id_values tests
+  def testReturnsTextValueOfExternalIdentifiersForGivenType(self):
+    gp_unit = """
+      <GpUnit objectId="gpu0">
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>ocd-id</Type>
+            <Value>ocd-division/country:us/state:ma</Value>
+          </ExternalIdentifier>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>stable-gpu-abc123</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </GpUnit>
+    """
+    gp_unit_elem = etree.fromstring(gp_unit)
+
+    expected_ocd_id = "ocd-division/country:us/state:ma"
+    actual_ocd_ids = rules.get_external_id_values(gp_unit_elem, "ocd-id")
+
+    self.assertLen(actual_ocd_ids, 1)
+    self.assertEqual(expected_ocd_id, actual_ocd_ids[0])
+
+    expected_other_stable = "stable-gpu-abc123"
+    actual_stable_ids = rules.get_external_id_values(gp_unit_elem, "stable")
+
+    self.assertLen(actual_stable_ids, 1)
+    self.assertEqual(expected_other_stable, actual_stable_ids[0])
+
+  def testReturnsValueElementOfExternalIdIfReturnElementsSpecified(self):
+    gp_unit = """
+      <GpUnit objectId="gpu0">
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>ocd-id</Type>
+            <Value>ocd-division/country:us/state:ma</Value>
+          </ExternalIdentifier>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>stable-gpu-abc123</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </GpUnit>
+    """
+    gp_unit_elem = etree.fromstring(gp_unit)
+
+    expected_ocd_id = b"<Value>ocd-division/country:us/state:ma</Value>"
+    actual_ocd_ids = rules.get_external_id_values(gp_unit_elem, "ocd-id", True)
+
+    self.assertLen(actual_ocd_ids, 1)
+    self.assertEqual(
+        expected_ocd_id, etree.tostring(actual_ocd_ids[0]).strip())
+
+    expected_other_stable = b"<Value>stable-gpu-abc123</Value>"
+    actual_stable = rules.get_external_id_values(gp_unit_elem, "stable", True)
+
+    self.assertLen(actual_stable, 1)
+    self.assertEqual(
+        expected_other_stable, etree.tostring(actual_stable[0]).strip())
+
+  def testIgnoresInvalidTypesAndOtherTypesThatShouldBeRegularType(self):
+    gp_unit = """
+      <GpUnit objectId="gpu0">
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>blamo</Type>
+            <Value>ocd-division/country:us/state:ma</Value>
+          </ExternalIdentifier>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>ocd-id</OtherType>
+            <Value>stable-gpu-abc123</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </GpUnit>
+    """
+    gp_unit_elem = etree.fromstring(gp_unit)
+
+    invalid_type_values = rules.get_external_id_values(gp_unit_elem, "blamo")
+    self.assertEmpty(invalid_type_values)
+
+    other_type_values = rules.get_external_id_values(gp_unit_elem, "ocd-id")
+    self.assertEmpty(other_type_values)
+
+  # get_additional_type_values tests
+  def testReturnsTextValueOfAdditionalDataForGivenType(self):
+    office = """
+      <Office objectId="off-0">
+        <AdditionalData type="ocd-id">ocd-division/country:us</AdditionalData>
+      </Office>
+    """
+    office_elem = etree.fromstring(office)
+
+    expected_ocd_id = "ocd-division/country:us"
+    actual_ocd_ids = rules.get_additional_type_values(office_elem, "ocd-id")
+
+    self.assertLen(actual_ocd_ids, 1)
+    self.assertEqual(expected_ocd_id, actual_ocd_ids[0])
+
+  def testAdditionalDataElementForGivenType(self):
+    office = """
+      <Office objectId="off-0">
+        <AdditionalData type="ocd-id">country:us</AdditionalData>
+      </Office>
+    """
+    office_elem = etree.fromstring(office)
+
+    expected = b'<AdditionalData type="ocd-id">country:us</AdditionalData>'
+    actual_ocd_ids = rules.get_additional_type_values(
+        office_elem, "ocd-id", True)
+
+    self.assertLen(actual_ocd_ids, 1)
+    actual_ocd_id = etree.tostring(actual_ocd_ids[0]).strip()
+    self.assertEqual(expected, actual_ocd_id)
+
+  def testIgnoresElementsNotFoundOrMissingText(self):
+    office = """
+      <Office objectId="off-0">
+        <AdditionalData type="ocd-id"></AdditionalData>
+      </Office>
+    """
+    office_elem = etree.fromstring(office)
+
+    actual_ocd_ids = rules.get_additional_type_values(office_elem, "ocd-id")
+    self.assertEmpty(actual_ocd_ids)
+
+    not_found = rules.get_additional_type_values(office_elem, "not-found")
+    self.assertEmpty(not_found)
+
+  # get_entity_info_for_value_type tests
+  def testReturnsValuesForTypeFromExternalIdentifierAndAdditionalData(self):
+    gp_unit = """
+      <GpUnit objectId="gpu0">
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>ocd-id</Type>
+            <Value>external-id-ocd-id</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <AdditionalData type="ocd-id">addtl-data-ocd-id</AdditionalData>
+      </GpUnit>
+    """
+    gp_unit_elem = etree.fromstring(gp_unit)
+
+    expected_ocd_ids = ["addtl-data-ocd-id", "external-id-ocd-id"]
+    actual_ocd_ids = rules.get_entity_info_for_value_type(
+        gp_unit_elem, "ocd-id")
+    self.assertEqual(expected_ocd_ids, actual_ocd_ids)
+
+  def testReturnsElementsForTypeFromExternalIdentifierAndAdditionalData(self):
+    gp_unit = """
+      <GpUnit objectId="gpu0">
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>ocd-id</Type>
+            <Value>external-id</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <AdditionalData type="ocd-id">addtl-data</AdditionalData>
+      </GpUnit>
+    """
+    gp_unit_elem = etree.fromstring(gp_unit)
+
+    actual_ocd_ids = rules.get_entity_info_for_value_type(
+        gp_unit_elem, "ocd-id", True)
+
+    expected_data = b'<AdditionalData type="ocd-id">addtl-data</AdditionalData>'
+    actual_data = etree.tostring(actual_ocd_ids[0]).strip()
+    self.assertEqual(expected_data, actual_data)
+
+    expected_external = b"<Value>external-id</Value>"
+    actual_external = etree.tostring(actual_ocd_ids[1]).strip()
+    self.assertEqual(expected_external, actual_external)
 
   # element_has_text tests
   def testReturnsTrueIfElementHasText(self):
@@ -5493,6 +5672,399 @@ class OfficeTermDatesTest(absltest.TestCase):
     self.date_validator.check(etree.fromstring(office_string))
 
 
+class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
+
+  def setUp(self):
+    super(UniqueStartDatesForOfficeRoleAndJurisdictionTest, self).setUp()
+    self.date_validator = rules.UniqueStartDatesForOfficeRoleAndJurisdiction(
+        None, None)
+
+  _office_string = """
+    <Office>
+      <Term>
+        <StartDate>{info[date]}</StartDate>
+      </Term>
+      <AdditionalData type="jurisdiction-id">{info[juris]}</AdditionalData>
+      <AdditionalData type="office-role">{info[role]}</AdditionalData>
+    </Office>
+  """
+
+  def testChecksOfficeCollectionElements(self):
+    self.assertEqual(["OfficeCollection"], self.date_validator.elements())
+
+  # _filter_out_past_end_dates tests
+  def testReturnsAllOfficesWithEndDateNotInPast(self):
+    office_string = """
+      <Office>
+        <Term>
+          <EndDate>{}</EndDate>
+        </Term>
+      </Office>
+    """
+    today = datetime.datetime.now().date()
+    tomorrow = today + datetime.timedelta(days=1)
+    yesterday = today - datetime.timedelta(days=1)
+
+    office_one = etree.fromstring(office_string.format(today))
+    office_two = etree.fromstring(office_string.format(tomorrow))
+    office_three = etree.fromstring(office_string.format(yesterday))
+
+    offices = [office_one, office_two, office_three]
+    expected_valid = [office_one, office_two]
+    actual_valid = self.date_validator._filter_out_past_end_dates(offices)
+    self.assertEqual(expected_valid, actual_valid)
+
+  def testOfficesWithNoTermAreInvalid(self):
+    office_string = """
+      <Office>
+        <EndDate>{}</EndDate>
+      </Office>
+    """
+    today = datetime.datetime.now().date()
+
+    office_one = etree.fromstring(office_string.format(today))
+    offices = [office_one]
+
+    expected_valid = []
+    actual_valid = self.date_validator._filter_out_past_end_dates(offices)
+    self.assertEqual(expected_valid, actual_valid)
+
+  def testPoorlyFormattedOfficesAreInvalid(self):
+    office_string = """
+      <Office>
+        <Term>
+          <EndDate>abcdefghijk</EndDate>
+        </Term>
+      </Office>
+    """
+
+    office_one = etree.fromstring(office_string)
+    offices = [office_one]
+
+    expected_valid = []
+    actual_valid = self.date_validator._filter_out_past_end_dates(offices)
+    self.assertEqual(expected_valid, actual_valid)
+
+  def testOfficesWithNoEndDateAreValid(self):
+    office_string = """
+      <Office>
+        <Term>
+          <StartDate>2020-01-01</StartDate>
+        </Term>
+      </Office>
+    """
+
+    office_one = etree.fromstring(office_string)
+    offices = [office_one]
+
+    actual_valid = self.date_validator._filter_out_past_end_dates(offices)
+    self.assertEqual(offices, actual_valid)
+
+  # _count_start_dates_by_jurisdiction_role tests
+  def testReturnsAMapOfJurisdictionIdOfficeRoleStartDateCounts(self):
+    office_coll_string = """
+      <OfficeCollection>
+        {}
+        {}
+        {}
+      </OfficeCollection>
+    """
+
+    o1_info = {"date": "2020-01-01", "juris": "ru-gpu1", "role": "Upper house"}
+    office_one = self._office_string.format(info=o1_info)
+    o2_info = {"date": "2020-02-02", "juris": "ru-gpu2", "role": "Middle house"}
+    office_two = self._office_string.format(info=o2_info)
+    o3_info = {"date": "2020-03-03", "juris": "ru-gpu3", "role": "Lower house"}
+    office_three = self._office_string.format(info=o3_info)
+
+    office_collection = office_coll_string.format(
+        office_one, office_two, office_three)
+
+    mapping = self.date_validator._count_start_dates_by_jurisdiction_role(
+        etree.fromstring(office_collection)
+    )
+
+    self.assertLen(mapping.keys(), 3)
+
+    o1_hash = hashlib.sha256((
+        o1_info["role"] + o1_info["juris"]
+    ).encode("utf-8")).hexdigest()
+    expected_o1_mapping = {
+        "jurisdiction_id": o1_info["juris"],
+        "office_role": o1_info["role"],
+        "start_dates": collections.Counter({
+            o1_info["date"]: 1,
+        }),
+    }
+    self.assertIn(o1_hash, mapping.keys())
+    self.assertEqual(expected_o1_mapping, mapping[o1_hash])
+
+    o2_hash = hashlib.sha256((
+        o2_info["role"] + o2_info["juris"]
+    ).encode("utf-8")).hexdigest()
+    expected_o2_mapping = {
+        "jurisdiction_id": o2_info["juris"],
+        "office_role": o2_info["role"],
+        "start_dates": collections.Counter({
+            o2_info["date"]: 1,
+        }),
+    }
+    self.assertIn(o2_hash, mapping.keys())
+    self.assertEqual(expected_o2_mapping, mapping[o2_hash])
+
+    o3_hash = hashlib.sha256((
+        o3_info["role"] + o3_info["juris"]
+    ).encode("utf-8")).hexdigest()
+    expected_o3_mapping = {
+        "jurisdiction_id": o3_info["juris"],
+        "office_role": o3_info["role"],
+        "start_dates": collections.Counter({
+            o3_info["date"]: 1,
+        }),
+    }
+    self.assertIn(o3_hash, mapping.keys())
+    self.assertEqual(expected_o3_mapping, mapping[o3_hash])
+
+  def testIgnoresOfficesWithNoStartDateDefined(self):
+    office_coll_string = """
+      <OfficeCollection>
+        {}
+        {}
+        {}
+      </OfficeCollection>
+    """
+
+    o1_info = {"date": "2020-01-01", "juris": "ru-gpu1", "role": "Upper house"}
+    office_one = self._office_string.format(info=o1_info)
+    o2_info = {"date": "", "juris": "ru-gpu2", "role": "Middle house"}
+    office_two = self._office_string.format(info=o2_info)
+    o3_info = {"date": "2020-03-03", "juris": "ru-gpu3", "role": "Lower house"}
+    office_three = self._office_string.format(info=o3_info)
+
+    office_collection = office_coll_string.format(
+        office_one, office_two, office_three)
+
+    mapping = self.date_validator._count_start_dates_by_jurisdiction_role(
+        etree.fromstring(office_collection)
+    )
+
+    self.assertLen(mapping.keys(), 2)
+
+    o1_hash = hashlib.sha256((
+        o1_info["role"] + o1_info["juris"]
+    ).encode("utf-8")).hexdigest()
+    self.assertIn(o1_hash, mapping.keys())
+
+    o2_hash = hashlib.sha256((
+        o2_info["role"] + o2_info["juris"]
+    ).encode("utf-8")).hexdigest()
+    self.assertNotIn(o2_hash, mapping.keys())
+
+    o3_hash = hashlib.sha256((
+        o3_info["role"] + o3_info["juris"]
+    ).encode("utf-8")).hexdigest()
+    self.assertIn(o3_hash, mapping.keys())
+
+  def testUpdatesTheCountForDuplicateJurisdictionRoleDate(self):
+    office_coll_string = """
+      <OfficeCollection>
+        {}
+        {}
+        {}
+      </OfficeCollection>
+    """
+
+    o1_info = {"date": "2020-01-01", "juris": "ru-gpu1", "role": "Upper house"}
+    office_one = self._office_string.format(info=o1_info)
+    o2_info = {"date": "2020-02-02", "juris": "ru-gpu2", "role": "Middle house"}
+    office_two = self._office_string.format(info=o2_info)
+    # office three same as office one
+    o3_info = {"date": "2020-01-01", "juris": "ru-gpu1", "role": "Upper house"}
+    office_three = self._office_string.format(info=o3_info)
+
+    office_collection = office_coll_string.format(
+        office_one, office_two, office_three)
+
+    mapping = self.date_validator._count_start_dates_by_jurisdiction_role(
+        etree.fromstring(office_collection)
+    )
+
+    self.assertLen(mapping.keys(), 2)
+
+    o1_hash = hashlib.sha256((
+        o1_info["role"] + o1_info["juris"]
+    ).encode("utf-8")).hexdigest()
+    expected_o1_mapping = {
+        "jurisdiction_id": o1_info["juris"],
+        "office_role": o1_info["role"],
+        "start_dates": collections.Counter({
+            o1_info["date"]: 2,
+        }),
+    }
+    self.assertIn(o1_hash, mapping.keys())
+    self.assertEqual(expected_o1_mapping, mapping[o1_hash])
+
+    o2_hash = hashlib.sha256((
+        o2_info["role"] + o2_info["juris"]
+    ).encode("utf-8")).hexdigest()
+    expected_o2_mapping = {
+        "jurisdiction_id": o2_info["juris"],
+        "office_role": o2_info["role"],
+        "start_dates": collections.Counter({
+            o2_info["date"],
+        }),
+    }
+    self.assertIn(o2_hash, mapping.keys())
+    self.assertEqual(expected_o2_mapping, mapping[o2_hash])
+
+  def testMissingRoleOrJurisdictionCountedAsBlank(self):
+    office_coll_string = """
+      <OfficeCollection>
+        {}
+        {}
+        {}
+      </OfficeCollection>
+    """
+
+    # o1 and o2 share same role but o1 missing jurisdiction
+    # o3 and o2 share same jurisdiction but o2 missing role
+    o1_info = {"date": "2020-01-01", "juris": "", "role": "Middle house"}
+    office_one = self._office_string.format(info=o1_info)
+    o2_info = {"date": "2020-02-02", "juris": "ru-gpu2", "role": "Middle house"}
+    office_two = self._office_string.format(info=o2_info)
+    o3_info = {"date": "2020-01-01", "juris": "ru-gpu2", "role": ""}
+    office_three = self._office_string.format(info=o3_info)
+
+    office_collection = office_coll_string.format(
+        office_one, office_two, office_three)
+
+    mapping = self.date_validator._count_start_dates_by_jurisdiction_role(
+        etree.fromstring(office_collection)
+    )
+
+    self.assertLen(mapping.keys(), 3)
+
+    o1_hash = hashlib.sha256((
+        o1_info["role"] + o1_info["juris"]
+    ).encode("utf-8")).hexdigest()
+    expected_o1_mapping = {
+        "jurisdiction_id": o1_info["juris"],
+        "office_role": o1_info["role"],
+        "start_dates": collections.Counter({
+            o1_info["date"],
+        }),
+    }
+    self.assertIn(o1_hash, mapping.keys())
+    self.assertEqual(expected_o1_mapping, mapping[o1_hash])
+
+    o2_hash = hashlib.sha256((
+        o2_info["role"] + o2_info["juris"]
+    ).encode("utf-8")).hexdigest()
+    expected_o2_mapping = {
+        "jurisdiction_id": o2_info["juris"],
+        "office_role": o2_info["role"],
+        "start_dates": collections.Counter({
+            o2_info["date"],
+        }),
+    }
+    self.assertIn(o2_hash, mapping.keys())
+    self.assertEqual(expected_o2_mapping, mapping[o2_hash])
+
+    o3_hash = hashlib.sha256((
+        o3_info["role"] + o3_info["juris"]
+    ).encode("utf-8")).hexdigest()
+    expected_o3_mapping = {
+        "jurisdiction_id": o3_info["juris"],
+        "office_role": o3_info["role"],
+        "start_dates": collections.Counter({
+            o3_info["date"],
+        }),
+    }
+    self.assertIn(o3_hash, mapping.keys())
+    self.assertEqual(expected_o3_mapping, mapping[o3_hash])
+
+  # check tests
+  def testChecksThereAreNoDuplicateStartDatesForJurisdictionAndRole(self):
+    start_counts = {
+        "abcdefg": {
+            "jurisdiction_id": "ru-gpu1",
+            "office_role": "Upper house",
+            "start_dates": collections.Counter({
+                "2020-01-01": 1,
+            }),
+        },
+        "zyxwtuv": {
+            "jurisdiction_id": "ru-gpu2",
+            "office_role": "Lower house",
+            "start_dates": collections.Counter({
+                "2020-01-02": 1,
+            }),
+        },
+    }
+
+    mock_counts = MagicMock(return_value=start_counts)
+    self.date_validator._count_start_dates_by_jurisdiction_role = mock_counts
+    office_coll = etree.fromstring("<OfficeCollection></OfficeCollection>")
+    self.date_validator.check(office_coll)
+
+  def testRaisesWarningIfAllStartDatesForJurisdictionAndRoleSame(self):
+    start_counts = {
+        "abcdefg": {
+            "jurisdiction_id": "ru-gpu1",
+            "office_role": "Upper house",
+            "start_dates": collections.Counter({
+                "2020-01-01": 1,
+            }),
+        },
+        "zyxwtuv": {
+            "jurisdiction_id": "ru-gpu2",
+            "office_role": "Lower house",
+            "start_dates": collections.Counter({
+                "2020-01-02": 2,
+            })
+        },
+    }
+
+    mock_counts = MagicMock(return_value=start_counts)
+    self.date_validator._count_start_dates_by_jurisdiction_role = mock_counts
+    office_coll = etree.fromstring("<OfficeCollection></OfficeCollection>")
+
+    with self.assertRaises(loggers.ElectionWarning) as ew:
+      self.date_validator.check(office_coll)
+
+    self.assertEqual(("'Only one unique Office > Term > StartDate found for "
+                      "each matching jurisdiction-id and office-role.'"),
+                     str(ew.exception))
+    self.assertEqual(("Only one unique StartDate found for each "
+                      "jurisdiction-id: ru-gpu2 and office-role: Lower house. "
+                      "2020-01-02 appears 2 times."),
+                     ew.exception.error_log[0].message)
+
+  def testAllowsDuplicatesAsLongAsDuplicatedDateIsNotOnlyDate(self):
+    start_counts = {
+        "abcdefg": {
+            "jurisdiction_id": "ru-gpu1",
+            "office_role": "Upper house",
+            "start_dates": collections.Counter({
+                "2020-01-01": 1,
+            }),
+        },
+        "zyxwtuv": {
+            "jurisdiction_id": "ru-gpu2",
+            "office_role": "Lower house",
+            "start_dates": collections.Counter({
+                "2020-01-02": 2,
+                "2020-01-04": 1,
+            }),
+        },
+    }
+
+    mock_counts = MagicMock(return_value=start_counts)
+    self.date_validator._count_start_dates_by_jurisdiction_role = mock_counts
+    office_coll = etree.fromstring("<OfficeCollection></OfficeCollection>")
+    self.date_validator.check(office_coll)
+
+
 class GpUnitsHaveInternationalizedNameTest(absltest.TestCase):
 
   def setUp(self):
@@ -6399,6 +6971,8 @@ class RulesTest(absltest.TestCase):
     possible_rules.remove(base.ValidReferenceRule)
     possible_rules.remove(rules.ValidatePartyCollection)
     possible_rules.remove(base.DateRule)
+    print("ALL RULES: ", len(all_rules))
+    print("POSSIBLE RULES: ", len(possible_rules))
     self.assertSetEqual(all_rules, possible_rules)
 
   def _subclasses(self, cls):

@@ -89,6 +89,15 @@ def get_additional_type_values(element, value_type, return_elements=False):
   return elements
 
 
+def get_entity_info_for_value_type(element, info_type, return_elements=False):
+  info_collection = get_additional_type_values(
+      element, info_type, return_elements)
+  info_collection.extend(
+      list(get_external_id_values(element, info_type, return_elements))
+  )
+  return info_collection
+
+
 def get_language_to_text_map(element):
   """Return a map of languages to text in an InternationalizedText element."""
   language_map = {}
@@ -1898,12 +1907,11 @@ class OfficesHaveJurisdictionID(base.BaseRule):
     return ["Office"]
 
   def check(self, element):
-    jurisdiction_values = get_additional_type_values(element, "jurisdiction-id")
-    jurisdiction_values.extend([
-        j_id.strip()
-        for j_id in get_external_id_values(element, "jurisdiction-id")
-        if j_id.strip()
-    ])
+    jurisdiction_values = get_entity_info_for_value_type(
+        element, "jurisdiction-id")
+    jurisdiction_values = [
+        j_id for j_id in jurisdiction_values if j_id.strip()
+    ]
     object_id = element.get("objectId")
     if not jurisdiction_values:
       raise loggers.ElectionError(
@@ -1922,8 +1930,8 @@ class ValidJurisdictionID(base.ValidReferenceRule):
 
   def _gather_reference_values(self):
     root = self.election_tree.getroot()
-    jurisdiction_values = get_additional_type_values(root, "jurisdiction-id")
-    jurisdiction_values.extend(get_external_id_values(root, "jurisdiction-id"))
+    jurisdiction_values = get_entity_info_for_value_type(
+        root, "jurisdiction-id")
     return set(jurisdiction_values)
 
   def _gather_defined_values(self):
@@ -2062,6 +2070,95 @@ class OfficeTermDates(base.DateRule):
     if self.error_log:
       raise loggers.ElectionError("The Office term dates are invalid.",
                                   self.error_log)
+
+
+class UniqueStartDatesForOfficeRoleAndJurisdiction(base.BaseRule):
+  """Office StartDates should be unique within a certain group.
+
+  Office StartDates should be unique amongst a group of Office entries
+  with the same jurisdiction-id and office-role.
+  """
+
+  def elements(self):
+    return ["OfficeCollection"]
+
+  def _filter_out_past_end_dates(self, offices):
+    valid_offices = []
+    for office in offices:
+      term = office.find(".//Term")
+      if term is not None:
+        date_validator = base.DateRule(None, None)
+        try:
+          date_validator.gather_dates(term)
+          if date_validator.end_date is not None:
+            date_validator.check_for_date_not_in_past(
+                date_validator.end_date, date_validator.end_elem)
+          if not date_validator.error_log:
+            valid_offices.append(office)
+        except loggers.ElectionError:
+          continue
+    return valid_offices
+
+  def _count_start_dates_by_jurisdiction_role(self, element):
+    offices = element.findall("Office")
+    offices = self._filter_out_past_end_dates(offices)
+    jurisdiction_role_mapping = {}
+    for office in offices:
+      office_role = ""
+      jurisdiction_id = ""
+      start_date = ""
+
+      start_date_elem = office.find(
+          ".//Term//StartDate"
+      )
+      if not element_has_text(start_date_elem):
+        continue
+      start_date = start_date_elem.text
+
+      office_roles = get_entity_info_for_value_type(office, "office-role")
+      if office_roles:
+        office_role = office_roles[0]
+
+      jurisdiction_ids = get_entity_info_for_value_type(
+          office, "jurisdiction-id")
+      if jurisdiction_ids:
+        jurisdiction_id = jurisdiction_ids[0]
+
+      office_hash = hashlib.sha256((
+          office_role + jurisdiction_id
+      ).encode("utf-8")).hexdigest()
+      if office_hash not in jurisdiction_role_mapping.keys():
+        jurisdiction_role_mapping[office_hash] = dict({
+            "jurisdiction_id": jurisdiction_id,
+            "office_role": office_role,
+            "start_dates": collections.Counter(),
+        })
+
+      jurisdiction_role_mapping.get(
+          office_hash)["start_dates"].update([start_date])
+
+    return jurisdiction_role_mapping
+
+  def check(self, element):
+    error_log = []
+
+    start_counts = self._count_start_dates_by_jurisdiction_role(element)
+    for start_info in start_counts.values():
+      start_date_count = start_info["start_dates"]
+      if len(start_date_count.keys()) == 1:
+        start_date = list(start_date_count.keys())[0]
+        # this accounts for offices with only one entry (i.e. US Pres)
+        if start_date_count[start_date] > 1:
+          error_log.append(loggers.ErrorLogEntry(None, (
+              "Only one unique StartDate found for each jurisdiction-id: {} and"
+              " office-role: {}. {} appears {} times.").format(
+                  start_info["jurisdiction_id"], start_info["office_role"],
+                  start_date, start_date_count[start_date])))
+
+    if error_log:
+      raise loggers.ElectionWarning((
+          "Only one unique Office > Term > StartDate found for each matching "
+          "jurisdiction-id and office-role."), error_log)
 
 
 class GpUnitsHaveInternationalizedName(base.BaseRule):
@@ -2341,6 +2438,7 @@ OFFICEHOLDER_RULES = COMMON_RULES + (
     PersonHasOffice,
     ProhibitElectionData,
     OfficeTermDates,
+    UniqueStartDatesForOfficeRoleAndJurisdiction,
 )
 
 ALL_RULES = frozenset(COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES)

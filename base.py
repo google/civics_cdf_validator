@@ -179,7 +179,7 @@ class DateRule(BaseRule):
     error_log = []
 
     self.start_elem = element.find("StartDate")
-    if self.start_elem is not None:
+    if self.start_elem is not None and self.start_elem.text is not None:
       try:
         self.start_date = datetime.datetime.strptime(
             self.start_elem.text, "%Y-%m-%d").date()
@@ -189,7 +189,7 @@ class DateRule(BaseRule):
             self.start_elem.sourceline, error_message))
 
     self.end_elem = element.find("EndDate")
-    if self.end_elem is not None:
+    if self.end_elem is not None and self.end_elem.text is not None:
       try:
         self.end_date = datetime.datetime.strptime(
             self.end_elem.text, "%Y-%m-%d").date()
