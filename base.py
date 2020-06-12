@@ -22,10 +22,6 @@ from civics_cdf_validator import loggers
 from civics_cdf_validator import stats
 from lxml import etree
 
-_SEVERITIES = (loggers.ElectionInfo,
-               loggers.ElectionWarning,
-               loggers.ElectionError)
-
 
 class SchemaHandler(object):
   """Base class for anything that parses an XML schema document."""
@@ -134,9 +130,9 @@ class ValidReferenceRule(TreeRule):
     invalid_references = reference_ids - defined_ids
 
     if invalid_references:
-      raise loggers.ElectionError("No defined {} for {} found in the feed."
-                                  .format(self.missing_element,
-                                          ", ".join(invalid_references)))
+      raise loggers.ElectionError.from_message(
+          ("No defined {} for {} found in the feed.".format(
+              self.missing_element, ", ".join(invalid_references))))
 
 
 class DateRule(BaseRule):
@@ -189,8 +185,7 @@ class DateRule(BaseRule):
             self.start_elem.text, "%Y-%m-%d").date()
       except ValueError:
         error_message = "The StartDate text should be of the format yyyy-mm-dd"
-        error_log.append(loggers.ErrorLogEntry(
-            self.start_elem.sourceline, error_message))
+        error_log.append(loggers.LogEntry(error_message, [self.start_elem]))
 
     self.end_elem = element.find("EndDate")
     if self.end_elem is not None and self.end_elem.text is not None:
@@ -199,20 +194,16 @@ class DateRule(BaseRule):
             self.end_elem.text, "%Y-%m-%d").date()
       except ValueError:
         error_message = "The EndDate text should be of the format yyyy-mm-dd"
-        error_log.append(loggers.ErrorLogEntry(
-            self.end_elem.sourceline, error_message))
+        error_log.append(loggers.LogEntry(error_message, [self.end_elem]))
 
     if error_log:
-      raise loggers.ElectionError(
-          "The format for the election dates are invalid: ",
-          error_log)
+      raise loggers.ElectionError(error_log)
 
   def check_for_date_not_in_past(self, date, date_elem):
     delta = (date - self.today).days
     if delta < 0:
       error_message = """The date {} is in the past.""".format(date)
-      self.error_log.append(
-          loggers.ErrorLogEntry(date_elem.sourceline, error_message))
+      self.error_log.append(loggers.LogEntry(error_message, [date_elem]))
 
   def check_end_after_start(self):
     start_end_delta = (self.end_date - self.start_date).days
@@ -220,8 +211,7 @@ class DateRule(BaseRule):
       error_message = """The dates (start: {}, end: {}) are invalid.
       The end date must be the same or after the start date.""".format(
           self.start_date, self.end_date)
-      self.error_log.append(
-          loggers.ErrorLogEntry(self.end_elem.sourceline, error_message))
+      self.error_log.append(loggers.LogEntry(error_message, [self.end_elem]))
 
 
 class MissingFieldRule(BaseRule):
@@ -237,11 +227,12 @@ class MissingFieldRule(BaseRule):
 
   def setup(self):
     severity = self.get_severity()
-    if (severity > len(_SEVERITIES)
+    handled_severities = loggers.handled_severities()
+    if (severity > len(handled_severities)
         or severity < 0):
       raise Exception(("Invalid severity. Must be either 0 (Info), "
                        "1 (Warning), or 2 (Error)"))
-    self.exception = _SEVERITIES[severity]
+    self.exception = handled_severities[severity]
 
   def elements(self):
     return list(self.element_field_mapping().keys())
@@ -254,15 +245,12 @@ class MissingFieldRule(BaseRule):
       required_field = element.find(field_tag)
       if (required_field is None or required_field.text is None
           or not required_field.text.strip()):
-        error_log.append(
-            loggers.ErrorLogEntry(None, (
-                "Line {}. Element {} (objectId: {}) is missing "
-                "field {}.").format(element.sourceline, element.tag,
-                                    element.get("objectId"), field_tag)))
+        error_log.append(loggers.LogEntry(
+            "The element {} is missing field {}.".format(element.tag,
+                                                         field_tag), [element]))
 
     if error_log:
-      raise self.exception("{} is missing fields.".format(
-          element.tag), error_log)
+      raise self.exception(error_log)
 
 
 class RuleOption(object):
@@ -288,16 +276,8 @@ class RulesRegistry(SchemaHandler):
     self.rule_classes_to_check = rule_classes_to_check
     self.rule_options = rule_options
     self.registry = {}
-    self.exceptions = {}
-    self.exception_counts = {}
-    self.exception_rule_counts = {}
-    self.total_count = 0
+    self.exceptions_wrapper = loggers.ExceptionListWrapper()
     self.election_tree = None
-
-    for e_type in _SEVERITIES:
-      self.exceptions[e_type] = dict()
-      self.exception_counts[e_type] = 0
-      self.exception_rule_counts[e_type] = dict()
 
   def register_rules(self):
     """Register all the rules to be checked.
@@ -317,64 +297,8 @@ class RulesRegistry(SchemaHandler):
         else:
           self.registry[element] = [rule_instance]
 
-  def exception_handler(self, rule, exception):
-    """Gather error counts by type, class, and total."""
-    for e_type in self.exceptions:
-      if issubclass(exception.__class__, e_type):
-        if rule.__class__ not in self.exceptions[e_type]:
-          self.exceptions[e_type][rule.__class__] = []
-          self.exception_rule_counts[e_type][rule.__class__] = 0
-        self.exceptions[e_type][rule.__class__].append(exception)
-        error_count = 1
-        if exception.error_log:
-          error_count = len(exception.error_log)
-        self.exception_counts[e_type] += error_count
-        self.exception_rule_counts[e_type][rule.__class__] += error_count
-        self.total_count += error_count
-
   def print_exceptions(self, severity, verbose):
-    """Print exceptions in decreasing order of severity."""
-    if not severity:
-      severity = 0
-    elif severity > len(_SEVERITIES):
-      severity = len(_SEVERITIES) - 1
-    exception_types = _SEVERITIES[severity:]
-    if self.total_count == 0:
-      print("Validation completed with no warnings/errors.")
-      return
-    for e_type in reversed(exception_types):
-      suffix = ""
-      if self.exception_counts[e_type] == 0:
-        continue
-      elif self.exception_counts[e_type] > 1:
-        suffix = "s"
-      e_type_name = e_type.description
-      print("{0:6d} {1} message{2} found".format(self.exception_counts[e_type],
-                                                 e_type_name, suffix))
-      # pylint: disable=cell-var-from-loop
-      # Within the error severity, sort from most common to least common.
-      for rule_class in sorted(
-          self.exceptions[e_type].keys(),
-          key=lambda rclass: self.exception_rule_counts[e_type][rclass],
-          reverse=True):
-        rule_class_name = rule_class.__name__
-        rule_count = self.exception_rule_counts[e_type][rule_class]
-        rule_suffix = ""
-        if rule_count > 1:
-          rule_suffix = "s"
-        print("{0:10d} {1} {2} message{3}".format(rule_count, rule_class_name,
-                                                  e_type_name, rule_suffix))
-        if verbose:
-          for exception in self.exceptions[e_type][rule_class]:
-            if not exception.error_log:
-              print(" " * 14 + "{0}".format(exception))
-              continue
-            for error in exception.error_log:
-              if error.line is not None:
-                print(" " * 14 +
-                      u"Line {0}: {1}".format(error.line, error.message))
-              else:
-                print(" " * 14 + u"{0}".format(error.message))
+    self.exceptions_wrapper.print_exceptions(severity, verbose)
 
   def count_stats(self):
     """Aggregates the counts for each top level entity."""
@@ -401,16 +325,17 @@ class RulesRegistry(SchemaHandler):
       self.schema_tree = etree.parse(self.schema_file)
       self.election_tree = etree.parse(self.election_file)
     except etree.LxmlError as e:
-      print("Fatal Error. XML file could not be parsed. {}".format(e))
-      self.exception_counts[loggers.ElectionError] += 1
-      self.total_count += 1
+      exp = loggers.ElectionFatal.from_message(
+          "Fatal Error. XML file could not be parsed. {}".format(e))
+      self.exceptions_wrapper.exception_handler(exp)
       return
     self.register_rules()
     for rule in self.registry.get("tree", []):
       try:
         rule.check()
       except loggers.ElectionException as e:
-        self.exception_handler(rule, e)
+        rule_name = rule.__class__.__name__
+        self.exceptions_wrapper.exception_handler(e, rule_name)
     for _, element in etree.iterwalk(self.election_tree, events=("end",)):
       tag = self.get_element_class(element)
 
@@ -421,4 +346,5 @@ class RulesRegistry(SchemaHandler):
         try:
           element_rule.check(element)
         except loggers.ElectionException as e:
-          self.exception_handler(element_rule, e)
+          rule_name = element_rule.__class__.__name__
+          self.exceptions_wrapper.exception_handler(e, rule_name)

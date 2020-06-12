@@ -100,10 +100,14 @@ class SamplesTest(absltest.TestCase):
 
     registry.check_rules()
     registry.print_exceptions(0, True)
-    self.assertEqual(expected_errors,
-                     registry.exception_counts[loggers.ElectionError])
-    self.assertEqual(expected_warnings,
-                     registry.exception_counts[loggers.ElectionWarning])
+    self.assertEqual(
+        expected_errors,
+        registry.exceptions_wrapper.count_logs_with_exception_type(
+            loggers.ElectionError))
+    self.assertEqual(
+        expected_warnings,
+        registry.exceptions_wrapper.count_logs_with_exception_type(
+            loggers.ElectionWarning))
 
 
 if __name__ == '__main__':

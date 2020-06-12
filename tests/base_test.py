@@ -40,8 +40,8 @@ class ValidReferenceRuleTest(absltest.TestCase):
   def testRaisesAnErrorIfAValueDoesNotReferenceADefinedValue(self):
     with self.assertRaises(loggers.ElectionError) as ee:
       base.ValidReferenceRule(None, None).check()
-    self.assertIn("id-5", str(ee.exception))
-    self.assertIn("id-6", str(ee.exception))
+    self.assertIn("id-5", ee.exception.log_entry[0].message)
+    self.assertIn("id-6", ee.exception.log_entry[0].message)
 
 
 class DateRuleTest(absltest.TestCase):
@@ -123,10 +123,10 @@ class DateRuleTest(absltest.TestCase):
   def testDoesNotAssignDatesIfElementsNotFound(self):
     election_string = "<Election></Election>"
     self.date_validator.gather_dates(etree.fromstring(election_string))
-    self.assertEqual(None, self.date_validator.start_date)
-    self.assertEqual(None, self.date_validator.start_elem)
-    self.assertEqual(None, self.date_validator.end_date)
-    self.assertEqual(None, self.date_validator.end_elem)
+    self.assertIsNone(None, self.date_validator.start_date)
+    self.assertIsNone(None, self.date_validator.start_elem)
+    self.assertIsNone(None, self.date_validator.end_date)
+    self.assertIsNone(None, self.date_validator.end_elem)
 
   # check_for_date_not_in_past tests
   def testProvidedDateIsNotInThePast(self):
@@ -246,9 +246,10 @@ class MissingFieldRuleTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionError) as ee:
       self.validator.check(etree.fromstring(person))
-    self.assertEqual("'Person is missing fields.'", str(ee.exception))
-    self.assertIn(("Element Person (objectId: 123) is missing field"
-                   " FullName//Text."), str(ee.exception.error_log[0].message))
+    self.assertEqual(ee.exception.log_entry[0].message,
+                     "The element Person is missing field FullName//Text.")
+    self.assertEqual(ee.exception.log_entry[0].elements[0].get("objectId"),
+                     "123")
 
   def testRaisesExceptionIfFieldIsMissing_Warning(self):
     person = """
@@ -263,9 +264,10 @@ class MissingFieldRuleTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionWarning) as ew:
       self.validator.check(etree.fromstring(person))
-    self.assertEqual("'Person is missing fields.'", str(ew.exception))
-    self.assertIn(("Element Person (objectId: 123) is missing field"
-                   " FullName//Text."), str(ew.exception.error_log[0].message))
+    self.assertEqual(ew.exception.log_entry[0].message,
+                     "The element Person is missing field FullName//Text.")
+    self.assertEqual(ew.exception.log_entry[0].elements[0].get("objectId"),
+                     "123")
 
   def testRaisesExceptionIfFieldIsMissing_Info(self):
     person = """
@@ -280,9 +282,10 @@ class MissingFieldRuleTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionInfo) as ei:
       self.validator.check(etree.fromstring(person))
-    self.assertEqual("'Person is missing fields.'", str(ei.exception))
-    self.assertIn(("Element Person (objectId: 123) is missing field"
-                   " FullName//Text."), str(ei.exception.error_log[0].message))
+    self.assertEqual(ei.exception.log_entry[0].message,
+                     "The element Person is missing field FullName//Text.")
+    self.assertEqual(ei.exception.log_entry[0].elements[0].get("objectId"),
+                     "123")
 
   def testRaisesExceptionIfFieldIsEmpty(self):
     person = """
@@ -300,9 +303,10 @@ class MissingFieldRuleTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionError) as ee:
       self.validator.check(etree.fromstring(person))
-    self.assertEqual("'Person is missing fields.'", str(ee.exception))
-    self.assertIn(("Element Person (objectId: 123) is missing field"
-                   " FullName//Text."), str(ee.exception.error_log[0].message))
+    self.assertEqual(ee.exception.log_entry[0].message,
+                     "The element Person is missing field FullName//Text.")
+    self.assertEqual(ee.exception.log_entry[0].elements[0].get("objectId"),
+                     "123")
 
   def testRaisesExceptionIfFieldIsWhiteSpace(self):
     person = """
@@ -320,9 +324,10 @@ class MissingFieldRuleTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionError) as ee:
       self.validator.check(etree.fromstring(person))
-    self.assertEqual("'Person is missing fields.'", str(ee.exception))
-    self.assertIn(("Element Person (objectId: 123) is missing field"
-                   " FullName//Text."), str(ee.exception.error_log[0].message))
+    self.assertEqual(ee.exception.log_entry[0].message,
+                     "The element Person is missing field FullName//Text.")
+    self.assertEqual(ee.exception.log_entry[0].elements[0].get("objectId"),
+                     "123")
 
   def testHandlesMultipleFieldsPerEntity(self):
     person = """
@@ -337,11 +342,14 @@ class MissingFieldRuleTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionError) as ee:
       self.validator.check(etree.fromstring(person))
-    self.assertEqual("'Person is missing fields.'", str(ee.exception))
-    self.assertIn(("Element Person (objectId: 123) is missing field"
-                   " FullName//Text."), str(ee.exception.error_log[0].message))
-    self.assertIn(("Element Person (objectId: 123) is missing field"
-                   " PartyId."), str(ee.exception.error_log[1].message))
+    self.assertEqual(ee.exception.log_entry[0].message,
+                     "The element Person is missing field FullName//Text.")
+    self.assertEqual(ee.exception.log_entry[0].elements[0].get("objectId"),
+                     "123")
+    self.assertEqual(ee.exception.log_entry[1].message,
+                     "The element Person is missing field PartyId.")
+    self.assertEqual(ee.exception.log_entry[1].elements[0].get("objectId"),
+                     "123")
 
 
 class RulesRegistryTest(absltest.TestCase):
