@@ -22,6 +22,10 @@ from civics_cdf_validator import loggers
 from civics_cdf_validator import stats
 from lxml import etree
 
+_SEVERITIES = (loggers.ElectionInfo,
+               loggers.ElectionWarning,
+               loggers.ElectionError)
+
 
 class SchemaHandler(object):
   """Base class for anything that parses an XML schema document."""
@@ -220,6 +224,47 @@ class DateRule(BaseRule):
           loggers.ErrorLogEntry(self.end_elem.sourceline, error_message))
 
 
+class MissingFieldRule(BaseRule):
+  """Check for required fields for given entity types and field names."""
+
+  def get_severity(self):
+    """Return 0 for Info, 1 for Warning, or 2 for Error."""
+    raise NotImplementedError
+
+  def element_field_mapping(self):
+    """Return a map of element tag to list of required fields."""
+    raise NotImplementedError
+
+  def setup(self):
+    severity = self.get_severity()
+    if (severity > len(_SEVERITIES)
+        or severity < 0):
+      raise Exception(("Invalid severity. Must be either 0 (Info), "
+                       "1 (Warning), or 2 (Error)"))
+    self.exception = _SEVERITIES[severity]
+
+  def elements(self):
+    return list(self.element_field_mapping().keys())
+
+  def check(self, element):
+    error_log = []
+
+    required_field_tags = self.element_field_mapping()[element.tag]
+    for field_tag in required_field_tags:
+      required_field = element.find(field_tag)
+      if (required_field is None or required_field.text is None
+          or not required_field.text.strip()):
+        error_log.append(
+            loggers.ErrorLogEntry(None, (
+                "Line {}. Element {} (objectId: {}) is missing "
+                "field {}.").format(element.sourceline, element.tag,
+                                    element.get("objectId"), field_tag)))
+
+    if error_log:
+      raise self.exception("{} is missing fields.".format(
+          element.tag), error_log)
+
+
 class RuleOption(object):
   class_name = None
   option_name = None
@@ -232,10 +277,6 @@ class RuleOption(object):
 
 class RulesRegistry(SchemaHandler):
   """Registry of rules and the elements they check."""
-
-  _SEVERITIES = (loggers.ElectionInfo,
-                 loggers.ElectionWarning,
-                 loggers.ElectionError)
 
   _TOP_LEVEL_ENTITIES = set(
       ["Party", "GpUnit", "Office", "Person", "Candidate", "Contest"])
@@ -253,7 +294,7 @@ class RulesRegistry(SchemaHandler):
     self.total_count = 0
     self.election_tree = None
 
-    for e_type in self._SEVERITIES:
+    for e_type in _SEVERITIES:
       self.exceptions[e_type] = dict()
       self.exception_counts[e_type] = 0
       self.exception_rule_counts[e_type] = dict()
@@ -295,9 +336,9 @@ class RulesRegistry(SchemaHandler):
     """Print exceptions in decreasing order of severity."""
     if not severity:
       severity = 0
-    elif severity > len(self._SEVERITIES):
-      severity = len(self._SEVERITIES) - 1
-    exception_types = self._SEVERITIES[severity:]
+    elif severity > len(_SEVERITIES):
+      severity = len(_SEVERITIES) - 1
+    exception_types = _SEVERITIES[severity:]
     if self.total_count == 0:
       print("Validation completed with no warnings/errors.")
       return

@@ -1415,24 +1415,6 @@ class MissingStableIds(base.BaseRule):
           (element.sourceline, element_name, object_id))
 
 
-class CandidatesMissingPartyData(base.BaseRule):
-  """Each Candidate should have party data associated with it.
-
-  A Candidate object that has no PartyId attached to it should be picked up
-  within this class and returned to the user as a warning.
-  """
-
-  def elements(self):
-    return ["Candidate"]
-
-  def check(self, element):
-    party_id = element.find("PartyId")
-    if party_id is None or not party_id.text:
-      raise loggers.ElectionWarning(
-          "Line %d: Candidate %s is missing party data" %
-          (element.sourceline, element.get("objectId")))
-
-
 class PersonsMissingPartyData(base.BaseRule):
   """Each Officeholder Person should have a Party associated with it.
 
@@ -2321,46 +2303,47 @@ class ImproperCandidateContest(base.TreeRule):
                                     error_log)
 
 
-class RequiredFields(base.BaseRule):
-  """Check for required fields for given entity types and field names.
+class MissingFieldsError(base.MissingFieldRule):
+  """Check for missing fields for given entity types and field names.
 
-  To add a field, include the entity and field in the _element_field_mapping
-  and add the entity to the elements list.
+  Raise error for missing fields. To add a field, include the entity
+  and field in element_field_mapping.
   """
 
-  _element_field_mapping = {
-      "Person": [
-          "FullName//Text",
-      ],
-      "Candidate": [
-          "PersonId",
-      ],
-      "Election": [
-          "StartDate",
-          "EndDate",
-      ],
-  }
+  def get_severity(self):
+    return 2
 
-  def elements(self):
-    return list(self._element_field_mapping.keys())
+  def element_field_mapping(self):
+    return {
+        "Person": [
+            "FullName//Text",
+        ],
+        "Candidate": [
+            "PersonId",
+        ],
+        "Election": [
+            "StartDate",
+            "EndDate",
+        ],
+    }
 
-  def check(self, element):
-    error_log = []
 
-    required_field_tags = self._element_field_mapping[element.tag]
-    for field_tag in required_field_tags:
-      required_field = element.find(field_tag)
-      if (required_field is None or required_field.text is None
-          or not required_field.text.strip()):
-        error_log.append(
-            loggers.ErrorLogEntry(None, (
-                "Line {}. Element {} (objectId: {}) is missing required "
-                "field {}.").format(element.sourceline, element.tag,
-                                    element.get("objectId"), field_tag)))
+class MissingFieldsWarning(base.MissingFieldRule):
+  """Check for missing fields for given entity types and field names.
 
-    if error_log:
-      raise loggers.ElectionError("{} is missing required fields.".format(
-          element.tag), error_log)
+  Raise warning for missing fields. To add a field, include the entity
+  and field in element_field_mapping.
+  """
+
+  def get_severity(self):
+    return 1
+
+  def element_field_mapping(self):
+    return {
+        "Candidate": [
+            "PartyId",
+        ],
+    }
 
 
 class RuleSet(enum.Enum):
@@ -2403,11 +2386,11 @@ COMMON_RULES = (
     PersonHasUniqueFullName,
     PersonsMissingPartyData,
     GpUnitsHaveInternationalizedName,
-    RequiredFields,
+    MissingFieldsError,
+    MissingFieldsWarning,
 )
 
 ELECTION_RULES = COMMON_RULES + (
-    CandidatesMissingPartyData,
     CoalitionParties,
     DuplicateContestNames,
     ElectoralDistrictOcdId,

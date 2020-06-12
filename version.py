@@ -5,5 +5,6 @@ No dependencies should be added to this module.
 See https://packaging.python.org/guides/single-sourcing-package-version/
 """
 
-__version__ = '1.5.dev1'
+__version__ = '1.5.dev2'
+
 

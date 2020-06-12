@@ -6884,82 +6884,119 @@ class ImproperCandidateContestTest(absltest.TestCase):
     self.assertIn("con987", ew.exception.error_log[0].message)
 
 
-class RequiredFieldsTest(absltest.TestCase):
+class MissingFieldsErrorTest(absltest.TestCase):
 
   def setUp(self):
-    super(RequiredFieldsTest, self).setUp()
-    self.field_validator = rules.RequiredFields(None, None)
+    super(MissingFieldsErrorTest, self).setUp()
+    self.field_validator = rules.MissingFieldsError(None, None)
+    self.field_validator.setup()
 
-  def testEachElementHasCorrespondingRequiredField(self):
-    elements = self.field_validator.elements()
-    registered_elements = self.field_validator._element_field_mapping.keys()
-
-    for registered_element in registered_elements:
-      self.assertIn(registered_element, elements)
+  def testSetsSeverityLevelToError(self):
+    self.assertEqual(2, self.field_validator.get_severity())
 
   def testRequiredFieldIsPresent_Person(self):
     person = """
-      <Person>
+      <Person objectId="123">
         <FullName>
-          <Text language="en">Michael Scott</Text>
-         </FullName>
+          <Text>Chris Rock</Text>
+        </FullName>
       </Person>
     """
     self.field_validator.check(etree.fromstring(person))
 
+  def testRaisesErrorForMissingField_Person(self):
+    person = """
+      <Person objectId="123">
+      </Person>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.field_validator.check(etree.fromstring(person))
+
+    self.assertEqual("'Person is missing fields.'", str(ee.exception))
+    self.assertIn(("Element Person (objectId: 123) is missing field"
+                   " FullName//Text."), str(ee.exception.error_log[0].message))
+
   def testRequiredFieldIsPresent_Candidate(self):
     candidate = """
-      <Candidate>
-        <PersonId>per12345</PersonId>
+      <Candidate objectId="123">
+        <PersonId>per1</PersonId>
       </Candidate>
     """
     self.field_validator.check(etree.fromstring(candidate))
 
-  def testThrowsErrorIfFieldIsMissing_Person(self):
-    person = """
-      <Person objectId="123">
-      </Person>
+  def testRaisesErrorForMissingField_Candidate(self):
+    candidate = """
+      <Candidate objectId="123">
+        <PersonId></PersonId>
+      </Candidate>
     """
-    with self.assertRaises(loggers.ElectionError) as ee:
-      self.field_validator.check(etree.fromstring(person))
-    self.assertIn(("Element Person (objectId: 123) is missing required field"
-                   " FullName//Text."), str(ee.exception.error_log[0].message))
 
-  def testThrowsErrorIfFieldIsMissing_Candidate(self):
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.field_validator.check(etree.fromstring(candidate))
+
+    self.assertEqual(
+        "'Candidate is missing fields.'", str(ee.exception))
+    self.assertIn(("Element Candidate (objectId: 123) is missing field"
+                   " PersonId."), str(ee.exception.error_log[0].message))
+
+  def testRequiredFieldIsPresent_Election(self):
+    election = """
+      <Election objectId="123">
+        <StartDate>2020-01-01</StartDate>
+        <EndDate>2020-01-01</EndDate>
+      </Election>
+    """
+    self.field_validator.check(etree.fromstring(election))
+
+  def testRaisesErrorForMissingField_Election(self):
+    election = """
+      <Election objectId="123">
+      </Election>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.field_validator.check(etree.fromstring(election))
+
+    self.assertEqual(
+        "'Election is missing fields.'", str(ee.exception))
+    self.assertIn(("Element Election (objectId: 123) is missing field"
+                   " StartDate."), str(ee.exception.error_log[0].message))
+    self.assertIn(("Element Election (objectId: 123) is missing field"
+                   " EndDate."), str(ee.exception.error_log[1].message))
+
+
+class MissingFieldsWarningTest(absltest.TestCase):
+
+  def setUp(self):
+    super(MissingFieldsWarningTest, self).setUp()
+    self.field_validator = rules.MissingFieldsWarning(None, None)
+    self.field_validator.setup()
+
+  def testSetsSeverityLevelToWarning(self):
+    self.assertEqual(1, self.field_validator.get_severity())
+
+  def testRequiredFieldIsPresent_Candidate(self):
+    candidate = """
+      <Candidate objectId="123">
+        <PartyId>par1</PartyId>
+      </Candidate>
+    """
+    self.field_validator.check(etree.fromstring(candidate))
+
+  def testRaisesWarningForMissingField_Candidate(self):
     candidate = """
       <Candidate objectId="123">
       </Candidate>
     """
-    with self.assertRaises(loggers.ElectionError) as ee:
+
+    with self.assertRaises(loggers.ElectionWarning) as ew:
       self.field_validator.check(etree.fromstring(candidate))
-    self.assertIn(("Element Candidate (objectId: 123) is missing required field"
-                   " PersonId."), str(ee.exception.error_log[0].message))
 
-  def testThrowsErrorIfFieldIsEmpty(self):
-    person = """
-      <Person objectId="123">
-        <FullName>
-          <Text language="en"></Text>
-         </FullName>
-      </Person>
-    """
-    with self.assertRaises(loggers.ElectionError) as ee:
-      self.field_validator.check(etree.fromstring(person))
-    self.assertIn(("Element Person (objectId: 123) is missing required field"
-                   " FullName//Text."), str(ee.exception.error_log[0].message))
-
-  def testThrowsErrorIfFieldIsWhiteSpace(self):
-    person = """
-      <Person objectId="123">
-        <FullName>
-          <Text language="en">   </Text>
-        </FullName>
-      </Person>
-    """
-    with self.assertRaises(loggers.ElectionError) as ee:
-      self.field_validator.check(etree.fromstring(person))
-    self.assertIn(("Element Person (objectId: 123) is missing required field"
-                   " FullName//Text."), str(ee.exception.error_log[0].message))
+    self.assertEqual(
+        "'Candidate is missing fields.'", str(ew.exception))
+    self.assertIn(("Element Candidate (objectId: 123) is missing field"
+                   " PartyId."), str(ew.exception.error_log[0].message))
 
 
 class RulesTest(absltest.TestCase):
@@ -6971,8 +7008,7 @@ class RulesTest(absltest.TestCase):
     possible_rules.remove(base.ValidReferenceRule)
     possible_rules.remove(rules.ValidatePartyCollection)
     possible_rules.remove(base.DateRule)
-    print("ALL RULES: ", len(all_rules))
-    print("POSSIBLE RULES: ", len(possible_rules))
+    possible_rules.remove(base.MissingFieldRule)
     self.assertSetEqual(all_rules, possible_rules)
 
   def _subclasses(self, cls):
@@ -6985,3 +7021,4 @@ class RulesTest(absltest.TestCase):
 
 if __name__ == "__main__":
   absltest.main()
+

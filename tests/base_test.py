@@ -8,6 +8,7 @@ from absl.testing import absltest
 from civics_cdf_validator import base
 from civics_cdf_validator import loggers
 from lxml import etree
+from mock import MagicMock
 from mock import patch
 
 
@@ -161,6 +162,186 @@ class DateRuleTest(absltest.TestCase):
     self.assertLen(self.date_validator.error_log, 1)
     self.assertIn("The end date must be the same or after the start date.",
                   self.date_validator.error_log[0].message)
+
+
+class MissingFieldRuleTest(absltest.TestCase):
+
+  def setUp(self):
+    super(MissingFieldRuleTest, self).setUp()
+    self.validator = base.MissingFieldRule(None, None)
+
+  # get_severity test
+  def testShouldReturnSeverityLevelOfException(self):
+    with self.assertRaises(NotImplementedError):
+      self.validator.get_severity()
+
+  # element_field_mapping test
+  def testShouldReturnADictOfEntitiesToRequiredFields(self):
+    with self.assertRaises(NotImplementedError):
+      self.validator.element_field_mapping()
+
+  # setup tests
+  def testSetsExceptionWhenSeverityProperlySet_Info(self):
+    self.validator.get_severity = MagicMock(return_value=0)
+    self.validator.setup()
+    self.assertEqual(loggers.ElectionInfo, self.validator.exception)
+
+  def testSetsExceptionWhenSeverityProperlySet_Warning(self):
+    self.validator.get_severity = MagicMock(return_value=1)
+    self.validator.setup()
+    self.assertEqual(loggers.ElectionWarning, self.validator.exception)
+
+  def testSetsExceptionWhenSeverityProperlySet_Error(self):
+    self.validator.get_severity = MagicMock(return_value=2)
+    self.validator.setup()
+    self.assertEqual(loggers.ElectionError, self.validator.exception)
+
+  def testRaisesExceptionWhenGivenInvalidSeverity(self):
+    self.validator.get_severity = MagicMock(return_value=-1)
+    with self.assertRaises(Exception):
+      self.validator.setup()
+
+    self.validator.get_severity = MagicMock(return_value=-3)
+    with self.assertRaises(Exception):
+      self.validator.setup()
+
+  # elements test
+  def testElementsReturnsKeysFromFieldMapping(self):
+    elements = {
+        "Person": ["PartyId", "CandidateId"],
+        "Office": ["Term//StartDate"],
+    }
+    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    registered_elements = self.validator.elements()
+
+    for registered_element in registered_elements:
+      self.assertIn(registered_element, elements.keys())
+
+  # check tests
+  def testRequiredFieldIsPresent(self):
+    person = """
+      <Person>
+        <FullName>
+          <Text language="en">Michael Scott</Text>
+         </FullName>
+      </Person>
+    """
+    elements = {
+        "Person": ["FullName//Text"],
+    }
+    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.check(etree.fromstring(person))
+
+  # check tests
+  def testRaisesExceptionIfFieldIsMissing_Error(self):
+    person = """
+      <Person objectId="123">
+      </Person>
+    """
+    elements = {
+        "Person": ["FullName//Text"],
+    }
+    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.exception = loggers.ElectionError
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.validator.check(etree.fromstring(person))
+    self.assertEqual("'Person is missing fields.'", str(ee.exception))
+    self.assertIn(("Element Person (objectId: 123) is missing field"
+                   " FullName//Text."), str(ee.exception.error_log[0].message))
+
+  def testRaisesExceptionIfFieldIsMissing_Warning(self):
+    person = """
+      <Person objectId="123">
+      </Person>
+    """
+    elements = {
+        "Person": ["FullName//Text"],
+    }
+    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.exception = loggers.ElectionWarning
+
+    with self.assertRaises(loggers.ElectionWarning) as ew:
+      self.validator.check(etree.fromstring(person))
+    self.assertEqual("'Person is missing fields.'", str(ew.exception))
+    self.assertIn(("Element Person (objectId: 123) is missing field"
+                   " FullName//Text."), str(ew.exception.error_log[0].message))
+
+  def testRaisesExceptionIfFieldIsMissing_Info(self):
+    person = """
+      <Person objectId="123">
+      </Person>
+    """
+    elements = {
+        "Person": ["FullName//Text"],
+    }
+    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.exception = loggers.ElectionInfo
+
+    with self.assertRaises(loggers.ElectionInfo) as ei:
+      self.validator.check(etree.fromstring(person))
+    self.assertEqual("'Person is missing fields.'", str(ei.exception))
+    self.assertIn(("Element Person (objectId: 123) is missing field"
+                   " FullName//Text."), str(ei.exception.error_log[0].message))
+
+  def testRaisesExceptionIfFieldIsEmpty(self):
+    person = """
+      <Person objectId="123">
+        <FullName>
+          <Text></Text>
+        </FullName>
+      </Person>
+    """
+    elements = {
+        "Person": ["FullName//Text"],
+    }
+    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.exception = loggers.ElectionError
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.validator.check(etree.fromstring(person))
+    self.assertEqual("'Person is missing fields.'", str(ee.exception))
+    self.assertIn(("Element Person (objectId: 123) is missing field"
+                   " FullName//Text."), str(ee.exception.error_log[0].message))
+
+  def testRaisesExceptionIfFieldIsWhiteSpace(self):
+    person = """
+      <Person objectId="123">
+        <FullName>
+          <Text>   </Text>
+        </FullName>
+      </Person>
+    """
+    elements = {
+        "Person": ["FullName//Text"],
+    }
+    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.exception = loggers.ElectionError
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.validator.check(etree.fromstring(person))
+    self.assertEqual("'Person is missing fields.'", str(ee.exception))
+    self.assertIn(("Element Person (objectId: 123) is missing field"
+                   " FullName//Text."), str(ee.exception.error_log[0].message))
+
+  def testHandlesMultipleFieldsPerEntity(self):
+    person = """
+      <Person objectId="123">
+      </Person>
+    """
+    elements = {
+        "Person": ["FullName//Text", "PartyId"],
+    }
+    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.exception = loggers.ElectionError
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.validator.check(etree.fromstring(person))
+    self.assertEqual("'Person is missing fields.'", str(ee.exception))
+    self.assertIn(("Element Person (objectId: 123) is missing field"
+                   " FullName//Text."), str(ee.exception.error_log[0].message))
+    self.assertIn(("Element Person (objectId: 123) is missing field"
+                   " PartyId."), str(ee.exception.error_log[1].message))
 
 
 class RulesRegistryTest(absltest.TestCase):
