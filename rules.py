@@ -1972,11 +1972,14 @@ class UniqueStartDatesForOfficeRoleAndJurisdiction(base.BaseRule):
         jurisdiction_role_mapping[office_hash] = dict({
             "jurisdiction_id": jurisdiction_id,
             "office_role": office_role,
-            "start_dates": collections.Counter(),
+            "start_dates": dict({}),
         })
 
-      jurisdiction_role_mapping.get(
-          office_hash)["start_dates"].update([start_date])
+      office_date_info = jurisdiction_role_mapping[office_hash]
+      if start_date not in office_date_info["start_dates"].keys():
+        office_date_info["start_dates"][start_date] = set()
+
+      office_date_info["start_dates"][start_date].add(office)
 
     return jurisdiction_role_mapping
 
@@ -1985,16 +1988,17 @@ class UniqueStartDatesForOfficeRoleAndJurisdiction(base.BaseRule):
 
     start_counts = self._count_start_dates_by_jurisdiction_role(element)
     for start_info in start_counts.values():
-      start_date_count = start_info["start_dates"]
-      if len(start_date_count.keys()) == 1:
-        start_date = list(start_date_count.keys())[0]
+      start_date_map = start_info["start_dates"]
+      if len(start_date_map.keys()) == 1:
+        start_date = list(start_date_map.keys())[0]
         # this accounts for offices with only one entry (i.e. US Pres)
-        if start_date_count[start_date] > 1:
+        if len(start_date_map[start_date]) > 1:
           warning_log.append(loggers.LogEntry(
               ("Only one unique StartDate found for each jurisdiction-id: {} "
                "and office-role: {}. {} appears {} times.").format(
                    start_info["jurisdiction_id"], start_info["office_role"],
-                   start_date, start_date_count[start_date]), [element]))
+                   start_date, len(start_date_map[start_date])),
+              start_date_map[start_date]))
 
     if warning_log:
       raise loggers.ElectionWarning(warning_log)

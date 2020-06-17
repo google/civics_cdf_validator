@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Unit test for rules.py."""
 
-import collections
 import datetime
 import hashlib
 import inspect
@@ -5944,11 +5943,12 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
     o3_info = {"date": "2020-03-03", "juris": "ru-gpu3", "role": "Lower house"}
     office_three = self._office_string.format(info=o3_info)
 
-    office_collection = office_coll_string.format(
+    office_collection_str = office_coll_string.format(
         office_one, office_two, office_three)
+    office_collection = etree.fromstring(office_collection_str)
 
     mapping = self.date_validator._count_start_dates_by_jurisdiction_role(
-        etree.fromstring(office_collection)
+        office_collection
     )
 
     self.assertLen(mapping.keys(), 3)
@@ -5959,9 +5959,11 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
     expected_o1_mapping = {
         "jurisdiction_id": o1_info["juris"],
         "office_role": o1_info["role"],
-        "start_dates": collections.Counter({
-            o1_info["date"]: 1,
-        }),
+        "start_dates": {
+            o1_info["date"]: set([
+                office_collection.findall("Office")[0],
+            ]),
+        },
     }
     self.assertIn(o1_hash, mapping.keys())
     self.assertEqual(expected_o1_mapping, mapping[o1_hash])
@@ -5972,9 +5974,11 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
     expected_o2_mapping = {
         "jurisdiction_id": o2_info["juris"],
         "office_role": o2_info["role"],
-        "start_dates": collections.Counter({
-            o2_info["date"]: 1,
-        }),
+        "start_dates": {
+            o2_info["date"]: set([
+                office_collection.findall("Office")[1]
+            ]),
+        },
     }
     self.assertIn(o2_hash, mapping.keys())
     self.assertEqual(expected_o2_mapping, mapping[o2_hash])
@@ -5985,9 +5989,11 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
     expected_o3_mapping = {
         "jurisdiction_id": o3_info["juris"],
         "office_role": o3_info["role"],
-        "start_dates": collections.Counter({
-            o3_info["date"]: 1,
-        }),
+        "start_dates": {
+            o3_info["date"]: set([
+                office_collection.findall("Office")[2]
+            ]),
+        },
     }
     self.assertIn(o3_hash, mapping.keys())
     self.assertEqual(expected_o3_mapping, mapping[o3_hash])
@@ -6008,11 +6014,12 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
     o3_info = {"date": "2020-03-03", "juris": "ru-gpu3", "role": "Lower house"}
     office_three = self._office_string.format(info=o3_info)
 
-    office_collection = office_coll_string.format(
+    office_collection_str = office_coll_string.format(
         office_one, office_two, office_three)
+    office_collection = etree.fromstring(office_collection_str)
 
     mapping = self.date_validator._count_start_dates_by_jurisdiction_role(
-        etree.fromstring(office_collection)
+        office_collection
     )
 
     self.assertLen(mapping.keys(), 2)
@@ -6049,11 +6056,12 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
     o3_info = {"date": "2020-01-01", "juris": "ru-gpu1", "role": "Upper house"}
     office_three = self._office_string.format(info=o3_info)
 
-    office_collection = office_coll_string.format(
+    office_collection_str = office_coll_string.format(
         office_one, office_two, office_three)
+    office_collection = etree.fromstring(office_collection_str)
 
     mapping = self.date_validator._count_start_dates_by_jurisdiction_role(
-        etree.fromstring(office_collection)
+        office_collection
     )
 
     self.assertLen(mapping.keys(), 2)
@@ -6064,9 +6072,12 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
     expected_o1_mapping = {
         "jurisdiction_id": o1_info["juris"],
         "office_role": o1_info["role"],
-        "start_dates": collections.Counter({
-            o1_info["date"]: 2,
-        }),
+        "start_dates": {
+            o1_info["date"]: set([
+                office_collection.findall("Office")[0],
+                office_collection.findall("Office")[2],
+            ]),
+        },
     }
     self.assertIn(o1_hash, mapping.keys())
     self.assertEqual(expected_o1_mapping, mapping[o1_hash])
@@ -6077,9 +6088,11 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
     expected_o2_mapping = {
         "jurisdiction_id": o2_info["juris"],
         "office_role": o2_info["role"],
-        "start_dates": collections.Counter({
-            o2_info["date"],
-        }),
+        "start_dates": {
+            o2_info["date"]: set([
+                office_collection.findall("Office")[1],
+            ]),
+        },
     }
     self.assertIn(o2_hash, mapping.keys())
     self.assertEqual(expected_o2_mapping, mapping[o2_hash])
@@ -6102,11 +6115,12 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
     o3_info = {"date": "2020-01-01", "juris": "ru-gpu2", "role": ""}
     office_three = self._office_string.format(info=o3_info)
 
-    office_collection = office_coll_string.format(
+    office_collection_str = office_coll_string.format(
         office_one, office_two, office_three)
+    office_collection = etree.fromstring(office_collection_str)
 
     mapping = self.date_validator._count_start_dates_by_jurisdiction_role(
-        etree.fromstring(office_collection)
+        office_collection
     )
 
     self.assertLen(mapping.keys(), 3)
@@ -6117,9 +6131,11 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
     expected_o1_mapping = {
         "jurisdiction_id": o1_info["juris"],
         "office_role": o1_info["role"],
-        "start_dates": collections.Counter({
-            o1_info["date"],
-        }),
+        "start_dates": {
+            o1_info["date"]: set([
+                office_collection.findall("Office")[0]
+            ]),
+        },
     }
     self.assertIn(o1_hash, mapping.keys())
     self.assertEqual(expected_o1_mapping, mapping[o1_hash])
@@ -6130,9 +6146,11 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
     expected_o2_mapping = {
         "jurisdiction_id": o2_info["juris"],
         "office_role": o2_info["role"],
-        "start_dates": collections.Counter({
-            o2_info["date"],
-        }),
+        "start_dates": {
+            o2_info["date"]: set([
+                office_collection.findall("Office")[1]
+            ]),
+        },
     }
     self.assertIn(o2_hash, mapping.keys())
     self.assertEqual(expected_o2_mapping, mapping[o2_hash])
@@ -6143,9 +6161,11 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
     expected_o3_mapping = {
         "jurisdiction_id": o3_info["juris"],
         "office_role": o3_info["role"],
-        "start_dates": collections.Counter({
-            o3_info["date"],
-        }),
+        "start_dates": {
+            o3_info["date"]: set([
+                office_collection.findall("Office")[2]
+            ]),
+        },
     }
     self.assertIn(o3_hash, mapping.keys())
     self.assertEqual(expected_o3_mapping, mapping[o3_hash])
@@ -6156,16 +6176,20 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
         "abcdefg": {
             "jurisdiction_id": "ru-gpu1",
             "office_role": "Upper house",
-            "start_dates": collections.Counter({
-                "2020-01-01": 1,
-            }),
+            "start_dates": {
+                "2020-01-01": set([
+                    etree.fromstring("<Office></Office>"),
+                ]),
+            },
         },
         "zyxwtuv": {
             "jurisdiction_id": "ru-gpu2",
             "office_role": "Lower house",
-            "start_dates": collections.Counter({
-                "2020-01-02": 1,
-            }),
+            "start_dates": {
+                "2020-01-02": set([
+                    etree.fromstring("<Office></Office>"),
+                ]),
+            },
         },
     }
 
@@ -6179,16 +6203,21 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
         "abcdefg": {
             "jurisdiction_id": "ru-gpu1",
             "office_role": "Upper house",
-            "start_dates": collections.Counter({
-                "2020-01-01": 1,
-            }),
+            "start_dates": {
+                "2020-01-01": set([
+                    etree.fromstring("<Office></Office>"),
+                ]),
+            },
         },
         "zyxwtuv": {
             "jurisdiction_id": "ru-gpu2",
             "office_role": "Lower house",
-            "start_dates": collections.Counter({
-                "2020-01-02": 2,
-            })
+            "start_dates": {
+                "2020-01-02": set([
+                    etree.fromstring("<Office></Office>"),
+                    etree.fromstring("<Office></Office>"),
+                ]),
+            },
         },
     }
 
@@ -6209,17 +6238,24 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
         "abcdefg": {
             "jurisdiction_id": "ru-gpu1",
             "office_role": "Upper house",
-            "start_dates": collections.Counter({
-                "2020-01-01": 1,
-            }),
+            "start_dates": {
+                "2020-01-01": set([
+                    etree.fromstring("<Office></Office>"),
+                ]),
+            },
         },
         "zyxwtuv": {
             "jurisdiction_id": "ru-gpu2",
             "office_role": "Lower house",
-            "start_dates": collections.Counter({
-                "2020-01-02": 2,
-                "2020-01-04": 1,
-            }),
+            "start_dates": {
+                "2020-01-02": set([
+                    etree.fromstring("<Office></Office>"),
+                    etree.fromstring("<Office></Office>"),
+                ]),
+                "2020-01-04": set([
+                    etree.fromstring("<Office></Office>"),
+                ]),
+            },
         },
     }
 
