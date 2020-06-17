@@ -7177,6 +7177,115 @@ class MissingFieldsWarningTest(absltest.TestCase):
         ew.exception.log_entry[0].elements[0].get("objectId"), "123")
 
 
+class PartySpanMultipleCountriesTest(absltest.TestCase):
+
+  def setUp(self):
+    super(PartySpanMultipleCountriesTest, self).setUp()
+    self.gp_unit_validator = rules.DuplicateGpUnits(None, None)
+    self.base_report = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <GpUnitCollection>
+            <GpUnit objectId="ru0001">
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>ocd-id</Type>
+                  <Value>ocd-division/country:us</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+             </GpUnit>
+             <GpUnit objectId="ru0002">
+               <ExternalIdentifiers>
+                  <ExternalIdentifier>
+                    <Type>ocd-id</Type>
+                    <Value>ocd-division/country:us/state:va</Value>
+                  </ExternalIdentifier>
+               </ExternalIdentifiers>
+             </GpUnit>
+             <GpUnit objectId="ru0003">
+               <ExternalIdentifiers>
+                  <ExternalIdentifier>
+                    <Type>ocd-id</Type>
+                    <Value>ocd-division/country:fr</Value>
+                  </ExternalIdentifier>
+                </ExternalIdentifiers>
+             </GpUnit>
+             <GpUnit objectId="ru0004">
+             </GpUnit>
+          </GpUnitCollection>
+          <PartyCollection>
+            <Party>
+              <PartyScopeGpUnitIds>{}</PartyScopeGpUnitIds>
+            </Party>
+          </PartyCollection>
+        </Election>
+      </ElectionReport>
+  """
+
+  def testGpUnitList(self):
+    referenced_gpunits = "ru0001 ru0003"
+    election_string = self.base_report.format(referenced_gpunits)
+    election_tree = etree.fromstring(election_string)
+    party_validator = rules.PartySpanMultipleCountries(election_tree, None)
+    expected_map = {
+        "ru0001": "country:us",
+        "ru0002": "country:us",
+        "ru0003": "country:fr",
+    }
+    self.assertEqual(party_validator.existing_gpunits, expected_map)
+
+  def testNoWarningIfSameCountry(self):
+    referenced_gpunits = "ru0001 ru0002"
+    election_string = self.base_report.format(referenced_gpunits)
+    election_tree = etree.fromstring(election_string)
+    party_validator = rules.PartySpanMultipleCountries(election_tree, None)
+    element = election_tree.find(
+        "Election//PartyCollection//Party//PartyScopeGpUnitIds")
+    party_validator.check(element)
+
+  def testNoWarningIfGpUnitWithoutCountry(self):
+    referenced_gpunits = "ru0001 ru0004"
+    election_string = self.base_report.format(referenced_gpunits)
+    election_tree = etree.fromstring(election_string)
+    party_validator = rules.PartySpanMultipleCountries(election_tree, None)
+    element = election_tree.find(
+        "Election//PartyCollection//Party//PartyScopeGpUnitIds")
+    party_validator.check(element)
+
+  def testNoWarningIfOneGpUnit(self):
+    referenced_gpunits = "ru0003"
+    election_string = self.base_report.format(referenced_gpunits)
+    election_tree = etree.fromstring(election_string)
+    party_validator = rules.PartySpanMultipleCountries(election_tree, None)
+    element = election_tree.find(
+        "Election//PartyCollection//Party//PartyScopeGpUnitIds")
+    party_validator.check(element)
+
+  def testThrowWarningIfMultipleCountriesAreReferenced(self):
+    referenced_gpunits = "ru0001 ru0003"
+    election_string = self.base_report.format(referenced_gpunits)
+    election_tree = etree.fromstring(election_string)
+    party_validator = rules.PartySpanMultipleCountries(election_tree, None)
+    element = election_tree.find(
+        "Election//PartyCollection//Party//PartyScopeGpUnitIds")
+    with self.assertRaises(loggers.ElectionWarning) as ee:
+      party_validator.check(element)
+    self.assertIn("ru0001", ee.exception.log_entry[0].message)
+    self.assertIn("ru0003", ee.exception.log_entry[0].message)
+
+  def testThrowWarningIfMultipleCountriesAreReferencedWithComposition(self):
+    referenced_gpunits = "ru0002 ru0003"
+    election_string = self.base_report.format(referenced_gpunits)
+    election_tree = etree.fromstring(election_string)
+    party_validator = rules.PartySpanMultipleCountries(election_tree, None)
+    element = election_tree.find(
+        "Election//PartyCollection//Party//PartyScopeGpUnitIds")
+    with self.assertRaises(loggers.ElectionWarning) as ee:
+      party_validator.check(element)
+    self.assertIn("ru0002", ee.exception.log_entry[0].message)
+    self.assertIn("ru0003", ee.exception.log_entry[0].message)
+
+
 class RulesTest(absltest.TestCase):
 
   def testAllRulesIncluded(self):

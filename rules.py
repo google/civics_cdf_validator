@@ -2199,6 +2199,50 @@ class MissingFieldsWarning(base.MissingFieldRule):
     }
 
 
+class PartySpanMultipleCountries(base.BaseRule):
+  """Check if a party operate on multiple countries.
+
+  Parties can have PartyScopeGpUnitIds which span multiple countries. This is
+  sometimes correct, but we should flag it to double check.
+  """
+
+  def __init__(self, election_tree, schema_tree):
+    super(PartySpanMultipleCountries, self).__init__(election_tree, schema_tree)
+    self.existing_gpunits = dict()
+    country_pattern = re.compile(r"^ocd-division\/country:[a-z]{2}")
+    for gpunit in self.get_elements_by_class(election_tree, "GpUnit"):
+      ocd_ids = get_external_id_values(gpunit, "ocd-id")
+      if ocd_ids:
+        country_match = country_pattern.search(ocd_ids[0])
+        if country_match:
+          country = country_match[0].split("/")[1]
+          self.existing_gpunits[gpunit.get("objectId")] = country
+
+  def elements(self):
+    return ["PartyScopeGpUnitIds"]
+
+  def check(self, element):
+    if element.text is None:
+      return
+    referenced_country = dict()
+    for gpunit_id in element.text.split():
+      country = self.existing_gpunits.get(gpunit_id)
+      if country is not None:
+        if referenced_country.get(country) is None:
+          referenced_country[country] = []
+        referenced_country[country].append(gpunit_id)
+
+    if len(referenced_country) > 1:
+      gpunit_country_mapping = " / ".join(
+          ["%s -> %s" % (key, str(value)) for (key, value)
+           in referenced_country.items()])
+
+      raise loggers.ElectionWarning.from_message(
+          ("PartyScopeGpUnitIds refer to GpUnit from different countries: {}. "
+           "Please double check."
+           .format(gpunit_country_mapping)), [element])
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
@@ -2236,6 +2280,7 @@ COMMON_RULES = (
     OfficesHaveValidOfficeLevel,
     OfficesHaveValidOfficeRole,
     ValidStableID,
+    PartySpanMultipleCountries,
     PersonHasUniqueFullName,
     PersonsMissingPartyData,
     GpUnitsHaveInternationalizedName,
