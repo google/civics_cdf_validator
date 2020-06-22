@@ -40,13 +40,6 @@ _IDENTIFIER_TYPES = frozenset(
     ["local-level", "national-level", "ocd-id", "state-level"])
 
 
-def sourceline_prefix(element):
-  if hasattr(element, "sourceline") and element.sourceline is not None:
-    return "Line %d. " % element.sourceline
-  else:
-    return ""
-
-
 def get_external_id_values(element, value_type, return_elements=False):
   """Helper to gather all Values of external ids for a given type."""
   external_ids = element.findall(".//ExternalIdentifier")
@@ -89,6 +82,15 @@ def get_additional_type_values(element, value_type, return_elements=False):
   return elements
 
 
+def get_entity_info_for_value_type(element, info_type, return_elements=False):
+  info_collection = get_additional_type_values(
+      element, info_type, return_elements)
+  info_collection.extend(
+      list(get_external_id_values(element, info_type, return_elements))
+  )
+  return info_collection
+
+
 def get_language_to_text_map(element):
   """Return a map of languages to text in an InternationalizedText element."""
   language_map = {}
@@ -107,21 +109,6 @@ def get_language_to_text_map(element):
   return language_map
 
 
-def get_parent_hierarchy_object_id_str(elt):
-  """Get the elt path from the 1st parent with an objectId / ElectionReport."""
-
-  elt_hierarchy = []
-  current_elt = elt
-  while current_elt is not None:
-    if current_elt.get("objectId"):
-      elt_hierarchy.append(current_elt.tag + ":" + current_elt.get("objectId"))
-      break
-    else:
-      elt_hierarchy.append(current_elt.tag)
-    current_elt = current_elt.getparent()
-  return " > ".join(elt_hierarchy[::-1])
-
-
 def element_has_text(element):
   return (element is not None and element.text is not None
           and not element.text.isspace())
@@ -134,7 +121,7 @@ class Schema(base.TreeRule):
     try:
       schema = etree.XMLSchema(etree=self.schema_tree)
     except etree.XMLSchemaParseError as e:
-      raise loggers.ElectionError(
+      raise loggers.ElectionError.from_message(
           "The schema file could not be parsed correctly %s" % str(e))
     valid_xml = True
     try:
@@ -145,9 +132,11 @@ class Schema(base.TreeRule):
       errors = []
       for error in schema.error_log:
         errors.append(
-            loggers.ErrorLogEntry(error.line, error.message.encode("utf-8")))
-      raise loggers.ElectionTreeError(
-          "The election file didn't validate against schema.", errors)
+            loggers.LogEntry(lines=[error.line],
+                             message=("The election file didn't validate "
+                                      "against schema : {0}".format(
+                                          error.message.encode("utf-8")))))
+      raise loggers.ElectionError(errors)
 
 
 class OptionalAndEmpty(base.BaseRule):
@@ -170,11 +159,9 @@ class OptionalAndEmpty(base.BaseRule):
     if element == self.previous:
       return
     self.previous = element
-    if ((element.text is None or not element.text.strip()) and
-        not len(element)):
-      raise loggers.ElectionWarning(
-          "Line %d. %s optional element included although it "
-          "is empty." % (element.sourceline, element.tag))
+    if (element.text is None or not element.text.strip()) and not len(element):
+      raise loggers.ElectionWarning.from_message(
+          "This optional element included although it is empty.", [element])
 
 
 class Encoding(base.TreeRule):
@@ -183,7 +170,7 @@ class Encoding(base.TreeRule):
   def check(self):
     docinfo = self.election_tree.docinfo
     if docinfo.encoding != "UTF-8":
-      raise loggers.ElectionError("Encoding on file is not UTF-8")
+      raise loggers.ElectionError.from_message("Encoding on file is not UTF-8")
 
 
 class HungarianStyleNotation(base.BaseRule):
@@ -224,10 +211,9 @@ class HungarianStyleNotation(base.BaseRule):
     tag = self.get_element_class(element)
     if object_id:
       if not object_id.startswith(self.elements_prefix[tag]):
-        raise loggers.ElectionInfo(
-            "Line %d. %s ID %s is not in Hungarian Style Notation. "
-            "Should start with %s" %
-            (element.sourceline, tag, object_id, self.elements_prefix[tag]))
+        raise loggers.ElectionInfo.from_message(
+            ("%s ID %s is not in Hungarian Style Notation. Should start with "
+             " %s" % (tag, object_id, self.elements_prefix[tag])), [element])
 
 
 class LanguageCode(base.BaseRule):
@@ -241,8 +227,8 @@ class LanguageCode(base.BaseRule):
       return
     elem_lang = element.get("language")
     if (not elem_lang.strip() or not language_tags.tags.check(elem_lang)):
-      raise loggers.ElectionError("Line %d. %s is not a valid language code" %
-                                  (element.sourceline, elem_lang))
+      raise loggers.ElectionError.from_message(
+          "%s is not a valid language code" % elem_lang, [element])
 
 
 class PercentSum(base.BaseRule):
@@ -265,9 +251,9 @@ class PercentSum(base.BaseRule):
           sum_percents += float(vote_counts.find("Count").text)
     if (not PercentSum.fuzzy_equals(sum_percents, 0) and
         not PercentSum.fuzzy_equals(sum_percents, 100)):
-      raise loggers.ElectionError(
-          sourceline_prefix(element) +
-          "Contest percents do not sum to 0 or 100: %f" % sum_percents)
+      raise loggers.ElectionError.from_message(
+          "Contest percents do not sum to 0 or 100: %f" % sum_percents,
+          [element])
 
 
 class OnlyOneElection(base.BaseRule):
@@ -278,9 +264,8 @@ class OnlyOneElection(base.BaseRule):
 
   def check(self, element):
     if len(element.findall("Election")) > 1:
-      raise loggers.ElectionError(
-          sourceline_prefix(element) +
-          "ElectionReport has more than one Election.")
+      raise loggers.ElectionError.from_message(
+          "ElectionReport has more than one Election.", [element])
 
 
 class EmptyText(base.BaseRule):
@@ -291,8 +276,7 @@ class EmptyText(base.BaseRule):
 
   def check(self, element):
     if element.text is not None and not element.text.strip():
-      raise loggers.ElectionWarning("Line %d. %s is empty" %
-                                    (element.sourceline, element.tag))
+      raise loggers.ElectionWarning.from_message("Text is empty", element)
 
 
 class DuplicateID(base.TreeRule):
@@ -309,14 +293,11 @@ class DuplicateID(base.TreeRule):
         if not obj_id:
           continue
         if obj_id in all_object_ids:
-          error_line = element.sourceline
-          error_message = "{0} is a duplicate object ID".format(obj_id)
-          error_log.append(loggers.ErrorLogEntry(error_line, error_message))
+          error_log.append(loggers.LogEntry("duplicate object ID", element))
         else:
           all_object_ids.add(obj_id)
     if error_log:
-      raise loggers.ElectionTreeError(
-          "The Election File contains duplicate object IDs", error_log)
+      raise loggers.ElectionError(error_log)
 
 
 class ValidIDREF(base.BaseRule):
@@ -390,22 +371,19 @@ class ValidIDREF(base.BaseRule):
 
     element_name = element.tag
     element_reference_type = self.element_reference_mapping[element_name]
-    reference_object_ids = self.object_id_mapping.get(
-        element_reference_type, [])
+    reference_object_ids = self.object_id_mapping.get(element_reference_type,
+                                                      [])
     if element.text:
       id_references = element.text.split()
       for id_ref in id_references:
         if id_ref not in reference_object_ids:
-          err_message = ("Line {}. {}. {} is not a valid IDREF. {} should"
-                         " contain an objectId from a {} element.").format(
-                             element.sourceline,
-                             get_parent_hierarchy_object_id_str(element),
-                             id_ref, element_name, element_reference_type)
-          error_log.append(loggers.ErrorLogEntry(None, err_message))
+          error_log.append(
+              loggers.LogEntry(("{} is not a valid IDREF. {} should contain an "
+                                "objectId from a {} element.")
+                               .format(id_ref, element_name,
+                                       element_reference_type), element))
     if error_log:
-      raise loggers.ElectionError(("There are {} invalid IDREF elements "
-                                   "present.").format(
-                                       len(error_log)), error_log)
+      raise loggers.ElectionError(error_log)
 
 
 class ValidStableID(base.BaseRule):
@@ -424,15 +402,11 @@ class ValidStableID(base.BaseRule):
     error_log = []
     for s_id in stable_ids:
       if not self.stable_id_matcher.match(s_id):
-        error_log.append(
-            loggers.ErrorLogEntry(
-                None,
-                "Stable id {} is not in the correct format.".format(s_id)))
+        error_log.append(loggers.LogEntry(
+            "Stable id '{}' is not in the correct format.".format(s_id),
+            [element]))
     if error_log:
-      raise loggers.ElectionError(
-          "The file contains the following Stable ID "
-          "error(s) \n{}".format("\n".join([e.message for e in error_log])),
-          error_log=error_log)
+      raise loggers.ElectionError(error_log)
 
 
 class ElectoralDistrictOcdId(base.BaseRule):
@@ -529,10 +503,9 @@ class ElectoralDistrictOcdId(base.BaseRule):
         fd.write(chunk)
     valid = self._verify_data("{0}.tmp".format(file_path))
     if not valid:
-      raise loggers.ElectionError(
-          "Could not successfully download OCD ID data files. "
-          "Please try downloading the file manually and "
-          "place it in ~/.cache")
+      raise loggers.ElectionError.from_message(
+          ("Could not successfully download OCD ID data files. Please try "
+           "downloading the file manually and place it in ~/.cache"))
     else:
       shutil.copy("{0}.tmp".format(file_path), file_path)
 
@@ -582,22 +555,17 @@ class ElectoralDistrictOcdId(base.BaseRule):
         g for g in self.gpunits if g.get("objectId", "") == element.text
     ]
     if not referenced_gpunits:
-      error_log.append(
-          loggers.ErrorLogEntry(
-              None, "Line %d. The ElectoralDistrictId element"
-              " for contest %s does not refer to a GpUnit. "
-              "Every ElectoralDistrictId MUST reference a GpUnit" %
-              (element.sourceline, contest_id)))
+      msg = ("The ElectoralDistrictId element not refer to a GpUnit. Every "
+             "ElectoralDistrictId MUST reference a GpUnit")
+      error_log.append(loggers.LogEntry(msg, [element]))
     else:
       referenced_gpunit = referenced_gpunits[0]
       external_ids = get_external_id_values(referenced_gpunit, "ocd-id")
       if not external_ids:
         error_log.append(
-            loggers.ErrorLogEntry(
-                None, "Line %d. The GpUnit %s on line %d referenced by "
-                "contest %s does not have an ocd-id" %
-                (element.sourceline, element.text, referenced_gpunit.sourceline,
-                 contest_id)))
+            loggers.LogEntry("The referenced GpUnit %s does not have an ocd-id"
+                             % element.text,
+                             [element], [referenced_gpunit.sourceline]))
       else:
         for external_id in external_ids:
           ocd_id = self._encode_ocdid_value(external_id)
@@ -605,17 +573,12 @@ class ElectoralDistrictOcdId(base.BaseRule):
               ocd_id in self.ocds and self.ocd_matcher.match(ocd_id))
           if not valid_ocd_id:
             error_log.append(
-                loggers.ErrorLogEntry(
-                    None, "Line %d. The ElectoralDistrictId element for "
-                    "contest %s refers to GpUnit %s on line %d that "
-                    "does not have a valid OCD ID (%s)" %
-                    (element.sourceline, contest_id, element.text,
-                     referenced_gpunit.sourceline, ocd_id)))
+                loggers.LogEntry("The ElectoralDistrictId refers to GpUnit %s "
+                                 "that does not have a valid OCD ID (%s)"
+                                 % (element.text, ocd_id),
+                                 [element], [referenced_gpunit.sourceline]))
     if error_log:
-      raise loggers.ElectionError(
-          ("The file contains the following ElectoralDistrictId error(s) \n{}"
-           .format("\n".join([e.message for e in error_log]))),
-          error_log=error_log)
+      raise loggers.ElectionError(error_log)
 
 
 class GpUnitOcdId(ElectoralDistrictOcdId):
@@ -631,9 +594,6 @@ class GpUnitOcdId(ElectoralDistrictOcdId):
     return ["ReportingUnit"]
 
   def check(self, element):
-    gpunit_id = element.get("objectId")
-    if not gpunit_id:
-      return
     gpunit_type = element.find("Type")
     if gpunit_type is not None and gpunit_type.text in self.districts:
       external_id_elements = get_external_id_values(
@@ -641,9 +601,9 @@ class GpUnitOcdId(ElectoralDistrictOcdId):
       for extern_id in external_id_elements:
         ocd_id = self._encode_ocdid_value(extern_id.text)
         if ocd_id not in self.ocds:
-          raise loggers.ElectionWarning(
-              "The OCD ID %s in GpUnit %s defined on line %d is "
-              "not valid" % (ocd_id, gpunit_id, extern_id.sourceline))
+          msg = "The OCD ID %s is not valid" % ocd_id
+          raise loggers.ElectionWarning.from_message(
+              msg, [element], [extern_id.sourceline])
 
 
 class DuplicateGpUnits(base.BaseRule):
@@ -662,9 +622,7 @@ class DuplicateGpUnits(base.BaseRule):
         continue
       elif object_id in object_ids:
         error_log.append(
-            loggers.ErrorLogEntry(
-                None, "GpUnit with object_id {} is "
-                "duplicated at line {}".format(object_id, gpunit.sourceline)))
+            loggers.LogEntry("GpUnit is duplicated", [gpunit]))
         continue
       object_ids.add(object_id)
       composing_gpunits = gpunit.find("ComposingGpUnitIds")
@@ -673,16 +631,12 @@ class DuplicateGpUnits(base.BaseRule):
       composing_ids = frozenset(composing_gpunits.text.split())
       if children.get(composing_ids):
         error_log.append(
-            loggers.ErrorLogEntry(
-                None, "GpUnits {} are duplicates".format(
-                    str((children[composing_ids], object_id)))))
+            loggers.LogEntry("GpUnits {} are duplicates".format(
+                str((children[composing_ids], object_id)))))
         continue
       children[composing_ids] = object_id
     if error_log:
-      raise loggers.ElectionError(
-          "The following errors are due to duplicate GpUnits: \n{}".format(
-              "\n".join([e.message for e in error_log])),
-          error_log=error_log)
+      raise loggers.ElectionError(error_log)
 
 
 class GpUnitsHaveSingleRoot(base.TreeRule):
@@ -711,20 +665,15 @@ class GpUnitsHaveSingleRoot(base.TreeRule):
 
     if not roots:
       self.error_log.append(
-          loggers.ErrorLogEntry(
-              None, "GpUnits have no geo district root. "
-              "There should be exactly one root geo district."))
+          loggers.LogEntry("GpUnits have no geo district root. "
+                           "There should be exactly one root geo district."))
     elif len(roots) > 1:
       self.error_log.append(
-          loggers.ErrorLogEntry(
-              None, "GpUnits tree has more than one root: {0}".format(
-                  ", ".join(roots))))
+          loggers.LogEntry("GpUnits tree has more than one root: {0}".format(
+              ", ".join(roots))))
 
     if self.error_log:
-      raise loggers.ElectionError(
-          "GpUnits tree has the following errors regarding the root: \n{}"
-          .format("\n".join([entry.message for entry in self.error_log])),
-          error_log=self.error_log)
+      raise loggers.ElectionError(self.error_log)
 
 
 class GpUnitsCyclesRefsValidation(base.TreeRule):
@@ -743,8 +692,7 @@ class GpUnitsCyclesRefsValidation(base.TreeRule):
     if gpunit in self.visited:
       if gpunit not in self.bad_nodes:
         self.error_log.append(
-            loggers.ErrorLogEntry(None,
-                                  "Cycle detected at node {0}".format(gpunit)))
+            loggers.LogEntry("Cycle detected at node {0}".format(gpunit)))
         self.bad_nodes.append(gpunit)
       return
     self.visited[gpunit] = 1
@@ -754,8 +702,8 @@ class GpUnitsCyclesRefsValidation(base.TreeRule):
         self.build_tree(child_unit)
       else:
         self.error_log.append(
-            loggers.ErrorLogEntry(
-                None, "Node {0} is not present in the file as a GpUnit element."
+            loggers.LogEntry(
+                "Node {0} is not present in the file as a GpUnit element."
                 .format(child_unit)))
 
   def check(self):
@@ -774,10 +722,7 @@ class GpUnitsCyclesRefsValidation(base.TreeRule):
       self.visited.clear()
 
     if self.error_log:
-      raise loggers.ElectionError(
-          "GpUnits tree has the following errors: \n{}".format("\n".join(
-              [entry.message for entry in self.error_log])),
-          error_log=self.error_log)
+      raise loggers.ElectionError(self.error_log)
 
 
 class OtherType(base.BaseRule):
@@ -805,10 +750,9 @@ class OtherType(base.BaseRule):
     if type_element is not None and type_element.text == "other":
       other_type_element = element.find("OtherType")
       if other_type_element is None:
-        raise loggers.ElectionError(
-            "Line %d. Type on element %s is set to 'other' but "
-            "OtherType element is not defined" %
-            (element.sourceline, element.tag))
+        msg = ("Type on this element is set to 'other' but OtherType element "
+               "is not defined")
+        raise loggers.ElectionError.from_message(msg, [element])
 
 
 class PartisanPrimary(base.BaseRule):
@@ -843,10 +787,9 @@ class PartisanPrimary(base.BaseRule):
     if (primary_party_ids is None or not primary_party_ids.text or
         not primary_party_ids.text.strip()):
       election_elem = self.election_tree.find("Election")
-      raise loggers.ElectionWarning(
-          "Line %d. Election is of ElectionType %s but PrimaryPartyIds "
-          "is not present or is empty" %
-          (election_elem.sourceline, self.election_type))
+      msg = ("Election is of ElectionType %s but PrimaryPartyIds is not present"
+             " or is empty" %(self.election_type))
+      raise loggers.ElectionWarning.from_message(msg, [element])
 
 
 class PartisanPrimaryHeuristic(PartisanPrimary):
@@ -868,24 +811,23 @@ class PartisanPrimaryHeuristic(PartisanPrimary):
       c_name = contest_name.text.replace(" ", "").lower()
       for p_text in self.party_text:
         if p_text in c_name:
-          raise loggers.ElectionWarning(
-              "Line %d. Name of contest - %s, "
-              "contains text that implies it is a partisan primary "
-              "but is not marked up as such." %
-              (element.sourceline, contest_name.text))
+          msg = ("Name of contest - %s, contains text that implies it is a "
+                 "partisan primary but is not marked up as such." %
+                 (contest_name.text))
+          raise loggers.ElectionWarning.from_message(msg, [element])
 
 
-class CoalitionParties(base.TreeRule):
+class CoalitionParties(base.BaseRule):
   """Coalitions should always define the Party IDs."""
 
-  def check(self):
-    coalitions = self.get_elements_by_class(self.election_tree, "Coalition")
-    for coalition in coalitions:
-      party_id = coalition.find("PartyIds")
-      if (party_id is None or not party_id.text or not party_id.text.strip()):
-        raise loggers.ElectionError(
-            "Line %d. Coalition %s must define PartyIDs" %
-            (coalition.sourceline, coalition.get("objectId")))
+  def elements(self):
+    return ["Coalition"]
+
+  def check(self, element):
+    party_id = element.find("PartyIds")
+    if (party_id is None or not party_id.text or not party_id.text.strip()):
+      raise loggers.ElectionError.from_message("Coalition must define PartyIDs",
+                                               [element])
 
 
 class UniqueLabel(base.BaseRule):
@@ -910,9 +852,8 @@ class UniqueLabel(base.BaseRule):
     element_label = element.get("label")
     if element_label:
       if element_label in self.labels:
-        raise loggers.ElectionError(
-            "Line %d. Duplicate label '%s'. Label already defined" %
-            (element.sourceline, element_label))
+        msg = "Duplicate label '%s'. Label already defined" % element_label
+        raise loggers.ElectionError.from_message(msg, [element])
       else:
         self.labels.add(element_label)
 
@@ -941,37 +882,33 @@ class CandidatesReferencedOnce(base.BaseRule):
 
     contests = self.get_elements_by_class(election, "Contest")
     for contest in contests:
-      contest_id = contest.get("objectId")
       for child in contest.iter(tag=etree.Element):
         if "CandidateId" in child.tag:
           for cand_id in child.text.split():
             # bug in case the cand_id is an invalid one
             if cand_id not in candidate_registry:
-              error_message = (
-                  "Contest {} refer to a non existing candidate {}.").format(
-                      contest_id, cand_id)
-              self.error_log.append(loggers.ErrorLogEntry(None, error_message))
+              error_message = ("Contest refer to a non existing candidate {}."
+                               ).format(cand_id)
+              self.error_log.append(loggers.LogEntry(
+                  error_message, [contest]))
               continue
-            candidate_registry[cand_id].append(contest_id)
+            candidate_registry[cand_id].append(contest)
     return candidate_registry
 
   def check(self, element):
     candidate_registry = self._register_candidates(element)
-    for cand_id, contest_ids in candidate_registry.items():
-      if len(contest_ids) > 1:
-        error_message = ("A Candidate object should only ever be referenced"
-                         " in one Contest. Candidate {} is"
-                         " referenced by the following Contests"
-                         ": {}").format(cand_id, ", ".join(contest_ids))
-        self.error_log.append(loggers.ErrorLogEntry(None, error_message))
-      if not contest_ids:
-        error_message = ("A Candidate should be referenced in a Contest. "
-                         "Candidate {0} is not referenced.").format(cand_id)
-        self.error_log.append(loggers.ErrorLogEntry(None, error_message))
+    for cand_id, contests in candidate_registry.items():
+      if len(contests) > 1:
+        error_message = ("Contests refer to the same candidate {}, A Candidate "
+                         "object should only ever be referenced in one Contest"
+                         ).format(cand_id)
+        self.error_log.append(loggers.LogEntry(error_message, contests))
+      if not contests:
+        self.error_log.append(loggers.LogEntry(
+            ("A Candidate should be referenced in a Contest. Candidate "
+             "{0} is not referenced.").format(cand_id), [element]))
     if self.error_log:
-      raise loggers.ElectionTreeError(
-          "The Election File contains invalid Candidate references",
-          self.error_log)
+      raise loggers.ElectionError(self.error_log)
 
 
 class ProperBallotSelection(base.BaseRule):
@@ -1001,11 +938,10 @@ class ProperBallotSelection(base.BaseRule):
       if selection_tag != self.con_sel_mapping[tag]:
         contest_id = element.get("objectId")
         selection_id = selection.get("objectId")
-        raise loggers.ElectionError(
-            "Line %d. The Contest %s does not contain the right "
-            "BallotSelection. %s must have a %s but contains a "
-            "%s, %s" % (element.sourceline, contest_id, tag,
-                        self.con_sel_mapping[tag], selection_tag, selection_id))
+        msg = ("The Contest does not contain the right BallotSelection. %s "
+               "must have a %s but contains a %s, %s" %
+               (tag, self.con_sel_mapping[tag], selection_tag, selection_id))
+        raise loggers.ElectionError.from_message(msg, [element])
 
 
 class PartiesHaveValidColors(base.BaseRule):
@@ -1022,23 +958,19 @@ class PartiesHaveValidColors(base.BaseRule):
     colors = element.findall("Color")
     if not colors:
       return
-    party_object_id = element.get("objectId")
     if len(colors) > 1:
-      raise loggers.ElectionWarning(
-          "Line %d: Party %s has more than one color." %
-          (element.sourceline, party_object_id))
+      raise loggers.ElectionWarning.from_message(
+          "The Party has more than one color.", [element])
     color_val = colors[0].text
     if not color_val:
-      raise loggers.ElectionWarning(
-          "Line %d: Color tag in Party %s is missing a value." %
-          (element.sourceline, party_object_id))
+      raise loggers.ElectionWarning.from_message(
+          "Color tag is missing a value.", [colors[0]])
     else:
       try:
         int(color_val, 16)
       except ValueError:
-        raise loggers.ElectionWarning(
-            "Line %d: %s in Party %s is not a valid hex color." %
-            (element.sourceline, color_val, party_object_id))
+        raise loggers.ElectionWarning.from_message(
+            "%s is not a valid hex color." % color_val, [colors[0]])
 
 
 class PersonHasUniqueFullName(base.BaseRule):
@@ -1096,11 +1028,9 @@ class PersonHasUniqueFullName(base.BaseRule):
         if person_id in person_id_to_object_id and person_id_to_object_id[
             person_id] != person_object_id:
           info_message = (
-              "Line %d: Person %s has same full name '%s' and birthday %s as "
-              "Person %s." %
-              (person.sourceline, person_object_id, full_name_val, birthday_val,
-               person_id_to_object_id[person_id]))
-          info_log.append(loggers.ErrorLogEntry(None, info_message))
+              "Person has same full name '%s' and birthday %s as Person %s." %
+              (full_name_val, birthday_val, person_id_to_object_id[person_id]))
+          info_log.append(loggers.LogEntry(info_message, [person]))
         else:
           person_id_to_object_id[person_id] = person_object_id
     return info_log
@@ -1109,14 +1039,12 @@ class PersonHasUniqueFullName(base.BaseRule):
     info_log = []
     people = element.findall("Person")
     if len(people) < 1:
-      info_message = (
-          "Line %d: <PersonCollection> does not have <Person> objects" %
-          (element.sourceline))
-      info_log.append(loggers.ErrorLogEntry(None, info_message))
+      info_log.append(
+          loggers.LogEntry("<PersonCollection> does not have <Person> objects",
+                           [element]))
     info_log.extend(self.check_specific(people))
     if info_log:
-      raise loggers.ElectionTreeInfo(
-          "The feed contains people with duplicated name", info_log)
+      raise loggers.ElectionInfo(info_log)
 
 
 class ValidatePartyCollection(base.BaseRule):
@@ -1133,21 +1061,15 @@ class ValidatePartyCollection(base.BaseRule):
     """Return a list of info log to be raised."""
     raise NotImplementedError
 
-  def get_specific_info_message(self):
-    """Return an ElectionTreeInfo specific message."""
-    raise NotImplementedError
-
   def check(self, element):
     info_log = []
     parties = element.findall("Party")
     if len(parties) < 1:
-      info_message = (
-          "Line %d: <PartyCollection> does not have <Party> objects" %
-          (element.sourceline))
-      info_log.append(loggers.ErrorLogEntry(None, info_message))
+      info_message = "<PartyCollection> does not have <Party> objects"
+      info_log.append(loggers.LogEntry(info_message, element))
     info_log.extend(self.check_specific(parties))
     if info_log:
-      raise loggers.ElectionTreeInfo(self.get_specific_info_message(), info_log)
+      raise loggers.ElectionInfo(info_log)
 
 
 class ValidateDuplicateColors(ValidatePartyCollection):
@@ -1157,9 +1079,6 @@ class ValidateDuplicateColors(ValidatePartyCollection):
   within this class and returned to the user as an Info message.
   """
 
-  def get_specific_info_message(self):
-    return "The feed contains parties with duplicate colors"
-
   def check_specific(self, parties):
     party_colors = {}
     info_log = []
@@ -1167,17 +1086,18 @@ class ValidateDuplicateColors(ValidatePartyCollection):
       color_element = party.find("Color")
       if color_element is None:
         continue
-      party_object_id = party.get("objectId")
       color = color_element.text
       if color is None:
         continue
       if color in party_colors:
-        info_message = (
-            "Line %d: Party %s has same color as Party %s." %
-            (color_element.sourceline, party_object_id, party_colors[color]))
-        info_log.append(loggers.ErrorLogEntry(None, info_message))
+        party_colors[color].append(party)
       else:
-        party_colors[color] = party_object_id
+        party_colors[color] = [party]
+
+    for color, parties in party_colors.items():
+      if len(parties) > 1:
+        info_log.append(loggers.LogEntry(
+            "Parties has the same color %s." % color, parties))
     return info_log
 
 
@@ -1188,20 +1108,15 @@ class DuplicatedPartyAbbreviation(ValidatePartyCollection):
   within this class and returned to the user as an Info message.
   """
 
-  def get_specific_info_message(self):
-    return "The feed contains duplicated party abbreviations"
-
   def check_specific(self, parties):
     info_log = []
     party_abbrs_by_language = {}
     for party in parties:
-      party_object_id = party.get("objectId")
       abbr_element = party.find("InternationalizedAbbreviation")
       if abbr_element is None:
-        info_message = (
-            "Line %d: <Party> %s does not have <InternationalizedAbbreviation>"
-            " objects" % (party.sourceline, party_object_id))
-        info_log.append(loggers.ErrorLogEntry(None, info_message))
+        info_message = ("<Party> does not have <InternationalizedAbbreviation> "
+                        "objects")
+        info_log.append(loggers.LogEntry(info_message, [party]))
         continue
       party_abbrs = abbr_element.findall("Text")
       for party_abbr in party_abbrs:
@@ -1210,13 +1125,15 @@ class DuplicatedPartyAbbreviation(ValidatePartyCollection):
         if language not in party_abbrs_by_language:
           party_abbrs_by_language[language] = {}
         if abbr in party_abbrs_by_language[language]:
-          info_message = (
-              "Line %d: Party %s has same abbreviation in %s as Party %s." %
-              (party.sourceline, party_object_id, language,
-               party_abbrs_by_language[language][abbr]))
-          info_log.append(loggers.ErrorLogEntry(None, info_message))
+          party_abbrs_by_language[language][abbr].append(party)
         else:
-          party_abbrs_by_language[language][abbr] = party_object_id
+          party_abbrs_by_language[language][abbr] = [party]
+
+    for language, abbrs in party_abbrs_by_language.items():
+      for abbr, parties in abbrs.items():
+        if len(parties) > 1:
+          info_message = "Parties have the same abbreviation in %s." % language
+          info_log.append(loggers.LogEntry(info_message, parties))
     return info_log
 
 
@@ -1227,19 +1144,14 @@ class DuplicatedPartyName(ValidatePartyCollection):
   within this class and returned to the user as an Info message.
   """
 
-  def get_specific_info_message(self):
-    return "The feed contains duplicated party names"
-
   def check_specific(self, parties):
     info_log = []
     party_names_by_language = {}
     for party in parties:
-      party_object_id = party.get("objectId")
       name_element = party.find("Name")
       if name_element is None:
-        info_message = ("Line %d: <Party> %s does not have <Name> objects" %
-                        (party.sourceline, party_object_id))
-        info_log.append(loggers.ErrorLogEntry(None, info_message))
+        info_message = "<Party> does not have <Name> objects"
+        info_log.append(loggers.LogEntry(info_message, [party]))
         continue
       party_names = name_element.findall("Text")
       for party_name in party_names:
@@ -1248,12 +1160,15 @@ class DuplicatedPartyName(ValidatePartyCollection):
         if language not in party_names_by_language:
           party_names_by_language[language] = {}
         if name in party_names_by_language[language]:
-          info_message = ("Line %d: Party %s has same name in %s as Party %s." %
-                          (party_name.sourceline, party_object_id, language,
-                           party_names_by_language[language][name]))
-          info_log.append(loggers.ErrorLogEntry(None, info_message))
+          party_names_by_language[language][name].append(party)
         else:
-          party_names_by_language[language][name] = party_object_id
+          party_names_by_language[language][name] = [party]
+
+    for language, names in party_names_by_language.items():
+      for name, parties in names.items():
+        if len(parties) > 1:
+          info_message = "Parties have the same name in %s." % language
+          info_log.append(loggers.LogEntry(info_message, parties))
     return info_log
 
 
@@ -1265,9 +1180,6 @@ class MissingPartyNameTranslation(ValidatePartyCollection):
   an Info message.
   """
 
-  def get_specific_info_message(self):
-    return "The feed is missing several parties name translation"
-
   def check_specific(self, parties):
     info_log = []
     feed_languages, feed_party_ids = set(), set()
@@ -1275,9 +1187,8 @@ class MissingPartyNameTranslation(ValidatePartyCollection):
       party_object_id = party.get("objectId")
       name_element = party.find("Name")
       if name_element is None:
-        info_message = ("Line %d: <Party> %s does not have <Name> objects" %
-                        (party.sourceline, party_object_id))
-        info_log.append(loggers.ErrorLogEntry(None, info_message))
+        info_message = "<Party> does not have <Name> objects"
+        info_log.append(loggers.LogEntry(info_message, [party]))
         continue
       party_names = name_element.findall("Text")
       party_languages = set()
@@ -1289,15 +1200,15 @@ class MissingPartyNameTranslation(ValidatePartyCollection):
             info_message = (
                 "The feed is missing names translation to %s for parties : %s."
                 % (language, feed_party_ids))
-            info_log.append(loggers.ErrorLogEntry(None, info_message))
+            info_log.append(loggers.LogEntry(info_message))
         party_languages.add(language)
       feed_party_ids.add(party_object_id)
       if len(party_languages) != len(feed_languages):
         info_message = (
-            "The party %s name is not translated to all feed languages %s. You"
-            " only did it for the following languages : %s." %
-            (party_object_id, feed_languages, party_languages))
-        info_log.append(loggers.ErrorLogEntry(None, info_message))
+            "The party name is not translated to all feed languages %s. You "
+            "did it only for the following languages : %s." %
+            (feed_languages, party_languages))
+        info_log.append(loggers.LogEntry(info_message, [party]))
     return info_log
 
 
@@ -1308,9 +1219,6 @@ class MissingPartyAbbreviationTranslation(ValidatePartyCollection):
   class and returned to the user as an Info message.
   """
 
-  def get_specific_info_message(self):
-    return "The feed is missing several parties abbreviation translation"
-
   def check_specific(self, parties):
     info_log = []
     feed_languages, feed_party_ids = set(), set()
@@ -1318,10 +1226,9 @@ class MissingPartyAbbreviationTranslation(ValidatePartyCollection):
       party_object_id = party.get("objectId")
       abbr_element = party.find("InternationalizedAbbreviation")
       if abbr_element is None:
-        info_message = ("Line %d: <Party> %s does not have "
-                        "<InternationalizedAbbreviation> objects" %
-                        (party.sourceline, party_object_id))
-        info_log.append(loggers.ErrorLogEntry(None, info_message))
+        info_message = ("<Party> does not have <InternationalizedAbbreviation>"
+                        " objects")
+        info_log.append(loggers.LogEntry(info_message, [party]))
         continue
       party_abbrs = abbr_element.findall("Text")
       party_languages = set()
@@ -1333,15 +1240,15 @@ class MissingPartyAbbreviationTranslation(ValidatePartyCollection):
             info_message = (
                 "The feed is missing abbreviation translation to %s for parties"
                 " : %s." % (language, feed_party_ids))
-            info_log.append(loggers.ErrorLogEntry(None, info_message))
+            info_log.append(loggers.LogEntry(info_message))
         party_languages.add(language)
       feed_party_ids.add(party_object_id)
       if len(party_languages) != len(feed_languages):
         info_message = (
-            "The party %s abbreviation is not translated to all feed languages "
-            "%s. You only did it for the following languages : %s." %
-            (party_object_id, feed_languages, party_languages))
-        info_log.append(loggers.ErrorLogEntry(None, info_message))
+            "The party abbreviation is not translated to all feed languages %s."
+            " You only did it for the following languages : %s." %
+            (feed_languages, party_languages))
+        info_log.append(loggers.LogEntry(info_message, [party]))
     return info_log
 
 
@@ -1361,27 +1268,22 @@ class DuplicateContestNames(base.BaseRule):
     contest_elts = election_elt.findall("Contest")
     if contest_elts is None:
       error_message = "ContestCollection is Empty."
-      error_log.append(
-          loggers.ErrorLogEntry(election_elt.sourceline, error_message))
+      error_log.append(loggers.LogEntry(error_message, [election_elt]))
     for element in contest_elts:
-      object_id = element.get("objectId")
       name = element.find("Name")
       if name is None or not name.text:
-        error_message = "Contest {0} is missing a <Name> ".format(object_id)
+        error_message = "The contest is missing a <Name> "
         error_log.append(
-            loggers.ErrorLogEntry(element.sourceline, error_message))
+            loggers.LogEntry(error_message, [element]))
         continue
-      name_contest_id.setdefault(name.text, []).append(object_id)
+      name_contest_id.setdefault(name.text, []).append(element)
 
     for name, contests in name_contest_id.items():
       if len(contests) > 1:
-        error_message = (
-            "Contest name '{0}' appears in following {1} contests: {2}".format(
-                name, len(contests), ", ".join(contests)))
-        error_log.append(loggers.ErrorLogEntry(None, error_message))
+        error_log.append(loggers.LogEntry(
+            "Contests have the same name %s." % name, contests))
     if error_log:
-      raise loggers.ElectionTreeError(
-          "The Election File contains duplicate contest names.", error_log)
+      raise loggers.ElectionError(error_log)
 
 
 class MissingStableIds(base.BaseRule):
@@ -1401,27 +1303,8 @@ class MissingStableIds(base.BaseRule):
     object_id = element.get("objectId")
     stable_ids = get_external_id_values(element, "stable")
     if not stable_ids:
-      raise loggers.ElectionError(
-          "Line: %d. %s element with object id %s is missing a stable id" %
-          (element.sourceline, element_name, object_id))
-
-
-class CandidatesMissingPartyData(base.BaseRule):
-  """Each Candidate should have party data associated with it.
-
-  A Candidate object that has no PartyId attached to it should be picked up
-  within this class and returned to the user as a warning.
-  """
-
-  def elements(self):
-    return ["Candidate"]
-
-  def check(self, element):
-    party_id = element.find("PartyId")
-    if party_id is None or not party_id.text:
-      raise loggers.ElectionWarning(
-          "Line %d: Candidate %s is missing party data" %
-          (element.sourceline, element.get("objectId")))
+      raise loggers.ElectionError.from_message(
+          "The element is missing a stable id", [element])
 
 
 class PersonsMissingPartyData(base.BaseRule):
@@ -1437,8 +1320,8 @@ class PersonsMissingPartyData(base.BaseRule):
   def check(self, element):
     party_id = element.find("PartyId")
     if party_id is None or not party_id.text or party_id.text.isspace():
-      raise loggers.ElectionWarning("Person {} is missing party data".format(
-          element.get("objectId")))
+      raise loggers.ElectionWarning.from_message(
+          "The person is missing party data", [element])
 
 
 class AllCaps(base.BaseRule):
@@ -1449,44 +1332,29 @@ class AllCaps(base.BaseRule):
   the user as a warning.
   """
 
+  _element_field_mapping = {
+      "Candidate": ["BallotName//Text"],
+      "CandidateContest": ["Name"],
+      "PartyContest": ["Name"],
+      "Person": ["FullName//Text"]
+  }
+
   def elements(self):
-    return ["Candidate", "CandidateContest", "PartyContest", "Person"]
+    return list(self._element_field_mapping.keys())
 
   def check(self, element):
-    object_id = element.get("objectId")
-    if element.tag == "Candidate":
-      ballot_name_element = element.find("BallotName")
-      if ballot_name_element is None:
-        return
-      ballot_name = ballot_name_element.find("Text")
-      if ballot_name is None:
-        return
-      name = ballot_name.text
-      if name and name.isupper():
-        raise loggers.ElectionWarning(
-            "Line %d. Candidate %s has name in all upper case letters." %
-            (element.sourceline, object_id))
-    elif element.tag == "Contest":
-      name_element = element.find("Name")
-      if name_element is None:
-        return
-      name = name_element.text
-      if name and name.isupper():
-        raise loggers.ElectionWarning(
-            "Line %d. Contest %s has name in all upper case letters." %
-            (element.sourceline, object_id))
-    else:
-      full_name_element = element.find("FullName")
-      if full_name_element is None:
-        return
-      full_name = full_name_element.find("Text")
-      if full_name is None:
-        return
-      name = full_name.text
-      if name and name.isupper():
-        raise loggers.ElectionWarning(
-            "Line %d. Person %s has name in all upper case letters." %
-            (element.sourceline, object_id))
+    error_log = []
+
+    element_tag = self.get_element_class(element)
+    to_check_field_tags = self._element_field_mapping[element_tag]
+    for field_tag in to_check_field_tags:
+      to_check_field = element.find(field_tag)
+      if to_check_field is not None:
+        text_value = to_check_field.text
+        if text_value and text_value.isupper():
+          raise loggers.ElectionWarning.from_message(
+              "{0} has {1} in all upper case letters.".format(
+                  element_tag, field_tag), [element])
 
 
 class AllLanguages(base.BaseRule):
@@ -1509,10 +1377,9 @@ class AllLanguages(base.BaseRule):
       languages.add(text.attrib["language"])
     required_language_set = frozenset(self.required_languages)
     if not required_language_set.issubset(languages):
-      raise loggers.ElectionError(
-          sourceline_prefix(element) +
-          "Element does not contain text in all required languages, missing: " +
-          str(required_language_set - languages))
+      msg = ("Element does not contain text in all required languages, missing"
+             + " : %s" % str(required_language_set - languages))
+      raise loggers.ElectionError.from_message(msg, [element])
 
 
 class ValidEnumerations(base.BaseRule):
@@ -1551,10 +1418,9 @@ class ValidEnumerations(base.BaseRule):
       other_type_element = element.find("OtherType")
       if (other_type_element is not None and
           other_type_element.text in self.valid_enumerations):
-        raise loggers.ElectionError(
-            "%sType of element %s is set to 'other' even though "
-            "'%s' is a valid enumeration" %
-            (sourceline_prefix(element), element.tag, other_type_element.text))
+        raise loggers.ElectionError.from_message(
+            ("Type is set to 'other' even though '%s' is a valid "
+             "enumeration"% other_type_element.text), [element])
 
 
 class ValidateOcdidLowerCase(base.BaseRule):
@@ -1569,10 +1435,9 @@ class ValidateOcdidLowerCase(base.BaseRule):
   def check(self, element):
     for ocd_id in get_external_id_values(element, "ocd-id"):
       if not ocd_id.islower():
-        raise loggers.ElectionWarning(
-            "%sOCD-ID %s is not in all lower case letters. "
-            "Valid OCD-IDs should be all lowercase." %
-            (sourceline_prefix(element), ocd_id))
+        msg = ("OCD-ID %s is not in all lower case letters. "
+               "Valid OCD-IDs should be all lowercase." % (ocd_id))
+        raise loggers.ElectionWarning.from_message(msg, [element])
 
 
 class ContestHasMultipleOffices(base.BaseRule):
@@ -1587,13 +1452,11 @@ class ContestHasMultipleOffices(base.BaseRule):
     if office_ids is not None and office_ids.text:
       ids = office_ids.text.split()
       if len(ids) > 1:
-        raise loggers.ElectionWarning(
-            "Contest {} has more than one associated office.".format(
-                element.get("objectId", "")))
+        raise loggers.ElectionWarning.from_message(
+            "Contest has more than one associated office.", [element])
     else:
-      raise loggers.ElectionWarning(
-          "Contest {} has no associated offices.".format(
-              element.get("objectId", "")))
+      raise loggers.ElectionWarning.from_message(
+          "Contest has no associated offices.", [element])
 
 
 class PersonHasOffice(base.ValidReferenceRule):
@@ -1624,9 +1487,9 @@ class PersonHasOffice(base.ValidReferenceRule):
         if id_obj is not None and id_obj.text:
           ids = id_obj.text.strip().split()
           if len(ids) > 1:
-            raise loggers.ElectionError(
-                "Office object {} has {} OfficeHolders. Must have exactly one."
-                .format(office.get("objectId", ""), str(len(ids))))
+            msg = "Office has {} OfficeHolders. Must have exactly one.".format(
+                str(len(ids)))
+            raise loggers.ElectionError.from_message(msg, [office])
           person_reference_ids.update(ids)
 
     return person_reference_ids
@@ -1669,7 +1532,7 @@ class ProhibitElectionData(base.TreeRule):
   def check(self):
     root = self.election_tree.getroot()
     if root is not None and root.find("Election") is not None:
-      raise loggers.ElectionError(
+      raise loggers.ElectionError.from_message(
           "Election data is prohibited in officeholder feeds.")
 
 
@@ -1721,10 +1584,9 @@ class VoteCountTypesCoherency(base.BaseRule):
           if vc_type in invalid_vc_types:
             errors.append(vc_type)
       if errors:
-        raise loggers.ElectionError("VoteCount types {0} should not be nested "
-                                    " in {1} Contest ({2})".format(
-                                        ", ".join(errors), contest_type,
-                                        element.attrib["objectId"]))
+        msg = "VoteCount types {0} should not be nested in {1} Contest".format(
+            ", ".join(errors), contest_type)
+        raise loggers.ElectionError.from_message(msg, [element])
 
 
 class URIValidator(base.BaseRule):
@@ -1739,7 +1601,7 @@ class URIValidator(base.BaseRule):
   def check(self, element):
     url = element.text
     if url is None:
-      raise loggers.ElectionError("Missing URI value.")
+      raise loggers.ElectionError.from_message("Missing URI value.", [element])
 
     parsed_url = urlparse(url)
     discrepencies = []
@@ -1755,9 +1617,9 @@ class URIValidator(base.BaseRule):
       discrepencies.append("domain - missing")
 
     if discrepencies:
-      raise loggers.ElectionError(
-          "The provided URI, {}, is invalid for the following reasons: {}."
-          .format(url.encode("ascii", "ignore"), ", ".join(discrepencies)))
+      msg = "The provided URI, {}, is invalid for the following reasons: {}.".format(
+          url.encode("ascii", "ignore"), ", ".join(discrepencies))
+      raise loggers.ElectionError.from_message(msg, [element])
 
 
 class UniqueURIPerAnnotationCategory(base.TreeRule):
@@ -1788,11 +1650,10 @@ class UniqueURIPerAnnotationCategory(base.TreeRule):
       if annotation_platform not in uri_mapping.keys():
         uri_mapping[annotation_platform] = {}
 
-      elt_hierarchy = get_parent_hierarchy_object_id_str(uri)
       if uri_mapping[annotation_platform].get(uri_value):
-        uri_mapping[annotation_platform][uri_value].append(elt_hierarchy)
+        uri_mapping[annotation_platform][uri_value].append(uri)
       else:
-        uri_mapping[annotation_platform][uri_value] = [elt_hierarchy]
+        uri_mapping[annotation_platform][uri_value] = [uri]
     return uri_mapping
 
   def check(self):
@@ -1804,18 +1665,14 @@ class UniqueURIPerAnnotationCategory(base.TreeRule):
 
     error_log = []
     for annotation, value_counter in annotation_mapper.items():
-      for uri, hierarchy_list in value_counter.items():
-        if len(hierarchy_list) > 1:
-          error_message = ("The annotation type {} contains duplicate value:"
-                           " {}. It appears {} times in the following elements:"
-                           " {}").format(annotation, uri, len(hierarchy_list),
-                                         hierarchy_list)
-          error_log.append(loggers.ErrorLogEntry(None, error_message))
+      for uri, uri_elements in value_counter.items():
+        if len(uri_elements) > 1:
+          error_message = ("The Uris contain the annotation type '{}' with the "
+                           "same value '{}'.").format(annotation, uri)
+          error_log.append(loggers.LogEntry(error_message, uri_elements))
 
     if error_log:
-      raise loggers.ElectionError(("There are duplicate URIs in the feed. "
-                                   "URIs should be unique for each category."),
-                                  error_log)
+      raise loggers.ElectionError(error_log)
 
 
 class ValidURIAnnotation(base.BaseRule):
@@ -1835,15 +1692,16 @@ class ValidURIAnnotation(base.BaseRule):
   def elements(self):
     return ["ContactInformation"]
 
-  def check_url(self, url, annotation, platform):
+  def check_url(self, uri, annotation, platform):
+    url = uri.text.strip()
     parsed_url = urlparse(url)
     # Ensure media platform name is in URL.
     if (platform != "website" and platform not in parsed_url.netloc and
         not (platform == "facebook" and "fb.com" in parsed_url.netloc)):
       # Note that the URL is encoded for printing purposes
-      raise loggers.ElectionError(
-          "Annotation {} is incorrect for URI {}.".format(
-              annotation, url.encode("ascii", "ignore")))
+      raise loggers.ElectionError.from_message(
+          "Annotation '{}' is incorrect for URI {}.".format(
+              annotation, url.encode("ascii", "ignore")), [uri])
 
   def check(self, element):
     uris = element.findall("Uri")
@@ -1854,8 +1712,8 @@ class ValidURIAnnotation(base.BaseRule):
       ascii_url = url.encode("ascii", "ignore")
 
       if not annotation:
-        raise loggers.ElectionWarning(
-            "URI {} is missing annotation.".format(ascii_url))
+        raise loggers.ElectionWarning.from_message(
+            "URI {} is missing annotation.".format(ascii_url), [uri])
 
       # Only do platform checks if the annotation is not an image.
       if not re.search(r"candidate-image", annotation):
@@ -1865,30 +1723,31 @@ class ValidURIAnnotation(base.BaseRule):
           # One element would imply the annotation could be a platform
           # without a usage type, which is checked here.
           if platform in self.TYPE_PLATFORMS:
-            raise loggers.ElectionWarning(
-                "Annotation {} missing usage type.".format(annotation))
+            raise loggers.ElectionWarning.from_message(
+                "Annotation '{}' missing usage type.".format(annotation), [uri])
           elif platform in self.USAGE_TYPES:
-            raise loggers.ElectionError("Annotation {} has usage type, "
-                                        "missing platform.".format(annotation))
+            raise loggers.ElectionError.from_message(
+                "Annotation '{}' has usage type, missing platform.".format(
+                    annotation), [uri])
           elif platform not in self.PLATFORM_ONLY_ANNOTATIONS:
-            raise loggers.ElectionError(
-                "Annotation {} is not a valid annotation for URI {}.".format(
-                    annotation, ascii_url))
+            raise loggers.ElectionError.from_message(
+                "Annotation '{}' is not a valid annotation for URI {}.".format(
+                    annotation, ascii_url), [uri])
         elif len(ann_elements) == 2:
           # Two elements at this stage would mean the annotation
           # must be a platform with a usage type.
           usage_type, platform = ann_elements
           if (usage_type not in self.USAGE_TYPES or
               platform not in self.TYPE_PLATFORMS):
-            raise loggers.ElectionWarning(
-                "{} is not a valid annotation.".format(annotation))
+            raise loggers.ElectionWarning.from_message(
+                "'{}' is not a valid annotation.".format(annotation), [uri])
         else:
           # More than two implies an invalid annotation.
-          raise loggers.ElectionError(
-              "Annotation {} is invalid for URI {}.".format(
-                  annotation, ascii_url))
+          raise loggers.ElectionError.from_message(
+              "Annotation '{}' is invalid for URI {}.".format(
+                  annotation, ascii_url), [uri])
         # Finally, check platform is in the URL.
-        self.check_url(url, annotation, platform)
+        self.check_url(uri, annotation, platform)
 
 
 class OfficesHaveJurisdictionID(base.BaseRule):
@@ -1898,19 +1757,18 @@ class OfficesHaveJurisdictionID(base.BaseRule):
     return ["Office"]
 
   def check(self, element):
-    jurisdiction_values = get_additional_type_values(element, "jurisdiction-id")
-    jurisdiction_values.extend([
-        j_id.strip()
-        for j_id in get_external_id_values(element, "jurisdiction-id")
-        if j_id.strip()
-    ])
+    jurisdiction_values = get_entity_info_for_value_type(
+        element, "jurisdiction-id")
+    jurisdiction_values = [
+        j_id for j_id in jurisdiction_values if j_id.strip()
+    ]
     object_id = element.get("objectId")
     if not jurisdiction_values:
-      raise loggers.ElectionError(
-          "Office {} is missing a jurisdiction-id.".format(object_id))
+      raise loggers.ElectionError.from_message(
+          "Office is missing a jurisdiction-id.", [element])
     if len(jurisdiction_values) > 1:
-      raise loggers.ElectionError(
-          "Office {} has more than one jurisdiction-id.".format(object_id))
+      raise loggers.ElectionError.from_message(
+          "Office has more than one jurisdiction-id.", [element])
 
 
 class ValidJurisdictionID(base.ValidReferenceRule):
@@ -1922,8 +1780,8 @@ class ValidJurisdictionID(base.ValidReferenceRule):
 
   def _gather_reference_values(self):
     root = self.election_tree.getroot()
-    jurisdiction_values = get_additional_type_values(root, "jurisdiction-id")
-    jurisdiction_values.extend(get_external_id_values(root, "jurisdiction-id"))
+    jurisdiction_values = get_entity_info_for_value_type(
+        root, "jurisdiction-id")
     return set(jurisdiction_values)
 
   def _gather_defined_values(self):
@@ -1944,18 +1802,16 @@ class OfficesHaveValidOfficeLevel(base.BaseRule):
         if ol_id.strip()
     ]
     if not office_level_values:
-      raise loggers.ElectionError(
-          ("Office {} is missing an office-level.".format(
-              element.get("objectId", ""))))
+      raise loggers.ElectionError.from_message(
+          "Office is missing an office-level.", [element])
     if len(office_level_values) > 1:
-      raise loggers.ElectionError(
-          ("Office {} has more than one office-level.".format(
-              element.get("objectId", ""))))
+      raise loggers.ElectionError.from_message(
+          "Office has more than one office-level.", [element])
     office_level_value = office_level_values[0]
     if office_level_value not in office_utils.valid_office_level_values:
-      raise loggers.ElectionError(
-          ("Office {} has invalid office-level {}.".format(
-              element.get("objectId", ""), office_level_value)))
+      raise loggers.ElectionError.from_message(
+          "Office has invalid office-level {}.".format(office_level_value),
+          [element])
 
 
 class OfficesHaveValidOfficeRole(base.BaseRule):
@@ -1970,18 +1826,16 @@ class OfficesHaveValidOfficeRole(base.BaseRule):
         for office_role_value in get_external_id_values(element, "office-role")
     ]
     if not office_role_values:
-      raise loggers.ElectionError(
-          ("Office {} is missing an office-role.".format(
-              element.get("objectId", ""))))
+      raise loggers.ElectionError.from_message(
+          "The office is missing an office-role.", [element])
     if len(office_role_values) > 1:
-      raise loggers.ElectionError(
-          ("Office {} has more than one office-role.".format(
-              element.get("objectId", ""))))
+      raise loggers.ElectionError.from_message(
+          "The office has more than one office-role.", [element])
     office_role_value = office_role_values[0]
     if office_role_value not in office_utils.valid_office_role_values:
-      raise loggers.ElectionError(
-          ("Office {} has invalid office-role {}.".format(
-              element.get("objectId", ""), office_role_value)))
+      raise loggers.ElectionError.from_message(
+          "The office has invalid office-role '{}'.".format(office_role_value),
+          [element])
 
 
 class ElectionStartDates(base.DateRule):
@@ -2002,9 +1856,7 @@ class ElectionStartDates(base.DateRule):
       self.check_for_date_not_in_past(self.start_date, self.start_elem)
 
     if self.error_log:
-      error_message = """The start date {} is in the past. Please double
-      check that this is expected.""".format(self.start_date)
-      raise loggers.ElectionWarning(error_message, self.error_log)
+      raise loggers.ElectionWarning(self.error_log)
 
 
 class ElectionEndDates(base.DateRule):
@@ -2027,8 +1879,7 @@ class ElectionEndDates(base.DateRule):
         self.check_end_after_start()
 
     if self.error_log:
-      raise loggers.ElectionError("The election dates are invalid: ",
-                                  self.error_log)
+      raise loggers.ElectionError(self.error_log)
 
 
 class OfficeTermDates(base.DateRule):
@@ -2048,20 +1899,109 @@ class OfficeTermDates(base.DateRule):
     if element_has_text(off_per_id):
       term = element.find("Term")
       if term is None:
-        raise loggers.ElectionWarning(("Office (objectId: {}) is missing a "
-                                       "Term").format(element.get("objectId")))
+        raise loggers.ElectionWarning.from_message(
+            "The Office is missing a Term.", [element])
 
       self.gather_dates(term)
       if self.start_date is None:
-        raise loggers.ElectionWarning(
-            ("Office (objectId: {}) is missing a Term > StartDate.").format(
-                element.get("objectId")))
+        raise loggers.ElectionWarning.from_message(
+            "The Office is missing a Term > StartDate.", [element])
       elif self.end_date is not None:
         self.check_end_after_start()
 
     if self.error_log:
-      raise loggers.ElectionError("The Office term dates are invalid.",
-                                  self.error_log)
+      raise loggers.ElectionError(self.error_log)
+
+
+class UniqueStartDatesForOfficeRoleAndJurisdiction(base.BaseRule):
+  """Office StartDates should be unique within a certain group.
+
+  Office StartDates should be unique amongst a group of Office entries
+  with the same jurisdiction-id and office-role.
+  """
+
+  def elements(self):
+    return ["OfficeCollection"]
+
+  def _filter_out_past_end_dates(self, offices):
+    valid_offices = []
+    for office in offices:
+      term = office.find(".//Term")
+      if term is not None:
+        date_validator = base.DateRule(None, None)
+        try:
+          date_validator.gather_dates(term)
+          if date_validator.end_date is not None:
+            date_validator.check_for_date_not_in_past(
+                date_validator.end_date, date_validator.end_elem)
+          if not date_validator.error_log:
+            valid_offices.append(office)
+        except loggers.ElectionError:
+          continue
+    return valid_offices
+
+  def _count_start_dates_by_jurisdiction_role(self, element):
+    offices = element.findall("Office")
+    offices = self._filter_out_past_end_dates(offices)
+    jurisdiction_role_mapping = {}
+    for office in offices:
+      office_role = ""
+      jurisdiction_id = ""
+      start_date = ""
+
+      start_date_elem = office.find(
+          ".//Term//StartDate"
+      )
+      if not element_has_text(start_date_elem):
+        continue
+      start_date = start_date_elem.text
+
+      office_roles = get_entity_info_for_value_type(office, "office-role")
+      if office_roles:
+        office_role = office_roles[0]
+
+      jurisdiction_ids = get_entity_info_for_value_type(
+          office, "jurisdiction-id")
+      if jurisdiction_ids:
+        jurisdiction_id = jurisdiction_ids[0]
+
+      office_hash = hashlib.sha256((
+          office_role + jurisdiction_id
+      ).encode("utf-8")).hexdigest()
+      if office_hash not in jurisdiction_role_mapping.keys():
+        jurisdiction_role_mapping[office_hash] = dict({
+            "jurisdiction_id": jurisdiction_id,
+            "office_role": office_role,
+            "start_dates": dict({}),
+        })
+
+      office_date_info = jurisdiction_role_mapping[office_hash]
+      if start_date not in office_date_info["start_dates"].keys():
+        office_date_info["start_dates"][start_date] = set()
+
+      office_date_info["start_dates"][start_date].add(office)
+
+    return jurisdiction_role_mapping
+
+  def check(self, element):
+    warning_log = []
+
+    start_counts = self._count_start_dates_by_jurisdiction_role(element)
+    for start_info in start_counts.values():
+      start_date_map = start_info["start_dates"]
+      if len(start_date_map.keys()) == 1:
+        start_date = list(start_date_map.keys())[0]
+        # this accounts for offices with only one entry (i.e. US Pres)
+        if len(start_date_map[start_date]) > 1:
+          warning_log.append(loggers.LogEntry(
+              ("Only one unique StartDate found for each jurisdiction-id: {} "
+               "and office-role: {}. {} appears {} times.").format(
+                   start_info["jurisdiction_id"], start_info["office_role"],
+                   start_date, len(start_date_map[start_date])),
+              start_date_map[start_date]))
+
+    if warning_log:
+      raise loggers.ElectionWarning(warning_log)
 
 
 class GpUnitsHaveInternationalizedName(base.BaseRule):
@@ -2072,27 +2012,26 @@ class GpUnitsHaveInternationalizedName(base.BaseRule):
 
   def check(self, element):
     intl_names = element.findall("InternationalizedName")
-    missing_names = []
     object_id = element.get("objectId", "")
     if intl_names is None or not intl_names or len(intl_names) > 1:
-      raise loggers.ElectionError(
-          "GpUnit {} is required to have exactly one InterationalizedName element."
-          .format(object_id))
+      raise loggers.ElectionError.from_message(
+          "GpUnit is required to have exactly one InterationalizedName element."
+          , [element])
     intl_name = intl_names[0]
     name_texts = intl_name.findall("Text")
     if name_texts is None or not name_texts:
-      raise loggers.ElectionError(
-          ("GpUnit {} InternationalizedName on line {} is required to have one "
-           "or more Text elements.".format(object_id, intl_name.sourceline)))
+      raise loggers.ElectionError.from_message(
+          ("GpUnit InternationalizedName is required to have one or more Text "
+           "elements."), [intl_name])
+    error_log = []
     for name_text in name_texts:
       if name_text is None or not (name_text.text and name_text.text.strip()):
-        missing_names.append(
-            "GpUnit {} InternationalizedName on line {} does not have a text value."
-            .format(object_id, intl_name.sourceline))
-    if missing_names:
-      raise loggers.ElectionError(
-          ("GpUnit {} must not have empty InternationalizedName Text elements. "
-           "{}".format(object_id, "\n".join(missing_names))))
+        error_log.append(loggers.LogEntry(
+            "GpUnit InternationalizedName does not have a text value.",
+            [name_text]))
+
+    if error_log:
+      raise loggers.ElectionError(error_log)
 
 
 class FullTextMaxLength(base.BaseRule):
@@ -2107,10 +2046,10 @@ class FullTextMaxLength(base.BaseRule):
     intl_text_list = element.findall("Text")
     for intl_text in intl_text_list:
       if len(intl_text.text) > self.MAX_LENGTH:
-        raise loggers.ElectionWarning(
-            "FullText is longer than %s characters.  Please remove and "
-            "include a link to the full text via InfoUri with Annotation "
-            "'fulltext'." % (self.MAX_LENGTH))
+        msg = ("FullText is longer than %s characters. Please remove and "
+               "include a link to the full text via InfoUri with Annotation "
+               "'fulltext'." % (self.MAX_LENGTH))
+        raise loggers.ElectionWarning.from_message(msg, [element])
 
 
 class FullTextOrBallotText(base.BaseRule):
@@ -2130,11 +2069,11 @@ class FullTextOrBallotText(base.BaseRule):
     for language, full_text_string in full_text_map.items():
       if language not in ballot_text_map.keys(
       ) and len(full_text_string) < self.SUGGESTION_CUTOFF_LENGTH:
-        raise loggers.ElectionWarning(
-            "Line: %d. Language: %s.  BallotText is missing but FullText is "
-            "present for the same language. Please confirm that FullText "
-            "contains only supplementary text and not text on the ballot "
-            "itself." % (element.sourceline, language))
+        msg = ("Language: %s.  BallotText is missing but FullText is present "
+               "for the same language. Please confirm that FullText contains "
+               "only supplementary text and not text on the ballot itself." %
+               (language))
+        raise loggers.ElectionWarning.from_message(msg, [element])
 
 
 class BallotTitle(base.BaseRule):
@@ -2146,23 +2085,22 @@ class BallotTitle(base.BaseRule):
   def check(self, element):
     ballot_title_map = get_language_to_text_map(element.find("BallotTitle"))
     if not ballot_title_map:
-      raise loggers.ElectionError(
-          "Line %d. BallotMeasureContest is missing BallotTitle." %
-          (element.sourceline))
+      raise loggers.ElectionError.from_message(
+          "BallotMeasureContest is missing BallotTitle.", [element])
 
     ballot_text_map = get_language_to_text_map(element.find("BallotText"))
     if not ballot_text_map:
-      raise loggers.ElectionWarning(
-          "Line %d. BallotText is missing. Please confirm that the ballot "
-          " text/question is not in BallotTitle." % (element.sourceline))
+      msg = ("BallotText is missing. Please confirm that the ballot "
+             "text/question is not in BallotTitle.")
+      raise loggers.ElectionWarning.from_message(msg, [element])
 
     for language, ballot_title_string in ballot_title_map.items():
       if language not in ballot_text_map.keys() or len(
           ballot_text_map[language]) < len(ballot_title_string):
-        raise loggers.ElectionWarning(
-            "Line: %d. Language: %s. BallotText is missing or shorter than "
-            "BallotTitle. Please confirm that the ballot text/question is not "
-            "in BallotTitle." % (element.sourceline, language))
+        msg = ("Language: %s. BallotText is missing or shorter than "
+               " Please confirm that the ballot text/question is not "
+               "in BallotTitle." % (language))
+        raise loggers.ElectionWarning.from_message(msg, [element])
 
 
 class ImproperCandidateContest(base.TreeRule):
@@ -2202,7 +2140,7 @@ class ImproperCandidateContest(base.TreeRule):
 
     invalid_candidates = self._gather_invalid_candidates()
 
-    error_log = []
+    warning_log = []
     for contest_id, cand_ids in candidate_contest_mapping.items():
       flagged_candidates = []
       for cand_id in cand_ids:
@@ -2214,56 +2152,99 @@ class ImproperCandidateContest(base.TreeRule):
                            "to a BallotMeasureContest instead of a "
                            "CandidateContest.").format(
                                ", ".join(flagged_candidates), contest_id)
-        error_log.append(loggers.ErrorLogEntry(None, warning_message))
-
+        warning_log.append(loggers.LogEntry(warning_message))
     if invalid_candidates:
       warning_message = ("There are CandidateContests that appear to be "
                          "BallotMeasureContests based on the "
                          "BallotName values.")
-      raise loggers.ElectionWarning("There are misformatted contests.",
-                                    error_log)
+      raise loggers.ElectionWarning(warning_log)
 
 
-class RequiredFields(base.BaseRule):
-  """Check for required fields for given entity types and field names.
+class MissingFieldsError(base.MissingFieldRule):
+  """Check for missing fields for given entity types and field names.
 
-  To add a field, include the entity and field in the _element_field_mapping
-  and add the entity to the elements list.
+  Raise error for missing fields. To add a field, include the entity
+  and field in element_field_mapping.
   """
 
-  _element_field_mapping = {
-      "Person": [
-          "FullName//Text",
-      ],
-      "Candidate": [
-          "PersonId",
-      ],
-      "Election": [
-          "StartDate",
-          "EndDate",
-      ],
-  }
+  def get_severity(self):
+    return 2
+
+  def element_field_mapping(self):
+    return {
+        "Person": [
+            "FullName//Text",
+        ],
+        "Candidate": [
+            "PersonId",
+        ],
+        "Election": [
+            "StartDate",
+            "EndDate",
+        ],
+    }
+
+
+class MissingFieldsWarning(base.MissingFieldRule):
+  """Check for missing fields for given entity types and field names.
+
+  Raise warning for missing fields. To add a field, include the entity
+  and field in element_field_mapping.
+  """
+
+  def get_severity(self):
+    return 1
+
+  def element_field_mapping(self):
+    return {
+        "Candidate": [
+            "PartyId",
+        ],
+    }
+
+
+class PartySpanMultipleCountries(base.BaseRule):
+  """Check if a party operate on multiple countries.
+
+  Parties can have PartyScopeGpUnitIds which span multiple countries. This is
+  sometimes correct, but we should flag it to double check.
+  """
+
+  def __init__(self, election_tree, schema_tree):
+    super(PartySpanMultipleCountries, self).__init__(election_tree, schema_tree)
+    self.existing_gpunits = dict()
+    country_pattern = re.compile(r"^ocd-division\/country:[a-z]{2}")
+    for gpunit in self.get_elements_by_class(election_tree, "GpUnit"):
+      ocd_ids = get_external_id_values(gpunit, "ocd-id")
+      if ocd_ids:
+        country_match = country_pattern.search(ocd_ids[0])
+        if country_match:
+          country = country_match[0].split("/")[1]
+          self.existing_gpunits[gpunit.get("objectId")] = country
 
   def elements(self):
-    return list(self._element_field_mapping.keys())
+    return ["PartyScopeGpUnitIds"]
 
   def check(self, element):
-    error_log = []
+    if element.text is None:
+      return
+    referenced_country = dict()
+    for gpunit_id in element.text.split():
+      country = self.existing_gpunits.get(gpunit_id)
+      if country is not None:
+        if referenced_country.get(country) is None:
+          referenced_country[country] = []
+        referenced_country[country].append(gpunit_id)
 
-    required_field_tags = self._element_field_mapping[element.tag]
-    for field_tag in required_field_tags:
-      required_field = element.find(field_tag)
-      if (required_field is None or required_field.text is None
-          or not required_field.text.strip()):
-        error_log.append(
-            loggers.ErrorLogEntry(None, (
-                "Line {}. Element {} (objectId: {}) is missing required "
-                "field {}.").format(element.sourceline, element.tag,
-                                    element.get("objectId"), field_tag)))
+    if len(referenced_country) > 1:
+      gpunit_country_mapping = " / ".join(
+          ["%s -> %s" % (key, str(value)) for (key, value)
+           in referenced_country.items()])
 
-    if error_log:
-      raise loggers.ElectionError("{} is missing required fields.".format(
-          element.tag), error_log)
+      raise loggers.ElectionWarning.from_message(
+          ("PartyScopeGpUnitIds refer to GpUnit from different countries: {}. "
+           "Please double check."
+           .format(gpunit_country_mapping)), [element])
 
 
 class RuleSet(enum.Enum):
@@ -2303,14 +2284,15 @@ COMMON_RULES = (
     OfficesHaveValidOfficeLevel,
     OfficesHaveValidOfficeRole,
     ValidStableID,
+    PartySpanMultipleCountries,
     PersonHasUniqueFullName,
     PersonsMissingPartyData,
     GpUnitsHaveInternationalizedName,
-    RequiredFields,
+    MissingFieldsError,
+    MissingFieldsWarning,
 )
 
 ELECTION_RULES = COMMON_RULES + (
-    CandidatesMissingPartyData,
     CoalitionParties,
     DuplicateContestNames,
     ElectoralDistrictOcdId,
@@ -2341,6 +2323,7 @@ OFFICEHOLDER_RULES = COMMON_RULES + (
     PersonHasOffice,
     ProhibitElectionData,
     OfficeTermDates,
+    UniqueStartDatesForOfficeRoleAndJurisdiction,
 )
 
 ALL_RULES = frozenset(COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES)

@@ -15,38 +15,51 @@ limitations under the License.
 """
 
 
+class LogEntry(object):
+  """This class contains needed information for user output."""
+
+  def __init__(self, message, elements=None, lines=None):
+    self.message = message
+    self.elements = elements
+    if lines is not None:
+      self.lines = lines
+    elif elements is not None:
+      self.lines = []
+      for element in elements:
+        if(element is not None and hasattr(element, "sourceline")
+           and element.sourceline is not None):
+          self.lines.append(element.sourceline)
+    else:
+      self.lines = None
+
+
 # pylint: disable=g-bad-exception-name
 class ElectionException(Exception):
-  """Base class for all the errors in this script."""
-  error_message = None
+  """Base class for all the exceptions in this script."""
   description = None
-  error_log = []
 
-  def __init__(self, message):
+  def __init__(self, log_entry):
     super(ElectionException, self).__init__()
-    self.error_message = message
+    if isinstance(log_entry, list):
+      self.log_entry = log_entry
+    else:
+      self.log_entry = [log_entry]
 
-  def __str__(self):
-    return repr(self.error_message)
+  @classmethod
+  def from_message(cls, message, elements=None, lines=None):
+    return cls(LogEntry(message, elements, lines))
+
+
+class ElectionFatal(ElectionException):
+  """An Fatal that prevents the feed from being processed successfully."""
+
+  description = "Fatal"
 
 
 class ElectionError(ElectionException):
   """An error that prevents the feed from being processed successfully."""
 
   description = "Error"
-
-  def __init__(self, message, error_log=None):
-    super(ElectionError, self).__init__(message)
-    if error_log:
-      self.error_log = error_log
-
-
-class ElectionTreeError(ElectionError):
-  """Special exception for Tree Rules."""
-
-  def __init__(self, message, error_log):
-    super(ElectionTreeError, self).__init__(message)
-    self.error_log = error_log
 
 
 # pylint: disable=g-bad-exception-name
@@ -59,11 +72,6 @@ class ElectionWarning(ElectionException):
 
   description = "Warning"
 
-  def __init__(self, message, warning_log=None):
-    super(ElectionWarning, self).__init__(message)
-    if warning_log:
-      self.error_log = warning_log
-
 
 # pylint: disable=g-bad-exception-name
 class ElectionInfo(ElectionException):
@@ -71,24 +79,123 @@ class ElectionInfo(ElectionException):
 
   description = "Info"
 
-  def __init__(self, message, error_log=None):
-    super(ElectionInfo, self).__init__(message)
-    if error_log:
-      self.error_log = error_log
+
+def get_parent_hierarchy_object_id_str(elt):
+  """Get the elt path from the 1st parent with an objectId / ElectionReport."""
+
+  elt_hierarchy = []
+  current_elt = elt
+  while current_elt is not None:
+    if current_elt.get("objectId"):
+      elt_hierarchy.append(current_elt.tag + ":" + current_elt.get("objectId"))
+      break
+    else:
+      elt_hierarchy.append(current_elt.tag)
+    current_elt = current_elt.getparent()
+  return " > ".join(elt_hierarchy[::-1])
 
 
-class ElectionTreeInfo(ElectionInfo):
-  """Special exception for Tree Rules."""
+class ExceptionListWrapper:
+  """This provide helpers to manage a list of ElectionException.
 
-  def __init__(self, message, error_log):
-    super(ElectionTreeInfo, self).__init__(message)
-    self.error_log = error_log
+  This class contains a list of ElectionExceptions. It provides a handler to
+  enrich the list and manage the validator output depending on the user choice
+  for severity. So, as an example if the user selects a severity warning,
+  ElectionWarning, ElectionError log_entry will be displayed and ElectionInfo
+  will be skipped. We print the selected severity + other Exception types with
+  higher severity.
+  """
+
+  SUPPORTED_SEVERITIES = (ElectionInfo,
+                          ElectionWarning,
+                          ElectionError,
+                          ElectionFatal)
+
+  def __init__(self):
+    self._rules_exc_logs = dict()
+    for e_type in self.SUPPORTED_SEVERITIES:
+      self._rules_exc_logs[e_type] = dict()
+
+  def exception_handler(self, exception, rule_name="No rule"):
+    """Gather log entry counts by type, class, and total."""
+    for e_type in self._rules_exc_logs:
+      if issubclass(exception.__class__, e_type):
+        if rule_name not in self._rules_exc_logs[e_type]:
+          self._rules_exc_logs[e_type][rule_name] = []
+        self._rules_exc_logs[e_type][rule_name].extend(exception.log_entry)
+
+  def _select_exception_types(self, severity):
+    if not severity:
+      severity = 0
+    elif severity > len(self.SUPPORTED_SEVERITIES):
+      severity = len(self.SUPPORTED_SEVERITIES) - 1
+    return self.SUPPORTED_SEVERITIES[severity:]
+
+  def count_logs_with_exception_type(self, e_type):
+    exception_count = 0
+    for log_list in list(self._rules_exc_logs[e_type].values()):
+      exception_count += len(log_list)
+    return exception_count
+
+  def _print_exception_type_summary(self, e_type, count_exception):
+    suffix = ""
+    if count_exception > 1:
+      suffix = "s"
+    print("{0:6d} {1} message{2} found".format(count_exception,
+                                               e_type.description, suffix))
+
+  def _print_rule_exception_summary(self, e_type, rule_name):
+    rule_count = len(self._rules_exc_logs[e_type][rule_name])
+    rule_suffix = ""
+    if rule_count > 1:
+      rule_suffix = "s"
+    print("{0:10d} {1} {2} message{3}".format(rule_count, rule_name,
+                                              e_type.description, rule_suffix))
+
+  def _print_exception_log(self, log_entry):
+    if log_entry.lines is not None:
+      print(" " * 14 + "Lines %s :" % log_entry.lines)
+    if log_entry.elements is not None:
+      print(" " * 15 + "Affected elements :")
+      for element in log_entry.elements:
+        print(" " * 16 + get_parent_hierarchy_object_id_str(element))
+    print(" " * 18 + "* {0}".format(log_entry.message))
+
+  def print_exceptions(self, severity, verbose):
+    """Print exceptions in decreasing order of severity."""
+    exception_types = self._select_exception_types(severity)
+    for e_type in reversed(exception_types):
+      exception_count = self.count_logs_with_exception_type(e_type)
+      self._print_exception_type_summary(e_type, exception_count)
+      if exception_count == 0:
+        continue
+      # pylint: disable=cell-var-from-loop
+      # Within the error severity, sort from most common to least common.
+      for rule_name in sorted(
+          self._rules_exc_logs[e_type].keys(),
+          key=lambda rclass: len(self._rules_exc_logs[e_type][rclass]),
+          reverse=True):
+        self._print_rule_exception_summary(e_type, rule_name)
+        if verbose:
+          for log_entry in self._rules_exc_logs[e_type][rule_name]:
+            self._print_exception_log(log_entry)
 
 
-class ErrorLogEntry(object):
-  line = None
-  message = None
+def handled_severities():
+  return ExceptionListWrapper.SUPPORTED_SEVERITIES
 
-  def __init__(self, line, message):
-    self.line = line
-    self.message = message
+
+def supported_severities_mapping():
+  exp_severity_map = {}
+  for n in range(len(ExceptionListWrapper.SUPPORTED_SEVERITIES)):
+    exp_severity_map[
+        ExceptionListWrapper.SUPPORTED_SEVERITIES[n].description.lower()] = n
+  return exp_severity_map
+
+
+def severities_names():
+  names = []
+  for exp in ExceptionListWrapper.SUPPORTED_SEVERITIES:
+    names.append(exp.description.lower())
+  return names
+

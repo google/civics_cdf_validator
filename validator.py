@@ -57,10 +57,11 @@ def _validate_rules(parser, arg):
 
 def _validate_severity(parser, arg):
   """Check that the severity level provided is correct."""
+  valid_severities = loggers.supported_severities_mapping()
 
-  valid_severities = {"info": 0, "warning": 1, "error": 2}
   if arg.strip().lower() not in valid_severities:
-    parser.error("Invalid severity. Options are error, warning, or info")
+    parser.error("Invalid severity. Options are {0}".format(
+        valid_severities.keys()))
   else:
     return valid_severities[arg.strip().lower()]
 
@@ -152,7 +153,8 @@ def add_validate_parser_output_args(parser, parser_validate):
       "--severity",
       "-s",
       type=lambda x: _validate_severity(parser, x),
-      help="Minimum issue severity level - error, warning or info",
+      help="Minimum issue severity level - {0}".format(
+          loggers.severities_names()),
       required=False)
 
 
@@ -252,6 +254,18 @@ def filter_all_rules_using_user_arg(options):
   return rule_classes_to_check
 
 
+def compute_max_found_severity(exceptions_wrapper):
+  if exceptions_wrapper.count_logs_with_exception_type(loggers.ElectionError):
+    return 3
+  elif exceptions_wrapper.count_logs_with_exception_type(loggers.
+                                                         ElectionWarning):
+    return 2
+  elif exceptions_wrapper.count_logs_with_exception_type(loggers.ElectionInfo):
+    return 1
+  else:
+    return 0
+
+
 def feed_validation(options):
   """Validate the input feed depending on the user parameters."""
   rule_options = {}
@@ -276,7 +290,7 @@ def feed_validation(options):
                         str.split(options.required_languages, ",")))
   rule_classes_to_check = filter_all_rules_using_user_arg(options)
 
-  errors = []
+  errors = 0
   for election_file in options.election_files:
     print("\n--------- Results after validating file: {0} ".format(
         election_file.name))
@@ -291,15 +305,9 @@ def feed_validation(options):
     registry.print_exceptions(options.severity, options.verbose)
     if options.verbose:
       registry.count_stats()
-    if registry.exception_counts[loggers.ElectionError]:
-      errors.append(3)
-    elif registry.exception_counts[loggers.ElectionWarning]:
-      errors.append(2)
-    elif registry.exception_counts[loggers.ElectionInfo]:
-      errors.append(1)
-    else:
-      errors.append(0)
-  return max(errors)
+    errors = max(errors,
+                 compute_max_found_severity(registry.exceptions_wrapper))
+  return errors
 
 
 def main():

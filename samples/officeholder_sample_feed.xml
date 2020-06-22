@@ -82,7 +82,7 @@
       <Term>
         <StartDate>2019-01-02</StartDate>
       </Term>
-      <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+      <AdditionalData type="jurisdiction-id">ru-gpu0</AdditionalData>
     </Office>
     <Office objectId="off1">
       <ElectoralDistrictId>ru-gpu1</ElectoralDistrictId>
@@ -110,7 +110,7 @@
       <Term>
         <StartDate>2019-01-02</StartDate>
       </Term>
-      <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+      <AdditionalData type="jurisdiction-id">ru-gpu1</AdditionalData>
       <AdditionalData type="government-body">United States Senate</AdditionalData>
       <AdditionalData type="office-level">Country</AdditionalData>
     </Office>
