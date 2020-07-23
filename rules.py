@@ -1762,7 +1762,6 @@ class OfficesHaveJurisdictionID(base.BaseRule):
     jurisdiction_values = [
         j_id for j_id in jurisdiction_values if j_id.strip()
     ]
-    object_id = element.get("objectId")
     if not jurisdiction_values:
       raise loggers.ElectionError.from_message(
           "Office is missing a jurisdiction-id.", [element])
@@ -2247,6 +2246,35 @@ class PartySpanMultipleCountries(base.BaseRule):
            .format(gpunit_country_mapping)), [element])
 
 
+class OfficeMissingGovernmentBody(base.BaseRule):
+  """Ensure non-executive Office elements have a government body defined."""
+
+  _EXEMPT_OFFICES = [
+      "head of state", "head of government", "president", "vice president",
+      "state executive", "deputy state executive",
+  ]
+
+  def elements(self):
+    return ["Office"]
+
+  def check(self, element):
+    office_roles = get_entity_info_for_value_type(element, "office-role")
+    if office_roles:
+      office_role = office_roles[0]
+      if office_role in self._EXEMPT_OFFICES:
+        return
+
+    governmental_body = get_entity_info_for_value_type(
+        element, "governmental-body")
+    government_body = get_entity_info_for_value_type(
+        element, "government-body")
+
+    if not governmental_body and not government_body:
+      raise loggers.ElectionInfo.from_message(
+          ("Office element is missing an external identifier of other-type "
+           "government-body."), [element])
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
@@ -2324,6 +2352,7 @@ OFFICEHOLDER_RULES = COMMON_RULES + (
     ProhibitElectionData,
     OfficeTermDates,
     UniqueStartDatesForOfficeRoleAndJurisdiction,
+    OfficeMissingGovernmentBody,
 )
 
 ALL_RULES = frozenset(COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES)

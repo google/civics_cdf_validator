@@ -74,6 +74,11 @@
           <OtherType>office-role</OtherType>
           <Value>upper house</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>government-body</OtherType>
+          <Value>United States Sendate</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>
         <Text language="en">United States Senator</Text>

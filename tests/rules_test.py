@@ -7322,6 +7322,97 @@ class PartySpanMultipleCountriesTest(absltest.TestCase):
     self.assertIn("ru0003", ee.exception.log_entry[0].message)
 
 
+class OfficeMissingGovernmentBodyTest(absltest.TestCase):
+
+  def setUp(self):
+    super(OfficeMissingGovernmentBodyTest, self).setUp()
+    self.gov_validator = rules.OfficeMissingGovernmentBody(None, None)
+
+  def testChecksOfficeElements(self):
+    self.assertEqual(["Office"], self.gov_validator.elements())
+
+  # test exempt office list to ensure a double check if/when list is changed
+  def testExemptOfficesList(self):
+    expected_exempt_offices = [
+        "head of state", "head of government", "president", "vice president",
+        "state executive", "deputy state executive",
+    ]
+    self.assertEqual(
+        expected_exempt_offices, self.gov_validator._EXEMPT_OFFICES)
+
+  def testIgnoresExemptOffices(self):
+    office_string = """
+      <Office>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>office-role</OtherType>
+            <Value>{}</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Office>
+    """
+
+    exempt_office = etree.fromstring(office_string.format("head of state"))
+    self.gov_validator.check(exempt_office)
+
+    non_exempt_office = etree.fromstring(office_string.format("senate"))
+    with self.assertRaises(loggers.ElectionInfo):
+      self.gov_validator.check(non_exempt_office)
+
+  def testOfficeElementHasGovernmentBodyDefined(self):
+    office_string = """
+      <Office>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>office-role</OtherType>
+            <Value>senate</Value>
+          </ExternalIdentifier>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>{}</OtherType>
+            <Value>United States Senate</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Office>
+    """
+
+    government_body_office = etree.fromstring(
+        office_string.format("government-body"))
+    self.gov_validator.check(government_body_office)
+
+    governmental_body_office = etree.fromstring(
+        office_string.format("governmental-body"))
+    self.gov_validator.check(governmental_body_office)
+
+  def testRaisesInfoIfNoGovernmentBodyDefined(self):
+    office_string = """
+      <Office>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>office-role</OtherType>
+            <Value>senate</Value>
+          </ExternalIdentifier>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>{}</OtherType>
+            <Value>United States Senate</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Office>
+    """
+
+    government_body_office = etree.fromstring(
+        office_string.format("body"))
+    with self.assertRaises(loggers.ElectionInfo) as ei:
+      self.gov_validator.check(government_body_office)
+    self.assertEqual("Office element is missing an external identifier of "
+                     "other-type government-body.",
+                     str(ei.exception.log_entry[0].message))
+
+
 class RulesTest(absltest.TestCase):
 
   def testAllRulesIncluded(self):
