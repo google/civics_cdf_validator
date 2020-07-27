@@ -331,6 +331,7 @@
             <xs:element maxOccurs="unbounded" minOccurs="0" name="BallotSelection" type="BallotSelection" />
             <xs:element minOccurs="0" name="BallotSubTitle" type="InternationalizedText" />
             <xs:element minOccurs="0" name="BallotTitle" type="InternationalizedText" />
+            <xs:element minOccurs="0" name="ComposingContestIds" type="xs:IDREFS" />
             <xs:element maxOccurs="unbounded" minOccurs="0" name="CountStatus" type="CountStatus" />
             <xs:element name="ElectoralDistrictId" type="xs:IDREF" />
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
@@ -338,6 +339,7 @@
             <xs:element name="Name" type="xs:string" />
             <xs:element minOccurs="0" name="SequenceOrder" type="xs:integer" />
             <xs:element minOccurs="0" name="SubUnitsReported" type="xs:integer" />
+            <xs:element minOccurs="0" name="SubsequentContestId" type="xs:IDREF" />
             <xs:element maxOccurs="unbounded" minOccurs="0" name="SummaryCounts" type="SummaryCounts" />
             <xs:element minOccurs="0" name="TotalSubUnits" type="xs:integer" />
             <xs:element minOccurs="0" name="VoteVariation" type="VoteVariation" />
