@@ -1744,7 +1744,7 @@ class UniqueURIPerAnnotationCategory(base.TreeRule):
           error_log.append(loggers.LogEntry(error_message, uri_elements))
 
     if error_log:
-      raise loggers.ElectionError(error_log)
+      raise loggers.ElectionWarning(error_log)
 
 
 class ValidURIAnnotation(base.BaseRule):

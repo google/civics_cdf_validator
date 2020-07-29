@@ -4998,7 +4998,7 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
     uri_validator = rules.UniqueURIPerAnnotationCategory(election_tree, None)
     uri_validator.check()
 
-  def testThrowsErrorIfThereAreDuplicatesWithinCategory(self):
+  def testThrowsWarningIfThereAreDuplicatesWithinCategory(self):
     person_one = {
         "facebook": "https://www.facebook.com/michael_scott",
         "website": "https://michaelscott2020.com",
@@ -5031,12 +5031,12 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
     election_tree = etree.fromstring(election_feed)
 
     uri_validator = rules.UniqueURIPerAnnotationCategory(election_tree, None)
-    with self.assertRaises(loggers.ElectionError) as ee:
+    with self.assertRaises(loggers.ElectionWarning) as ew:
       uri_validator.check()
     self.assertEqual(("The Uris contain the annotation type 'wikipedia' with "
                       "the same value 'https://wikipedia.com/dunder_mifflin'."),
-                     ee.exception.log_entry[0].message)
-    self.assertLen(ee.exception.log_entry[0].elements, 4)
+                     ew.exception.log_entry[0].message)
+    self.assertLen(ew.exception.log_entry[0].elements, 4)
 
   def testOfficeURIsAreNotIncludedInCheck(self):
     election_feed = """
