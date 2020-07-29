@@ -256,18 +256,6 @@ class PercentSum(base.BaseRule):
           [element])
 
 
-class OnlyOneElection(base.BaseRule):
-  """Check that there is only one Election in the ElectionReport."""
-
-  def elements(self):
-    return ["ElectionReport"]
-
-  def check(self, element):
-    if len(element.findall("Election")) > 1:
-      raise loggers.ElectionError.from_message(
-          "ElectionReport has more than one Election.", [element])
-
-
 class EmptyText(base.BaseRule):
   """Check that Text elements are not strictly whitespace."""
 
@@ -774,47 +762,58 @@ class PartisanPrimary(base.BaseRule):
         self.election_type = election_type_elem.text.strip()
 
   def elements(self):
-    # Only check contest elements if this is a partisan election.
-    if self.election_type and self.election_type in ("primary",
-                                                     "partisan-primary-open",
-                                                     "partisan-primary-closed"):
-      return ["CandidateContest"]
-    else:
-      return []
+    return ["Election"]
 
-  def check(self, element):
-    primary_party_ids = element.find("PrimaryPartyIds")
-    if (primary_party_ids is None or not primary_party_ids.text or
-        not primary_party_ids.text.strip()):
-      election_elem = self.election_tree.find("Election")
-      msg = ("Election is of ElectionType %s but PrimaryPartyIds is not present"
-             " or is empty" %(self.election_type))
-      raise loggers.ElectionWarning.from_message(msg, [element])
+  def check(self, election_elem):
+    election_type_elem = election_elem.find("Type")
+    election_type = None
+    if element_has_text(election_type_elem):
+      election_type = election_type_elem.text.strip()
+
+    if not election_type or election_type not in ("partisan-primary-open",
+                                                  "partisan-primary-closed"):
+      return
+
+    contests = self.get_elements_by_class(election_elem, "CandidateContest")
+    for contest_elem in contests:
+      primary_party_ids = contest_elem.find("PrimaryPartyIds")
+      if not element_has_text(primary_party_ids):
+        msg = (
+            "Election is of ElectionType %s but PrimaryPartyIds is not present"
+            " or is empty" % (self.election_type))
+        raise loggers.ElectionWarning.from_message(msg, [election_elem])
 
 
-class PartisanPrimaryHeuristic(PartisanPrimary):
+class PartisanPrimaryHeuristic(base.BaseRule):
   """Attempts to identify partisan primaries not marked up as such."""
 
   # Add other strings that imply this is a primary contest.
   party_text = ["(dem)", "(rep)", "(lib)"]
 
   def elements(self):
-    if not self.election_type or self.election_type not in (
-        "primary", "partisan-primary-open", "partisan-primary-closed"):
-      return ["CandidateContest"]
-    else:
-      return []
+    return ["Election"]
 
-  def check(self, element):
-    contest_name = element.find("Name")
-    if contest_name is not None and contest_name.text is not None:
-      c_name = contest_name.text.replace(" ", "").lower()
-      for p_text in self.party_text:
-        if p_text in c_name:
-          msg = ("Name of contest - %s, contains text that implies it is a "
-                 "partisan primary but is not marked up as such." %
-                 (contest_name.text))
-          raise loggers.ElectionWarning.from_message(msg, [element])
+  def check(self, election_elem):
+    election_type_elem = election_elem.find("Type")
+    election_type = None
+    if element_has_text(election_type_elem):
+      election_type = election_type_elem.text.strip()
+
+    if election_type is not None and election_type in (
+        "primary", "partisan-primary-open", "partisan-primary-closed"):
+      return
+
+    contests = self.get_elements_by_class(election_elem, "CandidateContest")
+    for contest_elem in contests:
+      contest_name = contest_elem.find("Name")
+      if element_has_text(contest_name):
+        c_name = contest_name.text.replace(" ", "").lower()
+        for p_text in self.party_text:
+          if p_text in c_name:
+            msg = ("Name of contest - %s, contains text that implies it is a "
+                   "partisan primary but is not marked up as such." %
+                   (contest_name.text))
+            raise loggers.ElectionWarning.from_message(msg, [contest_elem])
 
 
 class CoalitionParties(base.BaseRule):
@@ -858,57 +857,130 @@ class UniqueLabel(base.BaseRule):
         self.labels.add(element_label)
 
 
-class CandidatesReferencedOnce(base.BaseRule):
-  """Candidate should be referred to by only one contest for an election.
+class CandidatesReferencedOnceOrInRelatedContests(base.BaseRule):
+  """Candidate should not be referred to by multiple unrelated contests.
 
-  A Candidate object should only ever be referenced from one contest. If a
-  Person is running in multiple Contests, then that Person is a Candidate
-  several times over, but a Candida(te|cy) can't span contests.
+  A Candidate object should only be referenced from one contest, unless the
+  contests are related (contests for the same office, and in the same party if
+  applicable). If a Person is running in multiple unrelated Contests, then that
+  Person is a Candidate several times over, but a Candida(te|cy) can't span
+  unrelated contests.  Candidates across different Elections with the same
+  stableId are treated as the same Candidate and should still only appear in
+  related Contests.
   """
 
   def __init__(self, election_tree, schema_tree):
-    super(CandidatesReferencedOnce, self).__init__(election_tree, schema_tree)
+    super(CandidatesReferencedOnceOrInRelatedContests,
+          self).__init__(election_tree, schema_tree)
     self.error_log = []
 
   def elements(self):
-    return ["Election"]
+    return ["ElectionReport"]
 
-  def _register_candidates(self, election):
-    candidate_registry = {}
-    candidates = self.get_elements_by_class(election, "Candidate")
-    for candidate in candidates:
-      cand_id = candidate.get("objectId", None)
-      candidate_registry[cand_id] = []
-
-    contests = self.get_elements_by_class(election, "Contest")
-    for contest in contests:
-      for child in contest.iter(tag=etree.Element):
-        if "CandidateId" in child.tag:
-          for cand_id in child.text.split():
-            # bug in case the cand_id is an invalid one
-            if cand_id not in candidate_registry:
-              error_message = ("Contest refer to a non existing candidate {}."
-                               ).format(cand_id)
-              self.error_log.append(loggers.LogEntry(
-                  error_message, [contest]))
-              continue
-            candidate_registry[cand_id].append(contest)
-    return candidate_registry
-
-  def check(self, element):
-    candidate_registry = self._register_candidates(element)
-    for cand_id, contests in candidate_registry.items():
-      if len(contests) > 1:
-        error_message = ("Contests refer to the same candidate {}, A Candidate "
-                         "object should only ever be referenced in one Contest"
-                         ).format(cand_id)
-        self.error_log.append(loggers.LogEntry(error_message, contests))
-      if not contests:
-        self.error_log.append(loggers.LogEntry(
-            ("A Candidate should be referenced in a Contest. Candidate "
-             "{0} is not referenced.").format(cand_id), [element]))
+  def check(self, election_report_element):
+    elections = self.get_elements_by_class(election_report_element, "Election")
+    candidate_registry = self._register_candidates(election_report_element)
+    [office_ids,
+     party_ids] = self._get_contest_offices_and_parties(election_report_element)
+    for cand_stable_id, contest_ids in candidate_registry.items():
+      if len(contest_ids) > 1:
+        if not self._is_contest_group_related(contest_ids, office_ids,
+                                              party_ids):
+          error_message = (
+              "Candidate(s) with stableId {} is/are referenced by the following"
+              " unrelated contests: {}.").format(cand_stable_id,
+                                                 ", ".join(contest_ids))
+          self.error_log.append(loggers.LogEntry(error_message))
+      if not contest_ids:
+        error_message = ("A Candidate should be referenced in a Contest. "
+                         "Candidate with stableId {0} is not referenced."
+                        ).format(cand_stable_id)
+        self.error_log.append(loggers.LogEntry(error_message))
     if self.error_log:
       raise loggers.ElectionError(self.error_log)
+
+  def _register_candidates(self, election_report):
+    candidate_registry = {}
+    candidate_object_id_to_stable_id = {}
+    candidates = self.get_elements_by_class(election_report, "Candidate")
+    for candidate in candidates:
+      stable_ids = get_external_id_values(candidate, "stable")
+      if len(stable_ids) != 1:
+        # Skip candidate if not exactly one stable id.  Raise error if more than
+        # one - missing stable id error raised in another test
+        if len(stable_ids) > 1:
+          raise loggers.ElectionError(
+              "Candidate % has more than one stable id" %
+              candidate.get("objectId"))
+        continue
+      stable_id = stable_ids[0]
+      object_id = candidate.get("objectId", None)
+      candidate_object_id_to_stable_id[object_id] = stable_id
+      candidate_registry[stable_id] = []
+
+    contests = self.get_elements_by_class(election_report, "Contest")
+    for contest in contests:
+      contest_id = contest.get("objectId", None)
+      for child in contest.iter(tag=etree.Element):
+        if "CandidateId" in child.tag and element_has_text(child):
+          for cand_id in child.text.split():
+            # bug in case the cand_id is an invalid one
+            if cand_id not in candidate_object_id_to_stable_id:
+              error_message = (
+                  "Could not find Candidate {} in Contest {}.").format(
+                      cand_id, contest_id)
+              self.error_log.append(loggers.LogEntry(error_message))
+              continue
+            cand_stable_id = candidate_object_id_to_stable_id[cand_id]
+            candidate_registry[cand_stable_id].append(contest_id)
+    return candidate_registry
+
+  def _get_contest_offices_and_parties(self, election_report):
+    contests = self.get_elements_by_class(election_report, "Contest")
+    office_ids = {}
+    party_ids = {}
+    for contest in contests:
+      contest_id = contest.get("objectId")
+
+      element = contest.find("OfficeIds")
+      if element_has_text(element):
+        office_ids[contest_id] = element.text
+
+      element = contest.find("PrimaryPartyIds")
+      if element_has_text(element):
+        party_ids[contest_id] = set(element.text.split())
+    return [office_ids, party_ids]
+
+  def _is_contest_group_related(self, contest_ids, office_ids, party_ids):
+    """Checks if the list of contest_ids are related.
+
+    Args:
+      contest_ids: a list of contest_ids to check
+      office_ids: dict of contest_ids to OfficeId
+      party_ids: dict of contest_ids to PrimaryPartyIds
+
+    Returns:
+      True iff the OfficeIds are the same for all contests and the
+      PrimaryPartyIds are all the same or None.
+    """
+
+    office_id = None
+    party_id_set = None
+    for contest_id in contest_ids:
+      current_office_id = office_ids.get(contest_id, None)
+      if office_id is None:
+        office_id = current_office_id
+      elif office_id != current_office_id:
+        return False
+
+      current_party_id_set = party_ids.get(contest_id, None)
+      if current_party_id_set:
+        if party_id_set is None:
+          party_id_set = current_party_id_set
+        elif party_id_set != current_party_id_set:
+          return False
+
+    return True
 
 
 class ProperBallotSelection(base.BaseRule):
@@ -1762,7 +1834,6 @@ class OfficesHaveJurisdictionID(base.BaseRule):
     jurisdiction_values = [
         j_id for j_id in jurisdiction_values if j_id.strip()
     ]
-    object_id = element.get("objectId")
     if not jurisdiction_values:
       raise loggers.ElectionError.from_message(
           "Office is missing a jurisdiction-id.", [element])
@@ -2120,8 +2191,8 @@ class ImproperCandidateContest(base.TreeRule):
   def _gather_invalid_candidates(self):
     """Return candidate ids that appear to be BallotMeasureSelections."""
     invalid_candidates = []
-    candidates = self.get_elements_by_class(
-        self.election_tree, "CandidateCollection//Candidate")
+    candidates = self.get_elements_by_class(self.election_tree,
+                                            "CandidateCollection//Candidate")
     for candidate in candidates:
       ballot_name = candidate.find(".//BallotName/Text[@language='en']")
       if ballot_name is not None:
@@ -2131,8 +2202,8 @@ class ImproperCandidateContest(base.TreeRule):
 
   def check(self):
     candidate_contest_mapping = {}
-    candidate_contests = self.get_elements_by_class(
-        self.election_tree, "CandidateContest")
+    candidate_contests = self.get_elements_by_class(self.election_tree,
+                                                    "CandidateContest")
     for cc in candidate_contests:
       cand_ids = self._gather_contest_candidates(cc)
       contest_id = cc.get("objectId")
@@ -2247,6 +2318,232 @@ class PartySpanMultipleCountries(base.BaseRule):
            .format(gpunit_country_mapping)), [element])
 
 
+class OfficeMissingGovernmentBody(base.BaseRule):
+  """Ensure non-executive Office elements have a government body defined."""
+
+  _EXEMPT_OFFICES = [
+      "head of state", "head of government", "president", "vice president",
+      "state executive", "deputy state executive",
+  ]
+
+  def elements(self):
+    return ["Office"]
+
+  def check(self, element):
+    office_roles = get_entity_info_for_value_type(element, "office-role")
+    if office_roles:
+      office_role = office_roles[0]
+      if office_role in self._EXEMPT_OFFICES:
+        return
+
+    governmental_body = get_entity_info_for_value_type(
+        element, "governmental-body")
+    government_body = get_entity_info_for_value_type(
+        element, "government-body")
+
+    if not governmental_body and not government_body:
+      raise loggers.ElectionInfo.from_message(
+          ("Office element is missing an external identifier of other-type "
+           "government-body."), [element])
+
+
+class SubsequentContestIdIsValidRelatedContest(base.DateRule):
+  """Check that SubsequentContests are valid.
+
+  Conditions for a valid SubsequentContest:
+  - OfficeId, if present, must match the original contest.
+  - PrimaryPartyIds, if present, must match the original contest.
+  - EndDate, if present, must not be after EndDate of the original contest.
+  - ComposingContestIds must not contain the original contest.
+  """
+
+  def elements(self):
+    return ["ElectionReport"]
+
+  def check(self, election_report_element):
+    error_log = []
+    contest_ids = {}
+    contest_end_dates = {}
+
+    for election in self.get_elements_by_class(election_report_element,
+                                               "Election"):
+      self.gather_dates(election)
+      for contest in self.get_elements_by_class(election, "Contest"):
+        contest_ids[contest.get("objectId")] = contest
+        contest_end_dates[contest.get("objectId")] = self.end_date
+
+    for contest_id, contest in contest_ids.items():
+      element = contest.find("SubsequentContestId")
+      if not element_has_text(element):
+        continue
+      subsequent_contest_id = element.text.strip()
+
+      # Check that subsequent contest exists
+      if subsequent_contest_id not in contest_ids:
+        error_log.append(
+            loggers.LogEntry(
+                "Could not find SubsequentContest % referenced by Contest %s." %
+                subsequent_contest_id, contest_id))
+        continue
+
+      subsequent_contest = contest_ids[subsequent_contest_id]
+
+      # Check that the subsequent contest has a later end date
+      if (contest_end_dates[subsequent_contest_id] is not None and
+          contest_end_dates[contest_id] is not None):
+        end_delta = (contest_end_dates[subsequent_contest_id] -
+                     contest_end_dates[contest_id]).days
+        if end_delta < 0:
+          error_log.append(
+              loggers.LogEntry(
+                  "Contest %s references a subsequent contest with an earlier "
+                  "end date." % contest_id, [contest], [contest.sourceline]))
+
+      # Check that office ids match
+      c_office_id = None
+      sc_office_id = None
+      element = contest.find("OfficeIds")
+      if element_has_text(element):
+        c_office_id = element.text
+      element = subsequent_contest.find("OfficeIds")
+      if element_has_text(element):
+        sc_office_id = element.text
+
+      if c_office_id != sc_office_id:
+        error_log.append(
+            loggers.LogEntry(
+                "Contest %s references a subsequent contest with a different "
+                "office id." % contest_id, [contest], [contest.sourceline]))
+
+      # Check that primary party ids match or that the subsequent contest does
+      # not have a primary party (e.g. primary -> general election)
+      c_primary_party_ids = None
+      sc_primary_party_ids = None
+      element = contest.find("PrimaryPartyIds")
+      if element_has_text(element):
+        c_primary_party_ids = set(element.text.split())
+      element = subsequent_contest.find("PrimaryPartyIds")
+      if element_has_text(element):
+        sc_primary_party_ids = set(element.text.split())
+
+      if (sc_primary_party_ids is not None and
+          c_primary_party_ids != sc_primary_party_ids):
+        error_log.append(
+            loggers.LogEntry(
+                "Contest %s references a subsequent contest with different "
+                "primary party ids." % contest_id, [contest],
+                [contest.sourceline]))
+
+      # Check that there is not a subsequent contest <-> composing contest loop
+      element = subsequent_contest.find("ComposingContestIds")
+      if element_has_text(element):
+        subsequent_composing_ids = element.text.split()
+        if contest_id in subsequent_composing_ids:
+          error_log.append(
+              loggers.LogEntry(
+                  "Contest %s is listed as a composing contest for its "
+                  "subsequent contest.  Two contests can be linked by "
+                  "SubsequentContestId or ComposingContestId, but not both." %
+                  contest_id, [contest], [contest.sourceline]))
+
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
+class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
+  """Check that ComposingContestIds are valid.
+
+  Conditions for a valid ComposingContest:
+  - OfficeId, if present, must match the parent contest.
+  - PrimaryPartyIds, if present, must match the parent contest.
+  - ComposingContests must not be referenced by more than one parent contest.
+  - ComposingContests must not reference each other.
+  """
+
+  def elements(self):
+    return ["ElectionReport"]
+
+  def check(self, election_report_element):
+    error_log = []
+
+    contests = self.get_elements_by_class(election_report_element, "Contest")
+    contest_ids = {cc.get("objectId"): cc for cc in contests}
+    composing_contests = {}
+    for contest_id, contest in contest_ids.items():
+      element = contest.find("ComposingContestIds")
+      if not element_has_text(element):
+        continue
+      composing_contests[contest_id] = element.text.split()
+
+    # Check for composing contests that appear more than once
+    unique_contests = set()
+    for contest_list in composing_contests.values():
+      for contest_id in contest_list:
+        if contest_id not in unique_contests:
+          unique_contests.add(contest_id)
+        else:
+          error_log.append(
+              loggers.LogEntry(
+                  "Contest %s is listed as a ComposingContest for more "
+                  "than one parent contest.  ComposingContests should be a "
+                  "strict hierarchy." % contest_id))
+
+    for contest_id, composing_contest_ids in composing_contests.items():
+      contest = contest_ids[contest_id]
+      for cc_id in composing_contest_ids:
+        # Check that the composing contests exist
+        if cc_id not in contest_ids.keys():
+          error_log.append(
+              loggers.LogEntry(
+                  "Could not find ComposingContest % referenced by Contest %s."
+                  % (contest_id, cc_id)))
+          continue
+
+        composing_contest = contest_ids[cc_id]
+        # Check that the office ids match
+        c_office_id = None
+        cc_office_id = None
+        element = contest.find("OfficeIds")
+        if element_has_text(element):
+          c_office_id = element.text
+        element = composing_contest.find("OfficeIds")
+        if element_has_text(element):
+          cc_office_id = element.text
+
+        if c_office_id != cc_office_id:
+          error_log.append(
+              loggers.LogEntry(
+                  "Contest %s and composing contest %s have different office "
+                  "ids." % (contest_id, cc_id)))
+
+        # Check that primary party ids match
+        c_primary_party_ids = None
+        cc_primary_party_ids = None
+        element = contest.find("PrimaryPartyIds")
+        if element_has_text(element):
+          c_primary_party_ids = set(element.text.split())
+        element = composing_contest.find("PrimaryPartyIds")
+        if element_has_text(element):
+          cc_primary_party_ids = set(element.text.split())
+
+        if c_primary_party_ids != cc_primary_party_ids:
+          error_log.append(
+              loggers.LogEntry(
+                  "Contest %s and composing contest %s have different primary "
+                  "party ids." % (contest_id, cc_id)))
+
+        # Check that composing contests don't reference each other
+        if (cc_id in composing_contests and
+            contest_id in composing_contests[cc_id]):
+          error_log.append(
+              loggers.LogEntry(
+                  "Contest %s and contest %s reference each other as composing "
+                  "contests." % (contest_id, cc_id)))
+
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
@@ -2296,12 +2593,11 @@ ELECTION_RULES = COMMON_RULES + (
     CoalitionParties,
     DuplicateContestNames,
     ElectoralDistrictOcdId,
-    OnlyOneElection,
     PartisanPrimary,
     PartisanPrimaryHeuristic,
     PercentSum,
     ProperBallotSelection,
-    CandidatesReferencedOnce,
+    CandidatesReferencedOnceOrInRelatedContests,
     VoteCountTypesCoherency,
     PartiesHaveValidColors,
     ValidateDuplicateColors,
@@ -2317,6 +2613,8 @@ ELECTION_RULES = COMMON_RULES + (
     FullTextOrBallotText,
     BallotTitle,
     ImproperCandidateContest,
+    SubsequentContestIdIsValidRelatedContest,
+    ComposingContestIdsAreValidRelatedContests,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (
@@ -2324,6 +2622,7 @@ OFFICEHOLDER_RULES = COMMON_RULES + (
     ProhibitElectionData,
     OfficeTermDates,
     UniqueStartDatesForOfficeRoleAndJurisdiction,
+    OfficeMissingGovernmentBody,
 )
 
 ALL_RULES = frozenset(COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES)

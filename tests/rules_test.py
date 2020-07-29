@@ -576,37 +576,6 @@ class PercentSumTest(absltest.TestCase):
     self.percent_validator.check(element)
 
 
-class OnlyOneElectionTest(absltest.TestCase):
-
-  def setUp(self):
-    super(OnlyOneElectionTest, self).setUp()
-    self.election_count_validator = rules.OnlyOneElection(None, None)
-
-  def testOnlyChecksElectionReportElements(self):
-    self.assertEqual(["ElectionReport"],
-                     self.election_count_validator.elements())
-
-  def testShouldHaveExactlyOneElection(self):
-    root_string = """
-    <ElectionReport>
-      <Election></Election>
-    </ElectionReport>
-    """
-
-    self.election_count_validator.check(etree.fromstring(root_string))
-
-  def testThrowsErrorForMoreThanOneElection(self):
-    root_string = """
-    <ElectionReport>
-      <Election></Election>
-      <Election></Election>
-    </ElectionReport>
-    """
-
-    with self.assertRaises(loggers.ElectionError):
-      self.election_count_validator.check(etree.fromstring(root_string))
-
-
 class EmptyTextTest(absltest.TestCase):
 
   def setUp(self):
@@ -1891,145 +1860,176 @@ class OtherTypeTest(absltest.TestCase):
 class PartisanPrimaryTest(absltest.TestCase):
 
   _base_report = """
-    <ElectionReport>
+    <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       <Election>
         {}
       </Election>
     </ElectionReport>
   """
 
-  def testSetsElectionTypeOnCreation_Primary(self):
-    election_details = "<Type>primary</Type>"
-    election_string = PartisanPrimaryTest._base_report.format(election_details)
+  # elements test
+  def testElections(self):
+    election_string = PartisanPrimaryTest._base_report
     election_tree = etree.fromstring(election_string)
 
     prim_part_validator = rules.PartisanPrimary(election_tree, None)
-    self.assertEqual("primary", prim_part_validator.election_type)
-
-  def testSetsElectionTypeOnCreation_None(self):
-    election_string = """
-      <ElectionReport/>
-    """
-    election_tree = etree.fromstring(election_string)
-    prim_part_validator = rules.PartisanPrimary(election_tree, None)
-    self.assertIsNone(prim_part_validator.election_type)
-
-  def testSetsElectionTypeOnCreation_NoType(self):
-    election_details = """
-      <Name>
-        <Text language="en">2020 New York City Mayor</Text>
-      </Name>
-    """
-    election_string = PartisanPrimaryTest._base_report.format(election_details)
-    election_tree = etree.fromstring(election_string)
-
-    prim_part_validator = rules.PartisanPrimary(election_tree, None)
-    self.assertIsNone(prim_part_validator.election_type)
-
-  # elements tests
-  def testOnlyChecksCandidateContestsForSpecificElections_Primary(self):
-    election_details = "<Type>primary</Type>"
-    election_string = PartisanPrimaryTest._base_report.format(election_details)
-    election_tree = etree.fromstring(election_string)
-
-    prim_part_validator = rules.PartisanPrimary(election_tree, None)
-    self.assertEqual(["CandidateContest"], prim_part_validator.elements())
-
-  def testOnlyChecksCandidateContestsForSpecificElections_Open(self):
-    election_details = "<Type>partisan-primary-open</Type>"
-    election_string = PartisanPrimaryTest._base_report.format(election_details)
-    election_tree = etree.fromstring(election_string)
-
-    prim_part_validator = rules.PartisanPrimary(election_tree, None)
-    self.assertEqual(["CandidateContest"], prim_part_validator.elements())
-
-  def testOnlyChecksCandidateContestsForSpecificElections_Closed(self):
-    election_details = "<Type>partisan-primary-closed</Type>"
-    election_string = PartisanPrimaryTest._base_report.format(election_details)
-    election_tree = etree.fromstring(election_string)
-
-    prim_part_validator = rules.PartisanPrimary(election_tree, None)
-    self.assertEqual(["CandidateContest"], prim_part_validator.elements())
-
-  def testOnlyChecksCandidateContestsForSpecificElections_General(self):
-    election_details = "<Type>general</Type>"
-    election_string = PartisanPrimaryTest._base_report.format(election_details)
-    election_tree = etree.fromstring(election_string)
-
-    prim_part_validator = rules.PartisanPrimary(election_tree, None)
-    self.assertEqual([], prim_part_validator.elements())
+    self.assertEqual(["Election"], prim_part_validator.elements())
 
   # check tests
   def testPartyIdsArePresentAndNonEmpty(self):
     election_details = """
-      <CandidateContest>
+      <Type>primary</Type>
+      <Contest xsi:type="CandidateContest">
         <PrimaryPartyIds>abc123</PrimaryPartyIds>
-      </CandidateContest>
+      </Contest>
     """
     election_string = PartisanPrimaryTest._base_report.format(election_details)
     root = etree.fromstring(election_string)
 
-    contest = root.find("Election").find("CandidateContest")
-    rules.PartisanPrimary(root, None).check(contest)
+    election = root.find("Election")
+    rules.PartisanPrimary(root, None).check(election)
 
-  def testRaisesErrorIfPartyIdsDoNotExist_NoParty(self):
+  def testRaisesErrorIfPartyIdsDoNotExist_NoParty_PartisanPrimary(self):
     election_details = """
-      <Type>primary</Type>
-      <CandidateContest>
+      <Type>partisan-primary-closed</Type>
+      <Contest xsi:type="CandidateContest">
         <Name>2020 Election</Name>
-      </CandidateContest>
+      </Contest>
     """
     election_string = PartisanPrimaryTest._base_report.format(election_details)
     root = etree.fromstring(election_string)
 
     election = root.find("Election")
     election.sourceline = 7
-    contest = election.find("CandidateContest")
 
     with self.assertRaises(loggers.ElectionWarning):
-      rules.PartisanPrimary(root, None).check(contest)
+      rules.PartisanPrimary(root, None).check(election)
 
-  def testRaisesErrorIfPartyIdsDoNotExist_EmptyParty(self):
+  def testRaisesErrorIfPartyIdsDoNotExist_EmptyParty_PartisanPrimary(self):
     election_details = """
-      <Type>primary</Type>
-      <CandidateContest>
+      <Type>partisan-primary-closed</Type>
+      <Contest xsi:type="CandidateContest">
         <PrimaryPartyIds></PrimaryPartyIds>
         <Name>2020 Election</Name>
-      </CandidateContest>
+      </Contest>
     """
     election_string = PartisanPrimaryTest._base_report.format(election_details)
     root = etree.fromstring(election_string)
 
     election = root.find("Election")
     election.sourceline = 7
-    contest = election.find("CandidateContest")
 
     with self.assertRaises(loggers.ElectionWarning):
-      rules.PartisanPrimary(root, None).check(contest)
+      rules.PartisanPrimary(root, None).check(election)
 
-  def testRaisesErrorIfPartyIdsDoNotExist_WhiteSpace(self):
+  def testRaisesErrorIfPartyIdsDoNotExist_WhiteSpace_PartisanPrimary(self):
     election_details = """
-      <Type>primary</Type>
-      <CandidateContest>
+      <Type>partisan-primary-closed</Type>
+      <Contest xsi:type="CandidateContest">
         <PrimaryPartyIds>      </PrimaryPartyIds>
         <Name>2020 Election</Name>
-      </CandidateContest>
+      </Contest>
     """
     election_string = PartisanPrimaryTest._base_report.format(election_details)
     root = etree.fromstring(election_string)
 
     election = root.find("Election")
     election.sourceline = 7
-    contest = election.find("CandidateContest")
 
     with self.assertRaises(loggers.ElectionWarning):
-      rules.PartisanPrimary(root, None).check(contest)
+      rules.PartisanPrimary(root, None).check(election)
+
+  def testRaisesErrorIfPartyIdsDoNotExist_NoParty_OpenPrimaryElection(self):
+    election_details = """
+      <Type>partisan-primary-open</Type>
+      <Contest xsi:type="CandidateContest">
+        <Name>2020 Election</Name>
+      </Contest>
+    """
+    election_string = PartisanPrimaryTest._base_report.format(election_details)
+    root = etree.fromstring(election_string)
+
+    election = root.find("Election")
+    election.sourceline = 7
+
+    with self.assertRaises(loggers.ElectionWarning):
+      rules.PartisanPrimary(root, None).check(election)
+
+  def testIgnoresMissingPartyIds_GeneralElection(self):
+    election_details = """
+      <Type>general</Type>
+      <Contest xsi:type="CandidateContest">
+        <Name>2020 Election</Name>
+      </Contest>
+    """
+    election_string = PartisanPrimaryTest._base_report.format(election_details)
+    root = etree.fromstring(election_string)
+
+    election = root.find("Election")
+    election.sourceline = 7
+
+    rules.PartisanPrimary(root, None).check(election)
+
+  def testIgnoresMissingPartyIds_NonpartisanPrimary(self):
+    election_details = """
+      <Type>primary</Type>
+      <Contest xsi:type="CandidateContest">
+        <Name>2020 Election</Name>
+      </Contest>
+    """
+    election_string = PartisanPrimaryTest._base_report.format(election_details)
+    root = etree.fromstring(election_string)
+
+    election = root.find("Election")
+    election.sourceline = 7
+
+    rules.PartisanPrimary(root, None).check(election)
+
+  def testIgnoresMissingPartyIds_NoElectionType(self):
+    election_details = """
+      <Contest xsi:type="CandidateContest">
+        <Name>2020 Election</Name>
+      </Contest>
+    """
+    election_string = PartisanPrimaryTest._base_report.format(election_details)
+    root = etree.fromstring(election_string)
+
+    election = root.find("Election")
+    election.sourceline = 7
+
+    rules.PartisanPrimary(root, None).check(election)
+
+  def testHandlesMultipleElections(self):
+    election_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <Type>primary</Type>
+          <Contest xsi:type="CandidateContest">
+            <PrimaryPartyIds>abc123</PrimaryPartyIds>
+            <Name>2020 Primary Election</Name>
+          </Contest>
+        </Election>
+        <Election>
+          <Type>general</Type>
+          <Contest xsi:type="CandidateContest">
+            <Name>2020 General Election</Name>
+          </Contest>
+        </Election>
+      </ElectionReport>
+    """
+    root = etree.fromstring(election_string)
+
+    elections = root.findall("Election")
+
+    for election in elections:
+      election.sourceline = 7
+      rules.PartisanPrimary(root, None).check(election)
 
 
 class PartisanPrimaryHeuristicTest(absltest.TestCase):
 
   _base_election_report = """
-    <ElectionReport>
+    <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       <Election>
         {}
       </Election>
@@ -2038,45 +2038,28 @@ class PartisanPrimaryHeuristicTest(absltest.TestCase):
 
   _general_candidate_contest = """
     <Type>general</Type>
-    <CandidateContest>
+    <Contest xsi:type="CandidateContest">
       {}
-    </CandidateContest>
+    </Contest>
   """
 
   _base_candidate_contest = _base_election_report.format(
       _general_candidate_contest)
 
-  def testChecksNonPrimaryCandidateContests_NoType(self):
+  def testChecksElections(self):
     election_details = "<Name>2020 election</Name>"
     election_string = self._base_election_report.format(election_details)
     election_tree = etree.fromstring(election_string)
 
     prim_part_validator = rules.PartisanPrimaryHeuristic(election_tree, None)
-    self.assertEqual(["CandidateContest"], prim_part_validator.elements())
-
-  def testChecksNonPrimaryCandidateContests_General(self):
-    election_details = "<Type>general</Type>"
-    election_string = self._base_election_report.format(election_details)
-    election_tree = etree.fromstring(election_string)
-
-    prim_part_validator = rules.PartisanPrimaryHeuristic(election_tree, None)
-    self.assertEqual(["CandidateContest"], prim_part_validator.elements())
-
-  def testChecksNonPrimaryCandidateContests_Primary(self):
-    election_details = "<Type>primary</Type>"
-    election_string = self._base_election_report.format(election_details)
-    election_tree = etree.fromstring(election_string)
-
-    prim_part_validator = rules.PartisanPrimaryHeuristic(election_tree, None)
-    self.assertEqual([], prim_part_validator.elements())
+    self.assertEqual(["Election"], prim_part_validator.elements())
 
   def testIgnoresContestsThatDoNotSuggestPrimary_NoName(self):
-    contest_details = "<PrimaryPartyIds>abc123</PrimaryPartyIds>"
-    root_string = self._base_candidate_contest.format(contest_details)
+    root_string = self._base_candidate_contest
     root = etree.fromstring(root_string)
 
-    no_name_contest = root.find("Election").find("CandidateContest")
-    rules.PartisanPrimaryHeuristic(root, None).check(no_name_contest)
+    election = root.find("Election")
+    rules.PartisanPrimaryHeuristic(root, None).check(election)
 
   def testIgnoresContestsThatDoNotSuggestPrimary_EmptyName(self):
     contest_details = """
@@ -2086,19 +2069,8 @@ class PartisanPrimaryHeuristicTest(absltest.TestCase):
     root_string = self._base_candidate_contest.format(contest_details)
     root = etree.fromstring(root_string)
 
-    empty_name_contest = root.find("Election").find("CandidateContest")
-    rules.PartisanPrimaryHeuristic(root, None).check(empty_name_contest)
-
-  def testIgnoresContestsThatDoNotSuggestPrimary_NotPrimary(self):
-    contest_details = """
-      <Name>for sure not a primary</Name>
-      <PrimaryPartyIds>abc123</PrimaryPartyIds>
-    """
-    root_string = self._base_candidate_contest.format(contest_details)
-    root = etree.fromstring(root_string)
-
-    contest = root.find("Election").find("CandidateContest")
-    rules.PartisanPrimaryHeuristic(root, None).check(contest)
+    election = root.find("Election").find("Contest")
+    rules.PartisanPrimaryHeuristic(root, None).check(election)
 
   def testThrowsWarningIfPossiblePrimaryDetected_Dem(self):
     contest_details = """
@@ -2108,10 +2080,10 @@ class PartisanPrimaryHeuristicTest(absltest.TestCase):
     root_string = self._base_candidate_contest.format(contest_details)
     root = etree.fromstring(root_string)
 
-    dem_contest = root.find("Election").find("CandidateContest")
-    dem_contest.sourceline = 7
+    election = root.find("Election")
+    election.find("Contest").sourceline = 7
     with self.assertRaises(loggers.ElectionWarning):
-      rules.PartisanPrimaryHeuristic(root, None).check(dem_contest)
+      rules.PartisanPrimaryHeuristic(root, None).check(election)
 
   def testThrowsWarningIfPossiblePrimaryDetected_Rep(self):
     contest_details = """
@@ -2121,10 +2093,10 @@ class PartisanPrimaryHeuristicTest(absltest.TestCase):
     root_string = self._base_candidate_contest.format(contest_details)
     root = etree.fromstring(root_string)
 
-    rep_contest = root.find("Election").find("CandidateContest")
-    rep_contest.sourceline = 7
+    election = root.find("Election")
+    election.find("Contest").sourceline = 7
     with self.assertRaises(loggers.ElectionWarning):
-      rules.PartisanPrimaryHeuristic(root, None).check(rep_contest)
+      rules.PartisanPrimaryHeuristic(root, None).check(election)
 
   def testThrowsWarningIfPossiblePrimaryDetected_Lib(self):
     contest_details = """
@@ -2134,10 +2106,10 @@ class PartisanPrimaryHeuristicTest(absltest.TestCase):
     root_string = self._base_candidate_contest.format(contest_details)
     root = etree.fromstring(root_string)
 
-    lib_contest = root.find("Election").find("CandidateContest")
-    lib_contest.sourceline = 7
+    election = root.find("Election")
+    election.find("Contest").sourceline = 7
     with self.assertRaises(loggers.ElectionWarning):
-      rules.PartisanPrimaryHeuristic(root, None).check(lib_contest)
+      rules.PartisanPrimaryHeuristic(root, None).check(election)
 
 
 class CoalitionPartiesTest(absltest.TestCase):
@@ -2235,27 +2207,70 @@ class CandidatesReferencedOnceTest(absltest.TestCase):
 
   def setUp(self):
     super(CandidatesReferencedOnceTest, self).setUp()
-    self.cand_validator = rules.CandidatesReferencedOnce(None, None)
+    self.cand_validator = rules.CandidatesReferencedOnceOrInRelatedContests(
+        None, None)
     self._election_report = """
+      <ElectionReport>
         <Election>
           <ContestCollection>
             {}
           </ContestCollection>
             {}
-         </Election>
+        </Election>
+      </ElectionReport>
     """
     self._candidate_collection = """
       <CandidateCollection>
-        <Candidate objectId="can99999a"/>
-        <Candidate objectId="can99999b" />
-        <Candidate objectId="can11111a" />
-        <Candidate objectId="can11111b" />
-        <Candidate objectId="can45678a" />
+        <Candidate objectId="can99999a">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>can99999a_stable</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Candidate>
+        <Candidate objectId="can99999b">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>can99999b_stable</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Candidate>
+        <Candidate objectId="can11111a">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>can11111a_stable</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Candidate>
+        <Candidate objectId="can11111b">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>can11111b_stable</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Candidate>
+        <Candidate objectId="can45678a">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>can45678a_stable</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Candidate>
         {}
       </CandidateCollection>
     """
     self._base_candidate_contest = """
-      <Contest objectId="con1234">
+      <Contest objectId="{}">
         <BallotSelection objectId="cs12345">
           <CandidateIds>can99999a can99999b</CandidateIds>
         </BallotSelection>
@@ -2265,6 +2280,7 @@ class CandidatesReferencedOnceTest(absltest.TestCase):
         <BallotSelection>
           <CandidateIds>can45678a</CandidateIds>
         </BallotSelection>
+        {}
       </Contest>
     """
     self._base_retention_contest = """
@@ -2282,129 +2298,341 @@ class CandidatesReferencedOnceTest(absltest.TestCase):
         </BallotSelection>
       </Contest>
     """
+    self._multi_election_report = """
+    <ElectionReport>
+      <Election>
+        <CandidateCollection>
+          <Candidate objectId="can99999a_1">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>stable</OtherType>
+                <Value>can99999a_stable</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Candidate>
+          <Candidate objectId="can99999b_1">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>stable</OtherType>
+                <Value>can99999b_stable</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="con1234">
+            <BallotSelection objectId="cs12345">
+              <CandidateIds>can99999a_1</CandidateIds>
+            </BallotSelection>
+            <BallotSelection objectId="cs98765">
+              <CandidateIds>can99999b_1</CandidateIds>
+            </BallotSelection>
+            {}
+            {}
+          </Contest>
+        </ContestCollection>
+      </Election>
+      <Election>
+        <CandidateCollection>
+          <Candidate objectId="can99999a_2">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>stable</OtherType>
+                <Value>can99999a_stable</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Candidate>
+          <Candidate objectId="can99999b_2">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>stable</OtherType>
+                <Value>can99999b_stable</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="con5678">
+            <BallotSelection objectId="cs12345">
+              <CandidateIds>can99999a_2</CandidateIds>
+            </BallotSelection>
+            <BallotSelection objectId="cs98765">
+              <CandidateIds>can99999b_2</CandidateIds>
+            </BallotSelection>
+            {}
+            {}
+          </Contest>
+        </ContestCollection>
+      </Election>
+    </ElectionReport>
+    """
 
   # _register_candidates test
   def testMapsCandIdsToTheContestsThatReferenceThem_CandContest(self):
-    candidate_string = self._candidate_collection.format(
-        "<Candidate objectId='can54321'/>")
-    root_string = self._election_report.format(
-        self._base_candidate_contest, candidate_string)
+    additional_candidate = """
+      <Candidate objectId='can54321'>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>can54321_stable</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Candidate>
+    """
+    candidate_string = self._candidate_collection.format(additional_candidate)
+    contest_string = self._base_candidate_contest.format(
+        "con1234", "<OfficeIds>office1</OfficeIds>")
+    root_string = self._election_report.format(contest_string, candidate_string)
     election_tree = etree.fromstring(root_string)
     expected_seen_candidates = dict({
-        "can99999a": ["con1234"],
-        "can99999b": ["con1234"],
-        "can11111a": ["con1234"],
-        "can11111b": ["con1234"],
-        "can45678a": ["con1234"],
-        "can54321": [],
+        "can99999a_stable": ["con1234"],
+        "can99999b_stable": ["con1234"],
+        "can11111a_stable": ["con1234"],
+        "can11111b_stable": ["con1234"],
+        "can45678a_stable": ["con1234"],
+        "can54321_stable": [],
     })
     candidate_registry = self.cand_validator._register_candidates(election_tree)
     self.assertLen(candidate_registry, len(expected_seen_candidates))
     for candidate_id, contest_ids in expected_seen_candidates.items():
       self.assertLen(candidate_registry[candidate_id], len(contest_ids))
-      for contest in candidate_registry[candidate_id]:
-        self.assertIn(contest.get("objectId"), contest_ids)
+      for contest_id in candidate_registry[candidate_id]:
+        self.assertIn(contest_id, contest_ids)
 
   def testMapsCandIdsToTheContestsThatReferenceThem_RetentionContest(self):
-    candidate_string = self._candidate_collection.format(
-        "<Candidate objectId='can54321'/>")
+    additional_candidate = """
+      <Candidate objectId='can54321'>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>can54321_stable</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Candidate>
+    """
+    candidate_string = self._candidate_collection.format(additional_candidate)
     root_string = self._election_report.format(
         self._base_retention_contest, candidate_string)
     election_tree = etree.fromstring(root_string)
 
     expected_seen_candidates = dict({
-        "can99999a": ["con5678"],
-        "can99999b": [],
-        "can11111a": [],
-        "can11111b": [],
-        "can45678a": [],
-        "can54321": [],
+        "can99999a_stable": ["con5678"],
+        "can99999b_stable": [],
+        "can11111a_stable": [],
+        "can11111b_stable": [],
+        "can45678a_stable": [],
+        "can54321_stable": [],
     })
     candidate_registry = self.cand_validator._register_candidates(election_tree)
     self.assertLen(candidate_registry, len(expected_seen_candidates))
     for candidate_id, contest_ids in expected_seen_candidates.items():
       self.assertLen(candidate_registry[candidate_id], len(contest_ids))
-      for contest in candidate_registry[candidate_id]:
-        self.assertIn(contest.get("objectId"), contest_ids)
+      for contest_id in candidate_registry[candidate_id]:
+        self.assertIn(contest_id, contest_ids)
 
   def testMapsCandIdsToTheContestsThatReferenceThem_MultiContest(self):
-    candidate_string = self._candidate_collection.format(
-        "<Candidate objectId='can54321'/>")
-    two_contests = self._base_candidate_contest + self._base_retention_contest
+    additional_candidate = """
+      <Candidate objectId='can54321'>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>can54321_stable</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Candidate>
+    """
+    candidate_string = self._candidate_collection.format(additional_candidate)
+    candidate_contest_string = self._base_candidate_contest.format(
+        "con1234", "<OfficeIds>office1</OfficeIds>")
+    two_contests = candidate_contest_string + self._base_retention_contest
     root_string = self._election_report.format(two_contests, candidate_string)
     election_tree = etree.fromstring(root_string)
 
     expected_seen_candidates = dict({
-        "can99999a": ["con1234", "con5678"],
-        "can99999b": ["con1234"],
-        "can11111a": ["con1234"],
-        "can11111b": ["con1234"],
-        "can45678a": ["con1234"],
-        "can54321": [],
+        "can99999a_stable": ["con1234", "con5678"],
+        "can99999b_stable": ["con1234"],
+        "can11111a_stable": ["con1234"],
+        "can11111b_stable": ["con1234"],
+        "can45678a_stable": ["con1234"],
+        "can54321_stable": [],
     })
     candidate_registry = self.cand_validator._register_candidates(election_tree)
     self.assertLen(candidate_registry, len(expected_seen_candidates))
     for candidate_id, contest_ids in expected_seen_candidates.items():
       self.assertLen(candidate_registry[candidate_id], len(contest_ids))
-      for contest in candidate_registry[candidate_id]:
-        self.assertIn(contest.get("objectId"), contest_ids)
+      for contest_id in candidate_registry[candidate_id]:
+        self.assertIn(contest_id, contest_ids)
 
   # check tests
   def testItChecksThatEachCandidateOnlyMapsToOneContest(self):
-    root_string = self._election_report.format(
-        self._base_candidate_contest, self._candidate_collection)
+    contest_string = self._base_candidate_contest.format(
+        "con1234", "<OfficeIds>office1</OfficeIds>")
+    root_string = self._election_report.format(contest_string,
+                                               self._candidate_collection)
     election_tree = etree.fromstring(root_string)
     self.cand_validator.check(election_tree)
 
-  def testRaisesAnErrorIfACandidateMapsToMultipleContests(self):
-    two_contests = self._base_candidate_contest + self._base_retention_contest
+  def testRaisesAnErrorIfACandidateMapsToMultipleUnrelatedContests(self):
+    candidate_contest_string = self._base_candidate_contest.format(
+        "con1234", "<OfficeIds>office1</OfficeIds>")
+    two_contests = candidate_contest_string + self._base_retention_contest
     root_string = self._election_report.format(
         two_contests, self._candidate_collection)
     election_tree = etree.fromstring(root_string)
 
-    with self.assertRaises(loggers.ElectionError) as ete:
+    with self.assertRaises(loggers.ElectionError) as ee:
       self.cand_validator.check(election_tree)
-    log_entry = ete.exception.log_entry[0]
-    self.assertIn("can99999a", log_entry.message)
-    self.assertLen(ete.exception.log_entry[0].elements, 2)
-    contest_list = [log_entry.elements[0].get("objectId"),
-                    log_entry.elements[1].get("objectId")]
-    self.assertIn("con1234", contest_list)
-    self.assertIn("con5678", contest_list)
+    self.assertIn(
+        "Candidate(s) with stableId can99999a_stable is/are referenced by "
+        "the following unrelated contests: con1234, con5678.",
+        str(ee.exception.log_entry[0].message))
+
+  def testDoesNotRaiseAnErrorIfACandidateMapsToMultipleRelatedContests(self):
+    first_contest_string = self._base_candidate_contest.format(
+        "con1234", "<OfficeIds>office1</OfficeIds>")
+    second_contest_string = self._base_candidate_contest.format(
+        "con5678", "<OfficeIds>office1</OfficeIds>")
+    two_contests = first_contest_string + second_contest_string
+    root_string = self._election_report.format(two_contests,
+                                               self._candidate_collection)
+    election_tree = etree.fromstring(root_string)
+
+    self.cand_validator.check(election_tree)
+
+  def testDoesNotRaiseAnErrorIfACandidateMapsToMultipleRelatedPrimaries(self):
+    first_contest_string = self._base_candidate_contest.format(
+        "con1234", """<OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>""")
+    second_contest_string = self._base_candidate_contest.format(
+        "con5678", """<OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>""")
+    two_contests = first_contest_string + second_contest_string
+    election_string = self._candidate_collection + """<Type>primary</Type>"""
+    root_string = self._election_report.format(two_contests, election_string)
+    election_tree = etree.fromstring(root_string)
+
+    self.cand_validator.check(election_tree)
+
+  def testDoesNotRaiseAnErrorIfACandidateMapsToRelatedMultipartyPrimaries(self):
+    first_contest_string = self._base_candidate_contest.format(
+        "con1234", """<OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1 party2</PrimaryPartyIds>""")
+    second_contest_string = self._base_candidate_contest.format(
+        "con5678", """<OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party2 party1</PrimaryPartyIds>""")
+    two_contests = first_contest_string + second_contest_string
+    election_string = self._candidate_collection + """<Type>primary</Type>"""
+    root_string = self._election_report.format(two_contests, election_string)
+    election_tree = etree.fromstring(root_string)
+
+    self.cand_validator.check(election_tree)
+
+  def testRaisesAnErrorIfACandidateMapsToDifferentPartyPrimaries(self):
+    first_contest_string = self._base_candidate_contest.format(
+        "con1234", """<OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>""")
+    second_contest_string = self._base_candidate_contest.format(
+        "con5678", """<OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party2</PrimaryPartyIds>""")
+    two_contests = first_contest_string + second_contest_string
+    election_string = self._candidate_collection + """<Type>primary</Type>"""
+    root_string = self._election_report.format(two_contests, election_string)
+    election_tree = etree.fromstring(root_string)
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.cand_validator.check(election_tree)
+    self.assertIn(
+        "Candidate(s) with stableId can99999a_stable is/are referenced by "
+        "the following unrelated contests: con1234, con5678",
+        ee.exception.log_entry[0].message)
 
   def testRaisesAnErrorIfACandidateIsNotReferencedInAContest(self):
-    candidate_string = self._candidate_collection.format(
-        "<Candidate objectId='can54321'/>")
-    root_string = self._election_report.format(
-        self._base_candidate_contest, candidate_string)
-    election_tree = etree.fromstring(root_string)
-
-    with self.assertRaises(loggers.ElectionError) as ete:
-      self.cand_validator.check(election_tree)
-    self.assertEqual(ete.exception.log_entry[0].message,
-                     ("A Candidate should be referenced in a Contest. Candidate"
-                      " can54321 is not referenced."))
-    self.assertEqual(ete.exception.log_entry[0].elements[0].tag, "Election")
-
-  def testRaisesAnErrorIfAContestreferToANonExistingCandidate(self):
-    incomplete_candidate_string = """
-      <CandidateCollection>
-        <Candidate objectId="can99999a"/>
-        <Candidate objectId="can11111a" />
-        <Candidate objectId="can11111b" />
-        <Candidate objectId="can45678a" />
-      </CandidateCollection>
+    additional_candidate = """
+      <Candidate objectId='can54321'>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>can54321_stable</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Candidate>
     """
-    root_string = self._election_report.format(
-        self._base_candidate_contest, incomplete_candidate_string)
+    candidate_string = self._candidate_collection.format(additional_candidate)
+    contest_string = self._base_candidate_contest.format(
+        "con1234", "<OfficeIds>office1</OfficeIds>")
+    root_string = self._election_report.format(contest_string, candidate_string)
     election_tree = etree.fromstring(root_string)
 
     with self.assertRaises(loggers.ElectionError) as ete:
       self.cand_validator.check(election_tree)
-    self.assertIn("Contest refer to a non existing candidate can99999b",
+    self.assertIn("can54321_stable is not referenced",
                   ete.exception.log_entry[0].message)
-    self.assertEqual("con1234", ete.exception.log_entry[0].elements[0]
-                     .get("objectId"))
+
+  def testAcrossMultipleElections(self):
+    election_report_string = self._multi_election_report.format(
+        "<OfficeIds>office1</OfficeIds>",
+        "<PrimaryPartyIds>party1</PrimaryPartyIds>",
+        "<OfficeIds>office1</OfficeIds>",
+        "<PrimaryPartyIds>party1</PrimaryPartyIds>")
+    election_tree = etree.fromstring(election_report_string)
+    self.cand_validator.check(election_tree)
+
+  def testDifferentOfficesRaiseErrorAcrossMultipleElections(self):
+    election_report_string = self._multi_election_report.format(
+        "<OfficeIds>office1</OfficeIds>",
+        "<PrimaryPartyIds>party1</PrimaryPartyIds>",
+        "<OfficeIds>office2</OfficeIds>",
+        "<PrimaryPartyIds>party1</PrimaryPartyIds>")
+    election_tree = etree.fromstring(election_report_string)
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.cand_validator.check(election_tree)
+    self.assertIn(
+        "Candidate(s) with stableId can99999a_stable is/are referenced by "
+        "the following unrelated contests: con1234, con5678",
+        ee.exception.log_entry[0].message)
+
+  def testDifferentPartiesRaiseErrorAcrossMultipleElections(self):
+    election_report_string = self._multi_election_report.format(
+        "<OfficeIds>office1</OfficeIds>",
+        "<PrimaryPartyIds>party1</PrimaryPartyIds>",
+        "<OfficeIds>office1</OfficeIds>",
+        "<PrimaryPartyIds>party2</PrimaryPartyIds>")
+    election_tree = etree.fromstring(election_report_string)
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.cand_validator.check(election_tree)
+    self.assertIn(
+        "Candidate(s) with stableId can99999a_stable is/are referenced by "
+        "the following unrelated contests: con1234, con5678",
+        ee.exception.log_entry[0].message)
+
+  def testRaisesErrorIfNoOffice(self):
+    election_report_string = self._multi_election_report.format(
+        "<OfficeIds>office1</OfficeIds>",
+        "<PrimaryPartyIds>party1</PrimaryPartyIds>", "",
+        "<PrimaryPartyIds>party1</PrimaryPartyIds>")
+    election_tree = etree.fromstring(election_report_string)
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.cand_validator.check(election_tree)
+    self.assertIn(
+        "Candidate(s) with stableId can99999a_stable is/are referenced by "
+        "the following unrelated contests: con1234, con5678.",
+        ee.exception.log_entry[0].message)
+
+  def testIgnoresIfNoPrimaryParties(self):
+    election_report_string = self._multi_election_report.format(
+        "<OfficeIds>office1</OfficeIds>",
+        "<PrimaryPartyIds>party1</PrimaryPartyIds>",
+        "<OfficeIds>office1</OfficeIds>", "")
+    election_tree = etree.fromstring(election_report_string)
+    self.cand_validator.check(election_tree)
 
 
 class ProperBallotSelectionTest(absltest.TestCase):
@@ -7322,6 +7550,359 @@ class PartySpanMultipleCountriesTest(absltest.TestCase):
     self.assertIn("ru0003", ee.exception.log_entry[0].message)
 
 
+class OfficeMissingGovernmentBodyTest(absltest.TestCase):
+
+  def setUp(self):
+    super(OfficeMissingGovernmentBodyTest, self).setUp()
+    self.gov_validator = rules.OfficeMissingGovernmentBody(None, None)
+
+  def testChecksOfficeElements(self):
+    self.assertEqual(["Office"], self.gov_validator.elements())
+
+  # test exempt office list to ensure a double check if/when list is changed
+  def testExemptOfficesList(self):
+    expected_exempt_offices = [
+        "head of state", "head of government", "president", "vice president",
+        "state executive", "deputy state executive",
+    ]
+    self.assertEqual(
+        expected_exempt_offices, self.gov_validator._EXEMPT_OFFICES)
+
+  def testIgnoresExemptOffices(self):
+    office_string = """
+      <Office>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>office-role</OtherType>
+            <Value>{}</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Office>
+    """
+
+    exempt_office = etree.fromstring(office_string.format("head of state"))
+    self.gov_validator.check(exempt_office)
+
+    non_exempt_office = etree.fromstring(office_string.format("senate"))
+    with self.assertRaises(loggers.ElectionInfo):
+      self.gov_validator.check(non_exempt_office)
+
+  def testOfficeElementHasGovernmentBodyDefined(self):
+    office_string = """
+      <Office>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>office-role</OtherType>
+            <Value>senate</Value>
+          </ExternalIdentifier>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>{}</OtherType>
+            <Value>United States Senate</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Office>
+    """
+
+    government_body_office = etree.fromstring(
+        office_string.format("government-body"))
+    self.gov_validator.check(government_body_office)
+
+    governmental_body_office = etree.fromstring(
+        office_string.format("governmental-body"))
+    self.gov_validator.check(governmental_body_office)
+
+  def testRaisesInfoIfNoGovernmentBodyDefined(self):
+    office_string = """
+      <Office>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>office-role</OtherType>
+            <Value>senate</Value>
+          </ExternalIdentifier>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>{}</OtherType>
+            <Value>United States Senate</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Office>
+    """
+
+    government_body_office = etree.fromstring(
+        office_string.format("body"))
+    with self.assertRaises(loggers.ElectionInfo) as ei:
+      self.gov_validator.check(government_body_office)
+    self.assertEqual("Office element is missing an external identifier of "
+                     "other-type government-body.",
+                     str(ei.exception.log_entry[0].message))
+
+
+class SubsequentContestIdTest(absltest.TestCase):
+
+  _base_election_report = """
+    <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <Election>
+        <ContestCollection>
+          <Contest objectId="cc_001" xsi:type="CandidateContest">
+            <OfficeIds>office1</OfficeIds>
+            <PrimaryPartyIds>party1</PrimaryPartyIds>
+          </Contest>
+        </ContestCollection>
+        <StartDate>2020-02-03</StartDate>
+        <EndDate>2020-02-03</EndDate>
+      </Election>
+      <Election>
+        <ContestCollection>
+          <Contest objectId="cc_123">
+            <SubsequentContestId>{}</SubsequentContestId>
+            <OfficeIds>office1</OfficeIds>
+            <PrimaryPartyIds>party1</PrimaryPartyIds>
+          </Contest>
+        </ContestCollection>
+        <StartDate>2020-03-03</StartDate>
+        <EndDate>2020-03-03</EndDate>
+      </Election>
+      <Election>
+        <ContestCollection>
+          {}
+        </ContestCollection>
+        <StartDate>2020-11-03</StartDate>
+        <EndDate>2020-11-03</EndDate>
+      </Election>
+    </ElectionReport>
+    """
+
+  def testValidSubsequentContest(self):
+    contest_string = """
+          <Contest objectId="cc_456" xsi:type="CandidateContest">
+            <OfficeIds>office1</OfficeIds>
+            <PrimaryPartyIds>party1</PrimaryPartyIds>
+          </Contest>
+          """
+    root_string = self._base_election_report.format("cc_456", contest_string)
+
+    election_tree = etree.fromstring(root_string)
+    subsequent_validator = rules.SubsequentContestIdIsValidRelatedContest(
+        election_tree, None)
+
+    subsequent_validator.check(election_tree)
+
+  def testSubsequentContestWithMismatchedOfficeIds(self):
+    contest_string = """
+          <Contest objectId="cc_456">
+            <OfficeIds>office2</OfficeIds>
+          </Contest>
+          """
+    root_string = self._base_election_report.format("cc_456", contest_string)
+
+    election_tree = etree.fromstring(root_string)
+    subsequent_validator = rules.SubsequentContestIdIsValidRelatedContest(
+        election_tree, None)
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      subsequent_validator.check(election_tree)
+    self.assertIn(
+        "Contest cc_123 references a subsequent contest with a different "
+        "office id", str(ee.exception.log_entry[0].message))
+
+  def testSubsequentContestWithMismatchedPrimaryPartyIds(self):
+    contest_string = """
+          <Contest objectId="cc_456" xsi:type="CandidateContest">
+            <OfficeIds>office1</OfficeIds>
+            <PrimaryPartyIds>party2</PrimaryPartyIds>
+          </Contest>
+          """
+    root_string = self._base_election_report.format("cc_456", contest_string)
+
+    election_tree = etree.fromstring(root_string)
+    subsequent_validator = rules.SubsequentContestIdIsValidRelatedContest(
+        election_tree, None)
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      subsequent_validator.check(election_tree)
+    self.assertIn(
+        "Contest cc_123 references a subsequent contest with different primary "
+        "party ids", str(ee.exception.log_entry[0].message))
+
+  def testSubsequentContestWithNoPrimaryPartyIds(self):
+    contest_string = """
+          <Contest objectId="cc_456">
+            <OfficeIds>office1</OfficeIds>
+          </Contest>
+          """
+    root_string = self._base_election_report.format("cc_456", contest_string)
+
+    election_tree = etree.fromstring(root_string)
+    subsequent_validator = rules.SubsequentContestIdIsValidRelatedContest(
+        election_tree, None)
+
+    subsequent_validator.check(election_tree)
+
+  def testSubsequentContestWithEarlierEndDate(self):
+    root_string = self._base_election_report.format("cc_001", "")
+
+    election_tree = etree.fromstring(root_string)
+    subsequent_validator = rules.SubsequentContestIdIsValidRelatedContest(
+        election_tree, None)
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      subsequent_validator.check(election_tree)
+    self.assertIn(
+        "Contest cc_123 references a subsequent contest with an earlier end "
+        "date.", str(ee.exception.log_entry[0].message))
+
+  def testSubsequentContestContainsOriginalInComposingContestIds(self):
+    contest_string = """
+          <Contest objectId="cc_456" xsi:type="CandidateContest">
+            <ComposingContestIds>cc_123</ComposingContestIds>
+            <OfficeIds>office1</OfficeIds>
+            <PrimaryPartyIds>party1</PrimaryPartyIds>
+          </Contest>
+          """
+    root_string = self._base_election_report.format("cc_456", contest_string)
+
+    election_tree = etree.fromstring(root_string)
+    subsequent_validator = rules.SubsequentContestIdIsValidRelatedContest(
+        election_tree, None)
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      subsequent_validator.check(election_tree)
+    self.assertIn(
+        "Contest cc_123 is listed as a composing contest for its subsequent "
+        "contest.  Two contests can be linked by SubsequentContestId or "
+        "ComposingContestId, but not both.",
+        str(ee.exception.log_entry[0].message))
+
+
+class ComposingContestIdsTest(absltest.TestCase):
+
+  _base_election_report = """
+    <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <Election>
+        <ContestCollection>
+          {}
+        </ContestCollection>
+      </Election>
+      <Election>
+        <ContestCollection>
+          <Contest objectId="cc_123">
+            <ComposingContestIds>{}</ComposingContestIds>
+            <OfficeIds>office1</OfficeIds>
+            <PrimaryPartyIds>party1</PrimaryPartyIds>
+          </Contest>
+        </ContestCollection>
+      </Election>
+    </ElectionReport>
+    """
+
+  def testValidComposingContests(self):
+    contest_string = """
+          <Contest objectId="cc_456" xsi:type="CandidateContest">
+            <OfficeIds>office1</OfficeIds>
+            <PrimaryPartyIds>party1</PrimaryPartyIds>
+          </Contest>
+          <Contest objectId="cc_789">
+            <OfficeIds>office1</OfficeIds>
+            <PrimaryPartyIds>party1</PrimaryPartyIds>
+          </Contest>
+          """
+    root_string = self._base_election_report.format(contest_string,
+                                                    "cc_456 cc_789")
+
+    election_tree = etree.fromstring(root_string)
+    composing_validator = rules.ComposingContestIdsAreValidRelatedContests(
+        election_tree, None)
+
+    composing_validator.check(election_tree)
+
+  def testComposingContestAppearsMultipleTimes(self):
+    contest_string = """
+          <Contest objectId="cc_456" xsi:type="CandidateContest">
+            <OfficeIds>office1</OfficeIds>
+            <PrimaryPartyIds>party2</PrimaryPartyIds>
+          </Contest>
+          <Contest objectId="cc_789" xsi:type="CandidateContest">
+            <ComposingContestIds>cc_456</ComposingContestIds>
+            <OfficeIds>office1</OfficeIds>
+            <PrimaryPartyIds>party2</PrimaryPartyIds>
+          </Contest>
+          """
+    root_string = self._base_election_report.format(contest_string, "cc_456")
+
+    election_tree = etree.fromstring(root_string)
+    composing_validator = rules.ComposingContestIdsAreValidRelatedContests(
+        election_tree, None)
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      composing_validator.check(election_tree)
+    self.assertIn(
+        "Contest cc_456 is listed as a ComposingContest for more than one "
+        "parent contest.  ComposingContests should be a strict hierarchy",
+        str(ee.exception.log_entry[0].message))
+
+  def testComposingContestWithMismatchedOfficeIds(self):
+    contest_string = """
+          <Contest objectId="cc_456" xsi:type="CandidateContest">
+            <OfficeIds>office2</OfficeIds>
+            <PrimaryPartyIds>party1</PrimaryPartyIds>
+          </Contest>
+          """
+    root_string = self._base_election_report.format(contest_string, "cc_456")
+
+    election_tree = etree.fromstring(root_string)
+    composing_validator = rules.ComposingContestIdsAreValidRelatedContests(
+        election_tree, None)
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      composing_validator.check(election_tree)
+    self.assertIn(
+        "Contest cc_123 and composing contest cc_456 have different office ids",
+        str(ee.exception.log_entry[0].message))
+
+  def testComposingContestWithMismatchedPrimaryPartyIds(self):
+    contest_string = """
+          <Contest objectId="cc_456">
+            <OfficeIds>office1</OfficeIds>
+            <PrimaryPartyIds>party2</PrimaryPartyIds>
+          </Contest>
+          """
+    root_string = self._base_election_report.format(contest_string, "cc_456")
+
+    election_tree = etree.fromstring(root_string)
+    composing_validator = rules.ComposingContestIdsAreValidRelatedContests(
+        election_tree, None)
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      composing_validator.check(election_tree)
+    self.assertIn(
+        "Contest cc_123 and composing contest cc_456 have different primary "
+        "party ids", str(ee.exception.log_entry[0].message))
+
+  def testComposingContestsReferenceEachOther(self):
+    contest_string = """
+          <Contest objectId="cc_456" xsi:type="CandidateContest">
+            <ComposingContestIds>cc_123</ComposingContestIds>
+            <OfficeIds>office1</OfficeIds>
+            <PrimaryPartyIds>party1</PrimaryPartyIds>
+          </Contest>
+          """
+    root_string = self._base_election_report.format(contest_string, "cc_456")
+
+    election_tree = etree.fromstring(root_string)
+    composing_validator = rules.ComposingContestIdsAreValidRelatedContests(
+        election_tree, None)
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      composing_validator.check(election_tree)
+    self.assertIn(
+        "Contest cc_456 and contest cc_123 reference each other as composing "
+        "contests", str(ee.exception.log_entry[0].message))
+
+
 class RulesTest(absltest.TestCase):
 
   def testAllRulesIncluded(self):
@@ -7344,4 +7925,3 @@ class RulesTest(absltest.TestCase):
 
 if __name__ == "__main__":
   absltest.main()
-
