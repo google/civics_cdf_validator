@@ -2254,8 +2254,8 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
       if subsequent_contest_id not in contest_ids:
         error_log.append(
             loggers.LogEntry(
-                "Could not find SubsequentContest % referenced by Contest %s." %
-                subsequent_contest_id, contest_id))
+                "Could not find SubsequentContest %s referenced by Contest %s."
+                % (subsequent_contest_id, contest_id)))
         continue
 
       subsequent_contest = contest_ids[subsequent_contest_id]
