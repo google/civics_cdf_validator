@@ -16,23 +16,16 @@
 from __future__ import print_function
 
 import collections
-import csv
-import datetime
 import hashlib
-import io
-import os
 import re
-import shutil
-import sys
 
 from civics_cdf_validator import base
+from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator import office_utils
 import enum
-import github
 import language_tags
 from lxml import etree
-import requests
 from six.moves.urllib.parse import urlparse
 
 _PARTY_LEADERSHIP_TYPES = ["party-leader-id", "party-chair-id"]
@@ -398,168 +391,30 @@ class ValidStableID(base.BaseRule):
 
 
 class ElectoralDistrictOcdId(base.BaseRule):
-  """GpUnit referred to by Contest.ElectoralDistrictId MUST have a valid OCD-ID."""
-
-  CACHE_DIR = "~/.cache"
-  GITHUB_REPO = "opencivicdata/ocd-division-ids"
-  GITHUB_DIR = "identifiers"
-  # Reference http://docs.opencivicdata.org/en/latest/proposals/0002.html
-  OCD_PATTERN = r"^ocd-division\/country:[a-z]{2}(\/(\w|-)+:(\w|-|\.|~)+)*$"
-
-  def __init__(self, election_tree, schema_tree):
-    super(ElectoralDistrictOcdId, self).__init__(election_tree, schema_tree)
-    self.gpunits = []
-    self.check_github = True
-    self.country_code = None
-    self.github_file = None
-    self.github_repo = None
-    self.local_file = None
-    self.ocd_matcher = re.compile(self.OCD_PATTERN, flags=re.U)
-    for gpunit in self.get_elements_by_class(self.election_tree, "GpUnit"):
-      self.gpunits.append(gpunit)
-
-  def setup(self):
-    if self.local_file is None:
-      self.github_file = "country-%s.csv" % self.country_code
-    self.ocds = self._get_ocd_data()
-
-  def _read_csv(self, reader, ocd_id_codes):
-    """Reads in OCD IDs from CSV file."""
-    for row in reader:
-      if "id" in row and row["id"]:
-        ocd_id_codes.add(row["id"])
-
-  def _get_ocd_data(self):
-    """Returns a list of OCD-ID codes.
-
-    This list is populated using either a local file or a downloaded file
-    from GitHub.
-    """
-    # Value `local_file` is not provided by default, only by cmd line arg.
-    if self.local_file:
-      countries_file = self.local_file
-    else:
-      cache_directory = os.path.expanduser(self.CACHE_DIR)
-      countries_filename = "{0}/{1}".format(cache_directory, self.github_file)
-
-      if not os.path.exists(countries_filename):
-        # Only initialize `github_repo` if there's no cached file.
-        github_api = github.Github()
-        self.github_repo = github_api.get_repo(self.GITHUB_REPO)
-        if not os.path.exists(cache_directory):
-          os.makedirs(cache_directory)
-        self._download_data(countries_filename)
-      else:
-        if self.check_github:
-          last_mod_date = datetime.datetime.fromtimestamp(
-              os.path.getmtime(countries_filename))
-
-          seconds_since_mod = (datetime.datetime.now() -
-                               last_mod_date).total_seconds()
-
-          # If 1 hour has elapsed, check GitHub for the last file update.
-          if (seconds_since_mod / 3600) > 1:
-            github_api = github.Github()
-            self.github_repo = github_api.get_repo(self.GITHUB_REPO)
-            # Re-download the file if the file on GitHub was updated.
-            if last_mod_date < self._get_latest_commit_date():
-              self._download_data(countries_filename)
-            # Update the timestamp to reflect last GitHub check.
-            os.utime(countries_filename, None)
-      countries_file = open(countries_filename, encoding="utf-8")
-    ocd_id_codes = set()
-    csv_reader = csv.DictReader(countries_file)
-    self._read_csv(csv_reader, ocd_id_codes)
-
-    return ocd_id_codes
-
-  def _get_latest_commit_date(self):
-    """Returns the latest commit date to country-*.csv."""
-    latest_commit_date = None
-    latest_commit = self.github_repo.get_commits(
-        path="{0}/{1}".format(self.GITHUB_DIR, self.github_file))[0]
-    latest_commit_date = latest_commit.commit.committer.date
-    return latest_commit_date
-
-  def _download_data(self, file_path):
-    """Makes a request to Github to download the file."""
-    ocdid_url = "https://raw.github.com/{0}/master/{1}/{2}".format(
-        self.GITHUB_REPO, self.GITHUB_DIR, self.github_file)
-    r = requests.get(ocdid_url)
-    with io.open("{0}.tmp".format(file_path), "wb") as fd:
-      for chunk in r.iter_content():
-        fd.write(chunk)
-    valid = self._verify_data("{0}.tmp".format(file_path))
-    if not valid:
-      raise loggers.ElectionError.from_message(
-          ("Could not successfully download OCD ID data files. Please try "
-           "downloading the file manually and place it in ~/.cache"))
-    else:
-      shutil.copy("{0}.tmp".format(file_path), file_path)
-
-  def _verify_data(self, file_path):
-    """Validates a file's SHA."""
-    file_sha1 = hashlib.sha1()
-    file_info = os.stat(file_path)
-    # GitHub calculates the blob SHA like this:
-    # sha1("blob "+filesize+"\0"+data)
-    file_sha1.update(b"blob %d\0" % file_info.st_size)
-    with io.open(file_path, mode="rb") as fd:
-      for line in fd:
-        file_sha1.update(line)
-    latest_file_sha = self._get_latest_file_blob_sha()
-    return latest_file_sha == file_sha1.hexdigest()
-
-  def _get_latest_file_blob_sha(self):
-    """Returns the GitHub blob SHA of country-*.csv."""
-    blob_sha = None
-    dir_contents = self.github_repo.get_contents(self.GITHUB_DIR)
-    for content_file in dir_contents:
-      if content_file.name == self.github_file:
-        blob_sha = content_file.sha
-        break
-    return blob_sha
-
-  def _encode_ocdid_value(self, ocdid):
-    if sys.version_info.major < 3:
-      if isinstance(ocdid, unicode):
-        return ocdid.encode("utf-8")
-    if isinstance(ocdid, str):
-      return ocdid
-    else:
-      return ""
+  """GpUnit referred to by ElectoralDistrictId MUST have a valid OCD-ID."""
 
   def elements(self):
     return ["ElectoralDistrictId"]
 
   def check(self, element):
-    if element.getparent().tag != "Contest":
-      return
-    contest_id = element.getparent().get("objectId")
-    if not contest_id:
-      return
     error_log = []
-    referenced_gpunits = [
-        g for g in self.gpunits if g.get("objectId", "") == element.text
-    ]
+    gp_unit_path = ".//GpUnit[@objectId='{}']".format(element.text)
+    referenced_gpunits = self.election_tree.findall(gp_unit_path)
     if not referenced_gpunits:
       msg = ("The ElectoralDistrictId element not refer to a GpUnit. Every "
              "ElectoralDistrictId MUST reference a GpUnit")
       error_log.append(loggers.LogEntry(msg, [element]))
     else:
       referenced_gpunit = referenced_gpunits[0]
-      external_ids = get_external_id_values(referenced_gpunit, "ocd-id")
-      if not external_ids:
+      ocd_ids = get_external_id_values(referenced_gpunit, "ocd-id")
+      if not ocd_ids:
         error_log.append(
             loggers.LogEntry("The referenced GpUnit %s does not have an ocd-id"
                              % element.text,
                              [element], [referenced_gpunit.sourceline]))
       else:
-        for external_id in external_ids:
-          ocd_id = self._encode_ocdid_value(external_id)
-          valid_ocd_id = (
-              ocd_id in self.ocds and self.ocd_matcher.match(ocd_id))
-          if not valid_ocd_id:
+        for ocd_id in ocd_ids:
+          if not gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd(ocd_id):
             error_log.append(
                 loggers.LogEntry("The ElectoralDistrictId refers to GpUnit %s "
                                  "that does not have a valid OCD ID (%s)"
@@ -569,7 +424,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
       raise loggers.ElectionError(error_log)
 
 
-class GpUnitOcdId(ElectoralDistrictOcdId):
+class GpUnitOcdId(base.BaseRule):
   """Any GpUnit that is a geographic district SHOULD have a valid OCD-ID."""
 
   districts = [
@@ -587,9 +442,8 @@ class GpUnitOcdId(ElectoralDistrictOcdId):
       external_id_elements = get_external_id_values(
           element, "ocd-id", return_elements=True)
       for extern_id in external_id_elements:
-        ocd_id = self._encode_ocdid_value(extern_id.text)
-        if ocd_id not in self.ocds:
-          msg = "The OCD ID %s is not valid" % ocd_id
+        if not gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd(extern_id.text):
+          msg = "The OCD ID %s is not valid" % extern_id.text
           raise loggers.ElectionWarning.from_message(
               msg, [element], [extern_id.sourceline])
 
@@ -2274,6 +2128,24 @@ class MissingFieldsWarning(base.MissingFieldRule):
     }
 
 
+class MissingFieldsInfo(base.MissingFieldRule):
+  """Check for missing fields for given entity types and field names.
+
+  Raise info for missing fields. To add a field, include the entity
+  and field in element_field_mapping.
+  """
+
+  def get_severity(self):
+    return 0
+
+  def element_field_mapping(self):
+    return {
+        "Office": [
+            "ElectoralDistrictId",
+        ],
+    }
+
+
 class PartySpanMultipleCountries(base.BaseRule):
   """Check if a party operate on multiple countries.
 
@@ -2587,6 +2459,7 @@ COMMON_RULES = (
     GpUnitsHaveInternationalizedName,
     MissingFieldsError,
     MissingFieldsWarning,
+    MissingFieldsInfo,
 )
 
 ELECTION_RULES = COMMON_RULES + (

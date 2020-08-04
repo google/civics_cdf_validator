@@ -5,17 +5,14 @@ import datetime
 import hashlib
 import inspect
 import io
-import time
 
 from absl.testing import absltest
 from civics_cdf_validator import base
+from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator import rules
-import github
 from lxml import etree
-from mock import create_autospec
 from mock import MagicMock
-from mock import patch
 
 
 class HelpersTest(absltest.TestCase):
@@ -900,17 +897,13 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
 
   def setUp(self):
     super(ElectoralDistrictOcdIdTest, self).setUp()
-    root_string = """
+    self.root_string = """
       <ElectionReport>
         <GpUnitCollection>
-          <GpUnit/>
-          <GpUnit/>
-          <GpUnit/>
+          {}
         </GpUnitCollection>
       </ElectionReport>
     """
-    election_tree = etree.fromstring(root_string)
-    self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
 
     open_mod = inspect.getmodule(open)
     self.builtins_name = open_mod.__builtins__["__name__"]
@@ -920,273 +913,10 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     self.mock_open_func = MagicMock(
         return_value=io.StringIO(downloaded_ocdid_file))
 
-  def testSetsDefaultValuesUponCreation(self):
-    self.assertTrue(self.ocdid_validator.check_github)
-    self.assertIsNone(self.ocdid_validator.country_code)
-    self.assertIsNone(self.ocdid_validator.github_file)
-    self.assertIsNone(self.ocdid_validator.github_repo)
-    self.assertIsNone(self.ocdid_validator.local_file)
-    self.assertLen(self.ocdid_validator.gpunits, 3)
-
-  # setup tests
-  def testSetOCDsToResultOfGetOcdData(self):
-    mock_ocdids = ["ocdid1", "ocdid2"]
-    mock = MagicMock(return_value=mock_ocdids)
-    self.ocdid_validator._get_ocd_data = mock
-    self.ocdid_validator.local_file = "://file/path"
-    self.ocdid_validator.setup()
-
-    self.assertIsNone(self.ocdid_validator.github_file)
-    self.assertEqual(1, mock.call_count)
-    self.assertEqual(mock_ocdids, self.ocdid_validator.ocds)
-
-  def testSetsGithubFileIfNoLocalFile(self):
-    self.ocdid_validator.country_code = "us"
-    mock_ocdids = ["ocdid1", "ocdid2"]
-    mock = MagicMock(return_value=mock_ocdids)
-    self.ocdid_validator._get_ocd_data = mock
-    self.ocdid_validator.setup()
-
-    self.assertEqual("country-us.csv", self.ocdid_validator.github_file)
-    self.assertEqual(1, mock.call_count)
-    self.assertEqual(mock_ocdids, self.ocdid_validator.ocds)
-
-  # _get_latest_commit_date tests
-  def testReturnsTheLatestCommitDateForTheCountryCSV(self):
-    self.ocdid_validator.github_file = "country-ar.csv"
-    self.ocdid_validator.github_repo = github.Repository.Repository(
-        None, [], [], None)
-
-    now = datetime.datetime.now()
-    formatted_commit_date = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-    commit = github.Commit.Commit(
-        None, {},
-        dict({
-            "commit": dict({"committer": dict({"date": formatted_commit_date})})
-        }), None)
-
-    mock_get_commits = MagicMock(return_value=[commit])
-    self.ocdid_validator.github_repo.get_commits = mock_get_commits
-
-    latest_commit_date = self.ocdid_validator._get_latest_commit_date()
-    self.assertEqual(now.replace(microsecond=0), latest_commit_date)
-    mock_get_commits.assert_called_with(path="identifiers/country-ar.csv")
-
-  # _download_data tests
-  def testItCopiesDownloadedDataToCacheFileWhenValid(self):
-    self.ocdid_validator.github_file = "country-ar.csv"
-    self.ocdid_validator._verify_data = MagicMock(return_value=True)
-    mock_request = MagicMock()
-    mock_io_open = MagicMock()
-    mock_copy = MagicMock()
-
-    # pylint: disable=g-backslash-continuation
-    with patch("requests.get", mock_request), \
-         patch("io.open", mock_io_open), \
-         patch("shutil.copy", mock_copy):
-      self.ocdid_validator._download_data("/usr/cache")
-
-    request_url = "https://raw.github.com/{0}/master/{1}/country-ar.csv".format(
-        self.ocdid_validator.GITHUB_REPO, self.ocdid_validator.GITHUB_DIR)
-    mock_request.assert_called_with(request_url)
-    mock_io_open.assert_called_with("/usr/cache.tmp", "wb")
-    mock_copy.assert_called_with("/usr/cache.tmp", "/usr/cache")
-
-  def testItRaisesAnErrorAndDoesNotCopyDataWhenTheDataIsInvalid(self):
-    self.ocdid_validator.github_file = "country-ar.csv"
-    self.ocdid_validator._verify_data = MagicMock(return_value=False)
-    mock_copy = MagicMock()
-
-    # pylint: disable=g-backslash-continuation
-    with patch("requests.get", MagicMock()), \
-         patch("io.open", MagicMock()), \
-         patch("shutil.copy", mock_copy), \
-         self.assertRaises(loggers.ElectionError):
-      self.ocdid_validator._download_data("/usr/cache")
-
-    self.assertEqual(0, mock_copy.call_count)
-
-  # _get_ocd_data tests
-  def testParsesLocalCSVFileIfProvidedAndReturnsOCDIDs(self):
-    # set local file so that countries_file is set to local
-
-    with patch("{}.open".format(self.builtins_name), self.mock_open_func):
-      self.ocdid_validator.local_file = open("/path/to/file")
-
-    codes = self.ocdid_validator._get_ocd_data()
-
-    expected_codes = set(["ocd-division/country:ar"])
-
-    self.assertEqual(expected_codes, codes)
-
-  def testDownloadsDataIfNoLocalFileAndNoCachedFile(self):
-    # mock os call to return file path to be used for countries_file
-    mock_expanduser = MagicMock(return_value="/usr/cache")
-    # 1st call checks for existence of countries_file - return false
-    # 2nd call to os.path.exists check for cache directory - return true
-    mock_exists = MagicMock(side_effect=[False, True])
-
-    # stub out live call to github api
-    mock_github = create_autospec(github.Github)
-    mock_github.get_repo = MagicMock()
-
-    self.ocdid_validator.github_file = "country-ar.csv"
-    self.ocdid_validator._download_data = MagicMock()
-
-    # pylint: disable=g-backslash-continuation
-    with patch("os.path.expanduser", mock_expanduser), \
-         patch("os.path.exists", mock_exists), \
-         patch("github.Github", mock_github), \
-         patch("{}.open".format(self.builtins_name), self.mock_open_func):
-      codes = self.ocdid_validator._get_ocd_data()
-
-    expected_codes = set(["ocd-division/country:ar"])
-
-    self.assertTrue(
-        mock_github.get_repo.called_with(self.ocdid_validator.GITHUB_REPO))
-    self.assertTrue(
-        self.ocdid_validator._download_data.called_with(
-            "/usr/cache/country-ar.csv"))
-    self.assertEqual(expected_codes, codes)
-
-  def testDownloadsDataIfCachedFileIsStale(self):
-    # mock os call to return file path to be used for countries_file
-    mock_expanduser = MagicMock(return_value="/usr/cache")
-    # call to os.path.exists checks for existence of countries_file-return True
-    mock_exists = MagicMock(return_value=True)
-
-    # set modification date to be over an hour behind current time
-    stale_time = datetime.datetime.now() - datetime.timedelta(minutes=62)
-    mock_timestamp = time.mktime(stale_time.timetuple())
-    mock_getmtime = MagicMock(return_value=mock_timestamp)
-
-    # stub out live call to github api
-    mock_github = create_autospec(github.Github)
-    mock_github.get_repo = MagicMock()
-
-    # mock update time function on countries file to make sure it's being called
-    mock_utime = MagicMock()
-
-    self.ocdid_validator.github_file = "country-ar.csv"
-    self.ocdid_validator._download_data = MagicMock()
-    self.ocdid_validator._get_latest_commit_date = MagicMock(
-        return_value=datetime.datetime.now())
-
-    # pylint: disable=g-backslash-continuation
-    with patch("os.path.expanduser", mock_expanduser), \
-         patch("os.path.exists", mock_exists), \
-         patch("github.Github", mock_github), \
-         patch("{}.open".format(self.builtins_name), self.mock_open_func), \
-         patch("os.path.getmtime", mock_getmtime), \
-         patch("os.utime", MagicMock()):
-      codes = self.ocdid_validator._get_ocd_data()
-
-    expected_codes = set(["ocd-division/country:ar"])
-
-    self.assertTrue(
-        mock_github.get_repo.called_with(self.ocdid_validator.GITHUB_REPO))
-    self.assertTrue(self.ocdid_validator._get_latest_commit_date.called_once)
-    self.assertTrue(mock_utime.called_once)
-    self.assertTrue(
-        self.ocdid_validator._download_data.called_with(
-            "/usr/cache/country-ar.csv"))
-    self.assertEqual(expected_codes, codes)
-
-  # _verify_data tests
-  def testItReturnsTrueWhenTheFileShasMatch(self):
-    mock_sha1 = MagicMock
-    mock_sha1.update = MagicMock()
-    mock_sha1.hexdigest = MagicMock(return_value="abc123")
-
-    mock_stat = MagicMock()
-    self.ocdid_validator._get_latest_file_blob_sha = MagicMock(
-        return_value="abc123")
-    # pylint: disable=g-backslash-continuation
-    with patch("os.stat", mock_stat), \
-         patch("hashlib.sha1", mock_sha1), \
-         patch("io.open", self.mock_open_func):
-      valid = self.ocdid_validator._verify_data("/usr/cache/country-ar.tmp")
-
-    self.assertTrue(valid)
-    self.assertEqual(3, mock_sha1.update.call_count)
-
-  def testItReturnsFalseWhenTheFileShasDontMatch(self):
-    mock_sha1 = MagicMock
-    mock_sha1.update = MagicMock()
-    mock_sha1.hexdigest = MagicMock(return_value="abc123")
-
-    mock_stat = MagicMock()
-    self.ocdid_validator._get_latest_file_blob_sha = MagicMock(
-        return_value="abc456")
-
-    # pylint: disable=g-backslash-continuation
-    with patch("os.stat", mock_stat), \
-         patch("hashlib.sha1", mock_sha1), \
-         patch("io.open", self.mock_open_func):
-      valid = self.ocdid_validator._verify_data("/usr/cache/country-ar.tmp")
-
-    self.assertFalse(valid)
-    self.assertEqual(3, mock_sha1.update.call_count)
-
-  # _get_latest_file_blob_sha tests
-  def testItReturnsTheBlobShaOfTheGithubFileWhenFound(self):
-    content_file = github.ContentFile.ContentFile(
-        None, {}, dict({
-            "name": "country-ar.csv",
-            "sha": "abc123"
-        }), None)
-    repo = github.Repository.Repository(None, {}, {}, None)
-    repo.get_contents = MagicMock(return_value=[content_file])
-    self.ocdid_validator.github_repo = repo
-    self.ocdid_validator.github_file = "country-ar.csv"
-
-    blob_sha = self.ocdid_validator._get_latest_file_blob_sha()
-    self.assertEqual("abc123", blob_sha)
-
-  def testItReturnsNoneIfTheFileCantBeFound(self):
-    content_file = github.ContentFile.ContentFile(
-        None, {}, dict({
-            "name": "country-ar.csv",
-            "sha": "abc123"
-        }), None)
-    repo = github.Repository.Repository(None, {}, {}, None)
-    repo.get_contents = MagicMock(return_value=[content_file])
-    self.ocdid_validator.github_repo = repo
-    self.ocdid_validator.github_file = "country-us.csv"
-
-    blob_sha = self.ocdid_validator._get_latest_file_blob_sha()
-    self.assertIsNone(blob_sha)
-
-  # _encode_ocdid_value tests
-  def testItReturnsTheProvidedValueIfTypeString(self):
-    ocdid = str("my-cool-ocdid")
-    result = self.ocdid_validator._encode_ocdid_value(ocdid)
-    self.assertEqual("my-cool-ocdid", result)
-
-  def testItReturnsEncodedValueIfTypeUnicode(self):
-    ocdid = u"regionalwahlkreis:burgenland_süd"
-    result = self.ocdid_validator._encode_ocdid_value(ocdid)
-
-    encoded = "regionalwahlkreis:burgenland_süd"
-    self.assertEqual(encoded, result)
-
-  def testItReturnsEmptyStringIfOtherType(self):
-    ocdid = 1
-    result = self.ocdid_validator._encode_ocdid_value(ocdid)
-    self.assertEqual("", result)
-
-  # elements test
-  def testItOnlyChecksElectoralDistrictIdElements(self):
-    self.assertEqual(["ElectoralDistrictId"], self.ocdid_validator.elements())
-
   # check tests
   def testThatGivenElectoralDistrictIdReferencesGpUnitWithValidOCDID(self):
-    parent_string = """
-      <Contest objectId="con123">
-        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
-      </Contest>
-    """
-    element = etree.fromstring(parent_string)
+    element = etree.fromstring(
+        "<ElectoralDistrictId>ru0002</ElectoralDistrictId>")
 
     gp_unit = """
       <GpUnit objectId="ru0002">
@@ -1198,34 +928,16 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
         </ExternalIdentifiers>
       </GpUnit>
     """
-    self.ocdid_validator.gpunits = [etree.fromstring(gp_unit)]
-    self.ocdid_validator.ocds = set(["ocd-division/country:us/state:va"])
+    election_tree = etree.fromstring(self.root_string.format(gp_unit))
+    ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    mock = MagicMock(return_value=True)
+    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
 
-    self.ocdid_validator.check(element.find("ElectoralDistrictId"))
-
-  def testIgnoresElementsWhoDontHaveContestParent(self):
-    parent_string = """
-      <Party><ElectoralDistrictId/></Party>
-    """
-    element = etree.fromstring(parent_string)
-
-    self.ocdid_validator.check(element.find("ElectoralDistrictId"))
-
-  def testIgnoresElementsWhoseParentHasNoObjectId(self):
-    parent_string = """
-      <Contest><ElectoralDistrictId/></Contest>
-    """
-    element = etree.fromstring(parent_string)
-
-    self.ocdid_validator.check(element.find("ElectoralDistrictId"))
+    ocdid_validator.check(element)
 
   def testItRaisesAnErrorIfTheOcdidLabelIsNotAllLowerCase(self):
-    parent_string = """
-      <Contest objectId="con123">
-        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
-      </Contest>
-    """
-    element = etree.fromstring(parent_string)
+    element = etree.fromstring(
+        "<ElectoralDistrictId>ru0002</ElectoralDistrictId>")
 
     gp_unit = """
       <GpUnit objectId="ru0002">
@@ -1237,23 +949,22 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
         </ExternalIdentifiers>
       </GpUnit>
     """
-    self.ocdid_validator.gpunits = [etree.fromstring(gp_unit)]
-    self.ocdid_validator.ocds = set(["ocd-division/country:us/state:va"])
+    election_tree = etree.fromstring(self.root_string.format(gp_unit))
+    ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+
+    mock = MagicMock(return_value=True)
+    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
 
     with self.assertRaises(loggers.ElectionError) as ee:
-      self.ocdid_validator.check(element.find("ElectoralDistrictId"))
+      ocdid_validator.check(element)
     self.assertEqual(ee.exception.log_entry[0].message,
                      "The referenced GpUnit ru0002 does not have an ocd-id")
     self.assertEqual(ee.exception.log_entry[0].elements[0].tag,
                      "ElectoralDistrictId")
 
   def testItRaisesAnErrorIfTheReferencedGpUnitDoesNotExist(self):
-    parent_string = """
-      <Contest objectId="con123">
-        <ElectoralDistrictId>ru9999</ElectoralDistrictId>
-      </Contest>
-    """
-    element = etree.fromstring(parent_string)
+    element = etree.fromstring(
+        "<ElectoralDistrictId>ru9999</ElectoralDistrictId>")
 
     gp_unit = """
       <GpUnit objectId="ru0002">
@@ -1265,11 +976,14 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
         </ExternalIdentifiers>
       </GpUnit>
     """
-    self.ocdid_validator.gpunits = [etree.fromstring(gp_unit)]
-    self.ocdid_validator.ocds = set(["ocd-division/country:us/state:va"])
+    election_tree = etree.fromstring(self.root_string.format(gp_unit))
+    ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+
+    mock = MagicMock(return_value=True)
+    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
 
     with self.assertRaises(loggers.ElectionError) as ee:
-      self.ocdid_validator.check(element.find("ElectoralDistrictId"))
+      ocdid_validator.check(element)
     self.assertEqual(ee.exception.log_entry[0].message,
                      ("The ElectoralDistrictId element not refer to a GpUnit. "
                       "Every ElectoralDistrictId MUST reference a GpUnit"))
@@ -1277,12 +991,8 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
                      "ElectoralDistrictId")
 
   def testItRaisesAnErrorIfTheReferencedGpUnitHasNoOCDID(self):
-    parent_string = """
-      <Contest objectId="con123">
-        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
-      </Contest>
-    """
-    element = etree.fromstring(parent_string)
+    element = etree.fromstring(
+        "<ElectoralDistrictId>ru0002</ElectoralDistrictId>")
 
     gp_unit = """
       <GpUnit objectId="ru0002">
@@ -1290,23 +1000,22 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
         </ExternalIdentifiers>
       </GpUnit>
     """
-    self.ocdid_validator.gpunits = [etree.fromstring(gp_unit)]
-    self.ocdid_validator.ocds = set(["ocd-division/country:us/state:va"])
+    election_tree = etree.fromstring(self.root_string.format(gp_unit))
+    ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+
+    mock = MagicMock(return_value=True)
+    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
 
     with self.assertRaises(loggers.ElectionError) as ee:
-      self.ocdid_validator.check(element.find("ElectoralDistrictId"))
+      ocdid_validator.check(element)
     self.assertEqual(ee.exception.log_entry[0].message,
                      "The referenced GpUnit ru0002 does not have an ocd-id")
     self.assertEqual(ee.exception.log_entry[0].elements[0].tag,
                      "ElectoralDistrictId")
 
   def testItRaisesAnErrorIfTheReferencedOcdidIsNotValid(self):
-    parent_string = """
-      <Contest objectId="con123">
-        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
-      </Contest>
-    """
-    element = etree.fromstring(parent_string)
+    element = etree.fromstring(
+        "<ElectoralDistrictId>ru0002</ElectoralDistrictId>")
 
     gp_unit = """
       <GpUnit objectId="ru0002">
@@ -1318,231 +1027,19 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
         </ExternalIdentifiers>
       </GpUnit>
     """
-    self.ocdid_validator.gpunits = [etree.fromstring(gp_unit)]
-    self.ocdid_validator.ocds = set(["ocd-division/country:us/state:va"])
+    election_tree = etree.fromstring(self.root_string.format(gp_unit))
+    ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+
+    mock = MagicMock(return_value=False)
+    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
 
     with self.assertRaises(loggers.ElectionError) as ee:
-      self.ocdid_validator.check(element.find("ElectoralDistrictId"))
+      ocdid_validator.check(element)
     self.assertEqual(ee.exception.log_entry[0].message,
                      ("The ElectoralDistrictId refers to GpUnit ru0002 that"
                       " does not have a valid OCD ID "
                       "(ocd-division/country:us/state:ma)"))
     self.assertEqual(ee.exception.log_entry[0].elements[0].tag,
-                     "ElectoralDistrictId")
-
-  def testUnicodeOCDIDsAreValid(self):
-    ocd_value = "ocd-division/country:la/regionalwahlkreis:burgenland_süd"
-    root_string = """
-      <Contest objectId="ru_at_999">
-        <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
-        <GpUnit objectId="cc_at_999" type="ReportingUnit">
-           <ExternalIdentifiers>
-             <ExternalIdentifier>
-               <Type>ocd-id</Type>
-               <Value>""" + ocd_value + """</Value>
-             </ExternalIdentifier>
-           </ExternalIdentifiers>
-        </GpUnit>
-      </Contest>
-    """
-    election_tree = etree.fromstring(root_string)
-    self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
-    self.ocdid_validator.ocds = set([ocd_value])
-    self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
-
-  def testCountryOCDIDsAreValid(self):
-    ocd_value = "ocd-division/country:la"
-    root_string = """
-      <Contest objectId="ru_at_999">
-        <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
-        <GpUnit objectId="cc_at_999" type="ReportingUnit">
-           <ExternalIdentifiers>
-             <ExternalIdentifier>
-               <Type>ocd-id</Type>
-               <Value>""" + ocd_value + """</Value>
-             </ExternalIdentifier>
-           </ExternalIdentifiers>
-        </GpUnit>
-      </Contest>
-    """
-    election_tree = etree.fromstring(root_string)
-    self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
-    self.ocdid_validator.ocds = set([ocd_value])
-    self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
-
-  def testLongOCDIDsAreValid(self):
-    ocd_value = "ocd-division/country:us/state:la"
-    root_string = """
-      <Contest objectId="ru_at_999">
-        <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
-        <GpUnit objectId="cc_at_999" type="ReportingUnit">
-           <ExternalIdentifiers>
-             <ExternalIdentifier>
-               <Type>ocd-id</Type>
-               <Value>""" + ocd_value + """</Value>
-             </ExternalIdentifier>
-           </ExternalIdentifiers>
-        </GpUnit>
-      </Contest>
-    """
-    election_tree = etree.fromstring(root_string)
-    self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
-    self.ocdid_validator.ocds = set([ocd_value])
-    self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
-
-  def testUnicodeOCDIDsAreValid_fails(self):
-    ocd_value = "ocd-division/country:la/regionalwahlkreis:kärnten_west"
-    root_string = """
-      <Contest objectId="ru_at_999">
-        <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
-        <GpUnit objectId="cc_at_999" type="ReportingUnit">
-           <ExternalIdentifiers>
-             <ExternalIdentifier>
-               <Type>ocd-id</Type>
-               <Value>""" + ocd_value + """</Value>
-             </ExternalIdentifier>
-           </ExternalIdentifiers>
-        </GpUnit>
-      </Contest>
-    """
-    election_tree = etree.fromstring(root_string)
-
-    self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
-    self.ocdid_validator.ocds = set(
-        ["ocd-division/country:la"
-         "/regionalwahlkreis:burgenland_süd"])
-    with self.assertRaises(loggers.ElectionError) as cm:
-      self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
-    self.assertEqual(str(cm.exception.log_entry[0].message),
-                     ("The ElectoralDistrictId refers to GpUnit cc_at_999 "
-                      "that does not have a valid OCD ID (" + ocd_value + ")"))
-    self.assertEqual(cm.exception.log_entry[0].elements[0].tag,
-                     "ElectoralDistrictId")
-
-  def testInvalidUnicodeOCDIDs_fails(self):
-    ocd_value = "ocd-division/country:la/regionalwahlkreis:burgenland_süd/"
-    root_string = """
-      <Contest objectId="ru_at_999">
-        <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
-        <GpUnit objectId="cc_at_999" type="ReportingUnit">
-           <ExternalIdentifiers>
-             <ExternalIdentifier>
-               <Type>ocd-id</Type>
-               <Value>""" + ocd_value + """</Value>
-             </ExternalIdentifier>
-           </ExternalIdentifiers>
-        </GpUnit>
-      </Contest>
-    """
-    election_tree = etree.fromstring(root_string)
-    self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
-    self.ocdid_validator.ocds = set([ocd_value])
-    with self.assertRaises(loggers.ElectionError) as cm:
-      self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
-    self.assertEqual(str(cm.exception.log_entry[0].message),
-                     ("The ElectoralDistrictId refers to GpUnit cc_at_999 "
-                      "that does not have a valid OCD ID (" + ocd_value + ")"))
-    self.assertEqual(cm.exception.log_entry[0].elements[0].tag,
-                     "ElectoralDistrictId")
-
-  def testInvalidNonUnicodeOCDIDs_fails(self):
-    ocd_value = "regionalwahlkreis:burgenland_sued"
-    root_string = """
-      <Contest objectId="ru_at_999">
-        <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
-        <GpUnit objectId="cc_at_999" type="ReportingUnit">
-           <ExternalIdentifiers>
-             <ExternalIdentifier>
-               <Type>ocd-id</Type>
-               <Value>""" + ocd_value + """</Value>
-             </ExternalIdentifier>
-           </ExternalIdentifiers>
-        </GpUnit>
-      </Contest>
-    """
-    election_tree = etree.fromstring(root_string)
-    self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
-    self.ocdid_validator.ocds = set(["regionalwahlkreis:karnten_west"])
-    with self.assertRaises(loggers.ElectionError) as cm:
-      self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
-    self.assertEqual(str(cm.exception.log_entry[0].message),
-                     ("The ElectoralDistrictId refers to GpUnit cc_at_999 "
-                      "that does not have a valid OCD ID (" + ocd_value + ")"))
-    self.assertEqual(cm.exception.log_entry[0].elements[0].tag,
-                     "ElectoralDistrictId")
-
-  def testInvalidNonUnicodeOCDIDsWithAnInvalidCharacter_fails(self):
-    ocd_value = "ocd-division/country:la/regionalwahlkreis:burgenland*d"
-    root_string = """
-      <Contest objectId="ru_at_999">
-        <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
-        <GpUnit objectId="cc_at_999" type="ReportingUnit">
-           <ExternalIdentifiers>
-             <ExternalIdentifier>
-               <Type>ocd-id</Type>
-               <Value>""" + ocd_value + """</Value>
-             </ExternalIdentifier>
-           </ExternalIdentifiers>
-        </GpUnit>
-      </Contest>
-    """
-    election_tree = etree.fromstring(root_string)
-    self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
-    self.ocdid_validator.ocds = set([ocd_value])
-    with self.assertRaises(loggers.ElectionError) as cm:
-      self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
-    self.assertEqual(str(cm.exception.log_entry[0].message),
-                     ("The ElectoralDistrictId refers to GpUnit cc_at_999 "
-                      "that does not have a valid OCD ID (" + ocd_value + ")"))
-    self.assertEqual(cm.exception.log_entry[0].elements[0].tag,
-                     "ElectoralDistrictId")
-
-  def testNonUnicodeOCDIDsAreValid(self):
-    ocd_value = "ocd-division/country:to/regionalwahlkreis:burgenland_sued"
-    root_string = """
-      <Contest objectId="ru_at_999">
-        <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
-        <GpUnit objectId="cc_at_999" type="ReportingUnit">
-           <ExternalIdentifiers>
-             <ExternalIdentifier>
-               <Type>ocd-id</Type>
-               <Value>""" + ocd_value + """</Value>
-             </ExternalIdentifier>
-           </ExternalIdentifiers>
-        </GpUnit>
-      </Contest>
-    """
-    election_tree = etree.fromstring(root_string)
-    self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
-    self.ocdid_validator.ocds = set([ocd_value])
-    self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
-
-  def testNonUnicodeOCDIDsAreValid_fails(self):
-    ocd_value = "ocd-division/country:to/regionalwahlkreis:burgenland_sued"
-    root_string = """
-      <Contest objectId="ru_at_999">
-        <ElectoralDistrictId>cc_at_999</ElectoralDistrictId>
-        <GpUnit objectId="cc_at_999" type="ReportingUnit">
-           <ExternalIdentifiers>
-             <ExternalIdentifier>
-               <Type>ocd-id</Type>
-               <Value>""" + ocd_value + """</Value>
-             </ExternalIdentifier>
-           </ExternalIdentifiers>
-        </GpUnit>
-      </Contest>
-    """
-    election_tree = etree.fromstring(root_string)
-    self.ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
-    self.ocdid_validator.ocds = set(
-        ["ocd-division/country:to"
-         "/regionalwahlkreis:karnten_west"])
-    with self.assertRaises(loggers.ElectionError) as cm:
-      self.ocdid_validator.check(election_tree.find("ElectoralDistrictId"))
-    self.assertEqual(str(cm.exception.log_entry[0].message),
-                     ("The ElectoralDistrictId refers to GpUnit cc_at_999 "
-                      "that does not have a valid OCD ID (" + ocd_value + ")"))
-    self.assertEqual(cm.exception.log_entry[0].elements[0].tag,
                      "ElectoralDistrictId")
 
 
@@ -1587,8 +1084,8 @@ class GpUnitOcdIdTest(absltest.TestCase):
         "county")
     report = etree.fromstring(reporting_unit)
 
-    self.gp_unit_validator.ocds = set(
-        ["ocd-division/country:us/state:ma/county:middlesex"])
+    mock = MagicMock(return_value=True)
+    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
     self.gp_unit_validator.check(report.find("GpUnit"))
 
   def testItIgnoresElementsWithNoObjectId(self):
@@ -1608,15 +1105,16 @@ class GpUnitOcdIdTest(absltest.TestCase):
     )
     report = etree.fromstring(reporting_unit)
 
-    self.gp_unit_validator.ocds = set(["ocd-division/country:us"])
+    mock = MagicMock(return_value=True)
+    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
     self.gp_unit_validator.check(report.find("GpUnit"))
 
   def testItIgnoresElementsWithNoOcdIdValue(self):
     reporting_unit = self.base_reporting_unit.format("", "county")
     report = etree.fromstring(reporting_unit)
 
-    self.gp_unit_validator.ocds = set(
-        ["ocd-division/country:us/state:ma/county:middlesex"])
+    mock = MagicMock(return_value=True)
+    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
     self.gp_unit_validator.check(report.find("GpUnit"))
 
   def testItRaisesAWarningIfOcdIdNotInListOfValidIds(self):
@@ -1626,8 +1124,8 @@ class GpUnitOcdIdTest(absltest.TestCase):
     )
     report = etree.fromstring(reporting_unit)
 
-    self.gp_unit_validator.ocds = set(
-        ["ocd-division/country:us/state:ma/county:middlesex"])
+    mock = MagicMock(return_value=False)
+    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
     with self.assertRaises(loggers.ElectionWarning):
       self.gp_unit_validator.check(report.find("GpUnit"))
 
@@ -7437,6 +6935,39 @@ class MissingFieldsWarningTest(absltest.TestCase):
 
     self.assertEqual(ew.exception.log_entry[0].message,
                      "The element Candidate is missing field PartyId.")
+    self.assertEqual(
+        ew.exception.log_entry[0].elements[0].get("objectId"), "123")
+
+
+class MissingFieldsInfoTest(absltest.TestCase):
+
+  def setUp(self):
+    super(MissingFieldsInfoTest, self).setUp()
+    self.field_validator = rules.MissingFieldsInfo(None, None)
+    self.field_validator.setup()
+
+  def testSetsSeverityLevelToWarning(self):
+    self.assertEqual(0, self.field_validator.get_severity())
+
+  def testRequiredFieldIsPresent_Candidate(self):
+    office = """
+      <Office objectId="123">
+        <ElectoralDistrictId>ru_2343</ElectoralDistrictId>
+      </Office>
+    """
+    self.field_validator.check(etree.fromstring(office))
+
+  def testRaisesInfoForMissingField_Candidate(self):
+    office = """
+      <Office objectId="123">
+      </Office>
+    """
+
+    with self.assertRaises(loggers.ElectionInfo) as ew:
+      self.field_validator.check(etree.fromstring(office))
+
+    self.assertEqual(ew.exception.log_entry[0].message,
+                     "The element Office is missing field ElectoralDistrictId.")
     self.assertEqual(
         ew.exception.log_entry[0].elements[0].get("objectId"), "123")
 
