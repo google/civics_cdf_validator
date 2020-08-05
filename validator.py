@@ -27,6 +27,7 @@ import os
 import re
 
 from civics_cdf_validator import base
+from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator import rules
 from civics_cdf_validator import version
@@ -269,21 +270,9 @@ def compute_max_found_severity(exceptions_wrapper):
 def feed_validation(options):
   """Validate the input feed depending on the user parameters."""
   rule_options = {}
-  if options.g:
-    rule_options.setdefault("ElectoralDistrictOcdId", []).append(
-        base.RuleOption("check_github", False))
-    rule_options.setdefault("GpUnitOcdId", []).append(
-        base.RuleOption("check_github", False))
-  if options.c:
-    rule_options.setdefault("ElectoralDistrictOcdId", []).append(
-        base.RuleOption("country_code", options.c))
-    rule_options.setdefault("GpUnitOcdId", []).append(
-        base.RuleOption("country_code", options.c))
-  if options.ocdid_file:
-    rule_options.setdefault("ElectoralDistrictOcdId", []).append(
-        base.RuleOption("local_file", options.ocdid_file))
-    rule_options.setdefault("GpUnitOcdId", []).append(
-        base.RuleOption("local_file", options.ocdid_file))
+  gpunit_rules.GpUnitOcdIdValidator.init_ocd_id_list(options.c,
+                                                     options.ocdid_file,
+                                                     not options.g)
   if options.required_languages:
     rule_options.setdefault("AllLanguages", []).append(
         base.RuleOption("required_languages",
