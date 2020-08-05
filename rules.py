@@ -624,7 +624,8 @@ class PartisanPrimary(base.BaseRule):
     if element_has_text(election_type_elem):
       election_type = election_type_elem.text.strip()
 
-    if not election_type or election_type not in ("partisan-primary-open",
+    if not election_type or election_type not in ("primary",
+                                                  "partisan-primary-open",
                                                   "partisan-primary-closed"):
       return
 

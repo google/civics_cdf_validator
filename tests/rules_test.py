@@ -1481,7 +1481,8 @@ class PartisanPrimaryTest(absltest.TestCase):
     election = root.find("Election")
     election.sourceline = 7
 
-    rules.PartisanPrimary(root, None).check(election)
+    with self.assertRaises(loggers.ElectionWarning):
+      rules.PartisanPrimary(root, None).check(election)
 
   def testIgnoresMissingPartyIds_NoElectionType(self):
     election_details = """
