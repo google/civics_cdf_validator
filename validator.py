@@ -22,8 +22,11 @@ See https://developers.google.com/elections-data/reference/
 from __future__ import print_function
 
 import argparse
+import cProfile
 import hashlib
+import io
 import os
+import pstats
 import re
 
 from civics_cdf_validator import base
@@ -123,6 +126,10 @@ def add_validate_parser_args(parser, parser_validate):
   parser_validate.add_argument(
       "--required_languages",
       help="Languages required by the AllLanguages check.",
+      required=False)
+  parser_validate.add_argument(
+      "--profile_report",
+      help="Run profiling and print the execution report.",
       required=False)
 
 
@@ -267,6 +274,25 @@ def compute_max_found_severity(exceptions_wrapper):
     return 0
 
 
+def exec_profiling(func):
+  """This is a decorator to add profiling to the feed validation."""
+  def add_profiling_if_needed(args):
+    if args is None or not args.profile_report:
+      return func(args)
+    pr = cProfile.Profile(builtins=False)
+    pr.enable()
+    result = func(args)
+    pr.disable()
+    s = io.StringIO()
+    ps = pstats.Stats(pr, stream=s).strip_dirs().sort_stats("cumulative")
+    ps.print_stats("rules")
+    print(s.getvalue())
+    return result
+
+  return add_profiling_if_needed
+
+
+@exec_profiling
 def feed_validation(options):
   """Validate the input feed depending on the user parameters."""
   rule_options = {}
