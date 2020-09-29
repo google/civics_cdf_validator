@@ -16,14 +16,15 @@
 from __future__ import print_function
 
 import collections
+import enum
 import hashlib
 import re
+import anytree
 
 from civics_cdf_validator import base
 from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator import office_utils
-import enum
 import language_tags
 from lxml import etree
 from six.moves.urllib.parse import urlparse
@@ -711,130 +712,201 @@ class UniqueLabel(base.BaseRule):
         self.labels.add(element_label)
 
 
-class CandidatesReferencedOnceOrInRelatedContests(base.BaseRule):
+class CandidatesReferencedInRelatedContests(base.BaseRule):
   """Candidate should not be referred to by multiple unrelated contests.
 
   A Candidate object should only be referenced from one contest, unless the
-  contests are related (contests for the same office, and in the same party if
-  applicable). If a Person is running in multiple unrelated Contests, then that
-  Person is a Candidate several times over, but a Candida(te|cy) can't span
-  unrelated contests.  Candidates across different Elections with the same
-  stableId are treated as the same Candidate and should still only appear in
-  related Contests.
+  contests are related (connected by SubsequentContestId or
+  ComposingContestIds). If a Person is running in multiple unrelated Contests,
+  then that Person is a Candidate several times over, but a Candida(te|cy) can't
+  span unrelated contests.
   """
 
   def __init__(self, election_tree, schema_tree):
-    super(CandidatesReferencedOnceOrInRelatedContests,
+    super(CandidatesReferencedInRelatedContests,
           self).__init__(election_tree, schema_tree)
     self.error_log = []
+    self.contest_tree_nodes = []
 
   def elements(self):
     return ["ElectionReport"]
 
-  def check(self, election_report_element):
-    elections = self.get_elements_by_class(election_report_element, "Election")
-    candidate_registry = self._register_candidates(election_report_element)
-    [office_ids,
-     party_ids] = self._get_contest_offices_and_parties(election_report_element)
-    for cand_stable_id, contest_ids in candidate_registry.items():
-      if len(contest_ids) > 1:
-        if not self._is_contest_group_related(contest_ids, office_ids,
-                                              party_ids):
-          error_message = (
-              "Candidate(s) with stableId {} is/are referenced by the following"
-              " unrelated contests: {}.").format(cand_stable_id,
-                                                 ", ".join(contest_ids))
-          self.error_log.append(loggers.LogEntry(error_message))
-      if not contest_ids:
-        error_message = ("A Candidate should be referenced in a Contest. "
-                         "Candidate with stableId {0} is not referenced."
-                        ).format(cand_stable_id)
-        self.error_log.append(loggers.LogEntry(error_message))
-    if self.error_log:
-      raise loggers.ElectionError(self.error_log)
+  def _find_contest_node_by_object_id(self, object_id):
+    node_list = list(filter(
+        lambda c: c.id == object_id, self.contest_tree_nodes
+    ))
+    if node_list:
+      return node_list[0]
 
-  def _register_candidates(self, election_report):
-    candidate_registry = {}
-    candidate_object_id_to_stable_id = {}
-    candidates = self.get_elements_by_class(election_report, "Candidate")
-    for candidate in candidates:
-      stable_ids = get_external_id_values(candidate, "stable")
-      if len(stable_ids) != 1:
-        # Skip candidate if not exactly one stable id.  Raise error if more than
-        # one - missing stable id error raised in another test
-        if len(stable_ids) > 1:
-          raise loggers.ElectionError(
-              "Candidate % has more than one stable id" %
-              candidate.get("objectId"))
-        continue
-      stable_id = stable_ids[0]
-      object_id = candidate.get("objectId", None)
-      candidate_object_id_to_stable_id[object_id] = stable_id
-      candidate_registry[stable_id] = []
+  def _register_person_to_candidate_to_contests(self, election_report):
+    person_candidate_contest_mapping = {}
 
+    candidate_to_contest_mapping = {}
     contests = self.get_elements_by_class(election_report, "Contest")
     for contest in contests:
       contest_id = contest.get("objectId", None)
-      for child in contest.iter(tag=etree.Element):
-        if "CandidateId" in child.tag and element_has_text(child):
-          for cand_id in child.text.split():
-            # bug in case the cand_id is an invalid one
-            if cand_id not in candidate_object_id_to_stable_id:
-              error_message = (
-                  "Could not find Candidate {} in Contest {}.").format(
-                      cand_id, contest_id)
-              self.error_log.append(loggers.LogEntry(error_message))
-              continue
-            cand_stable_id = candidate_object_id_to_stable_id[cand_id]
-            candidate_registry[cand_stable_id].append(contest_id)
-    return candidate_registry
+      candidate_ids_elements = self.get_elements_by_class(
+          contest, "CandidateIds")
+      candidate_id_elements = self.get_elements_by_class(
+          contest, "CandidateId"
+      )
+      id_elements = candidate_ids_elements + candidate_id_elements
+      for id_element in id_elements:
+        if element_has_text(id_element):
+          for candidate_id in id_element.text.split():
+            candidate_to_contest_mapping.setdefault(
+                candidate_id, []).append(contest_id)
 
-  def _get_contest_offices_and_parties(self, election_report):
+    candidates = self.get_elements_by_class(election_report, "Candidate")
+    for candidate in candidates:
+      candidate_id = candidate.get("objectId", None)
+      person_id = candidate.find("PersonId")
+      if element_has_text(person_id):
+        if candidate_id not in candidate_to_contest_mapping.keys():
+          raise loggers.ElectionError.from_message(
+              ("A Candidate should be referenced in a Contest. Candidate {} "
+               "is not referenced.").format(candidate_id))
+        contest_list = candidate_to_contest_mapping[candidate_id]
+        person_candidate_contest_mapping.setdefault(
+            person_id.text, {})[candidate_id] = contest_list
+
+    return person_candidate_contest_mapping
+
+  def _construct_contest_trees(self, election_report):
     contests = self.get_elements_by_class(election_report, "Contest")
-    office_ids = {}
-    party_ids = {}
+    # create a tree node for each contest
     for contest in contests:
-      contest_id = contest.get("objectId")
+      self.contest_tree_nodes.append(
+          anytree.AnyNode(id=contest.get("objectId"), relatives=set())
+      )
 
-      element = contest.find("OfficeIds")
-      if element_has_text(element):
-        office_ids[contest_id] = element.text
+    for contest in contests:
+      composing_contests = contest.find("ComposingContestIds")
+      if element_has_text(composing_contests):
+        # find existing tree node for given contest
+        contest_node = self._find_contest_node_by_object_id(
+            contest.get("objectId"))
+        children = composing_contests.text.split()
+        for child in children:
+          # find existing tree node for given child id
+          child_node = self._find_contest_node_by_object_id(child)
+          # child_node is None if the composing contest id is not valid
+          if child_node is None:
+            raise loggers.ElectionError.from_message(
+                ("Contest {} contains a composing Contest Id ({}) that does "
+                 "not exist.").format(contest.get("objectId"), child),
+                [composing_contests])
+          # parent exists means contest is listed as composing more than once
+          if child_node.parent is not None:
+            raise loggers.ElectionError.from_message(
+                ("Contest {} is listed as a composing contest for multiple "
+                 "contests ({} and {}). A contest should have no more than one "
+                 "parent.").format(child, contest.get("objectId"),
+                                   child_node.parent.id), [composing_contests])
+          # establish parent-child relationship between nodes
+          child_node.parent = contest_node
 
-      element = contest.find("PrimaryPartyIds")
-      if element_has_text(element):
-        party_ids[contest_id] = set(element.text.split())
-    return [office_ids, party_ids]
+    for contest in contests:
+      subsequent_contest = contest.find("SubsequentContestId")
+      if element_has_text(subsequent_contest):
+        contest_node = self._find_contest_node_by_object_id(
+            contest.get("objectId")
+        )
+        subsequent_node = self._find_contest_node_by_object_id(
+            subsequent_contest.text
+        )
+        # subsequent_node is None if the subsequent contest id is not valid
+        if subsequent_node is None:
+          raise loggers.ElectionError.from_message(
+              ("Contest {} contains a subsequent Contest Id ({}) that does "
+               "not exist.").format(
+                   contest.get("objectId"), subsequent_contest.text),
+              [subsequent_contest])
+        # establish connection between trees if related via subsequent contest
+        contest_root = contest_node.root
+        subsequent_root = subsequent_node.root
+        contest_root.relatives.add(subsequent_root)
+        for contest_relative in contest_root.relatives:
+          contest_relative.relatives.add(subsequent_root)
+          subsequent_root.relatives.add(contest_relative)
 
-  def _is_contest_group_related(self, contest_ids, office_ids, party_ids):
-    """Checks if the list of contest_ids are related.
+        subsequent_root.relatives.add(contest_root)
+        for subsequent_relative in subsequent_root.relatives:
+          subsequent_relative.relatives.add(contest_root)
+          contest_root.relatives.add(subsequent_relative)
 
-    Args:
-      contest_ids: a list of contest_ids to check
-      office_ids: dict of contest_ids to OfficeId
-      party_ids: dict of contest_ids to PrimaryPartyIds
+  def _check_candidate_contests_are_related(self, contest_id_list):
+    # create set of roots for each contest id
+    contest_roots = set()
+    for contest_id in contest_id_list:
+      contest_node = self._find_contest_node_by_object_id(contest_id)
+      contest_roots.add(contest_node.root)
 
-    Returns:
-      True iff the OfficeIds are the same for all contests and the
-      PrimaryPartyIds are all the same or None.
-    """
-
-    office_id = None
-    party_id_set = None
-    for contest_id in contest_ids:
-      current_office_id = office_ids.get(contest_id, None)
-      if office_id is None:
-        office_id = current_office_id
-      elif office_id != current_office_id:
-        return False
-
-      current_party_id_set = party_ids.get(contest_id, None)
-      if current_party_id_set:
-        if party_id_set is None:
-          party_id_set = current_party_id_set
-        elif party_id_set != current_party_id_set:
+    contest_root_list = list(contest_roots)
+    for i in range(len(contest_root_list)):
+      contest_root = contest_root_list[i]
+      for j in range(i+1, len(contest_root_list)):
+        checking_root = contest_root_list[j]
+        # every unique root should be a relative of one another
+        if checking_root not in contest_root.relatives:
           return False
 
     return True
+
+  def _check_separate_candidates_not_related(self, candidate_contest_mapping):
+    for contests in candidate_contest_mapping.values():
+      contest_roots = set()
+      # create set of roots for given list of contest ids
+      for contest in contests:
+        contest_node = self._find_contest_node_by_object_id(contest)
+        contest_root = contest_node.root
+        contest_roots.add(contest_root)
+
+      other_contest_roots = set()
+      # create set of roots for contests in separate candidate families
+      for con_list in candidate_contest_mapping.values():
+        for c_id in con_list:
+          if c_id not in contests:
+            other_contest = self._find_contest_node_by_object_id(c_id)
+            other_contest_root = other_contest.root
+            # if other root is part of base contest root set then should not
+            # be part of contest list for two separate candidates
+            if other_contest_root in contest_roots:
+              return False
+            other_contest_roots.add(other_contest_root)
+
+      for contest_root in contest_roots:
+        for checking_root in other_contest_roots:
+          # the roots in each list should not be relatives of eachother
+          if checking_root in contest_root.relatives:
+            return False
+    return True
+
+  def check(self, election_report):
+    self._construct_contest_trees(election_report)
+    person_candidate_to_contest_map = (
+        self._register_person_to_candidate_to_contests(election_report))
+    for person, cand_con_mapping in person_candidate_to_contest_map.items():
+      for cand, contests in cand_con_mapping.items():
+        related_contests = self._check_candidate_contests_are_related(contests)
+        if not related_contests:
+          error_message = ("Candidate {} appears in the following contests "
+                           "which are not all related: {}").format(
+                               cand, ", ".join(contests))
+          self.error_log.append(
+              loggers.LogEntry(error_message, [election_report]))
+
+      sep_cand_not_related = self._check_separate_candidates_not_related(
+          cand_con_mapping)
+      if not sep_cand_not_related:
+        error_message = ("Person {} has separate candidates in contests that "
+                         "are related.".format(person))
+        self.error_log.append(
+            loggers.LogEntry(error_message, [election_report])
+        )
+
+    if self.error_log:
+      raise loggers.ElectionError(self.error_log)
 
 
 class ProperBallotSelection(base.BaseRule):
@@ -2470,7 +2542,7 @@ ELECTION_RULES = COMMON_RULES + (
     PartisanPrimaryHeuristic,
     PercentSum,
     ProperBallotSelection,
-    CandidatesReferencedOnceOrInRelatedContests,
+    CandidatesReferencedInRelatedContests,
     VoteCountTypesCoherency,
     PartiesHaveValidColors,
     ValidateDuplicateColors,

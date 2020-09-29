@@ -7,6 +7,7 @@ import inspect
 import io
 
 from absl.testing import absltest
+import anytree
 from civics_cdf_validator import base
 from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
@@ -1701,436 +1702,769 @@ class UniqueLabelTest(absltest.TestCase):
       label_validator.check(element)
 
 
-class CandidatesReferencedOnceTest(absltest.TestCase):
+class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
 
   def setUp(self):
-    super(CandidatesReferencedOnceTest, self).setUp()
-    self.cand_validator = rules.CandidatesReferencedOnceOrInRelatedContests(
+    super(CandidatesReferencedInRelatedContestsTest, self).setUp()
+    self.cand_validator = rules.CandidatesReferencedInRelatedContests(
         None, None)
-    self._election_report = """
+
+  # elements test
+  def testChecksElectinReport(self):
+    self.assertEqual(["ElectionReport"], self.cand_validator.elements())
+
+  # _find_contest_node_by_object_id tests
+  def testReturnsTreeNodeForGivenContestId(self):
+    self.cand_validator.contest_tree_nodes = [
+        anytree.AnyNode(id="con001"),
+        anytree.AnyNode(id="con002"),
+        anytree.AnyNode(id="con003"),
+    ]
+    expected_node = self.cand_validator.contest_tree_nodes[1]
+    actual_node = self.cand_validator._find_contest_node_by_object_id("con002")
+    self.assertEqual(expected_node, actual_node)
+
+  def testReturnsNoneIfGivenIdDoesNotExist(self):
+    self.cand_validator.contest_tree_nodes = [
+        anytree.AnyNode(id="con001"),
+        anytree.AnyNode(id="con002"),
+        anytree.AnyNode(id="con003"),
+    ]
+    result = self.cand_validator._find_contest_node_by_object_id("con004")
+    self.assertIsNone(result)
+
+  # _register_person_to_candidate_to_contests tests
+  def testReturnsMapOfPersonsToCandidatesToContests(self):
+    election_report = """
       <ElectionReport>
-        <Election>
-          <ContestCollection>
-            {}
-          </ContestCollection>
-            {}
-        </Election>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can002">
+            <PersonId>per002</PersonId>
+          </Candidate>
+          <Candidate objectId="can003">
+            <PersonId>per002</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="con001">
+            <CandidateIds>can001 can002</CandidateIds>
+          </Contest>
+          <Contest objectId="con002">
+            <CandidateIds>can001 can003</CandidateIds>
+          </Contest>
+        </ContestCollection>
       </ElectionReport>
     """
-    self._candidate_collection = """
-      <CandidateCollection>
-        <Candidate objectId="can99999a">
-          <ExternalIdentifiers>
-            <ExternalIdentifier>
-              <Type>other</Type>
-              <OtherType>stable</OtherType>
-              <Value>can99999a_stable</Value>
-            </ExternalIdentifier>
-          </ExternalIdentifiers>
-        </Candidate>
-        <Candidate objectId="can99999b">
-          <ExternalIdentifiers>
-            <ExternalIdentifier>
-              <Type>other</Type>
-              <OtherType>stable</OtherType>
-              <Value>can99999b_stable</Value>
-            </ExternalIdentifier>
-          </ExternalIdentifiers>
-        </Candidate>
-        <Candidate objectId="can11111a">
-          <ExternalIdentifiers>
-            <ExternalIdentifier>
-              <Type>other</Type>
-              <OtherType>stable</OtherType>
-              <Value>can11111a_stable</Value>
-            </ExternalIdentifier>
-          </ExternalIdentifiers>
-        </Candidate>
-        <Candidate objectId="can11111b">
-          <ExternalIdentifiers>
-            <ExternalIdentifier>
-              <Type>other</Type>
-              <OtherType>stable</OtherType>
-              <Value>can11111b_stable</Value>
-            </ExternalIdentifier>
-          </ExternalIdentifiers>
-        </Candidate>
-        <Candidate objectId="can45678a">
-          <ExternalIdentifiers>
-            <ExternalIdentifier>
-              <Type>other</Type>
-              <OtherType>stable</OtherType>
-              <Value>can45678a_stable</Value>
-            </ExternalIdentifier>
-          </ExternalIdentifiers>
-        </Candidate>
-        {}
-      </CandidateCollection>
-    """
-    self._base_candidate_contest = """
-      <Contest objectId="{}">
-        <BallotSelection objectId="cs12345">
-          <CandidateIds>can99999a can99999b</CandidateIds>
-        </BallotSelection>
-        <BallotSelection objectId="cs98765">
-          <CandidateIds>can11111a can11111b</CandidateIds>
-        </BallotSelection>
-        <BallotSelection>
-          <CandidateIds>can45678a</CandidateIds>
-        </BallotSelection>
-        {}
-      </Contest>
-    """
-    self._base_retention_contest = """
-      <Contest objectId="con5678">
-        <CandidateId>can99999a</CandidateId>
-        <BallotSelection objectId="cs12345">
-          <Selection>
-            <Text language="en">Yes</Text>
-          </Selection>
-        </BallotSelection>
-        <BallotSelection objectId="cs98765">
-          <Selection>
-            <Text language="en">No</Text>
-          </Selection>
-        </BallotSelection>
-      </Contest>
-    """
-    self._multi_election_report = """
-    <ElectionReport>
-      <Election>
+    report_elem = etree.fromstring(election_report)
+    expected_mapping = {
+        "per001": {
+            "can001": ["con001", "con002"],
+        },
+        "per002": {
+            "can002": ["con001"],
+            "can003": ["con002"],
+        }
+    }
+    actual_mapping = self.cand_validator._register_person_to_candidate_to_contests(
+        report_elem)
+    self.assertEqual(expected_mapping, actual_mapping)
+
+  def testRaisesErrorIfCandidateIsNotReferencedInAContest(self):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+        </PersonCollection>
         <CandidateCollection>
-          <Candidate objectId="can99999a_1">
-            <ExternalIdentifiers>
-              <ExternalIdentifier>
-                <Type>other</Type>
-                <OtherType>stable</OtherType>
-                <Value>can99999a_stable</Value>
-              </ExternalIdentifier>
-            </ExternalIdentifiers>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
           </Candidate>
-          <Candidate objectId="can99999b_1">
-            <ExternalIdentifiers>
-              <ExternalIdentifier>
-                <Type>other</Type>
-                <OtherType>stable</OtherType>
-                <Value>can99999b_stable</Value>
-              </ExternalIdentifier>
-            </ExternalIdentifiers>
+          <Candidate objectId="can002">
+            <PersonId>per002</PersonId>
+          </Candidate>
+          <Candidate objectId="can003">
+            <PersonId>per002</PersonId>
+          </Candidate>
+          <Candidate objectId="can004">
+            <PersonId>per001</PersonId>
           </Candidate>
         </CandidateCollection>
         <ContestCollection>
-          <Contest objectId="con1234">
-            <BallotSelection objectId="cs12345">
-              <CandidateIds>can99999a_1</CandidateIds>
-            </BallotSelection>
-            <BallotSelection objectId="cs98765">
-              <CandidateIds>can99999b_1</CandidateIds>
-            </BallotSelection>
-            {}
-            {}
+          <Contest objectId="con001">
+            <CandidateIds>can001 can002</CandidateIds>
+          </Contest>
+          <Contest objectId="con002">
+            <CandidateIds>can001 can003</CandidateIds>
           </Contest>
         </ContestCollection>
-      </Election>
-      <Election>
-        <CandidateCollection>
-          <Candidate objectId="can99999a_2">
-            <ExternalIdentifiers>
-              <ExternalIdentifier>
-                <Type>other</Type>
-                <OtherType>stable</OtherType>
-                <Value>can99999a_stable</Value>
-              </ExternalIdentifier>
-            </ExternalIdentifiers>
-          </Candidate>
-          <Candidate objectId="can99999b_2">
-            <ExternalIdentifiers>
-              <ExternalIdentifier>
-                <Type>other</Type>
-                <OtherType>stable</OtherType>
-                <Value>can99999b_stable</Value>
-              </ExternalIdentifier>
-            </ExternalIdentifiers>
-          </Candidate>
-        </CandidateCollection>
-        <ContestCollection>
-          <Contest objectId="con5678">
-            <BallotSelection objectId="cs12345">
-              <CandidateIds>can99999a_2</CandidateIds>
-            </BallotSelection>
-            <BallotSelection objectId="cs98765">
-              <CandidateIds>can99999b_2</CandidateIds>
-            </BallotSelection>
-            {}
-            {}
-          </Contest>
-        </ContestCollection>
-      </Election>
-    </ElectionReport>
+      </ElectionReport>
     """
+    report_elem = etree.fromstring(election_report)
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.cand_validator._register_person_to_candidate_to_contests(
+          report_elem)
+    self.assertEqual(("A Candidate should be referenced in a Contest. "
+                      "Candidate can004 is not referenced."),
+                     ee.exception.log_entry[0].message)
 
-  # _register_candidates test
-  def testMapsCandIdsToTheContestsThatReferenceThem_CandContest(self):
-    additional_candidate = """
-      <Candidate objectId='can54321'>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>can54321_stable</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-      </Candidate>
+  # _construct_contest_trees tests
+  def testCreatesNodeForEachContest_NoRelationships(self):
+    election_report = """
+      <ContestCollection>
+        <Contest objectId="con001"/>
+        <Contest objectId="con002"/>
+        <Contest objectId="con003"/>
+      </ContestCollection>
     """
-    candidate_string = self._candidate_collection.format(additional_candidate)
-    contest_string = self._base_candidate_contest.format(
-        "con1234", "<OfficeIds>office1</OfficeIds>")
-    root_string = self._election_report.format(contest_string, candidate_string)
-    election_tree = etree.fromstring(root_string)
-    expected_seen_candidates = dict({
-        "can99999a_stable": ["con1234"],
-        "can99999b_stable": ["con1234"],
-        "can11111a_stable": ["con1234"],
-        "can11111b_stable": ["con1234"],
-        "can45678a_stable": ["con1234"],
-        "can54321_stable": [],
-    })
-    candidate_registry = self.cand_validator._register_candidates(election_tree)
-    self.assertLen(candidate_registry, len(expected_seen_candidates))
-    for candidate_id, contest_ids in expected_seen_candidates.items():
-      self.assertLen(candidate_registry[candidate_id], len(contest_ids))
-      for contest_id in candidate_registry[candidate_id]:
-        self.assertIn(contest_id, contest_ids)
+    report_elem = etree.fromstring(election_report)
 
-  def testMapsCandIdsToTheContestsThatReferenceThem_RetentionContest(self):
-    additional_candidate = """
-      <Candidate objectId='can54321'>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>can54321_stable</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-      </Candidate>
+    expected_contest_nodes = [
+        anytree.AnyNode(id="con001", relatives=set()),
+        anytree.AnyNode(id="con002", relatives=set()),
+        anytree.AnyNode(id="con003", relatives=set()),
+    ]
+    self.cand_validator._construct_contest_trees(report_elem)
+
+    for node in expected_contest_nodes:
+      found_node = False
+      for validator_node in self.cand_validator.contest_tree_nodes:
+        if (node.id == validator_node.id and
+            node.relatives == validator_node.relatives):
+          found_node = True
+      if not found_node:
+        self.fail(("No matching node found for id: {} and "
+                   "relative set: {}").format(node.id, node.relatives))
+
+  def testAssignsParentForComposingContests(self):
+    election_report = """
+      <ContestCollection>
+        <Contest objectId="con001">
+          <ComposingContestIds>con002 con003</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con002"/>
+        <Contest objectId="con003"/>
+      </ContestCollection>
     """
-    candidate_string = self._candidate_collection.format(additional_candidate)
-    root_string = self._election_report.format(
-        self._base_retention_contest, candidate_string)
-    election_tree = etree.fromstring(root_string)
+    report_elem = etree.fromstring(election_report)
+    self.cand_validator._construct_contest_trees(report_elem)
 
-    expected_seen_candidates = dict({
-        "can99999a_stable": ["con5678"],
-        "can99999b_stable": [],
-        "can11111a_stable": [],
-        "can11111b_stable": [],
-        "can45678a_stable": [],
-        "can54321_stable": [],
-    })
-    candidate_registry = self.cand_validator._register_candidates(election_tree)
-    self.assertLen(candidate_registry, len(expected_seen_candidates))
-    for candidate_id, contest_ids in expected_seen_candidates.items():
-      self.assertLen(candidate_registry[candidate_id], len(contest_ids))
-      for contest_id in candidate_registry[candidate_id]:
-        self.assertIn(contest_id, contest_ids)
+    # assert each contest has a node created for it
+    for con_id in ["con001", "con002", "con003"]:
+      found_node = False
+      for validator_node in self.cand_validator.contest_tree_nodes:
+        if con_id == validator_node.id:
+          found_node = True
+      if not found_node:
+        self.fail(("No matching node found for id: {}").format(con_id))
 
-  def testMapsCandIdsToTheContestsThatReferenceThem_MultiContest(self):
-    additional_candidate = """
-      <Candidate objectId='can54321'>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>can54321_stable</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-      </Candidate>
+    # assert parent child relationships were created
+    for node in self.cand_validator.contest_tree_nodes:
+      if node.id == "con001":
+        self.assertEqual("con002", node.children[0].id)
+        self.assertEqual("con003", node.children[1].id)
+      if node.id == "con002" or node.id == "con003":
+        self.assertEqual("con001", node.parent.id)
+
+  def testTreeRootsAreConnectedForAnySubsequentRelationship(self):
+    election_report = """
+      <ContestCollection>
+        <Contest objectId="con001">
+          <ComposingContestIds>con002 con003</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con002">
+          <SubsequentContestId>con005</SubsequentContestId>
+        </Contest>
+        <Contest objectId="con003"/>
+        <Contest objectId="con004">
+          <ComposingContestIds>con005 con006</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con005"/>
+        <Contest objectId="con006"/>
+      </ContestCollection>
     """
-    candidate_string = self._candidate_collection.format(additional_candidate)
-    candidate_contest_string = self._base_candidate_contest.format(
-        "con1234", "<OfficeIds>office1</OfficeIds>")
-    two_contests = candidate_contest_string + self._base_retention_contest
-    root_string = self._election_report.format(two_contests, candidate_string)
-    election_tree = etree.fromstring(root_string)
+    report_elem = etree.fromstring(election_report)
+    self.cand_validator._construct_contest_trees(report_elem)
 
-    expected_seen_candidates = dict({
-        "can99999a_stable": ["con1234", "con5678"],
-        "can99999b_stable": ["con1234"],
-        "can11111a_stable": ["con1234"],
-        "can11111b_stable": ["con1234"],
-        "can45678a_stable": ["con1234"],
-        "can54321_stable": [],
-    })
-    candidate_registry = self.cand_validator._register_candidates(election_tree)
-    self.assertLen(candidate_registry, len(expected_seen_candidates))
-    for candidate_id, contest_ids in expected_seen_candidates.items():
-      self.assertLen(candidate_registry[candidate_id], len(contest_ids))
-      for contest_id in candidate_registry[candidate_id]:
-        self.assertIn(contest_id, contest_ids)
+    # assert each contest has a node created for it
+    for con_id in [
+        "con001", "con002", "con003",
+        "con004", "con005", "con006",
+    ]:
+      found_node = False
+      for validator_node in self.cand_validator.contest_tree_nodes:
+        if con_id == validator_node.id:
+          found_node = True
+      if not found_node:
+        self.fail(("No matching node found for id: {}").format(con_id))
+
+    # assert parent child relationships were created
+    for node in self.cand_validator.contest_tree_nodes:
+      if node.id == "con001":
+        self.assertEqual("con002", node.children[0].id)
+        self.assertEqual("con003", node.children[1].id)
+      if node.id == "con002" or node.id == "con003":
+        self.assertEqual("con001", node.parent.id)
+      if node.id == "con004":
+        self.assertEqual("con005", node.children[0].id)
+        self.assertEqual("con006", node.children[1].id)
+      if node.id == "con005" or node.id == "con006":
+        self.assertEqual("con004", node.parent.id)
+
+    # assert roots are connected for subsequent relationships
+    tree_roots = set()
+    for node in self.cand_validator.contest_tree_nodes:
+      tree_roots.add(node.root)
+    tree_roots_list = list(tree_roots)
+
+    self.assertLen(tree_roots_list, 2)
+    self.assertIn("con004", [node.id for node in tree_roots_list])
+    self.assertIn("con001", [node.id for node in tree_roots_list])
+    self.assertIn(tree_roots_list[1], tree_roots_list[0].relatives)
+    self.assertIn(tree_roots_list[0], tree_roots_list[1].relatives)
+
+  def testRaisesErrorIfInvalidComposingContestId(self):
+    election_report = """
+      <ContestCollection>
+        <Contest objectId="con001">
+          <ComposingContestIds>con002 con004</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con002"/>
+        <Contest objectId="con003"/>
+      </ContestCollection>
+    """
+    report_elem = etree.fromstring(election_report)
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.cand_validator._construct_contest_trees(report_elem)
+    self.assertEqual(("Contest con001 contains a composing Contest Id "
+                      "(con004) that does not exist."),
+                     ee.exception.log_entry[0].message)
+
+  def testRaisesErrorIfContestHasMultipleParents(self):
+    election_report = """
+      <ContestCollection>
+        <Contest objectId="con001">
+          <ComposingContestIds>con003</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con002">
+          <ComposingContestIds>con003</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con003"/>
+      </ContestCollection>
+    """
+    report_elem = etree.fromstring(election_report)
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.cand_validator._construct_contest_trees(report_elem)
+    self.assertEqual(("Contest con003 is listed as a composing contest for "
+                      "multiple contests (con002 and con001). A contest should"
+                      " have no more than one parent."),
+                     ee.exception.log_entry[0].message)
+
+  def testRaisesErrorIfInvalidSubsequentContestId(self):
+    election_report = """
+      <ContestCollection>
+        <Contest objectId="con001">
+          <SubsequentContestId>con004</SubsequentContestId>
+        </Contest>
+        <Contest objectId="con002"/>
+        <Contest objectId="con003"/>
+      </ContestCollection>
+    """
+    report_elem = etree.fromstring(election_report)
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.cand_validator._construct_contest_trees(report_elem)
+    self.assertEqual(("Contest con001 contains a subsequent Contest Id "
+                      "(con004) that does not exist."),
+                     ee.exception.log_entry[0].message)
+
+  # _check_candidate_contests_are_related tests
+  def testReturnsTrueIfAllContestsInGivenListAreRelated_ParentChild(self):
+    node_one = anytree.AnyNode(id="con001", relatives=set())
+    node_two = anytree.AnyNode(id="con002", relatives=set())
+    node_three = anytree.AnyNode(id="con003", relatives=set())
+    node_two.parent = node_one
+    node_three.parent = node_one
+    self.cand_validator.contest_tree_nodes = [
+        node_one, node_two, node_three,
+    ]
+
+    contest_id_list = ["con001", "con002", "con003"]
+    are_related = self.cand_validator._check_candidate_contests_are_related(
+        contest_id_list
+    )
+    self.assertTrue(are_related)
+
+  def testReturnsFalseIfAnyContestInGivenListNotRelated_ParentChild(self):
+    node_one = anytree.AnyNode(id="con001", relatives=set())
+    node_two = anytree.AnyNode(id="con002", relatives=set())
+    node_three = anytree.AnyNode(id="con003", relatives=set())
+    node_two.parent = node_one
+    self.cand_validator.contest_tree_nodes = [
+        node_one, node_two, node_three,
+    ]
+
+    contest_id_list = ["con001", "con002", "con003"]
+    are_related = self.cand_validator._check_candidate_contests_are_related(
+        contest_id_list
+    )
+    self.assertFalse(are_related)
+
+  def testReturnsTrueIfAllContestsInGivenListAreRelated_SubsequentRel(self):
+    node_one = anytree.AnyNode(id="con001", relatives=set())
+    node_two = anytree.AnyNode(id="con002", relatives=set())
+    node_three = anytree.AnyNode(id="con003", relatives=set())
+    node_four = anytree.AnyNode(id="con004", relatives=set())
+
+    # nodes one-two and three-four have parent-child rel
+    # nodes one-three are relatives
+    node_two.parent = node_one
+    node_four.parent = node_three
+    node_one.relatives.add(node_three)
+    node_three.relatives.add(node_one)
+
+    self.cand_validator.contest_tree_nodes = [
+        node_one, node_two, node_three, node_four
+    ]
+
+    contest_id_list = ["con001", "con002", "con003", "con004"]
+    are_related = self.cand_validator._check_candidate_contests_are_related(
+        contest_id_list
+    )
+    self.assertEqual(node_one, node_two.root)
+    self.assertEqual(node_three, node_four.root)
+    self.assertTrue(are_related)
+
+  def testReturnsFalseIfContestTreesNotRelated_SubsequentRel(self):
+    node_one = anytree.AnyNode(id="con001", relatives=set())
+    node_two = anytree.AnyNode(id="con002", relatives=set())
+    node_three = anytree.AnyNode(id="con003", relatives=set())
+    node_four = anytree.AnyNode(id="con004", relatives=set())
+
+    # nodes one-two and three-four have parent-child rel
+    # nodes one-three are not relatives
+    node_two.parent = node_one
+    node_four.parent = node_three
+
+    self.cand_validator.contest_tree_nodes = [
+        node_one, node_two, node_three, node_four
+    ]
+
+    contest_id_list = ["con001", "con002", "con003", "con004"]
+    are_related = self.cand_validator._check_candidate_contests_are_related(
+        contest_id_list
+    )
+    self.assertEqual(node_one, node_two.root)
+    self.assertEqual(node_three, node_four.root)
+    self.assertFalse(are_related)
+
+  # _check_separate_candidates_not_related tests
+  def testReturnsTrueIfSeparateCandidatesBelongToSeparateContestFamilies(self):
+    node_one = anytree.AnyNode(id="con001", relatives=set())
+    node_two = anytree.AnyNode(id="con002", relatives=set())
+    node_three = anytree.AnyNode(id="con003", relatives=set())
+    node_four = anytree.AnyNode(id="con004", relatives=set())
+    node_five = anytree.AnyNode(id="con005", relatives=set())
+    node_six = anytree.AnyNode(id="con006", relatives=set())
+
+    # nodes one-two three-four five-six have parent-child rel
+    # none of three families are related
+    node_two.parent = node_one
+    node_four.parent = node_three
+    node_six.parent = node_five
+
+    self.cand_validator.contest_tree_nodes = [
+        node_one, node_two, node_three, node_four, node_five, node_six,
+    ]
+
+    # separate candidates for each contest family
+    candidate_contest_mapping = {
+        "can001": ["con001", "con002"],
+        "can002": ["con003", "con004"],
+        "can003": ["con005", "con006"],
+    }
+
+    valid_cands = self.cand_validator._check_separate_candidates_not_related(
+        candidate_contest_mapping
+    )
+    self.assertTrue(valid_cands)
+
+  def testReturnsFalseIfParentChildBelongToSeparateCandidates(self):
+    node_one = anytree.AnyNode(id="con001", relatives=set())
+    node_two = anytree.AnyNode(id="con002", relatives=set())
+    node_three = anytree.AnyNode(id="con003", relatives=set())
+    node_four = anytree.AnyNode(id="con004", relatives=set())
+    node_five = anytree.AnyNode(id="con005", relatives=set())
+    node_six = anytree.AnyNode(id="con006", relatives=set())
+
+    # nodes one-two three-four five-six have parent-child rel
+    node_two.parent = node_one
+    node_four.parent = node_three
+    node_six.parent = node_five
+
+    self.cand_validator.contest_tree_nodes = [
+        node_one, node_two, node_three, node_four, node_five, node_six,
+    ]
+
+    # a separate candidate is used for con001 and con002
+    # con001 is parent of con002 so this should be invalid
+    candidate_contest_mapping = {
+        "can001": ["con001"],
+        "can002": ["con002", "con003", "con004"],
+        "can003": ["con005", "con006"],
+    }
+
+    valid_cands = self.cand_validator._check_separate_candidates_not_related(
+        candidate_contest_mapping
+    )
+    self.assertFalse(valid_cands)
+
+  def testReturnsFalseIfSeparateCandidatesBelongToRelatedContestFamilies(self):
+    node_one = anytree.AnyNode(id="con001", relatives=set())
+    node_two = anytree.AnyNode(id="con002", relatives=set())
+    node_three = anytree.AnyNode(id="con003", relatives=set())
+    node_four = anytree.AnyNode(id="con004", relatives=set())
+    node_five = anytree.AnyNode(id="con005", relatives=set())
+    node_six = anytree.AnyNode(id="con006", relatives=set())
+
+    # nodes one-two three-four five-six have parent-child rel
+    # two of the families are related
+    node_two.parent = node_one
+    node_four.parent = node_three
+    node_six.parent = node_five
+    node_one.relatives.add(node_three)
+    node_three.relatives.add(node_one)
+
+    self.cand_validator.contest_tree_nodes = [
+        node_one, node_two, node_three, node_four, node_five, node_six,
+    ]
+
+    # separate candidates for each contest family
+    candidate_contest_mapping = {
+        "can001": ["con001", "con002"],
+        "can002": ["con003", "con004"],
+        "can003": ["con005", "con006"],
+    }
+
+    valid_cands = self.cand_validator._check_separate_candidates_not_related(
+        candidate_contest_mapping
+    )
+    self.assertFalse(valid_cands)
 
   # check tests
-  def testItChecksThatEachCandidateOnlyMapsToOneContest(self):
-    contest_string = self._base_candidate_contest.format(
-        "con1234", "<OfficeIds>office1</OfficeIds>")
-    root_string = self._election_report.format(contest_string,
-                                               self._candidate_collection)
-    election_tree = etree.fromstring(root_string)
-    self.cand_validator.check(election_tree)
-
-  def testRaisesAnErrorIfACandidateMapsToMultipleUnrelatedContests(self):
-    candidate_contest_string = self._base_candidate_contest.format(
-        "con1234", "<OfficeIds>office1</OfficeIds>")
-    two_contests = candidate_contest_string + self._base_retention_contest
-    root_string = self._election_report.format(
-        two_contests, self._candidate_collection)
-    election_tree = etree.fromstring(root_string)
-
-    with self.assertRaises(loggers.ElectionError) as ee:
-      self.cand_validator.check(election_tree)
-    self.assertIn(
-        "Candidate(s) with stableId can99999a_stable is/are referenced by "
-        "the following unrelated contests: con1234, con5678.",
-        str(ee.exception.log_entry[0].message))
-
-  def testDoesNotRaiseAnErrorIfACandidateMapsToMultipleRelatedContests(self):
-    first_contest_string = self._base_candidate_contest.format(
-        "con1234", "<OfficeIds>office1</OfficeIds>")
-    second_contest_string = self._base_candidate_contest.format(
-        "con5678", "<OfficeIds>office1</OfficeIds>")
-    two_contests = first_contest_string + second_contest_string
-    root_string = self._election_report.format(two_contests,
-                                               self._candidate_collection)
-    election_tree = etree.fromstring(root_string)
-
-    self.cand_validator.check(election_tree)
-
-  def testDoesNotRaiseAnErrorIfACandidateMapsToMultipleRelatedPrimaries(self):
-    first_contest_string = self._base_candidate_contest.format(
-        "con1234", """<OfficeIds>office1</OfficeIds>
-        <PrimaryPartyIds>party1</PrimaryPartyIds>""")
-    second_contest_string = self._base_candidate_contest.format(
-        "con5678", """<OfficeIds>office1</OfficeIds>
-        <PrimaryPartyIds>party1</PrimaryPartyIds>""")
-    two_contests = first_contest_string + second_contest_string
-    election_string = self._candidate_collection + """<Type>primary</Type>"""
-    root_string = self._election_report.format(two_contests, election_string)
-    election_tree = etree.fromstring(root_string)
-
-    self.cand_validator.check(election_tree)
-
-  def testDoesNotRaiseAnErrorIfACandidateMapsToRelatedMultipartyPrimaries(self):
-    first_contest_string = self._base_candidate_contest.format(
-        "con1234", """<OfficeIds>office1</OfficeIds>
-        <PrimaryPartyIds>party1 party2</PrimaryPartyIds>""")
-    second_contest_string = self._base_candidate_contest.format(
-        "con5678", """<OfficeIds>office1</OfficeIds>
-        <PrimaryPartyIds>party2 party1</PrimaryPartyIds>""")
-    two_contests = first_contest_string + second_contest_string
-    election_string = self._candidate_collection + """<Type>primary</Type>"""
-    root_string = self._election_report.format(two_contests, election_string)
-    election_tree = etree.fromstring(root_string)
-
-    self.cand_validator.check(election_tree)
-
-  def testRaisesAnErrorIfACandidateMapsToDifferentPartyPrimaries(self):
-    first_contest_string = self._base_candidate_contest.format(
-        "con1234", """<OfficeIds>office1</OfficeIds>
-        <PrimaryPartyIds>party1</PrimaryPartyIds>""")
-    second_contest_string = self._base_candidate_contest.format(
-        "con5678", """<OfficeIds>office1</OfficeIds>
-        <PrimaryPartyIds>party2</PrimaryPartyIds>""")
-    two_contests = first_contest_string + second_contest_string
-    election_string = self._candidate_collection + """<Type>primary</Type>"""
-    root_string = self._election_report.format(two_contests, election_string)
-    election_tree = etree.fromstring(root_string)
-
-    with self.assertRaises(loggers.ElectionError) as ee:
-      self.cand_validator.check(election_tree)
-    self.assertIn(
-        "Candidate(s) with stableId can99999a_stable is/are referenced by "
-        "the following unrelated contests: con1234, con5678",
-        ee.exception.log_entry[0].message)
-
-  def testRaisesAnErrorIfACandidateIsNotReferencedInAContest(self):
-    additional_candidate = """
-      <Candidate objectId='can54321'>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>can54321_stable</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-      </Candidate>
+  def testChecksSamePersonCandidatesInUnrelatedContests(self):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can002">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can003">
+            <PersonId>per002</PersonId>
+          </Candidate>
+          <Candidate objectId="can004">
+            <PersonId>per002</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="con001">
+            <CandidateIds>can001 can003</CandidateIds>
+          </Contest>
+          <Contest objectId="con002">
+            <CandidateIds>can002 can004</CandidateIds>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
     """
-    candidate_string = self._candidate_collection.format(additional_candidate)
-    contest_string = self._base_candidate_contest.format(
-        "con1234", "<OfficeIds>office1</OfficeIds>")
-    root_string = self._election_report.format(contest_string, candidate_string)
-    election_tree = etree.fromstring(root_string)
+    report_elem = etree.fromstring(election_report)
+    self.cand_validator.check(report_elem)
 
-    with self.assertRaises(loggers.ElectionError) as ete:
-      self.cand_validator.check(election_tree)
-    self.assertIn("can54321_stable is not referenced",
-                  ete.exception.log_entry[0].message)
+  def testChecksRepeatCandidatesValidInRelatedContests_Subsequent(self):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can002">
+            <PersonId>per002</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="con001">
+            <CandidateIds>can001 can002</CandidateIds>
+            <SubsequentContestId>con002</SubsequentContestId>
+          </Contest>
+          <Contest objectId="con002">
+            <CandidateIds>can001 can002</CandidateIds>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    report_elem = etree.fromstring(election_report)
+    self.cand_validator.check(report_elem)
 
-  def testAcrossMultipleElections(self):
-    election_report_string = self._multi_election_report.format(
-        "<OfficeIds>office1</OfficeIds>",
-        "<PrimaryPartyIds>party1</PrimaryPartyIds>",
-        "<OfficeIds>office1</OfficeIds>",
-        "<PrimaryPartyIds>party1</PrimaryPartyIds>")
-    election_tree = etree.fromstring(election_report_string)
-    self.cand_validator.check(election_tree)
+  def testChecksRepeatCandidatesValidInRelatedContests_Composing(self):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can002">
+            <PersonId>per002</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="con001">
+            <CandidateIds>can001 can002</CandidateIds>
+            <ComposingContestIds>con002</ComposingContestIds>
+          </Contest>
+          <Contest objectId="con002">
+            <CandidateIds>can001 can002</CandidateIds>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    report_elem = etree.fromstring(election_report)
+    self.cand_validator.check(report_elem)
 
-  def testDifferentOfficesRaiseErrorAcrossMultipleElections(self):
-    election_report_string = self._multi_election_report.format(
-        "<OfficeIds>office1</OfficeIds>",
-        "<PrimaryPartyIds>party1</PrimaryPartyIds>",
-        "<OfficeIds>office2</OfficeIds>",
-        "<PrimaryPartyIds>party1</PrimaryPartyIds>")
-    election_tree = etree.fromstring(election_report_string)
+  def testChecksRepeatCandidatesValid_Composing_MultiDepth(self):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+          <Person objectId="per003"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can002">
+            <PersonId>per002</PersonId>
+          </Candidate>
+          <Candidate objectId="can003">
+            <PersonId>per003</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="con001">
+            <CandidateIds>can001 can002 can003</CandidateIds>
+            <ComposingContestIds>con002</ComposingContestIds>
+          </Contest>
+          <Contest objectId="con002">
+            <CandidateIds>can001 can002</CandidateIds>
+            <ComposingContestIds>con003</ComposingContestIds>
+          </Contest>
+          <Contest objectId="con003">
+            <CandidateIds>can001 can003</CandidateIds>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    report_elem = etree.fromstring(election_report)
+    # con003 is a "grandchild" of con001 and includes the same candidates
+    self.cand_validator.check(report_elem)
+
+  def testChecksRepeatCandidatesValid_RepeatSubsequent(self):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+          <Person objectId="per003"/>
+          <Person objectId="per004"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can002">
+            <PersonId>per002</PersonId>
+          </Candidate>
+          <Candidate objectId="can003">
+            <PersonId>per003</PersonId>
+          </Candidate>
+          <Candidate objectId="can004">
+            <PersonId>per004</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="con001">
+            <Name>New York Democratic Primary</Name>
+            <CandidateIds>can001 can002 can004</CandidateIds>
+            <SubsequentContestId>con003</SubsequentContestId>
+          </Contest>
+          <Contest objectId="con002">
+            <Name>New York Republican Primary</Name>
+            <CandidateIds>can003 can004</CandidateIds>
+            <SubsequentContestId>con003</SubsequentContestId>
+          </Contest>
+          <Contest objectId="con003">
+            <Name>General Election</Name>
+            <CandidateIds>can001 can003</CandidateIds>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    # The winner of each primary go on to the general election
+    # the general election contest is the subsequent contest for both primaries
+    report_elem = etree.fromstring(election_report)
+    self.cand_validator.check(report_elem)
+
+  def testChecksRepeatCandidatesValid_Subsequent_MultiDepth(self):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+          <Person objectId="per003"/>
+          <Person objectId="per004"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can002">
+            <PersonId>per002</PersonId>
+          </Candidate>
+          <Candidate objectId="can003">
+            <PersonId>per003</PersonId>
+          </Candidate>
+          <Candidate objectId="can004">
+            <PersonId>per004</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="con001">
+            <Name>New York Democratic Primary</Name>
+            <CandidateIds>can001 can002</CandidateIds>
+            <SubsequentContestId>con003</SubsequentContestId>
+          </Contest>
+          <Contest objectId="con002">
+            <Name>New York Republican Primary</Name>
+            <CandidateIds>can003 can004</CandidateIds>
+            <SubsequentContestId>con003</SubsequentContestId>
+          </Contest>
+          <Contest objectId="con003">
+            <Name>General Election</Name>
+            <CandidateIds>can001 can003</CandidateIds>
+            <SubsequentContestId>con004</SubsequentContestId>
+          </Contest>
+          <Contest objectId="con004">
+            <Name>General Runoff Election</Name>
+            <CandidateIds>can001 can003</CandidateIds>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    # The winner of each primary go on to the general election
+    # The general election contest is the subsequent contest for both primaries
+    # The general election leads into the runoff as its subsequent contest
+    report_elem = etree.fromstring(election_report)
+    self.cand_validator.check(report_elem)
+
+  def testRaisesErrorIfSameCandidateInUnrelatedContests(self):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can003">
+            <PersonId>per002</PersonId>
+          </Candidate>
+          <Candidate objectId="can004">
+            <PersonId>per002</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="con001">
+            <CandidateIds>can001 can003</CandidateIds>
+          </Contest>
+          <Contest objectId="con002">
+            <CandidateIds>can001 can004</CandidateIds>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    report_elem = etree.fromstring(election_report)
     with self.assertRaises(loggers.ElectionError) as ee:
-      self.cand_validator.check(election_tree)
-    self.assertIn(
-        "Candidate(s) with stableId can99999a_stable is/are referenced by "
-        "the following unrelated contests: con1234, con5678",
-        ee.exception.log_entry[0].message)
+      self.cand_validator.check(report_elem)
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(("Candidate can001 appears in the following contests"
+                      " which are not all related: con001, con002"),
+                     ee.exception.log_entry[0].message)
 
-  def testDifferentPartiesRaiseErrorAcrossMultipleElections(self):
-    election_report_string = self._multi_election_report.format(
-        "<OfficeIds>office1</OfficeIds>",
-        "<PrimaryPartyIds>party1</PrimaryPartyIds>",
-        "<OfficeIds>office1</OfficeIds>",
-        "<PrimaryPartyIds>party2</PrimaryPartyIds>")
-    election_tree = etree.fromstring(election_report_string)
+  def testRaisesErrorIfPersonHasMultipleCandidatesInRelatedContests(self):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can002">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can003">
+            <PersonId>per002</PersonId>
+          </Candidate>
+          <Candidate objectId="can004">
+            <PersonId>per002</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="con001">
+            <CandidateIds>can001 can003</CandidateIds>
+            <SubsequentContestId>con002</SubsequentContestId>
+          </Contest>
+          <Contest objectId="con002">
+            <CandidateIds>can002 can004</CandidateIds>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    report_elem = etree.fromstring(election_report)
     with self.assertRaises(loggers.ElectionError) as ee:
-      self.cand_validator.check(election_tree)
-    self.assertIn(
-        "Candidate(s) with stableId can99999a_stable is/are referenced by "
-        "the following unrelated contests: con1234, con5678",
-        ee.exception.log_entry[0].message)
-
-  def testRaisesErrorIfNoOffice(self):
-    election_report_string = self._multi_election_report.format(
-        "<OfficeIds>office1</OfficeIds>",
-        "<PrimaryPartyIds>party1</PrimaryPartyIds>", "",
-        "<PrimaryPartyIds>party1</PrimaryPartyIds>")
-    election_tree = etree.fromstring(election_report_string)
-    with self.assertRaises(loggers.ElectionError) as ee:
-      self.cand_validator.check(election_tree)
-    self.assertIn(
-        "Candidate(s) with stableId can99999a_stable is/are referenced by "
-        "the following unrelated contests: con1234, con5678.",
-        ee.exception.log_entry[0].message)
-
-  def testIgnoresIfNoPrimaryParties(self):
-    election_report_string = self._multi_election_report.format(
-        "<OfficeIds>office1</OfficeIds>",
-        "<PrimaryPartyIds>party1</PrimaryPartyIds>",
-        "<OfficeIds>office1</OfficeIds>", "")
-    election_tree = etree.fromstring(election_report_string)
-    self.cand_validator.check(election_tree)
+      self.cand_validator.check(report_elem)
+    self.assertLen(ee.exception.log_entry, 2)
+    self.assertEqual(("Person per001 has separate candidates in contests "
+                      "that are related."), ee.exception.log_entry[0].message)
+    self.assertEqual(("Person per002 has separate candidates in contests "
+                      "that are related."), ee.exception.log_entry[1].message)
 
 
 class ProperBallotSelectionTest(absltest.TestCase):
