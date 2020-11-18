@@ -394,19 +394,28 @@ class ValidStableID(base.BaseRule):
 class ElectoralDistrictOcdId(base.BaseRule):
   """GpUnit referred to by ElectoralDistrictId MUST have a valid OCD-ID."""
 
+  def __init__(self, election_tree, schema_tree):
+    super(ElectoralDistrictOcdId, self).__init__(election_tree, schema_tree)
+    self._all_gpunits = {}
+
+  def setup(self):
+    gp_units = self.election_tree.findall(".//GpUnit")
+    for gp_unit in gp_units:
+      if "objectId" not in gp_unit.attrib:
+        continue
+      self._all_gpunits[gp_unit.attrib["objectId"]] = gp_unit
+
   def elements(self):
     return ["ElectoralDistrictId"]
 
   def check(self, element):
     error_log = []
-    gp_unit_path = ".//GpUnit[@objectId='{}']".format(element.text)
-    referenced_gpunits = self.election_tree.findall(gp_unit_path)
-    if not referenced_gpunits:
+    referenced_gpunit = self._all_gpunits.get(element.text)
+    if referenced_gpunit is None:
       msg = ("The ElectoralDistrictId element not refer to a GpUnit. Every "
              "ElectoralDistrictId MUST reference a GpUnit")
       error_log.append(loggers.LogEntry(msg, [element]))
     else:
-      referenced_gpunit = referenced_gpunits[0]
       ocd_ids = get_external_id_values(referenced_gpunit, "ocd-id")
       if not ocd_ids:
         error_log.append(

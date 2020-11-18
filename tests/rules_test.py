@@ -931,6 +931,7 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     """
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
     ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    ocdid_validator.setup()
     mock = MagicMock(return_value=True)
     gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
 
@@ -952,6 +953,7 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     """
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
     ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    ocdid_validator.setup()
 
     mock = MagicMock(return_value=True)
     gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
@@ -979,6 +981,7 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     """
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
     ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    ocdid_validator.setup()
 
     mock = MagicMock(return_value=True)
     gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
@@ -1003,6 +1006,7 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     """
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
     ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    ocdid_validator.setup()
 
     mock = MagicMock(return_value=True)
     gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
@@ -1030,6 +1034,7 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     """
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
     ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    ocdid_validator.setup()
 
     mock = MagicMock(return_value=False)
     gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
