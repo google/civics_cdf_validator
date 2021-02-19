@@ -1865,11 +1865,11 @@ class ElectionStartDates(base.DateRule):
       raise loggers.ElectionWarning(self.error_log)
 
 
-class ElectionEndDates(base.DateRule):
-  """Election elements should contain valid end dates.
+class ElectionEndDatesInThePast(base.DateRule):
+  """Election elements would be in the present or in the future.
 
-  End dates should be a present or future date and should not occur
-  before the start date.
+  Using a past end date needs to be notified. The warning is useful to prevent
+  using a wrong date.
   """
 
   def elements(self):
@@ -1881,11 +1881,27 @@ class ElectionEndDates(base.DateRule):
 
     if self.end_date:
       self.check_for_date_not_in_past(self.end_date, self.end_elem)
-      if self.start_date:
-        self.check_end_after_start()
+      if self.error_log:
+        raise loggers.ElectionWarning(self.error_log)
 
-    if self.error_log:
-      raise loggers.ElectionError(self.error_log)
+
+class ElectionEndDatesOccurAfterStartDates(base.DateRule):
+  """Election elements should contain a coherent start and end dates.
+
+  End dates should not occur before the start date.
+  """
+
+  def elements(self):
+    return ["Election"]
+
+  def check(self, element):
+    self.reset_instance_vars()
+    self.gather_dates(element)
+
+    if self.end_date and self.start_date:
+      self.check_end_after_start()
+      if self.error_log:
+        raise loggers.ElectionError(self.error_log)
 
 
 class OfficeTermDates(base.DateRule):
@@ -2556,7 +2572,8 @@ ELECTION_RULES = COMMON_RULES + (
     PartiesHaveValidColors,
     ValidateDuplicateColors,
     ElectionStartDates,
-    ElectionEndDates,
+    ElectionEndDatesInThePast,
+    ElectionEndDatesOccurAfterStartDates,
     ContestHasMultipleOffices,
     GpUnitsHaveSingleRoot,
     MissingPartyAbbreviationTranslation,

@@ -5768,11 +5768,11 @@ class ElectionStartDatesTest(absltest.TestCase):
     self.date_validator.check(etree.fromstring(election_string))
 
 
-class ElectionEndDatesTest(absltest.TestCase):
+class ElectionEndDatesInThePastTest(absltest.TestCase):
 
   def setUp(self):
-    super(ElectionEndDatesTest, self).setUp()
-    self.date_validator = rules.ElectionEndDates(None, None)
+    super(ElectionEndDatesInThePastTest, self).setUp()
+    self.date_validator = rules.ElectionEndDatesInThePast(None, None)
     self.today = datetime.datetime.now().date()
     self.election_string = """
     <Election>
@@ -5791,13 +5791,45 @@ class ElectionEndDatesTest(absltest.TestCase):
     election = etree.fromstring(election_string)
     self.date_validator.check(election)
 
-  def testAnErrorIsThrownIfEndDateIsInPast(self):
+  def testAWarningIsThrownIfEndDateIsInPast(self):
     election_string = self.election_string.format(
-        self.today + datetime.timedelta(days=1),
+        self.today + datetime.timedelta(days=-11),
         self.today + datetime.timedelta(days=-2))
     election = etree.fromstring(election_string)
-    with self.assertRaises(loggers.ElectionError):
+    with self.assertRaises(loggers.ElectionWarning):
       self.date_validator.check(election)
+
+  def testIgnoresElectionsWithNoEndDateElement(self):
+    election_string = """
+      <Election>
+        <StartDate>2012-01-01</StartDate>
+      </Election>
+    """
+    self.date_validator.check(etree.fromstring(election_string))
+
+
+class ElectionEndDatesOccurAfterStartDatesTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ElectionEndDatesOccurAfterStartDatesTest, self).setUp()
+    self.date_validator = rules.ElectionEndDatesOccurAfterStartDates(None, None)
+    self.today = datetime.datetime.now().date()
+    self.election_string = """
+    <Election>
+      <StartDate>{}</StartDate>
+      <EndDate>{}</EndDate>
+    </Election>
+    """
+
+  def testChecksElectionElements(self):
+    self.assertEqual(["Election"], self.date_validator.elements())
+
+  def testEndDatesAreNotFlaggedIfTheOrderIsRight(self):
+    election_string = self.election_string.format(
+        self.today + datetime.timedelta(days=1),
+        self.today + datetime.timedelta(days=2))
+    election = etree.fromstring(election_string)
+    self.date_validator.check(election)
 
   def testAnErrorIsThrownIfEndDateIsBeforeStartDate(self):
     election_string = self.election_string.format(
@@ -5806,15 +5838,6 @@ class ElectionEndDatesTest(absltest.TestCase):
     election = etree.fromstring(election_string)
     with self.assertRaises(loggers.ElectionError):
       self.date_validator.check(election)
-
-  def testThrowsErrorForPastEndDatesWithNoStartDateElement(self):
-    election_string = """
-      <Election>
-        <EndDate>2012-01-01</EndDate>
-      </Election>
-    """
-    with self.assertRaises(loggers.ElectionError):
-      self.date_validator.check(etree.fromstring(election_string))
 
   def testIgnoresElectionsWithNoEndDateElement(self):
     election_string = """
