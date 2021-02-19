@@ -28,7 +28,8 @@ class SamplesTest(absltest.TestCase):
     # Election dates check for dates to not be in the past. Since our sample
     # files will always, at some point, end up being in the past we are
     # removing date rules from these tests.
-    date_rules = {rules.ElectionStartDates, rules.ElectionEndDates}
+    date_rules = {rules.ElectionStartDates, rules.ElectionEndDatesInThePast,
+                  rules.ElectionEndDatesOccurAfterStartDates}
     self.election_rules = (
         set(rules.ELECTION_RULES) - ocd_id_rules - date_rules)
     self.officeholder_rules = (
