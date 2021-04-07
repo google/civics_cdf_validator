@@ -1682,6 +1682,26 @@ class UniqueURIPerAnnotationCategory(base.TreeRule):
       raise loggers.ElectionWarning(error_log)
 
 
+class ValidYoutubeURL(base.BaseRule):
+  """Validate Youtube URL.
+
+  Ensure the provided URL is not a generic youtube url or direct link to a
+  video.
+  """
+
+  def elements(self):
+    return ["Uri"]
+
+  def check(self, element):
+    url = element.text.strip()
+    parsed_url = urlparse(url)
+    if "youtube" in parsed_url.netloc and (parsed_url.path in ["", "/"]
+                                           or "watch" in parsed_url.path):
+      raise loggers.ElectionError.from_message(
+          "'{}' is not a expected value for a youtube channel.".format(url),
+          [element])
+
+
 class ValidURIAnnotation(base.BaseRule):
   """Validate annotations on candidate/officeholder URLs.
 
@@ -2541,6 +2561,7 @@ COMMON_RULES = (
     ValidateOcdidLowerCase,
     PersonsHaveValidGender,
     PartyLeadershipMustExist,
+    ValidYoutubeURL,
     URIValidator,
     UniqueURIPerAnnotationCategory,
     ValidURIAnnotation,

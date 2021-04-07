@@ -4887,6 +4887,47 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
     uri_validator.check()
 
 
+class ValidYoutubeURLTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ValidYoutubeURLTest, self).setUp()
+    self.valid_yt_url = rules.ValidYoutubeURL(None, None)
+
+  def testYTChannelURLReturnNoError(self):
+    root_string = """
+        <Uri Annotation="official-youtube">
+          <![CDATA[https://www.youtube.com/channel/UCJzLUhdhkdfkepeTGJu2nOg]]>
+        </Uri>
+    """
+    self.valid_yt_url.check(etree.fromstring(root_string))
+
+  def testYTWatchUrlReturnError(self):
+    root_string = """
+        <Uri Annotation="official-youtube">
+          <![CDATA[https://www.youtube.com/watch?v=k-F_qYKkqaVxbA]]>
+        </Uri>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.valid_yt_url.check(etree.fromstring(root_string))
+    self.assertEqual(cm.exception.log_entry[0].message,
+                     ("'https://www.youtube.com/watch?v=k-F_qYKkqaVxbA' is not "
+                      "a expected value for a youtube channel."))
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
+
+  def testBasicYTUrlReturnError(self):
+    root_string = """
+        <Uri Annotation="official-youtube">
+          <![CDATA[https://www.youtube.com/]]>
+        </Uri>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.valid_yt_url.check(etree.fromstring(root_string))
+    self.assertEqual(cm.exception.log_entry[0].message,
+                     ("'https://www.youtube.com/' is not a expected value for "
+                      "a youtube channel."))
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
+
+
 class ValidURIAnnotationTest(absltest.TestCase):
 
   def setUp(self):
