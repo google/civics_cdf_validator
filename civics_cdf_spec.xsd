@@ -44,6 +44,16 @@
             <xs:enumeration value="write-in" />
         </xs:restriction>
     </xs:simpleType>
+    <xs:simpleType name="ContestStage">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="exit-polls" />
+            <xs:enumeration value="estimates" />
+            <xs:enumeration value="projections" />
+            <xs:enumeration value="preliminary" />
+            <xs:enumeration value="official" />
+            <xs:enumeration value="unnamed" />
+        </xs:restriction>
+    </xs:simpleType>
     <xs:simpleType name="CountItemStatus">
         <xs:restriction base="xs:string">
             <xs:enumeration value="completed" />
@@ -338,6 +348,7 @@
             <xs:element minOccurs="0" name="HasRotation" type="xs:boolean" />
             <xs:element name="Name" type="xs:string" />
             <xs:element minOccurs="0" name="SequenceOrder" type="xs:integer" />
+            <xs:element minOccurs="0" name="Stage" type="ContestStage" />
             <xs:element minOccurs="0" name="SubUnitsReported" type="xs:integer" />
             <xs:element minOccurs="0" name="SubsequentContestId" type="xs:IDREF" />
             <xs:element maxOccurs="unbounded" minOccurs="0" name="SummaryCounts" type="SummaryCounts" />
