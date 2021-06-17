@@ -195,6 +195,19 @@
             <xs:enumeration value="other" />
         </xs:restriction>
     </xs:simpleType>
+    <xs:simpleType name="OfficeLevel">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="administrative-area-1" />
+            <xs:enumeration value="administrative-area-2" />
+            <xs:enumeration value="country" />
+            <xs:enumeration value="district" />
+            <xs:enumeration value="international" />
+            <xs:enumeration value="municipality" />
+            <xs:enumeration value="neighbourhood" />
+            <xs:enumeration value="region" />
+            <xs:enumeration value="ward" />
+        </xs:restriction>
+    </xs:simpleType>
     <!-- ========== Elements ========== -->
     <xs:complexType name="AnnotatedString">
         <xs:simpleContent>
@@ -513,6 +526,7 @@
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
             <xs:element minOccurs="0" name="FilingDeadline" type="xs:date" />
             <xs:element minOccurs="0" name="IsPartisan" type="xs:boolean" />
+            <xs:element minOccurs="0" name="Level" type="OfficeLevel" />
             <xs:element name="Name" type="InternationalizedText" />
             <xs:element minOccurs="0" name="OfficeHolderPersonIds" type="xs:IDREFS" />
             <xs:element minOccurs="0" name="Term">

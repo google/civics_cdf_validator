@@ -967,11 +967,6 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0002</Value>
         </ExternalIdentifier>
@@ -983,6 +978,7 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative-area-1</Level>
       <Name>
         <Text language="en">President</Text>
       </Name>
@@ -1000,11 +996,6 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0002</Value>
         </ExternalIdentifier>
@@ -1016,6 +1007,7 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative-area-1</Level>
       <Name>
         <Text language="en">Vice President</Text>
       </Name>
@@ -1033,11 +1025,6 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0002</Value>
         </ExternalIdentifier>
@@ -1049,6 +1036,7 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative-area-1</Level>
       <Name>
         <Text language="en">Governor</Text>
       </Name>
@@ -1066,11 +1054,6 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0002</Value>
         </ExternalIdentifier>
@@ -1082,6 +1065,7 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative-area-1</Level>
       <Name>
         <Text language="en">Lieutenant Governor</Text>
       </Name>
@@ -1099,11 +1083,6 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0002</Value>
         </ExternalIdentifier>
@@ -1115,6 +1094,7 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative-area-1</Level>
       <Name>
         <Text language="en">Attorney General</Text>
       </Name>
@@ -1137,11 +1117,6 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0150</Value>
         </ExternalIdentifier>
@@ -1153,6 +1128,7 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative-area-1</Level>
       <Name>
         <Text language="en">Member House of Delegates District - 025</Text>
       </Name>
@@ -1170,11 +1146,6 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0311</Value>
         </ExternalIdentifier>
@@ -1186,6 +1157,7 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative-area-1</Level>
       <Name>
         <Text language="en">Member House of Delegates District - 057</Text>
       </Name>
@@ -1203,11 +1175,6 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0107</Value>
         </ExternalIdentifier>
@@ -1219,6 +1186,7 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative-area-1</Level>
       <Name>
         <Text language="en">Member House of Delegates District - 059</Text>
       </Name>
@@ -1241,17 +1209,13 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0076</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative-area-1</Level>
       <Name>
         <Text language="en">Member House of Delegates District - 058</Text>
       </Name>
@@ -1270,11 +1234,6 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0103</Value>
         </ExternalIdentifier>
@@ -1286,6 +1245,7 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative-area-1</Level>
       <Name>
         <Text language="en">Member Board of Supervisors - Scottsville</Text>
       </Name>
@@ -1303,11 +1263,6 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0054</Value>
         </ExternalIdentifier>
@@ -1319,6 +1274,7 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative-area-1</Level>
       <Name>
         <Text language="en">Member Board of Supervisors - Jack Jouett</Text>
       </Name>
@@ -1336,11 +1292,6 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0030</Value>
         </ExternalIdentifier>
@@ -1352,6 +1303,7 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative-area-1</Level>
       <Name>
         <Text language="en">Member Board of Supervisors - Samuel Miller</Text>
       </Name>
@@ -1369,11 +1321,6 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0081</Value>
         </ExternalIdentifier>
@@ -1385,6 +1332,7 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative-area-1</Level>
       <Name>
         <Text language="en">Member Board of Supervisors - Rio</Text>
       </Name>
@@ -1403,11 +1351,6 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0081</Value>
         </ExternalIdentifier>
@@ -1419,6 +1362,7 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative-area-1</Level>
       <Name>
         <Text language="en">Member School Board - Rio</Text>
       </Name>
@@ -1436,11 +1380,6 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-       <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0030</Value>
         </ExternalIdentifier>
@@ -1452,6 +1391,7 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative-area-1</Level>
       <Name>
         <Text language="en">Member School Board - Samuel Miller</Text>
       </Name>
@@ -1469,11 +1409,6 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru0054</Value>
         </ExternalIdentifier>
@@ -1485,6 +1420,7 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative-area-1</Level>
       <Name>
         <Text language="en">Member School Board - Jack Jouett</Text>
       </Name>

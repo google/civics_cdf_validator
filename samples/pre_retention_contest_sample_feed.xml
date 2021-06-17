@@ -130,11 +130,6 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>stable</OtherType>
           <Value>off20006</Value>
         </ExternalIdentifier>
@@ -151,6 +146,7 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>false</IsPartisan>
+      <Level>administrative-area-1</Level>
       <Name>
         <Text language="en">Justice, Supreme Court of Virginia</Text>
       </Name>

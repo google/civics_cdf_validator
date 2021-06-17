@@ -66,11 +66,6 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>office-role</OtherType>
           <Value>upper house</Value>
         </ExternalIdentifier>
@@ -80,6 +75,7 @@
           <Value>United States Sendate</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
+      <Level>administrative-area-1</Level>
       <Name>
         <Text language="en">United States Senator</Text>
       </Name>
@@ -99,15 +95,11 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>office-role</OtherType>
           <Value>upper house</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
+      <Level>administrative-area-1</Level>
       <Name>
         <Text language="en">United States Senator</Text>
       </Name>

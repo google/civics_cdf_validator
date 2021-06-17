@@ -1828,17 +1828,18 @@ class OfficesHaveValidOfficeLevel(base.BaseRule):
         for ol_id in get_external_id_values(element, "office-level")
         if ol_id.strip()
     ]
-    if not office_level_values:
-      raise loggers.ElectionError.from_message(
-          "Office is missing an office-level.", [element])
-    if len(office_level_values) > 1:
-      raise loggers.ElectionError.from_message(
-          "Office has more than one office-level.", [element])
-    office_level_value = office_level_values[0]
-    if office_level_value not in office_utils.valid_office_level_values:
-      raise loggers.ElectionError.from_message(
-          "Office has invalid office-level {}.".format(office_level_value),
-          [element])
+    if element.find("Level") is None:
+      if not office_level_values:
+        raise loggers.ElectionError.from_message(
+            "Office is missing an office-level.", [element])
+      if len(office_level_values) > 1:
+        raise loggers.ElectionError.from_message(
+            "Office has more than one office-level.", [element])
+      office_level_value = office_level_values[0]
+      if office_level_value not in office_utils.valid_office_level_values:
+        raise loggers.ElectionError.from_message(
+            "Office has invalid office-level {}.".format(office_level_value),
+            [element])
 
 
 class OfficesHaveValidOfficeRole(base.BaseRule):

@@ -5490,6 +5490,15 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off2")
 
+  def testOfficeHasLevelByAttribute(self):
+    test_string = """
+          <Office objectId="off1">
+             <Level>administrative-area-1</Level>
+          </Office>
+         """
+    element = etree.fromstring(test_string)
+    self.offices_validator.check(element)
+
   def testOfficeDoesNotHaveOfficeLevelTextByExternalIdentifier(self):
     test_string = """
           <Office objectId="off2">
