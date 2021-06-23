@@ -627,6 +627,10 @@
                     <xs:element minOccurs="0" name="OtherType" type="xs:string" />
                     <xs:element minOccurs="0" name="VotersParticipated" type="xs:integer" />
                     <xs:element minOccurs="0" name="VotersRegistered" type="xs:integer" />
+                    <xs:element minOccurs="0" name="OfficeTermsEffectiveFrom" type="xs:date" />
+                    <xs:element minOccurs="0" name="OfficeTermsEffectiveTo" type="xs:date" />
+                    <xs:element minOccurs="0" name="VotingEffectiveFrom" type="xs:date" />
+                    <xs:element minOccurs="0" name="VotingEffectiveTo" type="xs:date" />
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
