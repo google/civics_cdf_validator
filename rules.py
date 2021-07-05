@@ -1686,7 +1686,7 @@ class ValidYoutubeURL(base.BaseRule):
   """Validate Youtube URL.
 
   Ensure the provided URL is not a generic youtube url or direct link to a
-  video.
+  playlist as one of the invalid youtube URL types.
   """
 
   def elements(self):
@@ -1696,7 +1696,8 @@ class ValidYoutubeURL(base.BaseRule):
     url = element.text.strip()
     parsed_url = urlparse(url)
     if "youtube" in parsed_url.netloc and (parsed_url.path in ["", "/"]
-                                           or "watch" in parsed_url.path):
+                                           or "watch" in parsed_url.path
+                                           or "playlist" in parsed_url.path):
       raise loggers.ElectionError.from_message(
           "'{}' is not a expected value for a youtube channel.".format(url),
           [element])
