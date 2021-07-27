@@ -5282,6 +5282,93 @@ class ValidURIAnnotationTest(absltest.TestCase):
                      ("'official-fb' is not a valid annotation."))
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
 
+  def testUnsupportedURIFacebook(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="uri_official-facebook">
+          <![CDATA[https://www.facebook.com]]>
+        </Uri>
+        <Uri Annotation="official-youtube">
+          <![CDATA[https://www.youtube.com]]>
+        </Uri>
+      </ContactInformation>
+    """
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.valid_annotation.check(etree.fromstring(root_string))
+    self.assertEqual(cm.exception.log_entry[0].message,
+                     ("'uri_official-facebook' is not a valid annotation."))
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
+
+  def testUnsupportedURIYoutube(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="uri_official-youtube">
+          <![CDATA[https://www.youtube.com]]>
+        </Uri>
+        <Uri Annotation="official-facebook">
+          <![CDATA[https://www.facebook.com]]>
+        </Uri>
+      </ContactInformation>
+    """
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.valid_annotation.check(etree.fromstring(root_string))
+    self.assertEqual(cm.exception.log_entry[0].message,
+                     ("'uri_official-youtube' is not a valid annotation."))
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
+
+  def testUnsupportedURITwitter(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="uri_official-twitter">
+          <![CDATA[https://www.twitter.com]]>
+        </Uri>
+        <Uri Annotation="official-facebook">
+          <![CDATA[https://www.facebook.com]]>
+        </Uri>
+      </ContactInformation>
+    """
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.valid_annotation.check(etree.fromstring(root_string))
+    self.assertEqual(cm.exception.log_entry[0].message,
+                     ("'uri_official-twitter' is not a valid annotation."))
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
+
+  def testUnsupportedURIWebsite(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="uri_official-website">
+          <![CDATA[https://www.spoe.at]]>
+        </Uri>
+        <Uri Annotation="official-facebook">
+          <![CDATA[https://www.facebook.com]]>
+        </Uri>
+      </ContactInformation>
+    """
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.valid_annotation.check(etree.fromstring(root_string))
+    self.assertEqual(cm.exception.log_entry[0].message,
+                     ("'uri_official-website' is not a valid annotation."))
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
+
+  def testUnsupportedURIWikipedia(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="uri_wikipedia">
+          <![CDATA[https://www.wikipedia.org]]>
+        </Uri>
+        <Uri Annotation="official-facebook">
+          <![CDATA[https://www.facebook.com]]>
+        </Uri>
+      </ContactInformation>
+    """
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.valid_annotation.check(etree.fromstring(root_string))
+    self.assertEqual(
+        ee.exception.log_entry[0].message,
+        ("Annotation 'uri_wikipedia' is not a valid annotation for URI {0}."
+         .format("https://www.wikipedia.org".encode("ascii", "ignore"))))
+    self.assertEqual(ee.exception.log_entry[0].elements[0].tag, "Uri")
+
 
 class OfficesHaveJurisdictionIDTest(absltest.TestCase):
 
