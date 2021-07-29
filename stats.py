@@ -26,9 +26,9 @@ class BaseEntity(object):
   def __str__(self):
     """Returns counts of each top level entities and nested attributes."""
     output = []
-    row_format = "{:<22s}{:^8s}{:>15s}"
+    row_format = "{:<30s}{:^8s}{:>15s}"
     output.append("\n" + " " * 8 + "-" * 65)
-    output.append(" " * 8 + "{:<22s}{:^20s}{:>12s}".format(
+    output.append(" " * 8 + "{:<30s}{:^20s}{:>12s}".format(
         "{0} (Total: {1})".format(self.name, self.count), "| # with attribute",
         "| # missing attribute"))
     output.append(" " * 8 + "-" * 65)
@@ -47,8 +47,8 @@ class BaseEntity(object):
 class Party(BaseEntity):
   """Class for for keeping meta-stats on Party attributes."""
   children = [
-      "Abbreviation", "Color", "ExternalIdentifiers", "ExternalIdentifiers",
-      "Name"
+      "Abbreviation", "Color", "ExternalIdentifiers", "Name",
+      "InternationalizedAbbreviation"
   ]
 
   def __init__(self, count):
