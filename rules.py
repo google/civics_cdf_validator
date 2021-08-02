@@ -1612,6 +1612,9 @@ class URIValidator(base.BaseRule):
 
     parsed_url = urlparse(url)
     discrepencies = []
+    social_media_platform = ["facebook", "twitter", "wikipedia", "instagram",
+                             "youtube", "website", "linkedin", "line",
+                             "ballotpedia"]
 
     try:
       url.encode("ascii")
@@ -1622,11 +1625,16 @@ class URIValidator(base.BaseRule):
       discrepencies.append("protocol - invalid")
     if not parsed_url.netloc:
       discrepencies.append("domain - missing")
-
     if discrepencies:
       msg = "The provided URI, {}, is invalid for the following reasons: {}.".format(
           url.encode("ascii", "ignore"), ", ".join(discrepencies))
       raise loggers.ElectionError.from_message(msg, [element])
+
+    for platform in social_media_platform:
+      if re.search(platform,
+                   parsed_url.netloc) and parsed_url.scheme != "https":
+        raise loggers.ElectionInfo.from_message(
+            "protocol - it is recommended to use https instead of http")
 
 
 class UniqueURIPerAnnotationCategory(base.TreeRule):
