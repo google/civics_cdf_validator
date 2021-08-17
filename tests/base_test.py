@@ -361,6 +361,9 @@ class RulesRegistryTest(absltest.TestCase):
       <ElectionReport>
         <PartyCollection>
           <Party objectId="par0001">
+            <InternationalizedAbbreviation>
+              <Text language="en">Republican</Text>
+            </InternationalizedAbbreviation>
             <Name>
               <Text language="en">Republican</Text>
             </Name>
@@ -446,7 +449,8 @@ class RulesRegistryTest(absltest.TestCase):
     expected_attr_counts = {
         "ComposingGpUnitIds": (3, 0),
         "Color": (1, 1),
-        "BallotSelection": (1, 2)
+        "BallotSelection": (1, 2),
+        "InternationalizedAbbreviation": (1, 1)
     }
 
     for entity, count in expected_entity_counts.items():
@@ -455,7 +459,7 @@ class RulesRegistryTest(absltest.TestCase):
     for attr, stat in expected_attr_counts.items():
       count, missing_in = stat
       self.assertIn(
-          "{:<22s}{:^8s}{:>15s}".format(attr, str(count), str(missing_in)),
+          "{:<30s}{:^8s}{:>15s}".format(attr, str(count), str(missing_in)),
           output)
 
 

@@ -71,15 +71,14 @@ class HelpersTest(absltest.TestCase):
     actual_ocd_ids = rules.get_external_id_values(gp_unit_elem, "ocd-id", True)
 
     self.assertLen(actual_ocd_ids, 1)
-    self.assertEqual(
-        expected_ocd_id, etree.tostring(actual_ocd_ids[0]).strip())
+    self.assertEqual(expected_ocd_id, etree.tostring(actual_ocd_ids[0]).strip())
 
     expected_other_stable = b"<Value>stable-gpu-abc123</Value>"
     actual_stable = rules.get_external_id_values(gp_unit_elem, "stable", True)
 
     self.assertLen(actual_stable, 1)
-    self.assertEqual(
-        expected_other_stable, etree.tostring(actual_stable[0]).strip())
+    self.assertEqual(expected_other_stable,
+                     etree.tostring(actual_stable[0]).strip())
 
   def testIgnoresInvalidTypesAndOtherTypesThatShouldBeRegularType(self):
     gp_unit = """
@@ -129,8 +128,8 @@ class HelpersTest(absltest.TestCase):
     office_elem = etree.fromstring(office)
 
     expected = b'<AdditionalData type="ocd-id">country:us</AdditionalData>'
-    actual_ocd_ids = rules.get_additional_type_values(
-        office_elem, "ocd-id", True)
+    actual_ocd_ids = rules.get_additional_type_values(office_elem, "ocd-id",
+                                                      True)
 
     self.assertLen(actual_ocd_ids, 1)
     actual_ocd_id = etree.tostring(actual_ocd_ids[0]).strip()
@@ -711,12 +710,10 @@ class ValidIDREFTest(absltest.TestCase):
     id_ref_validator._gather_reference_mapping = elem_ref_mock
 
     id_ref_validator.setup()
-    self.assertEqual(
-        expected_obj_id_mapping, id_ref_validator.object_id_mapping
-    )
-    self.assertEqual(
-        expected_elem_ref_mapping, id_ref_validator.element_reference_mapping
-    )
+    self.assertEqual(expected_obj_id_mapping,
+                     id_ref_validator.object_id_mapping)
+    self.assertEqual(expected_elem_ref_mapping,
+                     id_ref_validator.element_reference_mapping)
 
   # _gather_object_ids_by_type test
   def testReturnsMapOfElementTypesToSetOfObjectIds(self):
@@ -802,9 +799,8 @@ class ValidIDREFTest(absltest.TestCase):
         "PersonId": "Person",
         "ElectoralDistrictId": "GpUnit",
     }
-    self.assertEqual(
-        ["PersonId", "ElectoralDistrictId"], id_ref_validator.elements()
-    )
+    self.assertEqual(["PersonId", "ElectoralDistrictId"],
+                     id_ref_validator.elements())
 
   # check test
   def testIDREFElementsReferenceTheProperType(self):
@@ -854,19 +850,16 @@ class ValidIDREFTest(absltest.TestCase):
       id_ref_validator.check(idref_element)
     self.assertIn(
         ("gp004 is not a valid IDREF. ElectoralDistrictId should contain an "
-         "objectId from a GpUnit element."), ee.exception.log_entry[0].message
-    )
+         "objectId from a GpUnit element."), ee.exception.log_entry[0].message)
 
     with self.assertRaises(loggers.ElectionError) as ee:
       id_ref_validator.check(idrefs_element)
     self.assertIn(
         ("per004 is not a valid IDREF. OfficeHolderPersonIds should contain an "
-         "objectId from a Person element."), ee.exception.log_entry[0].message
-    )
+         "objectId from a Person element."), ee.exception.log_entry[0].message)
     self.assertIn(
         ("per005 is not a valid IDREF. OfficeHolderPersonIds should contain an "
-         "objectId from a Person element."), ee.exception.log_entry[1].message
-    )
+         "objectId from a Person element."), ee.exception.log_entry[1].message)
 
   def testThrowsErrorIfReferenceTypeNotPresent(self):
     id_ref_validator = rules.ValidIDREF(None, None)
@@ -886,12 +879,10 @@ class ValidIDREFTest(absltest.TestCase):
       id_ref_validator.check(idrefs_element)
     self.assertIn(
         ("per004 is not a valid IDREF. OfficeHolderPersonIds should contain an "
-         "objectId from a Person element."), ee.exception.log_entry[0].message
-    )
+         "objectId from a Person element."), ee.exception.log_entry[0].message)
     self.assertIn(
         ("per005 is not a valid IDREF. OfficeHolderPersonIds should contain an "
-         "objectId from a Person element."), ee.exception.log_entry[1].message
-    )
+         "objectId from a Person element."), ee.exception.log_entry[1].message)
 
 
 class ElectoralDistrictOcdIdTest(absltest.TestCase):
@@ -1814,8 +1805,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     """
     report_elem = etree.fromstring(election_report)
     with self.assertRaises(loggers.ElectionError) as ee:
-      self.cand_validator._register_person_to_candidate_to_contests(
-          report_elem)
+      self.cand_validator._register_person_to_candidate_to_contests(report_elem)
     self.assertEqual(("A Candidate should be referenced in a Contest. "
                       "Candidate can004 is not referenced."),
                      ee.exception.log_entry[0].message)
@@ -1900,8 +1890,12 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
 
     # assert each contest has a node created for it
     for con_id in [
-        "con001", "con002", "con003",
-        "con004", "con005", "con006",
+        "con001",
+        "con002",
+        "con003",
+        "con004",
+        "con005",
+        "con006",
     ]:
       found_node = False
       for validator_node in self.cand_validator.contest_tree_nodes:
@@ -2000,13 +1994,14 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     node_two.parent = node_one
     node_three.parent = node_one
     self.cand_validator.contest_tree_nodes = [
-        node_one, node_two, node_three,
+        node_one,
+        node_two,
+        node_three,
     ]
 
     contest_id_list = ["con001", "con002", "con003"]
     are_related = self.cand_validator._check_candidate_contests_are_related(
-        contest_id_list
-    )
+        contest_id_list)
     self.assertTrue(are_related)
 
   def testReturnsFalseIfAnyContestInGivenListNotRelated_ParentChild(self):
@@ -2015,13 +2010,14 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     node_three = anytree.AnyNode(id="con003", relatives=set())
     node_two.parent = node_one
     self.cand_validator.contest_tree_nodes = [
-        node_one, node_two, node_three,
+        node_one,
+        node_two,
+        node_three,
     ]
 
     contest_id_list = ["con001", "con002", "con003"]
     are_related = self.cand_validator._check_candidate_contests_are_related(
-        contest_id_list
-    )
+        contest_id_list)
     self.assertFalse(are_related)
 
   def testReturnsTrueIfAllContestsInGivenListAreRelated_SubsequentRel(self):
@@ -2043,8 +2039,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
 
     contest_id_list = ["con001", "con002", "con003", "con004"]
     are_related = self.cand_validator._check_candidate_contests_are_related(
-        contest_id_list
-    )
+        contest_id_list)
     self.assertEqual(node_one, node_two.root)
     self.assertEqual(node_three, node_four.root)
     self.assertTrue(are_related)
@@ -2066,8 +2061,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
 
     contest_id_list = ["con001", "con002", "con003", "con004"]
     are_related = self.cand_validator._check_candidate_contests_are_related(
-        contest_id_list
-    )
+        contest_id_list)
     self.assertEqual(node_one, node_two.root)
     self.assertEqual(node_three, node_four.root)
     self.assertFalse(are_related)
@@ -2088,7 +2082,12 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     node_six.parent = node_five
 
     self.cand_validator.contest_tree_nodes = [
-        node_one, node_two, node_three, node_four, node_five, node_six,
+        node_one,
+        node_two,
+        node_three,
+        node_four,
+        node_five,
+        node_six,
     ]
 
     # separate candidates for each contest family
@@ -2099,8 +2098,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     }
 
     valid_cands = self.cand_validator._check_separate_candidates_not_related(
-        candidate_contest_mapping
-    )
+        candidate_contest_mapping)
     self.assertTrue(valid_cands)
 
   def testReturnsFalseIfParentChildBelongToSeparateCandidates(self):
@@ -2117,7 +2115,12 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     node_six.parent = node_five
 
     self.cand_validator.contest_tree_nodes = [
-        node_one, node_two, node_three, node_four, node_five, node_six,
+        node_one,
+        node_two,
+        node_three,
+        node_four,
+        node_five,
+        node_six,
     ]
 
     # a separate candidate is used for con001 and con002
@@ -2129,8 +2132,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     }
 
     valid_cands = self.cand_validator._check_separate_candidates_not_related(
-        candidate_contest_mapping
-    )
+        candidate_contest_mapping)
     self.assertFalse(valid_cands)
 
   def testReturnsFalseIfSeparateCandidatesBelongToRelatedContestFamilies(self):
@@ -2150,7 +2152,12 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     node_three.relatives.add(node_one)
 
     self.cand_validator.contest_tree_nodes = [
-        node_one, node_two, node_three, node_four, node_five, node_six,
+        node_one,
+        node_two,
+        node_three,
+        node_four,
+        node_five,
+        node_six,
     ]
 
     # separate candidates for each contest family
@@ -2161,8 +2168,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     }
 
     valid_cands = self.cand_validator._check_separate_candidates_not_related(
-        candidate_contest_mapping
-    )
+        candidate_contest_mapping)
     self.assertFalse(valid_cands)
 
   # check tests
@@ -2627,9 +2633,11 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
     self.assertEqual(cm.exception.log_entry[0].message,
                      "Parties has the same color ff0000.")
     self.assertLen(cm.exception.log_entry[0].elements, 3)
-    duplicated_parties = [cm.exception.log_entry[0].elements[0].get("objectId"),
-                          cm.exception.log_entry[0].elements[1].get("objectId"),
-                          cm.exception.log_entry[0].elements[2].get("objectId")]
+    duplicated_parties = [
+        cm.exception.log_entry[0].elements[0].get("objectId"),
+        cm.exception.log_entry[0].elements[1].get("objectId"),
+        cm.exception.log_entry[0].elements[2].get("objectId")
+    ]
     self.assertIn("par0001", duplicated_parties)
     self.assertIn("par0002", duplicated_parties)
     self.assertIn("par0003", duplicated_parties)
@@ -2646,8 +2654,7 @@ class DuplicatedPartyAbbreviationTest(absltest.TestCase):
 
   def setUp(self):
     super(DuplicatedPartyAbbreviationTest, self).setUp()
-    self.parties_validator = rules.DuplicatedPartyAbbreviation(
-        None, None)
+    self.parties_validator = rules.DuplicatedPartyAbbreviation(None, None)
 
   def testPartyCollectionWithoutParty(self):
     root_string = """
@@ -2682,11 +2689,12 @@ class DuplicatedPartyAbbreviationTest(absltest.TestCase):
     element = etree.fromstring(root_string)
     with self.assertRaises(loggers.ElectionInfo) as cm:
       self.parties_validator.check(element)
-    self.assertEqual(str(cm.exception.log_entry[0].message),
-                     ("<Party> does not have <InternationalizedAbbreviation> "
-                      "objects"))
-    self.assertEqual(str(cm.exception.log_entry[0].elements[0].get("objectId")),
-                     "par0001")
+    self.assertEqual(
+        str(cm.exception.log_entry[0].message),
+        ("<Party> does not have <InternationalizedAbbreviation> "
+         "objects"))
+    self.assertEqual(
+        str(cm.exception.log_entry[0].elements[0].get("objectId")), "par0001")
 
   def testDuplicateInternationalizedAbbreviation(self):
     root_string = """
@@ -2717,8 +2725,10 @@ class DuplicatedPartyAbbreviationTest(absltest.TestCase):
     self.assertEqual(cm.exception.log_entry[0].message,
                      "Parties have the same abbreviation in en.")
     self.assertLen(cm.exception.log_entry[0].elements, 2)
-    duplicated_parties = [cm.exception.log_entry[0].elements[0].get("objectId"),
-                          cm.exception.log_entry[0].elements[1].get("objectId")]
+    duplicated_parties = [
+        cm.exception.log_entry[0].elements[0].get("objectId"),
+        cm.exception.log_entry[0].elements[1].get("objectId")
+    ]
     self.assertIn("par0003", duplicated_parties)
     self.assertIn("par0001", duplicated_parties)
 
@@ -2762,8 +2772,8 @@ class PersonHasUniqueFullNameTest(absltest.TestCase):
       self.people_validator.check(element)
     self.assertEqual(cm.exception.log_entry[0].message,
                      "<PersonCollection> does not have <Person> objects")
-    self.assertEqual(
-        cm.exception.log_entry[0].elements[0].tag, "PersonCollection")
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag,
+                     "PersonCollection")
 
   def testPersonCollectionWithDuplicatedFullNameWithoutBirthday(self):
     root_string = """
@@ -2938,8 +2948,9 @@ class DuplicatedPartyNameTest(absltest.TestCase):
     element = etree.fromstring(root_string)
     with self.assertRaises(loggers.ElectionInfo) as cm:
       self.parties_validator.check(element)
-    self.assertEqual(str(cm.exception.log_entry[0].message),
-                     "<PartyCollection> does not have <Party> objects")
+    self.assertEqual(
+        str(cm.exception.log_entry[0].message),
+        "<PartyCollection> does not have <Party> objects")
 
   def testPartyWithoutName(self):
     root_string = """
@@ -2963,10 +2974,11 @@ class DuplicatedPartyNameTest(absltest.TestCase):
     element = etree.fromstring(root_string)
     with self.assertRaises(loggers.ElectionInfo) as cm:
       self.parties_validator.check(element)
-    self.assertEqual(str(cm.exception.log_entry[0].message),
-                     "<Party> does not have <Name> objects")
-    self.assertEqual(str(cm.exception.log_entry[0].elements[0].get("objectId")),
-                     "par0001")
+    self.assertEqual(
+        str(cm.exception.log_entry[0].message),
+        "<Party> does not have <Name> objects")
+    self.assertEqual(
+        str(cm.exception.log_entry[0].elements[0].get("objectId")), "par0001")
 
   def testDuplicatePartyName(self):
     root_string = """
@@ -2997,8 +3009,10 @@ class DuplicatedPartyNameTest(absltest.TestCase):
     self.assertEqual(cm.exception.log_entry[0].message,
                      "Parties have the same name in en.")
     self.assertLen(cm.exception.log_entry[0].elements, 2)
-    duplicated_parties = [cm.exception.log_entry[0].elements[0].get("objectId"),
-                          cm.exception.log_entry[0].elements[1].get("objectId")]
+    duplicated_parties = [
+        cm.exception.log_entry[0].elements[0].get("objectId"),
+        cm.exception.log_entry[0].elements[1].get("objectId")
+    ]
     self.assertIn("par0003", duplicated_parties)
     self.assertIn("par0001", duplicated_parties)
 
@@ -3030,8 +3044,7 @@ class MissingPartyNameTranslationTest(absltest.TestCase):
 
   def setUp(self):
     super(MissingPartyNameTranslationTest, self).setUp()
-    self.parties_validator = rules.MissingPartyNameTranslation(
-        None, None)
+    self.parties_validator = rules.MissingPartyNameTranslation(None, None)
 
   def testPartyCollectionWithoutParty(self):
     root_string = """
@@ -3250,8 +3263,9 @@ class MissingPartyAbbreviationTranslationTest(absltest.TestCase):
     element = etree.fromstring(root_string)
     with self.assertRaises(loggers.ElectionInfo) as cm:
       self.parties_validator.check(element)
-    self.assertIn("The party abbreviation is not translated to all feed "
-                  "languages ", cm.exception.log_entry[0].message)
+    self.assertIn(
+        "The party abbreviation is not translated to all feed "
+        "languages ", cm.exception.log_entry[0].message)
     self.assertIn("en", cm.exception.log_entry[0].message)
     self.assertIn("ro", cm.exception.log_entry[0].message)
     self.assertIn("You only did it for the following languages : {'en'}.",
@@ -3385,9 +3399,8 @@ class ValidStableIDTest(absltest.TestCase):
     test_string = self.root_string.format("other", self.stable_string, "   ")
     with self.assertRaises(loggers.ElectionError) as cm:
       self.stable_id_validator.check(etree.fromstring(test_string))
-    self.assertEqual(
-        cm.exception.log_entry[0].message,
-        "Stable id '   ' is not in the correct format.")
+    self.assertEqual(cm.exception.log_entry[0].message,
+                     "Stable id '   ' is not in the correct format.")
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag,
                      "ExternalIdentifiers")
 
@@ -3410,53 +3423,55 @@ class MissingStableIdsTest(absltest.TestCase):
     """
 
   def testStableIdPresentForOffice(self):
-    test_string = self.root_string.format(
-        "<Office objectId='off1'>", "stable", "stable-off0", "</Office>")
+    test_string = self.root_string.format("<Office objectId='off1'>", "stable",
+                                          "stable-off0", "</Office>")
     element = etree.fromstring(test_string)
     self.missing_ids_validator.check(element)
 
   def testStableIdPresentForCandidate(self):
-    test_string = self.root_string.format(
-        "<Candidate objectId='can1'>", "stable", "stable-can1", "</Candidate>")
+    test_string = self.root_string.format("<Candidate objectId='can1'>",
+                                          "stable", "stable-can1",
+                                          "</Candidate>")
     element = etree.fromstring(test_string)
     self.missing_ids_validator.check(element)
 
   def testStableIdPresentForContest(self):
-    test_string = self.root_string.format(
-        "<Contest objectId='cont1'>", "stable", "stable-cont1", "</Contest>")
+    test_string = self.root_string.format("<Contest objectId='cont1'>",
+                                          "stable", "stable-cont1",
+                                          "</Contest>")
     element = etree.fromstring(test_string)
     self.missing_ids_validator.check(element)
 
   def testStableIdPresentForParty(self):
-    test_string = self.root_string.format(
-        "<Party objectId='par1'>", "stable", "stable-par1", "</Party>")
+    test_string = self.root_string.format("<Party objectId='par1'>", "stable",
+                                          "stable-par1", "</Party>")
     element = etree.fromstring(test_string)
     self.missing_ids_validator.check(element)
 
   def testStableIdPresentForPerson(self):
-    test_string = self.root_string.format(
-        "<Person objectId='off1'>", "stable", "stable-per0", "</Person>")
+    test_string = self.root_string.format("<Person objectId='off1'>", "stable",
+                                          "stable-per0", "</Person>")
     element = etree.fromstring(test_string)
     self.missing_ids_validator.check(element)
 
   def testStableIdPresentForBallotMeasureSelection(self):
-    test_string = self.root_string.format(
-        "<BallotSelection objectId='bms1'>",
-        "stable", "stable-bms1", "</BallotSelection>")
+    test_string = self.root_string.format("<BallotSelection objectId='bms1'>",
+                                          "stable", "stable-bms1",
+                                          "</BallotSelection>")
     element = etree.fromstring(test_string)
     self.missing_ids_validator.check(element)
 
   def testStableIdPresentForReportingUnit(self):
-    test_string = self.root_string.format(
-        "<GpUnit objectId='ru0001'>", "stable",
-        "stable-ru0001", "</GpUnit>")
+    test_string = self.root_string.format("<GpUnit objectId='ru0001'>",
+                                          "stable", "stable-ru0001",
+                                          "</GpUnit>")
     element = etree.fromstring(test_string)
     self.missing_ids_validator.check(element)
 
   def testStableIdPresentForCoalition(self):
-    test_string = self.root_string.format(
-        "<Coalition objectId='coa01'>", "stable",
-        "stable-coa01", "</Coalition>")
+    test_string = self.root_string.format("<Coalition objectId='coa01'>",
+                                          "stable", "stable-coa01",
+                                          "</Coalition>")
     element = etree.fromstring(test_string)
     self.missing_ids_validator.check(element)
 
@@ -3525,57 +3540,57 @@ class MissingStableIdsTest(absltest.TestCase):
       self.missing_ids_validator.check(element)
 
   def testStableIdEmptyTextForOffice(self):
-    test_string = self.root_string.format(
-        "<Office objectId='off1'>", "stable", "", "</Office>")
+    test_string = self.root_string.format("<Office objectId='off1'>", "stable",
+                                          "", "</Office>")
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError):
       self.missing_ids_validator.check(element)
 
   def testStableIdEmptyTextForCandidate(self):
-    test_string = self.root_string.format(
-        "<Candidate objectId='can1'>", "stable", "", "</Candidate>")
+    test_string = self.root_string.format("<Candidate objectId='can1'>",
+                                          "stable", "", "</Candidate>")
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError):
       self.missing_ids_validator.check(element)
 
   def testStableIdEmptyTextForContest(self):
-    test_string = self.root_string.format(
-        "<Contest objectId='con1'>", "stable", "", "</Contest>")
+    test_string = self.root_string.format("<Contest objectId='con1'>", "stable",
+                                          "", "</Contest>")
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError):
       self.missing_ids_validator.check(element)
 
   def testStableIdEmptyTextForParty(self):
-    test_string = self.root_string.format(
-        "<Party objectId='par1'>", "stable", "", "</Party>")
+    test_string = self.root_string.format("<Party objectId='par1'>", "stable",
+                                          "", "</Party>")
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError):
       self.missing_ids_validator.check(element)
 
   def testStableIdEmptyTextForPerson(self):
-    test_string = self.root_string.format(
-        "<Person objectId='per1'>", "stable", "", "</Person>")
+    test_string = self.root_string.format("<Person objectId='per1'>", "stable",
+                                          "", "</Person>")
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError):
       self.missing_ids_validator.check(element)
 
   def testStableIdEmptyTextForCoalition(self):
-    test_string = self.root_string.format(
-        "<Coalition objectId='coa1'>", "stable", "", "</Coalition>")
+    test_string = self.root_string.format("<Coalition objectId='coa1'>",
+                                          "stable", "", "</Coalition>")
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError):
       self.missing_ids_validator.check(element)
 
   def testStableIdEmptyTextForBallotMeasureSelection(self):
-    test_string = self.root_string.format(
-        "<BallotSelection objectId='bms1'>", "stable", "", "</BallotSelection>")
+    test_string = self.root_string.format("<BallotSelection objectId='bms1'>",
+                                          "stable", "", "</BallotSelection>")
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError):
       self.missing_ids_validator.check(element)
 
   def testStableIdEmptyTextForReportingUnit(self):
-    test_string = self.root_string.format(
-        "<GpUnit objectId='ru001'>", "stable", "", "</GpUnit>")
+    test_string = self.root_string.format("<GpUnit objectId='ru001'>", "stable",
+                                          "", "</GpUnit>")
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError):
       self.missing_ids_validator.check(element)
@@ -3750,8 +3765,8 @@ class AllCapsTest(absltest.TestCase):
       </ElectionReport>
     """
     root_element = etree.fromstring(contest_string)
-    self.caps_validator.check(root_element.find(
-        "Election//ContestCollection//Contest"))
+    self.caps_validator.check(
+        root_element.find("Election//ContestCollection//Contest"))
 
   def testIgnoresCandidateContestElementsWithNoName(self):
     contest_string = """
@@ -3765,8 +3780,8 @@ class AllCapsTest(absltest.TestCase):
       </ElectionReport>
     """
     root_element = etree.fromstring(contest_string)
-    self.caps_validator.check(root_element.find(
-        "Election//ContestCollection//Contest"))
+    self.caps_validator.check(
+        root_element.find("Election//ContestCollection//Contest"))
 
   def testRaisesWarningIfCandidateContestNameIsAllCaps(self):
     contest_string = """
@@ -3783,8 +3798,8 @@ class AllCapsTest(absltest.TestCase):
     root_element = etree.fromstring(contest_string)
 
     with self.assertRaises(loggers.ElectionWarning):
-      self.caps_validator.check(root_element.find(
-          "Election//ContestCollection//Contest"))
+      self.caps_validator.check(
+          root_element.find("Election//ContestCollection//Contest"))
 
   def testMakesSurePartyContestNamesAreNotAllCapsIfTheyExist(self):
     contest_string = """
@@ -3799,8 +3814,8 @@ class AllCapsTest(absltest.TestCase):
       </ElectionReport>
     """
     root_element = etree.fromstring(contest_string)
-    self.caps_validator.check(root_element.find(
-        "Election//ContestCollection//Contest"))
+    self.caps_validator.check(
+        root_element.find("Election//ContestCollection//Contest"))
 
   def testIgnoresPartyContestElementsWithNoName(self):
     contest_string = """
@@ -3814,8 +3829,8 @@ class AllCapsTest(absltest.TestCase):
       </ElectionReport>
     """
     root_element = etree.fromstring(contest_string)
-    self.caps_validator.check(root_element.find(
-        "Election//ContestCollection//Contest"))
+    self.caps_validator.check(
+        root_element.find("Election//ContestCollection//Contest"))
 
   def testRaisesWarningIfPartyContestNameIsAllCaps(self):
     contest_string = """
@@ -3832,8 +3847,8 @@ class AllCapsTest(absltest.TestCase):
     root_element = etree.fromstring(contest_string)
 
     with self.assertRaises(loggers.ElectionWarning):
-      self.caps_validator.check(root_element.find(
-          "Election//ContestCollection//Contest"))
+      self.caps_validator.check(
+          root_element.find("Election//ContestCollection//Contest"))
 
   def testIgnoresPersonElementsWithNoFullName(self):
     no_full_name_string = """
@@ -4590,7 +4605,7 @@ class URIValidatorTest(absltest.TestCase):
 
   def testChecksForValidUriWithParentheses(self):
     valid_url = self.uri_element.format(
-        "http://en.wikipedia.org/wiki/Thomas_Jefferson_(Virginia)")
+        "https://en.wikipedia.org/wiki/Thomas_Jefferson_(Virginia)")
     self.uri_validator.check(etree.fromstring(valid_url))
 
   def testRaisesAnErrorIfUriNotProvided(self):
@@ -4634,6 +4649,105 @@ class URIValidatorTest(absltest.TestCase):
       self.uri_validator.check(etree.fromstring(multiple_issues))
     self.assertIn("protocol - invalid", ee.exception.log_entry[0].message)
     self.assertIn("domain - missing", ee.exception.log_entry[0].message)
+
+  def testChecksForValidUriHttpsFace(self):
+    valid_url = self.uri_element.format("https://www.facebook.com")
+    self.uri_validator.check(etree.fromstring(valid_url))
+
+  def testChecksForValidUriHttpsWiki(self):
+    valid_url = self.uri_element.format("https://www.wikipedia.com")
+    self.uri_validator.check(etree.fromstring(valid_url))
+
+  def testChecksForValidUriHttpsTwit(self):
+    valid_url = self.uri_element.format("https://www.twitter.com")
+    self.uri_validator.check(etree.fromstring(valid_url))
+
+  def testChecksForValidUriHttpsIns(self):
+    valid_url = self.uri_element.format("https://www.instagram.com")
+    self.uri_validator.check(etree.fromstring(valid_url))
+
+  def testChecksForValidUriHttpsYou(self):
+    valid_url = self.uri_element.format("https://www.youtube.com")
+    self.uri_validator.check(etree.fromstring(valid_url))
+
+  def testChecksForValidUriHttpsWeb(self):
+    valid_url = self.uri_element.format("https://www.website.com")
+    self.uri_validator.check(etree.fromstring(valid_url))
+
+  def testChecksForValidUriHttpsLin(self):
+    valid_url = self.uri_element.format("https://www.linkedin.com")
+    self.uri_validator.check(etree.fromstring(valid_url))
+
+  def testChecksForValidUriHttpsLine(self):
+    valid_url = self.uri_element.format("https://www.line.com")
+    self.uri_validator.check(etree.fromstring(valid_url))
+
+  def testChecksForValidUriHttpsBall(self):
+    valid_url = self.uri_element.format("https://www.ballotpedia.com")
+    self.uri_validator.check(etree.fromstring(valid_url))
+
+  def testChecksForValidUriHttpFaceInvalid(self):
+    invalid_url = self.uri_element.format("http://www.facebook.com")
+    with self.assertRaises(loggers.ElectionInfo) as ee:
+      self.uri_validator.check(etree.fromstring(invalid_url))
+    self.assertIn("protocol - it is recommended to use https instead of http",
+                  ee.exception.log_entry[0].message)
+
+  def testChecksForValidUriHttpWikiInvalid(self):
+    invalid_url = self.uri_element.format("http://www.wikipedia.com")
+    with self.assertRaises(loggers.ElectionInfo) as ee:
+      self.uri_validator.check(etree.fromstring(invalid_url))
+    self.assertIn("protocol - it is recommended to use https instead of http",
+                  ee.exception.log_entry[0].message)
+
+  def testChecksForValidUriHttpTwitInvalid(self):
+    invalid_url = self.uri_element.format("http://www.twitter.com")
+    with self.assertRaises(loggers.ElectionInfo) as ee:
+      self.uri_validator.check(etree.fromstring(invalid_url))
+    self.assertIn("protocol - it is recommended to use https instead of http",
+                  ee.exception.log_entry[0].message)
+
+  def testChecksForValidUriHttpInsInvalid(self):
+    invalid_url = self.uri_element.format("http://www.instagram.com")
+    with self.assertRaises(loggers.ElectionInfo) as ee:
+      self.uri_validator.check(etree.fromstring(invalid_url))
+    self.assertIn("protocol - it is recommended to use https instead of http",
+                  ee.exception.log_entry[0].message)
+
+  def testChecksForValidUriHttpYouInvalid(self):
+    invalid_url = self.uri_element.format("http://www.youtube.com")
+    with self.assertRaises(loggers.ElectionInfo) as ee:
+      self.uri_validator.check(etree.fromstring(invalid_url))
+    self.assertIn("protocol - it is recommended to use https instead of http",
+                  ee.exception.log_entry[0].message)
+
+  def testChecksForValidUriHttpWebInvalid(self):
+    invalid_url = self.uri_element.format("http://www.website.com")
+    with self.assertRaises(loggers.ElectionInfo) as ee:
+      self.uri_validator.check(etree.fromstring(invalid_url))
+    self.assertIn("protocol - it is recommended to use https instead of http",
+                  ee.exception.log_entry[0].message)
+
+  def testChecksForValidUriHttpLinInvalid(self):
+    invalid_url = self.uri_element.format("http://www.linkedin.com")
+    with self.assertRaises(loggers.ElectionInfo) as ee:
+      self.uri_validator.check(etree.fromstring(invalid_url))
+    self.assertIn("protocol - it is recommended to use https instead of http",
+                  ee.exception.log_entry[0].message)
+
+  def testChecksForValidUriHttpLineInvalid(self):
+    invalid_url = self.uri_element.format("http://www.line.com")
+    with self.assertRaises(loggers.ElectionInfo) as ee:
+      self.uri_validator.check(etree.fromstring(invalid_url))
+    self.assertIn("protocol - it is recommended to use https instead of http",
+                  ee.exception.log_entry[0].message)
+
+  def testChecksForValidUriHttpBallInvalid(self):
+    invalid_url = self.uri_element.format("http://www.ballotpedia.com")
+    with self.assertRaises(loggers.ElectionInfo) as ee:
+      self.uri_validator.check(etree.fromstring(invalid_url))
+    self.assertIn("protocol - it is recommended to use https instead of http",
+                  ee.exception.log_entry[0].message)
 
 
 class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
@@ -4698,21 +4812,21 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
     party_website_uri = "<Uri Annotation='party-website'>{}</Uri>"
     wikipedia_uri = "<Uri Annotation='wikipedia'>{}</Uri>"
 
-    fb_one = etree.fromstring(facebook_uri.format(
-        "www.facebook.com/michael_scott"))
-    fb_two = etree.fromstring(facebook_uri.format(
-        "www.facebook.com/dwight_shrute"))
-    personal_one = etree.fromstring(person_website_uri.format(
-        "www.michaelscott.com"))
-    personal_two = etree.fromstring(person_website_uri.format(
-        "www.dwightshrute.com"))
-    party_one = etree.fromstring(party_website_uri.format(
-        "www.dundermifflin.com"))
+    fb_one = etree.fromstring(
+        facebook_uri.format("www.facebook.com/michael_scott"))
+    fb_two = etree.fromstring(
+        facebook_uri.format("www.facebook.com/dwight_shrute"))
+    personal_one = etree.fromstring(
+        person_website_uri.format("www.michaelscott.com"))
+    personal_two = etree.fromstring(
+        person_website_uri.format("www.dwightshrute.com"))
+    party_one = etree.fromstring(
+        party_website_uri.format("www.dundermifflin.com"))
     party_two = etree.fromstring(party_website_uri.format("www.sabre.com"))
-    wiki_one = etree.fromstring(wikipedia_uri.format(
-        "www.wikipedia.com/dundermifflin"))
-    wiki_two = etree.fromstring(wikipedia_uri.format(
-        "www.wikipedia.com/dundermifflin"))
+    wiki_one = etree.fromstring(
+        wikipedia_uri.format("www.wikipedia.com/dundermifflin"))
+    wiki_two = etree.fromstring(
+        wikipedia_uri.format("www.wikipedia.com/dundermifflin"))
 
     uri_elements = [
         fb_one, fb_two, personal_one, personal_two, party_one, party_two,
@@ -4742,12 +4856,12 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
   def testChecksURIsWithNoAnnotation(self):
     uri_element = "<Uri>{}</Uri>"
 
-    uri_one = etree.fromstring(uri_element.format(
-        "www.facebook.com/michael_scott"))
-    uri_two = etree.fromstring(uri_element.format(
-        "www.facebook.com/dwight_shrute"))
-    uri_three = etree.fromstring(uri_element.format(
-        "www.facebook.com/dwight_shrute"))
+    uri_one = etree.fromstring(
+        uri_element.format("www.facebook.com/michael_scott"))
+    uri_two = etree.fromstring(
+        uri_element.format("www.facebook.com/dwight_shrute"))
+    uri_three = etree.fromstring(
+        uri_element.format("www.facebook.com/dwight_shrute"))
 
     uri_elements = [uri_one, uri_two, uri_three]
 
@@ -4914,6 +5028,19 @@ class ValidYoutubeURLTest(absltest.TestCase):
                       "a expected value for a youtube channel."))
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
 
+  def testYTPlaylistUrlReturnError(self):
+    root_string = """
+        <Uri Annotation="official-youtube">
+          <![CDATA[https://www.youtube.com/playlist?list=PLCvVBOK6lIHsfkBVt0oCFMSRz_grSwC4N]]>
+        </Uri>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.valid_yt_url.check(etree.fromstring(root_string))
+    self.assertEqual(cm.exception.log_entry[0].message, (
+        "'https://www.youtube.com/playlist?list=PLCvVBOK6lIHsfkBVt0oCFMSRz_grSwC4N' is not "
+        "a expected value for a youtube channel."))
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
+
   def testBasicYTUrlReturnError(self):
     root_string = """
         <Uri Annotation="official-youtube">
@@ -5004,9 +5131,10 @@ class ValidURIAnnotationTest(absltest.TestCase):
     """
     with self.assertRaises(loggers.ElectionWarning) as cm:
       self.valid_annotation.check(etree.fromstring(root_string))
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "URI {0} is missing annotation.".format(
-                         "https://twitter.com".encode("ascii", "ignore")))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "URI {0} is missing annotation.".format("https://twitter.com".encode(
+            "ascii", "ignore")))
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
 
   def testNoTypeWhenTypePlatformWarning(self):
@@ -5056,10 +5184,10 @@ class ValidURIAnnotationTest(absltest.TestCase):
     """
     with self.assertRaises(loggers.ElectionError) as cm:
       self.valid_annotation.check(etree.fromstring(root_string))
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     ("Annotation 'personal-twitter' is incorrect for URI {0}."
-                      .format("https://www.youtube.com/SmithForGov"
-                              .encode("ascii", "ignore"))))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        ("Annotation 'personal-twitter' is incorrect for URI {0}.".format(
+            "https://www.youtube.com/SmithForGov".encode("ascii", "ignore"))))
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
 
   def testNonExistentPlatformFails(self):
@@ -5146,8 +5274,8 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
       self.offices_validator.check(element)
     self.assertEqual(cm.exception.log_entry[0].message,
                      "Office is missing a jurisdiction-id.")
-    self.assertEqual(
-        cm.exception.log_entry[0].elements[0].get("objectId"), "off2")
+    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
+                     "off2")
 
   def testOfficeDoesNotHaveJurisdictionIDTextByAdditionalData(self):
     test_string = """
@@ -5160,8 +5288,8 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
       self.offices_validator.check(element)
     self.assertEqual(cm.exception.log_entry[0].message,
                      "Office is missing a jurisdiction-id.")
-    self.assertEqual(
-        cm.exception.log_entry[0].elements[0].get("objectId"), "off2")
+    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
+                     "off2")
 
   def testOfficeHasMoreThanOneJurisdictionIDbyAdditionalData(self):
     test_string = """
@@ -5192,8 +5320,8 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
       self.offices_validator.check(element)
     self.assertEqual(cm.exception.log_entry[0].message,
                      "Office is missing a jurisdiction-id.")
-    self.assertEqual(
-        cm.exception.log_entry[0].elements[0].get("objectId"), "off2")
+    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
+                     "off2")
 
   def testOfficeDoesNotHaveJurisdictionIDTextByExternalIdentifier(self):
     test_string = """
@@ -5210,8 +5338,8 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
       self.offices_validator.check(element)
     self.assertEqual(cm.exception.log_entry[0].message,
                      "Office is missing a jurisdiction-id.")
-    self.assertEqual(
-        cm.exception.log_entry[0].elements[0].get("objectId"), "off2")
+    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
+                     "off2")
 
   def testOfficeHasMoreThanOneJurisdictionIDbyExternalIdentifier(self):
     test_string = """
@@ -5233,8 +5361,8 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
       self.offices_validator.check(element)
     self.assertEqual(cm.exception.log_entry[0].message,
                      "Office has more than one jurisdiction-id.")
-    self.assertEqual(
-        cm.exception.log_entry[0].elements[0].get("objectId"), "off1")
+    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
+                     "off1")
 
   def testJurisdictionIDTextIsWhitespaceByExternalIdentifier(self):
     test_string = """
@@ -5251,8 +5379,8 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
       self.offices_validator.check(element)
     self.assertEqual(cm.exception.log_entry[0].message,
                      "Office is missing a jurisdiction-id.")
-    self.assertEqual(
-        cm.exception.log_entry[0].elements[0].get("objectId"), "off2")
+    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
+                     "off2")
 
   def testJurisdictionIDTextIsWhitespaceByAdditionalData(self):
     test_string = """
@@ -5458,8 +5586,8 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
       self.offices_validator.check(element)
     self.assertEqual(cm.exception.log_entry[0].message,
                      "Office is missing an office-level.")
-    self.assertEqual(
-        cm.exception.log_entry[0].elements[0].get("objectId"), "off2")
+    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
+                     "off2")
 
   def testOfficeDoesNotHaveOfficeLevelTextByExternalIdentifier(self):
     test_string = """
@@ -5476,8 +5604,8 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
       self.offices_validator.check(element)
     self.assertEqual(cm.exception.log_entry[0].message,
                      "Office is missing an office-level.")
-    self.assertEqual(
-        cm.exception.log_entry[0].elements[0].get("objectId"), "off2")
+    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
+                     "off2")
 
   def testOfficeHasMoreThanOneOfficeLevelsbyExternalIdentifier(self):
     test_string = """
@@ -5499,8 +5627,8 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
       self.offices_validator.check(element)
     self.assertEqual(cm.exception.log_entry[0].message,
                      "Office has more than one office-level.")
-    self.assertEqual(
-        cm.exception.log_entry[0].elements[0].get("objectId"), "off1")
+    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
+                     "off1")
 
   def testOfficeLevelTextIsWhitespaceByExternalIdentifier(self):
     test_string = """
@@ -5517,8 +5645,8 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
       self.offices_validator.check(element)
     self.assertEqual(cm.exception.log_entry[0].message,
                      "Office is missing an office-level.")
-    self.assertEqual(
-        cm.exception.log_entry[0].elements[0].get("objectId"), "off2")
+    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
+                     "off2")
 
   def testInvalidOfficeLevel(self):
     test_string = """
@@ -5535,8 +5663,8 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
       self.offices_validator.check(element)
     self.assertEqual(cm.exception.log_entry[0].message,
                      "Office has invalid office-level invalidvalue.")
-    self.assertEqual(
-        cm.exception.log_entry[0].elements[0].get("objectId"), "off2")
+    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
+                     "off2")
 
 
 class OfficesHaveValidOfficeRoleTest(absltest.TestCase):
@@ -6072,19 +6200,17 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
     o3_info = {"date": "2020-03-03", "juris": "ru-gpu3", "role": "Lower house"}
     office_three = self._office_string.format(info=o3_info)
 
-    office_collection_str = office_coll_string.format(
-        office_one, office_two, office_three)
+    office_collection_str = office_coll_string.format(office_one, office_two,
+                                                      office_three)
     office_collection = etree.fromstring(office_collection_str)
 
     mapping = self.date_validator._count_start_dates_by_jurisdiction_role(
-        office_collection
-    )
+        office_collection)
 
     self.assertLen(mapping.keys(), 3)
 
-    o1_hash = hashlib.sha256((
-        o1_info["role"] + o1_info["juris"]
-    ).encode("utf-8")).hexdigest()
+    o1_hash = hashlib.sha256(
+        (o1_info["role"] + o1_info["juris"]).encode("utf-8")).hexdigest()
     expected_o1_mapping = {
         "jurisdiction_id": o1_info["juris"],
         "office_role": o1_info["role"],
@@ -6097,31 +6223,25 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
     self.assertIn(o1_hash, mapping.keys())
     self.assertEqual(expected_o1_mapping, mapping[o1_hash])
 
-    o2_hash = hashlib.sha256((
-        o2_info["role"] + o2_info["juris"]
-    ).encode("utf-8")).hexdigest()
+    o2_hash = hashlib.sha256(
+        (o2_info["role"] + o2_info["juris"]).encode("utf-8")).hexdigest()
     expected_o2_mapping = {
         "jurisdiction_id": o2_info["juris"],
         "office_role": o2_info["role"],
         "start_dates": {
-            o2_info["date"]: set([
-                office_collection.findall("Office")[1]
-            ]),
+            o2_info["date"]: set([office_collection.findall("Office")[1]]),
         },
     }
     self.assertIn(o2_hash, mapping.keys())
     self.assertEqual(expected_o2_mapping, mapping[o2_hash])
 
-    o3_hash = hashlib.sha256((
-        o3_info["role"] + o3_info["juris"]
-    ).encode("utf-8")).hexdigest()
+    o3_hash = hashlib.sha256(
+        (o3_info["role"] + o3_info["juris"]).encode("utf-8")).hexdigest()
     expected_o3_mapping = {
         "jurisdiction_id": o3_info["juris"],
         "office_role": o3_info["role"],
         "start_dates": {
-            o3_info["date"]: set([
-                office_collection.findall("Office")[2]
-            ]),
+            o3_info["date"]: set([office_collection.findall("Office")[2]]),
         },
     }
     self.assertIn(o3_hash, mapping.keys())
@@ -6143,29 +6263,25 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
     o3_info = {"date": "2020-03-03", "juris": "ru-gpu3", "role": "Lower house"}
     office_three = self._office_string.format(info=o3_info)
 
-    office_collection_str = office_coll_string.format(
-        office_one, office_two, office_three)
+    office_collection_str = office_coll_string.format(office_one, office_two,
+                                                      office_three)
     office_collection = etree.fromstring(office_collection_str)
 
     mapping = self.date_validator._count_start_dates_by_jurisdiction_role(
-        office_collection
-    )
+        office_collection)
 
     self.assertLen(mapping.keys(), 2)
 
-    o1_hash = hashlib.sha256((
-        o1_info["role"] + o1_info["juris"]
-    ).encode("utf-8")).hexdigest()
+    o1_hash = hashlib.sha256(
+        (o1_info["role"] + o1_info["juris"]).encode("utf-8")).hexdigest()
     self.assertIn(o1_hash, mapping.keys())
 
-    o2_hash = hashlib.sha256((
-        o2_info["role"] + o2_info["juris"]
-    ).encode("utf-8")).hexdigest()
+    o2_hash = hashlib.sha256(
+        (o2_info["role"] + o2_info["juris"]).encode("utf-8")).hexdigest()
     self.assertNotIn(o2_hash, mapping.keys())
 
-    o3_hash = hashlib.sha256((
-        o3_info["role"] + o3_info["juris"]
-    ).encode("utf-8")).hexdigest()
+    o3_hash = hashlib.sha256(
+        (o3_info["role"] + o3_info["juris"]).encode("utf-8")).hexdigest()
     self.assertIn(o3_hash, mapping.keys())
 
   def testUpdatesTheCountForDuplicateJurisdictionRoleDate(self):
@@ -6185,35 +6301,33 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
     o3_info = {"date": "2020-01-01", "juris": "ru-gpu1", "role": "Upper house"}
     office_three = self._office_string.format(info=o3_info)
 
-    office_collection_str = office_coll_string.format(
-        office_one, office_two, office_three)
+    office_collection_str = office_coll_string.format(office_one, office_two,
+                                                      office_three)
     office_collection = etree.fromstring(office_collection_str)
 
     mapping = self.date_validator._count_start_dates_by_jurisdiction_role(
-        office_collection
-    )
+        office_collection)
 
     self.assertLen(mapping.keys(), 2)
 
-    o1_hash = hashlib.sha256((
-        o1_info["role"] + o1_info["juris"]
-    ).encode("utf-8")).hexdigest()
+    o1_hash = hashlib.sha256(
+        (o1_info["role"] + o1_info["juris"]).encode("utf-8")).hexdigest()
     expected_o1_mapping = {
         "jurisdiction_id": o1_info["juris"],
         "office_role": o1_info["role"],
         "start_dates": {
-            o1_info["date"]: set([
-                office_collection.findall("Office")[0],
-                office_collection.findall("Office")[2],
-            ]),
+            o1_info["date"]:
+                set([
+                    office_collection.findall("Office")[0],
+                    office_collection.findall("Office")[2],
+                ]),
         },
     }
     self.assertIn(o1_hash, mapping.keys())
     self.assertEqual(expected_o1_mapping, mapping[o1_hash])
 
-    o2_hash = hashlib.sha256((
-        o2_info["role"] + o2_info["juris"]
-    ).encode("utf-8")).hexdigest()
+    o2_hash = hashlib.sha256(
+        (o2_info["role"] + o2_info["juris"]).encode("utf-8")).hexdigest()
     expected_o2_mapping = {
         "jurisdiction_id": o2_info["juris"],
         "office_role": o2_info["role"],
@@ -6244,56 +6358,46 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
     o3_info = {"date": "2020-01-01", "juris": "ru-gpu2", "role": ""}
     office_three = self._office_string.format(info=o3_info)
 
-    office_collection_str = office_coll_string.format(
-        office_one, office_two, office_three)
+    office_collection_str = office_coll_string.format(office_one, office_two,
+                                                      office_three)
     office_collection = etree.fromstring(office_collection_str)
 
     mapping = self.date_validator._count_start_dates_by_jurisdiction_role(
-        office_collection
-    )
+        office_collection)
 
     self.assertLen(mapping.keys(), 3)
 
-    o1_hash = hashlib.sha256((
-        o1_info["role"] + o1_info["juris"]
-    ).encode("utf-8")).hexdigest()
+    o1_hash = hashlib.sha256(
+        (o1_info["role"] + o1_info["juris"]).encode("utf-8")).hexdigest()
     expected_o1_mapping = {
         "jurisdiction_id": o1_info["juris"],
         "office_role": o1_info["role"],
         "start_dates": {
-            o1_info["date"]: set([
-                office_collection.findall("Office")[0]
-            ]),
+            o1_info["date"]: set([office_collection.findall("Office")[0]]),
         },
     }
     self.assertIn(o1_hash, mapping.keys())
     self.assertEqual(expected_o1_mapping, mapping[o1_hash])
 
-    o2_hash = hashlib.sha256((
-        o2_info["role"] + o2_info["juris"]
-    ).encode("utf-8")).hexdigest()
+    o2_hash = hashlib.sha256(
+        (o2_info["role"] + o2_info["juris"]).encode("utf-8")).hexdigest()
     expected_o2_mapping = {
         "jurisdiction_id": o2_info["juris"],
         "office_role": o2_info["role"],
         "start_dates": {
-            o2_info["date"]: set([
-                office_collection.findall("Office")[1]
-            ]),
+            o2_info["date"]: set([office_collection.findall("Office")[1]]),
         },
     }
     self.assertIn(o2_hash, mapping.keys())
     self.assertEqual(expected_o2_mapping, mapping[o2_hash])
 
-    o3_hash = hashlib.sha256((
-        o3_info["role"] + o3_info["juris"]
-    ).encode("utf-8")).hexdigest()
+    o3_hash = hashlib.sha256(
+        (o3_info["role"] + o3_info["juris"]).encode("utf-8")).hexdigest()
     expected_o3_mapping = {
         "jurisdiction_id": o3_info["juris"],
         "office_role": o3_info["role"],
         "start_dates": {
-            o3_info["date"]: set([
-                office_collection.findall("Office")[2]
-            ]),
+            o3_info["date"]: set([office_collection.findall("Office")[2]]),
         },
     }
     self.assertIn(o3_hash, mapping.keys())
@@ -6342,10 +6446,11 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
             "jurisdiction_id": "ru-gpu2",
             "office_role": "Lower house",
             "start_dates": {
-                "2020-01-02": set([
-                    etree.fromstring("<Office></Office>"),
-                    etree.fromstring("<Office></Office>"),
-                ]),
+                "2020-01-02":
+                    set([
+                        etree.fromstring("<Office></Office>"),
+                        etree.fromstring("<Office></Office>"),
+                    ]),
             },
         },
     }
@@ -6377,13 +6482,15 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
             "jurisdiction_id": "ru-gpu2",
             "office_role": "Lower house",
             "start_dates": {
-                "2020-01-02": set([
-                    etree.fromstring("<Office></Office>"),
-                    etree.fromstring("<Office></Office>"),
-                ]),
-                "2020-01-04": set([
-                    etree.fromstring("<Office></Office>"),
-                ]),
+                "2020-01-02":
+                    set([
+                        etree.fromstring("<Office></Office>"),
+                        etree.fromstring("<Office></Office>"),
+                    ]),
+                "2020-01-04":
+                    set([
+                        etree.fromstring("<Office></Office>"),
+                    ]),
             },
         },
     }
@@ -7191,8 +7298,7 @@ class ImproperCandidateContestTest(absltest.TestCase):
 
   # _gather_invalid_candidates test
   def testReturnsCandidateIdsThatAppearToBeBallotSelections(self):
-    candidate_election = self._base_report.format(
-        "Yes", "Larry David")
+    candidate_election = self._base_report.format("Yes", "Larry David")
     root = etree.fromstring(candidate_election)
     contest_validator = rules.ImproperCandidateContest(root, None)
 
@@ -7203,16 +7309,15 @@ class ImproperCandidateContestTest(absltest.TestCase):
 
   # check tests
   def testCandidatesDontHaveTypicalBallotSelectionOptionsAsName(self):
-    candidate_election = self._base_report.format(
-        "Jerry Seinfeld", "Larry David")
+    candidate_election = self._base_report.format("Jerry Seinfeld",
+                                                  "Larry David")
     root = etree.fromstring(candidate_election)
     contest_validator = rules.ImproperCandidateContest(root, None)
 
     contest_validator.check()
 
   def testCandidatesWithBallotSelectionsOptionsGetFlagged(self):
-    candidate_election = self._base_report.format(
-        "Yes", "No")
+    candidate_election = self._base_report.format("Yes", "No")
     root = etree.fromstring(candidate_election)
     contest_validator = rules.ImproperCandidateContest(root, None)
 
@@ -7278,8 +7383,8 @@ class MissingFieldsErrorTest(absltest.TestCase):
       self.field_validator.check(etree.fromstring(candidate))
     self.assertEqual(ee.exception.log_entry[0].message,
                      "The element Candidate is missing field PersonId.")
-    self.assertEqual(
-        ee.exception.log_entry[0].elements[0].get("objectId"), "123")
+    self.assertEqual(ee.exception.log_entry[0].elements[0].get("objectId"),
+                     "123")
 
   def testRequiredFieldIsPresent_Election(self):
     election = """
@@ -7301,12 +7406,12 @@ class MissingFieldsErrorTest(absltest.TestCase):
 
     self.assertEqual(ee.exception.log_entry[0].message,
                      "The element Election is missing field StartDate.")
-    self.assertEqual(
-        ee.exception.log_entry[0].elements[0].get("objectId"), "123")
+    self.assertEqual(ee.exception.log_entry[0].elements[0].get("objectId"),
+                     "123")
     self.assertEqual(ee.exception.log_entry[1].message,
                      "The element Election is missing field EndDate.")
-    self.assertEqual(
-        ee.exception.log_entry[1].elements[0].get("objectId"), "123")
+    self.assertEqual(ee.exception.log_entry[1].elements[0].get("objectId"),
+                     "123")
 
 
 class MissingFieldsWarningTest(absltest.TestCase):
@@ -7338,8 +7443,8 @@ class MissingFieldsWarningTest(absltest.TestCase):
 
     self.assertEqual(ew.exception.log_entry[0].message,
                      "The element Candidate is missing field PartyId.")
-    self.assertEqual(
-        ew.exception.log_entry[0].elements[0].get("objectId"), "123")
+    self.assertEqual(ew.exception.log_entry[0].elements[0].get("objectId"),
+                     "123")
 
 
 class MissingFieldsInfoTest(absltest.TestCase):
@@ -7369,10 +7474,11 @@ class MissingFieldsInfoTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionInfo) as ew:
       self.field_validator.check(etree.fromstring(office))
 
-    self.assertEqual(ew.exception.log_entry[0].message,
-                     "The element Office is missing field ElectoralDistrictId.")
     self.assertEqual(
-        ew.exception.log_entry[0].elements[0].get("objectId"), "123")
+        ew.exception.log_entry[0].message,
+        "The element Office is missing field ElectoralDistrictId.")
+    self.assertEqual(ew.exception.log_entry[0].elements[0].get("objectId"),
+                     "123")
 
 
 class PartySpanMultipleCountriesTest(absltest.TestCase):
@@ -7496,11 +7602,15 @@ class OfficeMissingGovernmentBodyTest(absltest.TestCase):
   # test exempt office list to ensure a double check if/when list is changed
   def testExemptOfficesList(self):
     expected_exempt_offices = [
-        "head of state", "head of government", "president", "vice president",
-        "state executive", "deputy state executive",
+        "head of state",
+        "head of government",
+        "president",
+        "vice president",
+        "state executive",
+        "deputy state executive",
     ]
-    self.assertEqual(
-        expected_exempt_offices, self.gov_validator._EXEMPT_OFFICES)
+    self.assertEqual(expected_exempt_offices,
+                     self.gov_validator._EXEMPT_OFFICES)
 
   def testIgnoresExemptOffices(self):
     office_string = """
@@ -7566,13 +7676,12 @@ class OfficeMissingGovernmentBodyTest(absltest.TestCase):
       </Office>
     """
 
-    government_body_office = etree.fromstring(
-        office_string.format("body"))
+    government_body_office = etree.fromstring(office_string.format("body"))
     with self.assertRaises(loggers.ElectionInfo) as ei:
       self.gov_validator.check(government_body_office)
-    self.assertEqual("Office element is missing an external identifier of "
-                     "other-type government-body.",
-                     str(ei.exception.log_entry[0].message))
+    self.assertEqual(
+        "Office element is missing an external identifier of "
+        "other-type government-body.", str(ei.exception.log_entry[0].message))
 
 
 class SubsequentContestIdTest(absltest.TestCase):

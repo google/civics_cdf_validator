@@ -222,16 +222,17 @@ def ruleset_type(enum_string):
     raise argparse.ArgumentTypeError(msg)
 
 
-def print_metadata(file):
-  """Prints metadata associated with this run of the validator."""
-  print("Validator version: {}".format(version.__version__))
+def get_metadata(file):
+  """Gets metadata associated with this run of the validator."""
+  metadata = ["Validator version: {}".format(version.__version__)]
 
   blocksize = 65536
   digest = hashlib.new("sha3_256")
   for block in iter(lambda: file.read(blocksize), b""):
     digest.update(block)
-  print("SHA3-256 checksum: 0x{}".format(digest.hexdigest()))
+  metadata.append("SHA3-256 checksum: 0x{}".format(digest.hexdigest()))
   file.seek(0)
+  return metadata
 
 
 def display_rules_details(options):
@@ -310,7 +311,8 @@ def feed_validation(options):
     print("\n--------- Results after validating file: {0} ".format(
         election_file.name))
 
-    print_metadata(election_file)
+    for metadatum in get_metadata(election_file):
+      print(metadatum)
     registry = base.RulesRegistry(
         election_file=election_file,
         schema_file=options.xsd,

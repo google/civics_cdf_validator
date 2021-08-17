@@ -1612,6 +1612,9 @@ class URIValidator(base.BaseRule):
 
     parsed_url = urlparse(url)
     discrepencies = []
+    social_media_platform = ["facebook", "twitter", "wikipedia", "instagram",
+                             "youtube", "website", "linkedin", "line",
+                             "ballotpedia"]
 
     try:
       url.encode("ascii")
@@ -1622,11 +1625,16 @@ class URIValidator(base.BaseRule):
       discrepencies.append("protocol - invalid")
     if not parsed_url.netloc:
       discrepencies.append("domain - missing")
-
     if discrepencies:
       msg = "The provided URI, {}, is invalid for the following reasons: {}.".format(
           url.encode("ascii", "ignore"), ", ".join(discrepencies))
       raise loggers.ElectionError.from_message(msg, [element])
+
+    for platform in social_media_platform:
+      if re.search(platform,
+                   parsed_url.netloc) and parsed_url.scheme != "https":
+        raise loggers.ElectionInfo.from_message(
+            "protocol - it is recommended to use https instead of http")
 
 
 class UniqueURIPerAnnotationCategory(base.TreeRule):
@@ -1686,7 +1694,7 @@ class ValidYoutubeURL(base.BaseRule):
   """Validate Youtube URL.
 
   Ensure the provided URL is not a generic youtube url or direct link to a
-  video.
+  playlist as one of the invalid youtube URL types.
   """
 
   def elements(self):
@@ -1696,7 +1704,8 @@ class ValidYoutubeURL(base.BaseRule):
     url = element.text.strip()
     parsed_url = urlparse(url)
     if "youtube" in parsed_url.netloc and (parsed_url.path in ["", "/"]
-                                           or "watch" in parsed_url.path):
+                                           or "watch" in parsed_url.path
+                                           or "playlist" in parsed_url.path):
       raise loggers.ElectionError.from_message(
           "'{}' is not a expected value for a youtube channel.".format(url),
           [element])
