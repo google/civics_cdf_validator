@@ -1002,19 +1002,7 @@ class PersonHasUniqueFullName(base.BaseRule):
           if name.text:
             full_name_list.add(name.text)
         return full_name_list
-
-    full_name = ""
-    first_name_elt = person.find("FirstName")
-    if first_name_elt is not None and first_name_elt.text:
-      full_name += (first_name_elt.text + " ")
-    middle_name_elt = person.find("MiddleName")
-    if middle_name_elt is not None and middle_name_elt.text:
-      full_name += (middle_name_elt.text + " ")
-    last_name_elt = person.find("LastName")
-    if last_name_elt is not None and last_name_elt.text:
-      full_name += last_name_elt.text
-
-    return {full_name}
+    return []
 
   def check_specific(self, people):
     person_def = collections.namedtuple("PersonDefinition",

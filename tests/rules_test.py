@@ -2861,50 +2861,6 @@ class PersonHasUniqueFullNameTest(absltest.TestCase):
     element = etree.fromstring(root_string)
     self.people_validator.check(element)
 
-  def testPersonCollectionWithoutFullNameButSameName(self):
-    root_string = """
-      <PersonCollection>
-        <Person objectId="per_gb_647452">
-          <FirstName>Jamie</FirstName>
-          <Gender>M</Gender>
-          <LastName>Adams</LastName>
-          <MiddleName>David</MiddleName>
-        </Person>
-        <Person objectId="per_gb_640052">
-          <FirstName>Jamie</FirstName>
-          <Gender>M</Gender>
-          <LastName>Adams</LastName>
-          <MiddleName>David</MiddleName>
-        </Person>
-      </PersonCollection>
-    """
-    element = etree.fromstring(root_string)
-    with self.assertRaises(loggers.ElectionInfo) as cm:
-      self.people_validator.check(element)
-    self.assertIn("Person has same full name",
-                  cm.exception.log_entry[0].message)
-    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
-                     "per_gb_640052")
-
-  def testPersonCollectionWithoutInformation(self):
-    root_string = """
-      <PersonCollection>
-        <Person objectId="per_gb_6455552">
-          <Gender>M</Gender>
-        </Person>
-        <Person objectId="per_gb_6456322">
-          <Gender>M</Gender>
-        </Person>
-      </PersonCollection>
-    """
-    element = etree.fromstring(root_string)
-    with self.assertRaises(loggers.ElectionInfo) as cm:
-      self.people_validator.check(element)
-    self.assertIn("Person has same full name",
-                  cm.exception.log_entry[0].message)
-    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
-                     "per_gb_6456322")
-
   def testPersonCollectionWithoutAnyWarning(self):
     root_string = """
       <PersonCollection>
