@@ -458,6 +458,29 @@ class GpUnitOcdId(base.BaseRule):
               msg, [element], [extern_id.sourceline])
 
 
+class DuplicatedGpUnitOcdId(base.BaseRule):
+  """2 GPUnits should not have same OCD-ID."""
+
+  def elements(self):
+    return ["GpUnitCollection"]
+
+  def check(self, element):
+    error_log = []
+    gp_ocdid = dict()
+    gpunits = element.findall("GpUnit")
+    for gpunit in gpunits:
+      ocd_ids = get_external_id_values(gpunit, "ocd-id")
+      for ocd_id in ocd_ids:
+        if ocd_id not in gp_ocdid.keys():
+          gp_ocdid[ocd_id] = gpunit.get("objectId")
+        else:
+          msg = "GpUnits %s and %s have the same ocd-id %s" % (
+              gp_ocdid[ocd_id], gpunit.get("objectId"), ocd_id)
+          error_log.append(loggers.LogEntry(msg, [gpunit]))
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
 class DuplicateGpUnits(base.BaseRule):
   """Detect GpUnits which are effectively duplicates of each other."""
 
@@ -2541,6 +2564,7 @@ class RuleSet(enum.Enum):
 COMMON_RULES = (
     AllCaps,
     AllLanguages,
+    DuplicatedGpUnitOcdId,
     DuplicateGpUnits,
     DuplicateID,
     EmptyText,

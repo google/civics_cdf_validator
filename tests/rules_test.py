@@ -642,6 +642,98 @@ class DuplicateIDTest(absltest.TestCase):
       duplicate_id_validator.check()
 
 
+class DuplicatedGpUnitOcdIdTest(absltest.TestCase):
+  """2 GPUnits should not have same OCD-ID."""
+
+  def setUp(self):
+    super(DuplicatedGpUnitOcdIdTest, self).setUp()
+    self.valid_ocdid = rules.DuplicatedGpUnitOcdId(None, None)
+
+  def testGpUnitCollectionOcdidDuplicate(self):
+    ocdid_string = """
+    <GpUnitCollection>
+     <GpUnit objectId="ru25538">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>2525538</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:in/state:wb/cd:bardhaman-durgapur</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>Bardhaman Purba</Name>
+      <Type>congressional</Type>
+    </GpUnit>
+    <GpUnit objectId="ru25539">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>2525539</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:in/state:wb/cd:bardhaman-durgapur</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>Burdwan - Durgapur</Name>
+      <Type>congressional</Type>
+    </GpUnit>
+   </GpUnitCollection>
+    """
+    elements = etree.fromstring(ocdid_string)
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.valid_ocdid.check(elements)
+    self.assertEqual(
+        "GpUnits ru25538 and ru25539 have the same ocd-id "
+        "ocd-division/country:in/state:wb/cd:bardhaman-durgapur",
+        ee.exception.log_entry[0].message)
+
+  def testGpUnitCollectionOcdidValid(self):
+    ocdid_string = """
+   <GpUnitCollection>
+    <GpUnit objectId="ru-gpu0">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:tx</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-2lkjg1zsv9j</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>Texas</Name>
+      <Type>state</Type>
+    </GpUnit>
+    <GpUnit objectId="ru-gpu1">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:vt</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-wlkj2oijg2g</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <InternationalizedName>
+        <Text language="en">Vermont</Text>
+        <Text language="bg">Върмонт</Text>
+      </InternationalizedName>
+      <Type>state</Type>
+    </GpUnit>
+   </GpUnitCollection>
+   """
+    elements = etree.fromstring(ocdid_string)
+    self.valid_ocdid.check(elements)
+
+
 class ValidIDREFTest(absltest.TestCase):
 
   _schema_tree = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8"?>
