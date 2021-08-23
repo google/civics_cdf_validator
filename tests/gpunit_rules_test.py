@@ -41,6 +41,11 @@ class GpUnitOcdIdValidatorTest(absltest.TestCase):
     encoded = "regionalwahlkreis:burgenland_süd"
     self.assertEqual(encoded, result)
 
+  def testEncodedValueWithUTFLetters(self):
+    ocdid = "ocd-division/country:la/regionalwahlkreis:burgenländ_sud/"
+    result = gpunit_rules.GpUnitOcdIdValidator._encode_ocdid_value(ocdid)
+    self.assertEqual(ocdid, result)
+
   def testItReturnsEmptyStringIfOtherType(self):
     ocdid = 1
     result = gpunit_rules.GpUnitOcdIdValidator._encode_ocdid_value(ocdid)

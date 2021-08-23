@@ -36,7 +36,7 @@ class GpUnitOcdIdValidator(object):
   """
 
   ocd_ids = set()
-  OCD_PATTERN = r"^ocd-division\/(country|region):[a-z]{2}(\/(\w|-)+:(\w|-|\.|~)+)*$"
+  OCD_PATTERN = r"^ocd-division\/(country|region):[a-z]{2}(\/(\w|-)+:(\w|_|-|\.|~)+)*$"
   ocd_matcher = re.compile(OCD_PATTERN, flags=re.U)
   OCD_PATTERN_ROOT = r"^ocd-division\/(country:[a-z]{2}|region:eu)$"
   ocd_matcher_root = re.compile(OCD_PATTERN_ROOT, flags=re.U)
