@@ -2356,6 +2356,28 @@ class OfficeMissingGovernmentBody(base.BaseRule):
            "government-body."), [element])
 
 
+class MissingOfficeSelectionMethod(base.BaseRule):
+  """Checks that SelectionMethod is present and .
+
+  Values supported for SelectionMethod:
+  -appointed
+  -directly-elected
+  -hereditary
+  -indirectly-elected
+  -succession
+  """
+
+  def elements(self):
+    return["Office"]
+
+  def check(self, element):
+    selection = element.find("SelectionMethod")
+    if selection is None:
+      msg = ("It is highly recommended to provide the Office Selection Method "
+             "information.")
+      raise loggers.ElectionInfo.from_message(msg, [element])
+
+
 class SubsequentContestIdIsValidRelatedContest(base.DateRule):
   """Check that SubsequentContests are valid.
 
@@ -2599,6 +2621,7 @@ COMMON_RULES = (
     MissingFieldsError,
     MissingFieldsWarning,
     MissingFieldsInfo,
+    MissingOfficeSelectionMethod,
 )
 
 ELECTION_RULES = COMMON_RULES + (

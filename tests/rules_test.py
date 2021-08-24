@@ -7732,6 +7732,32 @@ class OfficeMissingGovernmentBodyTest(absltest.TestCase):
         "other-type government-body.", str(ei.exception.log_entry[0].message))
 
 
+class OfficeSelectionMethodTest(absltest.TestCase):
+
+  def setUp(self):
+    super(OfficeSelectionMethodTest, self).setUp()
+    self.selection_validator = rules.MissingOfficeSelectionMethod(None, None)
+
+  def testValidSelectionMethod(self):
+    office_string = """
+        <Office>
+          <SelectionMethod>directly-elected</SelectionMethod>
+        </Office>
+    """
+    self.selection_validator.check(etree.fromstring(office_string))
+
+  def testMissingSelectionMethod(self):
+    office_string = """
+        <Office>
+        </Office>
+    """
+    with self.assertRaises(loggers.ElectionInfo) as ei:
+      self.selection_validator.check(etree.fromstring(office_string))
+    self.assertEqual(
+        "It is highly recommended to provide the Office Selection Method "
+        "information.", str(ei.exception.log_entry[0].message))
+
+
 class SubsequentContestIdTest(absltest.TestCase):
 
   _base_election_report = """

@@ -195,6 +195,15 @@
             <xs:enumeration value="other" />
         </xs:restriction>
     </xs:simpleType>
+    <xs:simpleType name="OfficeSelectionMethod">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="appointed" />
+            <xs:enumeration value="directly-elected" />
+            <xs:enumeration value="hereditary" />
+            <xs:enumeration value="indirectly-elected" />
+            <xs:enumeration value="succession" />
+        </xs:restriction>
+    </xs:simpleType>
     <!-- ========== Elements ========== -->
     <xs:complexType name="AnnotatedString">
         <xs:simpleContent>
@@ -515,6 +524,7 @@
             <xs:element minOccurs="0" name="IsPartisan" type="xs:boolean" />
             <xs:element name="Name" type="InternationalizedText" />
             <xs:element minOccurs="0" name="OfficeHolderPersonIds" type="xs:IDREFS" />
+            <xs:element minOccurs="0" name="SelectionMethod" type="OfficeSelectionMethod" />
             <xs:element minOccurs="0" name="Term">
                 <xs:complexType>
                     <xs:sequence>
