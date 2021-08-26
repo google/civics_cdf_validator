@@ -98,7 +98,7 @@
           <Text language="en">No means the measure will not be enacted
           </Text>
         </ConStatement>
-        <InfoUri Annotation="FullText">
+        <InfoUri Annotation="fulltext">
           https://example-government.gov/ballot-measures/California_Proposition_12_2018
         </InfoUri>
         <InfoUri Annotation="wikipedia">

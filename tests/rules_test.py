@@ -7043,6 +7043,33 @@ class GetExternalIDValuesTest(absltest.TestCase):
         self.assertIn(el, test_values)
 
 
+class ValidateInfoUriAnnotationTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ValidateInfoUriAnnotationTest, self).setUp()
+    self.valid_info = rules.ValidateInfoUriAnnotation(None, None)
+
+  def testMakeSureValidInFoUri(self):
+    contest_string = """
+        <InfoUri Annotation="fulltext">
+          https://example-government.gov/ballot-measures/California_Proposition_12_2018
+        </InfoUri>
+    """
+    self.valid_info.check(etree.fromstring(contest_string))
+
+  def testInvalidInFoUri(self):
+    contest_string = """
+        <InfoUri Annotation="logo">
+          https://example-government.gov/ballot-measures/California_Proposition_12_2018
+        </InfoUri>
+    """
+    with self.assertRaises(loggers.ElectionError) as ei:
+      self.valid_info.check(etree.fromstring(contest_string))
+    self.assertEqual(
+        "logo is an invalid annotation.",
+        str(ei.exception.log_entry[0].message))
+
+
 class FullTextMaxLengthTest(absltest.TestCase):
 
   def setUp(self):

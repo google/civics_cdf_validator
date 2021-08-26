@@ -2096,6 +2096,29 @@ class GpUnitsHaveInternationalizedName(base.BaseRule):
       raise loggers.ElectionError(error_log)
 
 
+class ValidateInfoUriAnnotation(base.BaseRule):
+  """InfoUri is an annotated Uri that accepts the following annotations.
+
+  wikipedia, ballotpedia, official-website, fulltext.
+  Adding a check for this.
+  """
+  info_array = [
+      "wikipedia", "ballotpedia", "official-website", "fulltext", "logo-uri"
+  ]
+
+  def elements(self):
+    return ["InfoUri"]
+
+  def check(self, element):
+    error_log = []
+    annotation = element.attrib["Annotation"]
+    if annotation not in self.info_array:
+      error_log.append(loggers.LogEntry(
+          annotation + " is an invalid annotation.", [element]))
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
 class FullTextMaxLength(base.BaseRule):
   """FullText field should not be longer than MAX_LENGTH."""
 
@@ -2645,6 +2668,7 @@ ELECTION_RULES = COMMON_RULES + (
     DuplicatedPartyName,
     DuplicatedPartyAbbreviation,
     MissingPartyNameTranslation,
+    ValidateInfoUriAnnotation,
     FullTextMaxLength,
     FullTextOrBallotText,
     BallotTitle,
