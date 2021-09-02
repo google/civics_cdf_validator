@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import copy
+
 
 class LogEntry(object):
   """This class contains needed information for user output."""
@@ -160,6 +162,9 @@ class ExceptionListWrapper:
       for element in log_entry.elements:
         print(" " * 16 + get_parent_hierarchy_object_id_str(element))
     print(" " * 18 + "* {0}".format(log_entry.message))
+
+  def get_all_exceptions(self):
+    return copy.deepcopy(self._rules_exc_logs)
 
   def print_exceptions(self, severity, verbose):
     """Print exceptions in decreasing order of severity."""
