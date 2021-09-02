@@ -300,9 +300,6 @@ class RulesRegistry(SchemaHandler):
   def print_exceptions(self, severity, verbose):
     self.exceptions_wrapper.print_exceptions(severity, verbose)
 
-  def get_all_exceptions(self):
-    self.exceptions_wrapper.get_all_exceptions()
-
   def count_stats(self):
     """Aggregates the counts for each top level entity."""
     if self.election_tree:
