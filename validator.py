@@ -238,24 +238,25 @@ def get_metadata(file):
 def display_rules_details(options):
   """Display rules set details based on user input."""
   print("Selected rules details:")
-  rules_to_display = filter_all_rules_using_user_arg(options)
+  rules_to_display = filter_all_rules_using_user_arg(
+      options.i, options.rule_set, options.e)
   for rule in sorted(rules_to_display, key=lambda x: x.__name__):
     print("\t{} - {}".format(rule.__name__, rule.__doc__.split("\n")[0]))
 
 
-def filter_all_rules_using_user_arg(options):
+def filter_all_rules_using_user_arg(rules_allowlist, rule_set, rules_blocklist):
   """Extract a sublist from ALL_RULES list using the user input."""
-  if options.i:
-    rule_names = options.i
+  if rules_allowlist:
+    rule_names = rules_allowlist
   else:
-    if options.rule_set == rules.RuleSet.ELECTION:
+    if rule_set == rules.RuleSet.ELECTION:
       rule_names = [x.__name__ for x in rules.ELECTION_RULES]
-    elif options.rule_set == rules.RuleSet.OFFICEHOLDER:
+    elif rule_set == rules.RuleSet.OFFICEHOLDER:
       rule_names = [x.__name__ for x in rules.OFFICEHOLDER_RULES]
     else:
-      raise AssertionError("Invalid rule_set: " + options.rule_set)
-    if options.e:
-      rule_names = set(rule_names) - set(options.e)
+      raise AssertionError("Invalid rule_set: " + rule_set)
+    if rules_blocklist:
+      rule_names = set(rule_names) - set(rules_blocklist)
 
   rule_classes_to_check = [
       x for x in rules.ALL_RULES if x.__name__ in rule_names
@@ -304,7 +305,8 @@ def feed_validation(options):
     rule_options.setdefault("AllLanguages", []).append(
         base.RuleOption("required_languages",
                         str.split(options.required_languages, ",")))
-  rule_classes_to_check = filter_all_rules_using_user_arg(options)
+  rule_classes_to_check = filter_all_rules_using_user_arg(
+      options.i, options.rule_set, options.e)
 
   errors = 0
   for election_file in options.election_files:
