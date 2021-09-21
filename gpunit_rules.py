@@ -38,6 +38,8 @@ class GpUnitOcdIdValidator(object):
   ocd_ids = set()
   OCD_PATTERN = r"^ocd-division\/(country|region):[a-z]{2}(\/(\w|-)+:(\w|-|\.|~)+)*$"
   ocd_matcher = re.compile(OCD_PATTERN, flags=re.U)
+  OCD_PATTERN_ROOT = r"^ocd-division\/(country:[a-z]{2}|region:eu)$"
+  ocd_matcher_root = re.compile(OCD_PATTERN_ROOT, flags=re.U)
 
   @classmethod
   def init_ocd_id_list(cls, country_code, local_file, check_github):
@@ -55,6 +57,11 @@ class GpUnitOcdIdValidator(object):
   def is_valid_ocd(cls, ocdid_val):
     ocd_id = cls._encode_ocdid_value(ocdid_val)
     return ocd_id in cls.ocd_ids and cls.ocd_matcher.match(ocd_id)
+
+  @classmethod
+  def is_country_or_region_ocd_id(cls, ocdid_val):
+    ocd_id = cls._encode_ocdid_value(ocdid_val)
+    return cls.ocd_matcher_root.match(ocd_id)
 
 
 class OcdIdsExtractor(object):

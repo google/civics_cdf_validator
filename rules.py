@@ -526,26 +526,32 @@ class GpUnitsHaveSingleRoot(base.TreeRule):
     # The root is defined as having ComposingGpUnitIds but
     # is not in the ComposingGpUnitIds of any other GpUnit.
 
-    gpunit_ids = set()
+    gpunit_ids = dict()
     composing_gpunits = set()
     for element in self.get_elements_by_class(self.election_tree, "GpUnit"):
       object_id = element.get("objectId")
       if object_id is not None:
-        gpunit_ids.add(object_id)
+        gpunit_ids[object_id] = element
       composing_gpunit = element.find("ComposingGpUnitIds")
       if composing_gpunit is not None and composing_gpunit.text is not None:
         composing_gpunits.update(composing_gpunit.text.split())
 
-    roots = gpunit_ids - composing_gpunits
+    roots = gpunit_ids.keys() - composing_gpunits
 
     if not roots:
       self.error_log.append(
           loggers.LogEntry("GpUnits have no geo district root. "
-                           "There should be exactly one root geo district."))
-    elif len(roots) > 1:
-      self.error_log.append(
-          loggers.LogEntry("GpUnits tree has more than one root: {0}".format(
-              ", ".join(roots))))
+                           "There should be one or more root geo district."))
+    else:
+      for object_id in roots:
+        element = gpunit_ids.get(object_id)
+        ocd_ids = get_external_id_values(element, "ocd-id")
+        for ocd_id in ocd_ids:
+          if not gpunit_rules.GpUnitOcdIdValidator.is_country_or_region_ocd_id(
+              ocd_id):
+            msg = ("GpUnits tree roots needs to be either a country or the EU"
+                   " region, please check the value %s." % (ocd_id))
+            self.error_log.append(loggers.LogEntry(msg, [element]))
 
     if self.error_log:
       raise loggers.ElectionError(self.error_log)

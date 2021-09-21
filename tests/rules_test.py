@@ -5835,17 +5835,92 @@ class GpUnitsHaveSingleRootTest(absltest.TestCase):
     super(GpUnitsHaveSingleRootTest, self).setUp()
     self.gpunits_tree_validator = rules.GpUnitsHaveSingleRoot(None, None)
 
-  def testSingleRoot(self):
+  def testSingleRootValid(self):
     root_string = """
     <xml>
       <GpUnitCollection>
-        <GpUnit objectId="ru0002">
-          <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+        <GpUnit objectId="ru000us">
+          <ComposingGpUnitIds>ru_pre92426</ComposingGpUnitIds>
+          <ExternalIdentifier>
+            <Type>ocd-id</Type>
+            <Value>ocd-division/country:us</Value>
+          </ExternalIdentifier>
         </GpUnit>
         <GpUnit objectId="ru_pre92426">
-          <ComposingGpUnitIds>ru0002</ComposingGpUnitIds>
+          <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+          <ExternalIdentifier>
+            <Type>ocd-id</Type>
+            <Value>ocd-division/country:us/state:ve</Value>
+          </ExternalIdentifier>
         </GpUnit>
         <GpUnit objectId="ru_temp_id">
+          <ExternalIdentifier>
+            <Type>ocd-id</Type>
+            <Value>ocd-division/country:us/state:ve/county:narok</Value>
+          </ExternalIdentifier>
+        </GpUnit>
+      </GpUnitCollection>
+    </xml>
+    """
+    self.gpunits_tree_validator.election_tree = etree.ElementTree(
+        etree.fromstring(root_string))
+    self.gpunits_tree_validator.check()
+
+  def testMultipleRootTreeValid(self):
+    root_string = """
+    <xml>
+      <GpUnitCollection>
+        <GpUnit objectId="ru_germany">
+          <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-gu-0081</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:de</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>national-level</Type>
+              <Value>33</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </GpUnit>
+        <GpUnit objectId="ru000us">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-gu-0081</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:us</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>national-level</Type>
+              <Value>33</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </GpUnit>
+        <GpUnit objectId="ru_temp_id">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-gu-0081</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:de/state:dh</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>state-level</Type>
+              <Value>33</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
         </GpUnit>
       </GpUnitCollection>
     </xml>
@@ -5858,12 +5933,57 @@ class GpUnitsHaveSingleRootTest(absltest.TestCase):
     root_string = """
     <xml>
       <GpUnitCollection>
-        <GpUnit objectId="ru0002">
+        <GpUnit objectId="ru_germany">
           <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-gu-0081</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:de</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>national-level</Type>
+              <Value>33</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
         </GpUnit>
         <GpUnit objectId="ru_pre92426">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-gu-0081</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:abc</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>national-level</Type>
+              <Value>33</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
         </GpUnit>
         <GpUnit objectId="ru_temp_id">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-gu-0081</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:us/state:tx</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>state-level</Type>
+              <Value>33</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
         </GpUnit>
       </GpUnitCollection>
     </xml>
@@ -5872,18 +5992,20 @@ class GpUnitsHaveSingleRootTest(absltest.TestCase):
       self.gpunits_tree_validator.election_tree = etree.ElementTree(
           etree.fromstring(root_string))
       self.gpunits_tree_validator.check()
-    self.assertIn("GpUnits tree has more than one root",
-                  cm.exception.log_entry[0].message)
+    self.assertIn(
+        "GpUnits tree roots needs to be either a country or the EU region, "
+        "please check the value ocd-division/country:abc.",
+        cm.exception.log_entry[0].message)
 
   def testNoRootsTreeFails(self):
     root_string = """
     <xml>
       <GpUnitCollection>
-        <GpUnit objectId="ru0002">
+        <GpUnit objectId="ru0003">
           <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
         </GpUnit>
         <GpUnit objectId="ru_pre92426">
-          <ComposingGpUnitIds>ru0002</ComposingGpUnitIds>
+          <ComposingGpUnitIds>ru0003</ComposingGpUnitIds>
         </GpUnit>
         <GpUnit objectId="ru_temp_id">
           <ComposingGpUnitIds>ru_pre92426</ComposingGpUnitIds>
