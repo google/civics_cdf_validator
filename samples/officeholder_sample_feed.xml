@@ -84,6 +84,7 @@
         <Text language="en">United States Senator</Text>
       </Name>
       <OfficeHolderPersonIds>per0</OfficeHolderPersonIds>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <StartDate>2019-01-02</StartDate>
       </Term>
@@ -112,6 +113,7 @@
         <Text language="en">United States Senator</Text>
       </Name>
       <OfficeHolderPersonIds>per1</OfficeHolderPersonIds>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <StartDate>2019-01-02</StartDate>
       </Term>

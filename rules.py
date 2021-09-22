@@ -458,6 +458,29 @@ class GpUnitOcdId(base.BaseRule):
               msg, [element], [extern_id.sourceline])
 
 
+class DuplicatedGpUnitOcdId(base.BaseRule):
+  """2 GPUnits should not have same OCD-ID."""
+
+  def elements(self):
+    return ["GpUnitCollection"]
+
+  def check(self, element):
+    error_log = []
+    gp_ocdid = dict()
+    gpunits = element.findall("GpUnit")
+    for gpunit in gpunits:
+      ocd_ids = get_external_id_values(gpunit, "ocd-id")
+      for ocd_id in ocd_ids:
+        if ocd_id not in gp_ocdid.keys():
+          gp_ocdid[ocd_id] = gpunit.get("objectId")
+        else:
+          msg = "GpUnits %s and %s have the same ocd-id %s" % (
+              gp_ocdid[ocd_id], gpunit.get("objectId"), ocd_id)
+          error_log.append(loggers.LogEntry(msg, [gpunit]))
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
 class DuplicateGpUnits(base.BaseRule):
   """Detect GpUnits which are effectively duplicates of each other."""
 
@@ -503,26 +526,32 @@ class GpUnitsHaveSingleRoot(base.TreeRule):
     # The root is defined as having ComposingGpUnitIds but
     # is not in the ComposingGpUnitIds of any other GpUnit.
 
-    gpunit_ids = set()
+    gpunit_ids = dict()
     composing_gpunits = set()
     for element in self.get_elements_by_class(self.election_tree, "GpUnit"):
       object_id = element.get("objectId")
       if object_id is not None:
-        gpunit_ids.add(object_id)
+        gpunit_ids[object_id] = element
       composing_gpunit = element.find("ComposingGpUnitIds")
       if composing_gpunit is not None and composing_gpunit.text is not None:
         composing_gpunits.update(composing_gpunit.text.split())
 
-    roots = gpunit_ids - composing_gpunits
+    roots = gpunit_ids.keys() - composing_gpunits
 
     if not roots:
       self.error_log.append(
           loggers.LogEntry("GpUnits have no geo district root. "
-                           "There should be exactly one root geo district."))
-    elif len(roots) > 1:
-      self.error_log.append(
-          loggers.LogEntry("GpUnits tree has more than one root: {0}".format(
-              ", ".join(roots))))
+                           "There should be one or more root geo district."))
+    else:
+      for object_id in roots:
+        element = gpunit_ids.get(object_id)
+        ocd_ids = get_external_id_values(element, "ocd-id")
+        for ocd_id in ocd_ids:
+          if not gpunit_rules.GpUnitOcdIdValidator.is_country_or_region_ocd_id(
+              ocd_id):
+            msg = ("GpUnits tree roots needs to be either a country or the EU"
+                   " region, please check the value %s." % (ocd_id))
+            self.error_log.append(loggers.LogEntry(msg, [element]))
 
     if self.error_log:
       raise loggers.ElectionError(self.error_log)
@@ -1002,19 +1031,7 @@ class PersonHasUniqueFullName(base.BaseRule):
           if name.text:
             full_name_list.add(name.text)
         return full_name_list
-
-    full_name = ""
-    first_name_elt = person.find("FirstName")
-    if first_name_elt is not None and first_name_elt.text:
-      full_name += (first_name_elt.text + " ")
-    middle_name_elt = person.find("MiddleName")
-    if middle_name_elt is not None and middle_name_elt.text:
-      full_name += (middle_name_elt.text + " ")
-    last_name_elt = person.find("LastName")
-    if last_name_elt is not None and last_name_elt.text:
-      full_name += last_name_elt.text
-
-    return {full_name}
+    return []
 
   def check_specific(self, people):
     person_def = collections.namedtuple("PersonDefinition",
@@ -2085,6 +2102,29 @@ class GpUnitsHaveInternationalizedName(base.BaseRule):
       raise loggers.ElectionError(error_log)
 
 
+class ValidateInfoUriAnnotation(base.BaseRule):
+  """InfoUri is an annotated Uri that accepts the following annotations.
+
+  wikipedia, ballotpedia, official-website, fulltext.
+  Adding a check for this.
+  """
+  info_array = [
+      "wikipedia", "ballotpedia", "official-website", "fulltext", "logo-uri"
+  ]
+
+  def elements(self):
+    return ["InfoUri"]
+
+  def check(self, element):
+    error_log = []
+    annotation = element.attrib["Annotation"]
+    if annotation not in self.info_array:
+      error_log.append(loggers.LogEntry(
+          annotation + " is an invalid annotation.", [element]))
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
 class FullTextMaxLength(base.BaseRule):
   """FullText field should not be longer than MAX_LENGTH."""
 
@@ -2345,6 +2385,28 @@ class OfficeMissingGovernmentBody(base.BaseRule):
            "government-body."), [element])
 
 
+class MissingOfficeSelectionMethod(base.BaseRule):
+  """Checks that SelectionMethod is present and .
+
+  Values supported for SelectionMethod:
+  -appointed
+  -directly-elected
+  -hereditary
+  -indirectly-elected
+  -succession
+  """
+
+  def elements(self):
+    return["Office"]
+
+  def check(self, element):
+    selection = element.find("SelectionMethod")
+    if selection is None:
+      msg = ("It is highly recommended to provide the Office Selection Method "
+             "information.")
+      raise loggers.ElectionInfo.from_message(msg, [element])
+
+
 class SubsequentContestIdIsValidRelatedContest(base.DateRule):
   """Check that SubsequentContests are valid.
 
@@ -2553,6 +2615,7 @@ class RuleSet(enum.Enum):
 COMMON_RULES = (
     AllCaps,
     AllLanguages,
+    DuplicatedGpUnitOcdId,
     DuplicateGpUnits,
     DuplicateID,
     EmptyText,
@@ -2587,6 +2650,7 @@ COMMON_RULES = (
     MissingFieldsError,
     MissingFieldsWarning,
     MissingFieldsInfo,
+    MissingOfficeSelectionMethod,
 )
 
 ELECTION_RULES = COMMON_RULES + (
@@ -2610,6 +2674,7 @@ ELECTION_RULES = COMMON_RULES + (
     DuplicatedPartyName,
     DuplicatedPartyAbbreviation,
     MissingPartyNameTranslation,
+    ValidateInfoUriAnnotation,
     FullTextMaxLength,
     FullTextOrBallotText,
     BallotTitle,

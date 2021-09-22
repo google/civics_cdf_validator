@@ -642,6 +642,98 @@ class DuplicateIDTest(absltest.TestCase):
       duplicate_id_validator.check()
 
 
+class DuplicatedGpUnitOcdIdTest(absltest.TestCase):
+  """2 GPUnits should not have same OCD-ID."""
+
+  def setUp(self):
+    super(DuplicatedGpUnitOcdIdTest, self).setUp()
+    self.valid_ocdid = rules.DuplicatedGpUnitOcdId(None, None)
+
+  def testGpUnitCollectionOcdidDuplicate(self):
+    ocdid_string = """
+    <GpUnitCollection>
+     <GpUnit objectId="ru25538">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>2525538</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:in/state:wb/cd:bardhaman-durgapur</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>Bardhaman Purba</Name>
+      <Type>congressional</Type>
+    </GpUnit>
+    <GpUnit objectId="ru25539">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>2525539</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:in/state:wb/cd:bardhaman-durgapur</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>Burdwan - Durgapur</Name>
+      <Type>congressional</Type>
+    </GpUnit>
+   </GpUnitCollection>
+    """
+    elements = etree.fromstring(ocdid_string)
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.valid_ocdid.check(elements)
+    self.assertEqual(
+        "GpUnits ru25538 and ru25539 have the same ocd-id "
+        "ocd-division/country:in/state:wb/cd:bardhaman-durgapur",
+        ee.exception.log_entry[0].message)
+
+  def testGpUnitCollectionOcdidValid(self):
+    ocdid_string = """
+   <GpUnitCollection>
+    <GpUnit objectId="ru-gpu0">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:tx</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-2lkjg1zsv9j</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>Texas</Name>
+      <Type>state</Type>
+    </GpUnit>
+    <GpUnit objectId="ru-gpu1">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:vt</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-wlkj2oijg2g</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <InternationalizedName>
+        <Text language="en">Vermont</Text>
+        <Text language="bg">Върмонт</Text>
+      </InternationalizedName>
+      <Type>state</Type>
+    </GpUnit>
+   </GpUnitCollection>
+   """
+    elements = etree.fromstring(ocdid_string)
+    self.valid_ocdid.check(elements)
+
+
 class ValidIDREFTest(absltest.TestCase):
 
   _schema_tree = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8"?>
@@ -2860,50 +2952,6 @@ class PersonHasUniqueFullNameTest(absltest.TestCase):
     """
     element = etree.fromstring(root_string)
     self.people_validator.check(element)
-
-  def testPersonCollectionWithoutFullNameButSameName(self):
-    root_string = """
-      <PersonCollection>
-        <Person objectId="per_gb_647452">
-          <FirstName>Jamie</FirstName>
-          <Gender>M</Gender>
-          <LastName>Adams</LastName>
-          <MiddleName>David</MiddleName>
-        </Person>
-        <Person objectId="per_gb_640052">
-          <FirstName>Jamie</FirstName>
-          <Gender>M</Gender>
-          <LastName>Adams</LastName>
-          <MiddleName>David</MiddleName>
-        </Person>
-      </PersonCollection>
-    """
-    element = etree.fromstring(root_string)
-    with self.assertRaises(loggers.ElectionInfo) as cm:
-      self.people_validator.check(element)
-    self.assertIn("Person has same full name",
-                  cm.exception.log_entry[0].message)
-    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
-                     "per_gb_640052")
-
-  def testPersonCollectionWithoutInformation(self):
-    root_string = """
-      <PersonCollection>
-        <Person objectId="per_gb_6455552">
-          <Gender>M</Gender>
-        </Person>
-        <Person objectId="per_gb_6456322">
-          <Gender>M</Gender>
-        </Person>
-      </PersonCollection>
-    """
-    element = etree.fromstring(root_string)
-    with self.assertRaises(loggers.ElectionInfo) as cm:
-      self.people_validator.check(element)
-    self.assertIn("Person has same full name",
-                  cm.exception.log_entry[0].message)
-    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
-                     "per_gb_6456322")
 
   def testPersonCollectionWithoutAnyWarning(self):
     root_string = """
@@ -5787,17 +5835,92 @@ class GpUnitsHaveSingleRootTest(absltest.TestCase):
     super(GpUnitsHaveSingleRootTest, self).setUp()
     self.gpunits_tree_validator = rules.GpUnitsHaveSingleRoot(None, None)
 
-  def testSingleRoot(self):
+  def testSingleRootValid(self):
     root_string = """
     <xml>
       <GpUnitCollection>
-        <GpUnit objectId="ru0002">
-          <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+        <GpUnit objectId="ru000us">
+          <ComposingGpUnitIds>ru_pre92426</ComposingGpUnitIds>
+          <ExternalIdentifier>
+            <Type>ocd-id</Type>
+            <Value>ocd-division/country:us</Value>
+          </ExternalIdentifier>
         </GpUnit>
         <GpUnit objectId="ru_pre92426">
-          <ComposingGpUnitIds>ru0002</ComposingGpUnitIds>
+          <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+          <ExternalIdentifier>
+            <Type>ocd-id</Type>
+            <Value>ocd-division/country:us/state:ve</Value>
+          </ExternalIdentifier>
         </GpUnit>
         <GpUnit objectId="ru_temp_id">
+          <ExternalIdentifier>
+            <Type>ocd-id</Type>
+            <Value>ocd-division/country:us/state:ve/county:narok</Value>
+          </ExternalIdentifier>
+        </GpUnit>
+      </GpUnitCollection>
+    </xml>
+    """
+    self.gpunits_tree_validator.election_tree = etree.ElementTree(
+        etree.fromstring(root_string))
+    self.gpunits_tree_validator.check()
+
+  def testMultipleRootTreeValid(self):
+    root_string = """
+    <xml>
+      <GpUnitCollection>
+        <GpUnit objectId="ru_germany">
+          <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-gu-0081</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:de</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>national-level</Type>
+              <Value>33</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </GpUnit>
+        <GpUnit objectId="ru000us">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-gu-0081</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:us</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>national-level</Type>
+              <Value>33</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </GpUnit>
+        <GpUnit objectId="ru_temp_id">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-gu-0081</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:de/state:dh</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>state-level</Type>
+              <Value>33</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
         </GpUnit>
       </GpUnitCollection>
     </xml>
@@ -5810,12 +5933,57 @@ class GpUnitsHaveSingleRootTest(absltest.TestCase):
     root_string = """
     <xml>
       <GpUnitCollection>
-        <GpUnit objectId="ru0002">
+        <GpUnit objectId="ru_germany">
           <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-gu-0081</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:de</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>national-level</Type>
+              <Value>33</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
         </GpUnit>
         <GpUnit objectId="ru_pre92426">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-gu-0081</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:abc</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>national-level</Type>
+              <Value>33</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
         </GpUnit>
         <GpUnit objectId="ru_temp_id">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-gu-0081</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:us/state:tx</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>state-level</Type>
+              <Value>33</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
         </GpUnit>
       </GpUnitCollection>
     </xml>
@@ -5824,18 +5992,20 @@ class GpUnitsHaveSingleRootTest(absltest.TestCase):
       self.gpunits_tree_validator.election_tree = etree.ElementTree(
           etree.fromstring(root_string))
       self.gpunits_tree_validator.check()
-    self.assertIn("GpUnits tree has more than one root",
-                  cm.exception.log_entry[0].message)
+    self.assertIn(
+        "GpUnits tree roots needs to be either a country or the EU region, "
+        "please check the value ocd-division/country:abc.",
+        cm.exception.log_entry[0].message)
 
   def testNoRootsTreeFails(self):
     root_string = """
     <xml>
       <GpUnitCollection>
-        <GpUnit objectId="ru0002">
+        <GpUnit objectId="ru0003">
           <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
         </GpUnit>
         <GpUnit objectId="ru_pre92426">
-          <ComposingGpUnitIds>ru0002</ComposingGpUnitIds>
+          <ComposingGpUnitIds>ru0003</ComposingGpUnitIds>
         </GpUnit>
         <GpUnit objectId="ru_temp_id">
           <ComposingGpUnitIds>ru_pre92426</ComposingGpUnitIds>
@@ -6995,6 +7165,33 @@ class GetExternalIDValuesTest(absltest.TestCase):
         self.assertIn(el, test_values)
 
 
+class ValidateInfoUriAnnotationTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ValidateInfoUriAnnotationTest, self).setUp()
+    self.valid_info = rules.ValidateInfoUriAnnotation(None, None)
+
+  def testMakeSureValidInFoUri(self):
+    contest_string = """
+        <InfoUri Annotation="fulltext">
+          https://example-government.gov/ballot-measures/California_Proposition_12_2018
+        </InfoUri>
+    """
+    self.valid_info.check(etree.fromstring(contest_string))
+
+  def testInvalidInFoUri(self):
+    contest_string = """
+        <InfoUri Annotation="logo">
+          https://example-government.gov/ballot-measures/California_Proposition_12_2018
+        </InfoUri>
+    """
+    with self.assertRaises(loggers.ElectionError) as ei:
+      self.valid_info.check(etree.fromstring(contest_string))
+    self.assertEqual(
+        "logo is an invalid annotation.",
+        str(ei.exception.log_entry[0].message))
+
+
 class FullTextMaxLengthTest(absltest.TestCase):
 
   def setUp(self):
@@ -7682,6 +7879,32 @@ class OfficeMissingGovernmentBodyTest(absltest.TestCase):
     self.assertEqual(
         "Office element is missing an external identifier of "
         "other-type government-body.", str(ei.exception.log_entry[0].message))
+
+
+class OfficeSelectionMethodTest(absltest.TestCase):
+
+  def setUp(self):
+    super(OfficeSelectionMethodTest, self).setUp()
+    self.selection_validator = rules.MissingOfficeSelectionMethod(None, None)
+
+  def testValidSelectionMethod(self):
+    office_string = """
+        <Office>
+          <SelectionMethod>directly-elected</SelectionMethod>
+        </Office>
+    """
+    self.selection_validator.check(etree.fromstring(office_string))
+
+  def testMissingSelectionMethod(self):
+    office_string = """
+        <Office>
+        </Office>
+    """
+    with self.assertRaises(loggers.ElectionInfo) as ei:
+      self.selection_validator.check(etree.fromstring(office_string))
+    self.assertEqual(
+        "It is highly recommended to provide the Office Selection Method "
+        "information.", str(ei.exception.log_entry[0].message))
 
 
 class SubsequentContestIdTest(absltest.TestCase):

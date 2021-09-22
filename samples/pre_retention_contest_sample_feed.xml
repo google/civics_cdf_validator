@@ -94,6 +94,28 @@
     <!-- ALL GPUNITS WHICH ARE NOT PRECINCTS SHOULD BE DEFINED IN TERMS OF THE
          PRECINCTS THAT COMPOSE THEM.
       -->
+    <GpUnit objectId="ru000us" xsi:type="ReportingUnit">
+      <ComposingGpUnitIds>
+        ru0002
+      </ComposingGpUnitIds>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru000us</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>fips</Type>
+          <Value>51</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>United States Of America</Name>
+      <Type>country</Type>
+    </GpUnit>
     <GpUnit objectId="ru0002" xsi:type="ReportingUnit">
       <ExternalIdentifiers>
         <ExternalIdentifier>

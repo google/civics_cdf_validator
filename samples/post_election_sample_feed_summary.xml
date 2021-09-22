@@ -1275,6 +1275,28 @@
   <Format>summary-contest</Format>
   <GeneratedDate>2013-11-05T14:25:28</GeneratedDate>
   <GpUnitCollection>
+    <GpUnit objectId="ru000us" xsi:type="ReportingUnit">
+      <ComposingGpUnitIds>
+        ru0002
+      </ComposingGpUnitIds>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru000us</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>fips</Type>
+          <Value>51</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>United States Of America</Name>
+      <Type>country</Type>
+    </GpUnit>
     <GpUnit objectId="ru0002" xsi:type="ReportingUnit">
       <ComposingGpUnitIds>
         ru0311 ru0001 ru0150 ru0076 ru0107
