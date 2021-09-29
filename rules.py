@@ -1650,8 +1650,9 @@ class URIValidator(base.BaseRule):
     for platform in social_media_platform:
       if re.search(platform,
                    parsed_url.netloc) and parsed_url.scheme != "https":
-        raise loggers.ElectionInfo.from_message(
-            "protocol - it is recommended to use https instead of http")
+        msg = ("It is recommended to use https instead of http. The provided "
+               "URI, '{}'.").format(url)
+        raise loggers.ElectionInfo.from_message(msg, [element])
 
 
 class UniqueURIPerAnnotationCategory(base.TreeRule):
@@ -1948,6 +1949,51 @@ class ElectionEndDatesOccurAfterStartDates(base.DateRule):
       self.check_end_after_start()
       if self.error_log:
         raise loggers.ElectionError(self.error_log)
+
+
+class DateStatusMatches(base.DateRule):
+  """In most cases, ContestDateStatus should match ElectionDateStatus.
+
+  If all contests contained in an election have the same status, and this status
+  does not match the status on the election, it is probably incorrect - raise
+  warning.  Differing values among ContestDateStatus in an election are possible
+  but uncommon - raise Info level message.
+  """
+
+  def elements(self):
+    return ["Election"]
+
+  def check(self, election_elem):
+    election_date_status = "confirmed"  # default value
+    election_status_elem = election_elem.find("ElectionDateStatus")
+
+    if element_has_text(election_status_elem):
+      election_date_status = election_status_elem.text.strip()
+
+    contest_statuses = set()
+    for contest_elem in self.get_elements_by_class(election_elem, "Contest"):
+      contest_status_elem = contest_elem.find("ContestDateStatus")
+      if element_has_text(contest_status_elem):
+        contest_statuses.add(contest_status_elem.text.strip())
+      else:
+        contest_statuses.add("confirmed")
+
+    if len(contest_statuses) == 1:
+      contest_status = contest_statuses.pop()
+      if contest_status != election_date_status:
+        msg = (
+            "All contests on election {} have a date status of {}, but the "
+            "election has a date status of {}.".format(
+                election_elem.get("objectId"), contest_status,
+                election_date_status))
+        raise loggers.ElectionWarning.from_message(msg, [election_elem])
+    elif len(contest_statuses) > 1:
+      msg = (
+          "There are multiple date statuses present for the contests on "
+          "election {}.  This may be correct, but is an unusal case.  Please "
+          "confirm.".format(
+              election_elem.get("objectId")))
+      raise loggers.ElectionInfo.from_message(msg, [election_elem])
 
 
 class OfficeTermDates(base.DateRule):
@@ -2668,6 +2714,7 @@ ELECTION_RULES = COMMON_RULES + (
     ElectionStartDates,
     ElectionEndDatesInThePast,
     ElectionEndDatesOccurAfterStartDates,
+    DateStatusMatches,
     ContestHasMultipleOffices,
     GpUnitsHaveSingleRoot,
     MissingPartyAbbreviationTranslation,

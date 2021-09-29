@@ -4738,63 +4738,72 @@ class URIValidatorTest(absltest.TestCase):
     invalid_url = self.uri_element.format("http://www.facebook.com")
     with self.assertRaises(loggers.ElectionInfo) as ee:
       self.uri_validator.check(etree.fromstring(invalid_url))
-    self.assertIn("protocol - it is recommended to use https instead of http",
+    self.assertIn("It is recommended to use https instead of http. "
+                  "The provided URI, 'http://www.facebook.com'.",
                   ee.exception.log_entry[0].message)
 
   def testChecksForValidUriHttpWikiInvalid(self):
     invalid_url = self.uri_element.format("http://www.wikipedia.com")
     with self.assertRaises(loggers.ElectionInfo) as ee:
       self.uri_validator.check(etree.fromstring(invalid_url))
-    self.assertIn("protocol - it is recommended to use https instead of http",
+    self.assertIn("It is recommended to use https instead of http. "
+                  "The provided URI, 'http://www.wikipedia.com'.",
                   ee.exception.log_entry[0].message)
 
   def testChecksForValidUriHttpTwitInvalid(self):
     invalid_url = self.uri_element.format("http://www.twitter.com")
     with self.assertRaises(loggers.ElectionInfo) as ee:
       self.uri_validator.check(etree.fromstring(invalid_url))
-    self.assertIn("protocol - it is recommended to use https instead of http",
+    self.assertIn("It is recommended to use https instead of http. "
+                  "The provided URI, 'http://www.twitter.com'.",
                   ee.exception.log_entry[0].message)
 
   def testChecksForValidUriHttpInsInvalid(self):
     invalid_url = self.uri_element.format("http://www.instagram.com")
     with self.assertRaises(loggers.ElectionInfo) as ee:
       self.uri_validator.check(etree.fromstring(invalid_url))
-    self.assertIn("protocol - it is recommended to use https instead of http",
+    self.assertIn("It is recommended to use https instead of http. "
+                  "The provided URI, 'http://www.instagram.com'.",
                   ee.exception.log_entry[0].message)
 
   def testChecksForValidUriHttpYouInvalid(self):
     invalid_url = self.uri_element.format("http://www.youtube.com")
     with self.assertRaises(loggers.ElectionInfo) as ee:
       self.uri_validator.check(etree.fromstring(invalid_url))
-    self.assertIn("protocol - it is recommended to use https instead of http",
+    self.assertIn("It is recommended to use https instead of http. "
+                  "The provided URI, 'http://www.youtube.com'.",
                   ee.exception.log_entry[0].message)
 
   def testChecksForValidUriHttpWebInvalid(self):
     invalid_url = self.uri_element.format("http://www.website.com")
     with self.assertRaises(loggers.ElectionInfo) as ee:
       self.uri_validator.check(etree.fromstring(invalid_url))
-    self.assertIn("protocol - it is recommended to use https instead of http",
+    self.assertIn("It is recommended to use https instead of http. "
+                  "The provided URI, 'http://www.website.com'.",
                   ee.exception.log_entry[0].message)
 
   def testChecksForValidUriHttpLinInvalid(self):
     invalid_url = self.uri_element.format("http://www.linkedin.com")
     with self.assertRaises(loggers.ElectionInfo) as ee:
       self.uri_validator.check(etree.fromstring(invalid_url))
-    self.assertIn("protocol - it is recommended to use https instead of http",
+    self.assertIn("It is recommended to use https instead of http. "
+                  "The provided URI, 'http://www.linkedin.com'.",
                   ee.exception.log_entry[0].message)
 
   def testChecksForValidUriHttpLineInvalid(self):
     invalid_url = self.uri_element.format("http://www.line.com")
     with self.assertRaises(loggers.ElectionInfo) as ee:
       self.uri_validator.check(etree.fromstring(invalid_url))
-    self.assertIn("protocol - it is recommended to use https instead of http",
+    self.assertIn("It is recommended to use https instead of http. "
+                  "The provided URI, 'http://www.line.com'.",
                   ee.exception.log_entry[0].message)
 
   def testChecksForValidUriHttpBallInvalid(self):
     invalid_url = self.uri_element.format("http://www.ballotpedia.com")
     with self.assertRaises(loggers.ElectionInfo) as ee:
       self.uri_validator.check(etree.fromstring(invalid_url))
-    self.assertIn("protocol - it is recommended to use https instead of http",
+    self.assertIn("It is recommended to use https instead of http. "
+                  "The provided URI, 'http://www.ballotpedia.com'.",
                   ee.exception.log_entry[0].message)
 
 
@@ -6185,6 +6194,80 @@ class ElectionEndDatesOccurAfterStartDatesTest(absltest.TestCase):
       </Election>
     """
     self.date_validator.check(etree.fromstring(election_string))
+
+
+class DateStatusTest(absltest.TestCase):
+
+  def setUp(self):
+    super(DateStatusTest, self).setUp()
+    self.date_status_validator = rules.DateStatusMatches(None, None)
+    self.base_report = """
+      <Election objectId="el_1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        {}
+        <ElectionDateStatus>{}</ElectionDateStatus>
+      </Election>
+    """
+    self.contest_collection = """
+      <ContestCollection>
+        <Contest xsi:type="CandidateContest">
+          <ContestDateStatus>{}</ContestDateStatus>
+        </Contest>
+        <Contest>
+          <ContestDateStatus>{}</ContestDateStatus>
+        </Contest>
+      </ContestCollection>
+    """
+
+  def testChecksElectionElements(self):
+    self.assertEqual(["Election"], self.date_status_validator.elements())
+
+  def testElectionWithNoStatus(self):
+    self.date_status_validator.check(etree.fromstring(self.base_report))
+
+  def testElectionWithNoContests(self):
+    print(self.base_report.format("", "canceled"))
+    self.date_status_validator.check(
+        etree.fromstring(self.base_report.format("", "canceled")))
+
+  def testElectionWithMatchingContests(self):
+    contest_collection = self.contest_collection.format("canceled", "canceled")
+    election_report = self.base_report.format(contest_collection, "canceled")
+    self.date_status_validator.check(etree.fromstring(election_report))
+
+  def testHandlesMissingStatusAsConfirmed(self):
+    contest_collection = self.contest_collection.format("confirmed", "")
+    election_report = self.base_report.format(contest_collection, "confirmed")
+    self.date_status_validator.check(etree.fromstring(election_report))
+
+  def testPostponedElectionWithEmptyContestStatuses(self):
+    contest_collection = self.contest_collection.format("", "")
+    election_report = self.base_report.format(contest_collection, "postponed")
+    with self.assertRaises(loggers.ElectionWarning) as ew:
+      self.date_status_validator.check(etree.fromstring(election_report))
+    self.assertIn(
+        "All contests on election el_1 have a date status of confirmed, but "
+        "the election has a date status of postponed.",
+        ew.exception.log_entry[0].message)
+
+  def testConfirmedElectionWithCanceledContests(self):
+    contest_collection = self.contest_collection.format("canceled", "canceled")
+    election_report = self.base_report.format(contest_collection, "confirmed")
+    with self.assertRaises(loggers.ElectionWarning) as ew:
+      self.date_status_validator.check(etree.fromstring(election_report))
+    self.assertIn(
+        "All contests on election el_1 have a date status of canceled, but "
+        "the election has a date status of confirmed.",
+        ew.exception.log_entry[0].message)
+
+  def testContestsWithDifferentStatuses(self):
+    contest_collection = self.contest_collection.format("confirmed", "canceled")
+    election_report = self.base_report.format(contest_collection, "confirmed")
+    with self.assertRaises(loggers.ElectionInfo) as ei:
+      self.date_status_validator.check(etree.fromstring(election_report))
+    self.assertIn(
+        "There are multiple date statuses present for the contests on "
+        "election el_1.  This may be correct, but is an unusal case.  Please "
+        "confirm.", ei.exception.log_entry[0].message)
 
 
 class OfficeTermDatesTest(absltest.TestCase):
