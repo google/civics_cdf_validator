@@ -67,6 +67,15 @@
             <xs:enumeration value="other" />
         </xs:restriction>
     </xs:simpleType>
+    <xs:simpleType name="DateStatus">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="confirmed" />
+            <xs:enumeration value="canceled" />
+            <xs:enumeration value="postponed" />
+            <xs:enumeration value="changing" />
+            <xs:enumeration value="tentative" />
+        </xs:restriction>
+    </xs:simpleType>
     <xs:simpleType name="DayType">
         <xs:restriction base="xs:string">
             <xs:enumeration value="all" />
@@ -103,6 +112,13 @@
             <xs:enumeration value="runoff" />
             <xs:enumeration value="special" />
             <xs:enumeration value="other" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="ElectionDateType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="scheduled" />
+            <xs:enumeration value="snap" />
+            <xs:enumeration value="bounded" />
         </xs:restriction>
     </xs:simpleType>
     <xs:simpleType name="GeoSpatialFormat">
@@ -341,6 +357,7 @@
             <xs:element minOccurs="0" name="BallotSubTitle" type="InternationalizedText" />
             <xs:element minOccurs="0" name="BallotTitle" type="InternationalizedText" />
             <xs:element minOccurs="0" name="ComposingContestIds" type="xs:IDREFS" />
+            <xs:element minOccurs="0" name="ContestDateStatus" type="DateStatus"/>
             <xs:element maxOccurs="unbounded" minOccurs="0" name="CountStatus" type="CountStatus" />
             <xs:element name="ElectoralDistrictId" type="xs:IDREF" />
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
@@ -405,6 +422,8 @@
                 </xs:complexType>
             </xs:element>
             <xs:element maxOccurs="unbounded" minOccurs="0" name="CountStatus" type="CountStatus" />
+            <xs:element minOccurs="0" name="ElectionDateStatus" type="DateStatus"/>
+            <xs:element minOccurs="0" name="ElectionDateType" type="ElectionDateType"/>
             <xs:element name="ElectionScopeId" type="xs:IDREF" />
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
             <xs:element name="Name" type="InternationalizedText" />
