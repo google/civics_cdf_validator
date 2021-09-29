@@ -4738,63 +4738,72 @@ class URIValidatorTest(absltest.TestCase):
     invalid_url = self.uri_element.format("http://www.facebook.com")
     with self.assertRaises(loggers.ElectionInfo) as ee:
       self.uri_validator.check(etree.fromstring(invalid_url))
-    self.assertIn("protocol - it is recommended to use https instead of http",
+    self.assertIn("It is recommended to use https instead of http. "
+                  "The provided URI, 'http://www.facebook.com'.",
                   ee.exception.log_entry[0].message)
 
   def testChecksForValidUriHttpWikiInvalid(self):
     invalid_url = self.uri_element.format("http://www.wikipedia.com")
     with self.assertRaises(loggers.ElectionInfo) as ee:
       self.uri_validator.check(etree.fromstring(invalid_url))
-    self.assertIn("protocol - it is recommended to use https instead of http",
+    self.assertIn("It is recommended to use https instead of http. "
+                  "The provided URI, 'http://www.wikipedia.com'.",
                   ee.exception.log_entry[0].message)
 
   def testChecksForValidUriHttpTwitInvalid(self):
     invalid_url = self.uri_element.format("http://www.twitter.com")
     with self.assertRaises(loggers.ElectionInfo) as ee:
       self.uri_validator.check(etree.fromstring(invalid_url))
-    self.assertIn("protocol - it is recommended to use https instead of http",
+    self.assertIn("It is recommended to use https instead of http. "
+                  "The provided URI, 'http://www.twitter.com'.",
                   ee.exception.log_entry[0].message)
 
   def testChecksForValidUriHttpInsInvalid(self):
     invalid_url = self.uri_element.format("http://www.instagram.com")
     with self.assertRaises(loggers.ElectionInfo) as ee:
       self.uri_validator.check(etree.fromstring(invalid_url))
-    self.assertIn("protocol - it is recommended to use https instead of http",
+    self.assertIn("It is recommended to use https instead of http. "
+                  "The provided URI, 'http://www.instagram.com'.",
                   ee.exception.log_entry[0].message)
 
   def testChecksForValidUriHttpYouInvalid(self):
     invalid_url = self.uri_element.format("http://www.youtube.com")
     with self.assertRaises(loggers.ElectionInfo) as ee:
       self.uri_validator.check(etree.fromstring(invalid_url))
-    self.assertIn("protocol - it is recommended to use https instead of http",
+    self.assertIn("It is recommended to use https instead of http. "
+                  "The provided URI, 'http://www.youtube.com'.",
                   ee.exception.log_entry[0].message)
 
   def testChecksForValidUriHttpWebInvalid(self):
     invalid_url = self.uri_element.format("http://www.website.com")
     with self.assertRaises(loggers.ElectionInfo) as ee:
       self.uri_validator.check(etree.fromstring(invalid_url))
-    self.assertIn("protocol - it is recommended to use https instead of http",
+    self.assertIn("It is recommended to use https instead of http. "
+                  "The provided URI, 'http://www.website.com'.",
                   ee.exception.log_entry[0].message)
 
   def testChecksForValidUriHttpLinInvalid(self):
     invalid_url = self.uri_element.format("http://www.linkedin.com")
     with self.assertRaises(loggers.ElectionInfo) as ee:
       self.uri_validator.check(etree.fromstring(invalid_url))
-    self.assertIn("protocol - it is recommended to use https instead of http",
+    self.assertIn("It is recommended to use https instead of http. "
+                  "The provided URI, 'http://www.linkedin.com'.",
                   ee.exception.log_entry[0].message)
 
   def testChecksForValidUriHttpLineInvalid(self):
     invalid_url = self.uri_element.format("http://www.line.com")
     with self.assertRaises(loggers.ElectionInfo) as ee:
       self.uri_validator.check(etree.fromstring(invalid_url))
-    self.assertIn("protocol - it is recommended to use https instead of http",
+    self.assertIn("It is recommended to use https instead of http. "
+                  "The provided URI, 'http://www.line.com'.",
                   ee.exception.log_entry[0].message)
 
   def testChecksForValidUriHttpBallInvalid(self):
     invalid_url = self.uri_element.format("http://www.ballotpedia.com")
     with self.assertRaises(loggers.ElectionInfo) as ee:
       self.uri_validator.check(etree.fromstring(invalid_url))
-    self.assertIn("protocol - it is recommended to use https instead of http",
+    self.assertIn("It is recommended to use https instead of http. "
+                  "The provided URI, 'http://www.ballotpedia.com'.",
                   ee.exception.log_entry[0].message)
 
 

@@ -1650,8 +1650,9 @@ class URIValidator(base.BaseRule):
     for platform in social_media_platform:
       if re.search(platform,
                    parsed_url.netloc) and parsed_url.scheme != "https":
-        raise loggers.ElectionInfo.from_message(
-            "protocol - it is recommended to use https instead of http")
+        msg = ("It is recommended to use https instead of http. The provided "
+               "URI, '{}'.").format(url)
+        raise loggers.ElectionInfo.from_message(msg, [element])
 
 
 class UniqueURIPerAnnotationCategory(base.TreeRule):
