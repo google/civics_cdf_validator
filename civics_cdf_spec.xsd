@@ -357,7 +357,7 @@
             <xs:element minOccurs="0" name="BallotSubTitle" type="InternationalizedText" />
             <xs:element minOccurs="0" name="BallotTitle" type="InternationalizedText" />
             <xs:element minOccurs="0" name="ComposingContestIds" type="xs:IDREFS" />
-            <xs:element minOccurs="0" name="ContestDateStatus" type="DateStatus"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="ContestDateStatus" type="DateStatus"/>
             <xs:element maxOccurs="unbounded" minOccurs="0" name="CountStatus" type="CountStatus" />
             <xs:element name="ElectoralDistrictId" type="xs:IDREF" />
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
@@ -422,8 +422,8 @@
                 </xs:complexType>
             </xs:element>
             <xs:element maxOccurs="unbounded" minOccurs="0" name="CountStatus" type="CountStatus" />
-            <xs:element minOccurs="0" name="ElectionDateStatus" type="DateStatus"/>
-            <xs:element minOccurs="0" name="ElectionDateType" type="ElectionDateType"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="ElectionDateStatus" type="DateStatus"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="ElectionDateType" type="ElectionDateType"/>
             <xs:element name="ElectionScopeId" type="xs:IDREF" />
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
             <xs:element name="Name" type="InternationalizedText" />
@@ -432,6 +432,7 @@
             <xs:element name="Type" type="ElectionType" />
             <xs:element minOccurs="0" name="OtherType" type="xs:string" />
         </xs:sequence>
+        <xs:attribute name="objectId" type="xs:ID" />
     </xs:complexType>
     <xs:complexType name="ElectionAdministration">
         <xs:sequence>
