@@ -197,6 +197,7 @@
       <Name>
         <Text language="en">Libertarian</Text>
       </Name>
+      <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
     <Party objectId="par0004">
       <InternationalizedAbbreviation>
@@ -212,6 +213,7 @@
       <Name>
         <Text language="en">Independent</Text>
       </Name>
+      <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
   </PartyCollection>
   <PersonCollection>

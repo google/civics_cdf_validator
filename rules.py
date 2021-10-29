@@ -2319,6 +2319,9 @@ class MissingFieldsError(base.MissingFieldRule):
             "StartDate",
             "EndDate",
         ],
+        "Party": [
+            "PartyScopeGpUnitIds",
+        ],
     }
 
 

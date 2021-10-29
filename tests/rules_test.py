@@ -7666,6 +7666,24 @@ class MissingFieldsErrorTest(absltest.TestCase):
     self.assertEqual(ee.exception.log_entry[0].elements[0].get("objectId"),
                      "123")
 
+  def testReuiredFieldIsPresent_Party(self):
+    party = """
+      <Party objectId="par0">
+        <PartyScopeGpUnitIds>ru-gpu2</PartyScopeGpUnitIds>
+      </Party>
+    """
+    self.field_validator.check(etree.fromstring(party))
+
+  def testRaisesErrorForMissingField_Party(self):
+    party = """
+      <Party objectId="par0">
+      </Party>
+    """
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.field_validator.check(etree.fromstring(party))
+    self.assertEqual(ee.exception.log_entry[0].message,
+                     "The element Party is missing field PartyScopeGpUnitIds.")
+
   def testRequiredFieldIsPresent_Election(self):
     election = """
       <Election objectId="123">

@@ -581,6 +581,7 @@
       <Name>
         <Text language="en">Republican</Text>
       </Name>
+      <PartyScopeGpUnitIds>ru-united-states</PartyScopeGpUnitIds>
     </Party>
     <Party objectId="party2">
       <InternationalizedAbbreviation>
@@ -597,6 +598,7 @@
       <Name>
         <Text language="en">Democratic</Text>
       </Name>
+      <PartyScopeGpUnitIds>ru-united-states</PartyScopeGpUnitIds>
     </Party>
   </PartyCollection>
   <PersonCollection>

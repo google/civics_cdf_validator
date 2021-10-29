@@ -1486,6 +1486,7 @@
       <Name>
         <Text language="en">Republican</Text>
       </Name>
+      <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
     <Party objectId="par0002">
       <InternationalizedAbbreviation>
@@ -1502,6 +1503,7 @@
       <Name>
         <Text language="en">Libertarian</Text>
       </Name>
+      <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
     <Party objectId="par0003">
       <InternationalizedAbbreviation>
@@ -1518,6 +1520,7 @@
       <Name>
         <Text language="en">Democratic</Text>
       </Name>
+      <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
     <Party objectId="par0004">
       <InternationalizedAbbreviation>
@@ -1533,6 +1536,7 @@
       <Name>
         <Text language="en">Independent</Text>
       </Name>
+      <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
     <Party objectId="par0005">
       <InternationalizedAbbreviation>
@@ -1548,6 +1552,7 @@
       <Name>
         <Text language="en">Voter Nominated</Text>
       </Name>
+      <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
     <Party objectId="par0006">
       <InternationalizedAbbreviation>
@@ -1563,6 +1568,7 @@
       <Name>
         <Text language="en">Party Preference: None</Text>
       </Name>
+      <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
   </PartyCollection>
   <PersonCollection>
