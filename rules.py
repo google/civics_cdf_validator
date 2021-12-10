@@ -2031,6 +2031,57 @@ class OfficeTermDates(base.DateRule):
       raise loggers.ElectionError(self.error_log)
 
 
+class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
+  """Office elements should contain valid term dates.
+
+  Check if 60 days after the specified office term EndDate,
+  the associated Person and OfficeholderId may be removed from the feed.
+  However, if the Person is elected to another office,
+  they will be kept in the feed with the same stable ID.
+  """
+
+  def check(self):
+    info_log = []
+    persons = self.get_elements_by_class(self.election_tree,
+                                         "Person")
+    offices = self.get_elements_by_class(self.election_tree,
+                                         "Office")
+    person_office_dict = dict()
+    outdated_offices = []
+    for office in offices:
+      ohpid = office.find("OfficeHolderPersonIds").text
+      if ohpid in person_office_dict:
+        person_office_dict[ohpid].append(office.get("objectId"))
+      else:
+        person_office_dict[ohpid] = [office.get("objectId")]
+      term = office.find(".//Term")
+      if term is not None:
+        date_validator = base.DateRule(None, None)
+        try:
+          date_validator.gather_dates(term)
+          end_date_person = date_validator.end_date
+          today = date_validator.today
+          if end_date_person is not None:
+            limit_date = (today - end_date_person).days
+            if limit_date > 60:
+              outdated_offices.append(office.get("objectId"))
+        except loggers.ElectionError:
+          continue
+    for person in persons:
+      pid = person.get("objectId")
+      if person_office_dict.get(pid) is not None:
+        check_person_outdated = all(
+            item in outdated_offices for item in person_office_dict.get(pid))
+        if check_person_outdated:
+          info_message = (
+              "The officeholder mandates ended more than 60 days ago. "
+              "Therefore, you can remove the person and the related offices "
+              "from the feed.")
+          info_log.append(loggers.LogEntry(info_message, [person]))
+    if info_log:
+      raise loggers.ElectionInfo(info_log)
+
+
 class UniqueStartDatesForOfficeRoleAndJurisdiction(base.BaseRule):
   """Office StartDates should be unique within a certain group.
 
@@ -2742,6 +2793,7 @@ OFFICEHOLDER_RULES = COMMON_RULES + (
     ProhibitElectionData,
     OfficeTermDates,
     UniqueStartDatesForOfficeRoleAndJurisdiction,
+    RemovePersonAndOfficeHolderId60DaysAfterEndDate,
     OfficeMissingGovernmentBody,
 )
 

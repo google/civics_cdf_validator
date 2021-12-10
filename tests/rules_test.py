@@ -6153,6 +6153,101 @@ class OfficeTermDatesTest(absltest.TestCase):
     self.date_validator.check(etree.fromstring(office_string))
 
 
+class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
+
+  def setUp(self):
+    super(RemovePersonAndOfficeHolderId60DaysAfterEndDateTest, self).setUp()
+    self.base_string = """
+     <ElectionReport>
+      <OfficeCollection>
+        <Office objectId="off0">
+          <OfficeHolderPersonIds>{}</OfficeHolderPersonIds>
+          <Term>
+          <StartDate>{}</StartDate>
+          <EndDate>{}</EndDate>
+          </Term>
+        </Office>
+        <Office objectId="off1">
+          <OfficeHolderPersonIds>{}</OfficeHolderPersonIds>
+          <Term>
+            <StartDate>{}</StartDate>
+            <EndDate>{}</EndDate>
+          </Term>
+        </Office>
+        <Office objectId="off2">
+          <OfficeHolderPersonIds>{}</OfficeHolderPersonIds>
+          <Term>
+            <StartDate>{}</StartDate>
+            <EndDate>{}</EndDate>
+          </Term>
+        </Office>
+        <Office objectId="off3">
+          <OfficeHolderPersonIds>{}</OfficeHolderPersonIds>
+          <Term>
+            <StartDate>{}</StartDate>
+            <EndDate>{}</EndDate>
+          </Term>
+        </Office>
+      </OfficeCollection>
+      <PersonCollection>
+        <Person objectId="per0"></Person>
+        <Person objectId="per1"></Person>
+        <Person objectId="per2"></Person>
+      </PersonCollection>
+    </ElectionReport>
+    """
+
+  def testEndDateOfficeHolderRaiseInfo(self):
+    office_string = self.base_string.format("per0", "2019-01-02", "2021-01-20",
+                                            "per1", "2019-01-02", "",
+                                            "per0", "2019-09-02", "2021-02-20",
+                                            "per2", "2019-09-02", "")
+    with self.assertRaises(loggers.ElectionInfo) as ei:
+      election_tree = etree.ElementTree(etree.fromstring(office_string))
+      rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
+          election_tree, None).check()
+    self.assertEqual(
+        "The officeholder mandates ended more than 60 days ago. "
+        "Therefore, you can remove the person and the related offices "
+        "from the feed.",
+        ei.exception.log_entry[0].message)
+    self.assertEqual("per0",
+                     ei.exception.log_entry[0].elements[0].get("objectId"))
+
+  def testEndDateOfficeHolderRaiseInfoForMultiplePersons(self):
+    office_string = self.base_string.format("per0", "2019-01-02", "2021-01-20",
+                                            "per1", "2019-01-02", "2021-02-24",
+                                            "per0", "2019-09-02", "2021-02-20",
+                                            "per2", "2019-09-02", "")
+    with self.assertRaises(loggers.ElectionInfo) as ei:
+      election_tree = etree.ElementTree(etree.fromstring(office_string))
+      rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
+          election_tree, None).check()
+    self.assertEqual(
+        "The officeholder mandates ended more than 60 days ago. "
+        "Therefore, you can remove the person and the related offices "
+        "from the feed.",
+        ei.exception.log_entry[0].message)
+    self.assertEqual(
+        "The officeholder mandates ended more than 60 days ago. "
+        "Therefore, you can remove the person and the related offices "
+        "from the feed.",
+        ei.exception.log_entry[1].message)
+    self.assertEqual("per0",
+                     ei.exception.log_entry[0].elements[0].get("objectId"))
+    self.assertEqual("per1",
+                     ei.exception.log_entry[1].elements[0].get("objectId"))
+
+  def testEndDateOfficeHolderDoesNotRaiseInfo(self):
+    office_string = self.base_string.format("per0", "2019-01-31", "2023-04-16",
+                                            "per1", "2019-01-22", "2023-05-12",
+                                            "per0", "2019-09-02", "2020-03-20",
+                                            "per2", "2019-09-02", "")
+    election_tree = etree.ElementTree(etree.fromstring(office_string))
+    rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(election_tree,
+                                                          None).check()
+
+
 class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
 
   def setUp(self):
