@@ -141,6 +141,7 @@
       <Name>
         <Text language="en">Republican Party</Text>
       </Name>
+      <PartyScopeGpUnitIds>ru-gpu2</PartyScopeGpUnitIds>
     </Party>
     <Party objectId="par1">
       <InternationalizedAbbreviation>
@@ -165,6 +166,7 @@
       <Name>
         <Text language="en">Democratic Party</Text>
       </Name>
+      <PartyScopeGpUnitIds>ru-gpu2</PartyScopeGpUnitIds>
     </Party>
   </PartyCollection>
   <PersonCollection>
