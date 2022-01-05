@@ -1451,6 +1451,26 @@ class ValidEnumerations(base.BaseRule):
              "enumeration"% other_type_element.text), [element])
 
 
+class SelfDeclaredCandidateMethod(base.BaseRule):
+  """A self declared candidate cannot have an "electoral-commission" id.
+
+  Please update the candidate Pre election Status.
+  """
+
+  def elements(self):
+    return["Candidate"]
+
+  def check(self, element):
+    status = element.find("PreElectionStatus")
+    if status is not None and status.text == "self-declared":
+      externalidvalues = get_external_id_values(element, "electoral-commission")
+      length = len(externalidvalues)
+      if length > 0:
+        msg = ("A self declared candidate cannot have an electoral-commission"
+               " id. Please update the candidate Pre election Status.")
+        raise loggers.ElectionWarning.from_message(msg, [element])
+
+
 class ValidateOcdidLowerCase(base.BaseRule):
   """Validate that the ocd-ids are all lower case.
 
@@ -2767,6 +2787,7 @@ ELECTION_RULES = COMMON_RULES + (
     ProperBallotSelection,
     CandidatesReferencedInRelatedContests,
     VoteCountTypesCoherency,
+    SelfDeclaredCandidateMethod,
     PartiesHaveValidColors,
     ValidateDuplicateColors,
     ElectionStartDates,

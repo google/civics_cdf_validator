@@ -15,6 +15,7 @@
         </ExternalIdentifiers>
         <PartyId>par0004</PartyId>
         <PersonId>per12345</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
     </CandidateCollection>
     <ContestCollection>

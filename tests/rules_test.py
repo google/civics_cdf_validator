@@ -2742,6 +2742,95 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
     self.color_validator.check(element)
 
 
+class SelfDeclaredCandidateMethodTest(absltest.TestCase):
+
+  def setUp(self):
+    super(SelfDeclaredCandidateMethodTest, self).setUp()
+    self.selection_validator = rules.SelfDeclaredCandidateMethod(None, None)
+
+  def testValidCandidateMethod(self):
+    self_declared_method = """
+        <Candidate objectId="can-1001-kenyatta">
+          <BallotName>
+            <Text language="en">Uhuru Kenyatta</Text>
+            <Text language="sw">Uhuru Kenyatta</Text>
+          </BallotName>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>can-per-100</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+          <IsIncumbent>1</IsIncumbent>
+          <IsTopTicket>1</IsTopTicket>
+          <PartyId>par-jubilee</PartyId>
+          <PersonId>per-001-kenyatta</PersonId>
+          <PostElectionStatus>projected-winner</PostElectionStatus>
+          <PreElectionStatus>self-declared</PreElectionStatus>
+        </Candidate>
+    """
+    self.selection_validator.check(etree.fromstring(self_declared_method))
+
+  def testValidQualifiedCheckMethod(self):
+    self_declared_method = """
+        <Candidate objectId="can-1001-kenyatta">
+          <BallotName>
+            <Text language="en">Uhuru Kenyatta</Text>
+            <Text language="sw">Uhuru Kenyatta</Text>
+          </BallotName>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>electoral-commission</OtherType>
+              <Value>can-per-100</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+          <IsIncumbent>1</IsIncumbent>
+          <IsTopTicket>1</IsTopTicket>
+          <PartyId>par-jubilee</PartyId>
+          <PersonId>per-001-kenyatta</PersonId>
+          <PostElectionStatus>projected-winner</PostElectionStatus>
+          <PreElectionStatus>qualified</PreElectionStatus>
+        </Candidate>
+    """
+    self.selection_validator.check(etree.fromstring(self_declared_method))
+
+  def testInvalidCandidateMethod(self):
+    self_declared_method = """
+        <Candidate objectId="can-1001-kenyatta">
+          <BallotName>
+            <Text language="en">Uhuru Kenyatta</Text>
+            <Text language="sw">Uhuru Kenyatta</Text>
+          </BallotName>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>can-per-100</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>electoral-commission</OtherType>
+              <Value>H2NY22097</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+          <IsIncumbent>1</IsIncumbent>
+          <IsTopTicket>1</IsTopTicket>
+          <PartyId>par-jubilee</PartyId>
+          <PersonId>per-001-kenyatta</PersonId>
+          <PostElectionStatus>projected-winner</PostElectionStatus>
+          <PreElectionStatus>self-declared</PreElectionStatus>
+        </Candidate>
+    """
+    with self.assertRaises(loggers.ElectionWarning) as ew:
+      self.selection_validator.check(etree.fromstring(self_declared_method))
+    self.assertIn(
+        "A self declared candidate cannot have an electoral-commission id."
+        " Please update the candidate Pre election Status.",
+        str(ew.exception.log_entry[0].message))
+
+
 class DuplicatedPartyAbbreviationTest(absltest.TestCase):
 
   def setUp(self):
