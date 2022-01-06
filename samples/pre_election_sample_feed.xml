@@ -145,36 +145,6 @@
         <PersonId>per10967</PersonId>
         <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
-      <Candidate objectId="can10964">
-        <BallotName>
-          <Text language="en">Mark D. Obenshain</Text>
-        </BallotName>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-obenshain</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <PartyId>par0001</PartyId>
-        <PersonId>per10964</PersonId>
-        <PreElectionStatus>self-declared</PreElectionStatus>
-      </Candidate>
-      <Candidate objectId="can10965">
-        <BallotName>
-          <Text language="en">Mark R. Herring</Text>
-        </BallotName>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-herring</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <PartyId>par0003</PartyId>
-        <PersonId>per10965</PersonId>
-        <PreElectionStatus>self-declared</PreElectionStatus>
-      </Candidate>
       <Candidate objectId="can14444">
         <BallotName>
           <Text language="en">Cleo E. Powell</Text>
@@ -506,31 +476,6 @@
         <Name>Lieutenant Governor</Name>
         <NumberElected>1</NumberElected>
         <OfficeIds>off0001</OfficeIds>
-        <VotesAllowed>1</VotesAllowed>
-      </Contest>
-
-
-      <Contest objectId="cc20005" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs10964" xsi:type="CandidateSelection">
-          <CandidateIds>can10964</CandidateIds>
-        </BallotSelection>
-        <BallotSelection objectId="cs10965" xsi:type="CandidateSelection">
-          <CandidateIds>can10965</CandidateIds>
-        </BallotSelection>
-        <BallotTitle>
-          <Text language="en">Attorney General</Text>
-        </BallotTitle>
-        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-va3-country-us</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <Name>Attorney General</Name>
-        <NumberElected>1</NumberElected>
-        <OfficeIds>off20005</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
 
@@ -1133,39 +1078,6 @@
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">Lieutenant Governor</Text>
-      </Name>
-      <Term>
-        <Type>full-term</Type>
-      </Term>
-    </Office>
-    <Office objectId="off20005">
-      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
-      <ExternalIdentifiers>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>stable</OtherType>
-          <Value>stable-off20005</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>jurisdiction-id</OtherType>
-          <Value>ru0002</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>attorney general</Value>
-        </ExternalIdentifier>
-      </ExternalIdentifiers>
-      <FilingDeadline>2013-01-01</FilingDeadline>
-      <IsPartisan>true</IsPartisan>
-      <Name>
-        <Text language="en">Attorney General</Text>
       </Name>
       <Term>
         <Type>full-term</Type>
