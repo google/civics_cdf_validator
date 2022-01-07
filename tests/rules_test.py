@@ -1219,6 +1219,53 @@ class GpUnitOcdIdTest(absltest.TestCase):
       self.gp_unit_validator.check(report.find("GpUnit"))
 
 
+class BadCharactersInPersonFullNameTest(absltest.TestCase):
+
+  def setUp(self):
+    super(BadCharactersInPersonFullNameTest, self).setUp()
+    self.person_validator = rules.BadCharactersInPersonFullName(None, None)
+
+  def testPersonFullnameValid(self):
+    root_string = """
+       <Person>
+         <FullName>
+           <Text language="en">Richard J. Washburne</Text>
+         </FullName>
+       </Person>
+    """
+    element = etree.fromstring(root_string)
+    self.person_validator.check(element)
+
+  def testPersonFullnameInValidSpecialCharacters(self):
+    root_string = """
+        <Person>
+          <FullName>
+            <Text language="en">Richard J@ Washburne</Text>
+          </FullName>
+        </Person>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.person_validator.check(element)
+    self.assertEqual(cm.exception.log_entry[0].message,
+                     "Person has known bad characters in FullName field.")
+
+  def testPersonFullnameInValidAlias(self):
+    root_string = """
+        <Person>
+          <FullName>
+            <Text language="en">Richard J Alias Washburne</Text>
+          </FullName>
+        </Person>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.person_validator.check(element)
+    self.assertEqual(cm.exception.log_entry[0].message,
+                     "Person has known bad characters in FullName field."
+                     " Aliases should be included in Nickname field.")
+
+
 class DuplicateGpUnitsTest(absltest.TestCase):
 
   def setUp(self):
