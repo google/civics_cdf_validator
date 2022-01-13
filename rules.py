@@ -16,6 +16,7 @@
 from __future__ import print_function
 
 import collections
+import datetime
 import enum
 import hashlib
 import re
@@ -2099,16 +2100,18 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
       term = office.find(".//Term")
       if term is not None:
         date_validator = base.DateRule(None, None)
-        try:
-          date_validator.gather_dates(term)
-          end_date_person = date_validator.end_date
-          today = date_validator.today
-          if end_date_person is not None:
-            limit_date = (today - end_date_person).days
-            if limit_date > 60:
-              outdated_offices.append(office.get("objectId"))
-        except loggers.ElectionError:
-          continue
+        limit_check = 0
+        date_validator.gather_dates(term)
+        end_date_person = date_validator.end_date
+        if end_date_person is not None:
+          sixty_days_earlier = datetime.datetime.now() + datetime.timedelta(
+              days=-60)
+          partial_date_sixty_days = base.PartialDate(sixty_days_earlier.year,
+                                                     sixty_days_earlier.month,
+                                                     sixty_days_earlier.day)
+          limit_check = partial_date_sixty_days.is_older_than(end_date_person)
+          if limit_check < 0:
+            outdated_offices.append(office.get("objectId"))
     for person in persons:
       pid = person.get("objectId")
       if person_office_dict.get(pid) is not None:
@@ -2597,9 +2600,9 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
       # Check that the subsequent contest has a later end date
       if (contest_end_dates[subsequent_contest_id] is not None and
           contest_end_dates[contest_id] is not None):
-        end_delta = (contest_end_dates[subsequent_contest_id] -
-                     contest_end_dates[contest_id]).days
-        if end_delta < 0:
+        end_delta = base.PartialDate.is_older_than(contest_end_dates[
+            subsequent_contest_id], contest_end_dates[contest_id])
+        if end_delta > 0:
           error_log.append(
               loggers.LogEntry(
                   "Contest %s references a subsequent contest with an earlier "

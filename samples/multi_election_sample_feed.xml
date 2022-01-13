@@ -66,8 +66,8 @@
       <Name>
         <Text language="en">2020 Democratic Party Primary - Super Tuesday</Text>
       </Name>
-      <StartDate>2020-03-03</StartDate>
-      <EndDate>2020-03-03</EndDate>
+      <StartDate>2020-03</StartDate>
+      <EndDate>2020-03</EndDate>
       <Type>partisan-primary-open</Type>
   </Election>
   <Election>
