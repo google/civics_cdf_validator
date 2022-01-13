@@ -1219,6 +1219,53 @@ class GpUnitOcdIdTest(absltest.TestCase):
       self.gp_unit_validator.check(report.find("GpUnit"))
 
 
+class BadCharactersInPersonFullNameTest(absltest.TestCase):
+
+  def setUp(self):
+    super(BadCharactersInPersonFullNameTest, self).setUp()
+    self.person_validator = rules.BadCharactersInPersonFullName(None, None)
+
+  def testPersonFullnameValid(self):
+    root_string = """
+       <Person>
+         <FullName>
+           <Text language="en">Richard J. Washburne</Text>
+         </FullName>
+       </Person>
+    """
+    element = etree.fromstring(root_string)
+    self.person_validator.check(element)
+
+  def testPersonFullnameInValidSpecialCharacters(self):
+    root_string = """
+        <Person>
+          <FullName>
+            <Text language="en">Richard J@ Washburne</Text>
+          </FullName>
+        </Person>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.person_validator.check(element)
+    self.assertEqual(cm.exception.log_entry[0].message,
+                     "Person has known bad characters in FullName field.")
+
+  def testPersonFullnameInValidAlias(self):
+    root_string = """
+        <Person>
+          <FullName>
+            <Text language="en">Richard J Alias Washburne</Text>
+          </FullName>
+        </Person>
+    """
+    element = etree.fromstring(root_string)
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.person_validator.check(element)
+    self.assertEqual(cm.exception.log_entry[0].message,
+                     "Person has known bad characters in FullName field."
+                     " Aliases should be included in Nickname field.")
+
+
 class DuplicateGpUnitsTest(absltest.TestCase):
 
   def setUp(self):
@@ -2740,6 +2787,95 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
         self._color_str.format("008000"))
     element = etree.fromstring(root_string)
     self.color_validator.check(element)
+
+
+class SelfDeclaredCandidateMethodTest(absltest.TestCase):
+
+  def setUp(self):
+    super(SelfDeclaredCandidateMethodTest, self).setUp()
+    self.selection_validator = rules.SelfDeclaredCandidateMethod(None, None)
+
+  def testValidCandidateMethod(self):
+    self_declared_method = """
+        <Candidate objectId="can-1001-kenyatta">
+          <BallotName>
+            <Text language="en">Uhuru Kenyatta</Text>
+            <Text language="sw">Uhuru Kenyatta</Text>
+          </BallotName>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>can-per-100</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+          <IsIncumbent>1</IsIncumbent>
+          <IsTopTicket>1</IsTopTicket>
+          <PartyId>par-jubilee</PartyId>
+          <PersonId>per-001-kenyatta</PersonId>
+          <PostElectionStatus>projected-winner</PostElectionStatus>
+          <PreElectionStatus>self-declared</PreElectionStatus>
+        </Candidate>
+    """
+    self.selection_validator.check(etree.fromstring(self_declared_method))
+
+  def testValidQualifiedCheckMethod(self):
+    self_declared_method = """
+        <Candidate objectId="can-1001-kenyatta">
+          <BallotName>
+            <Text language="en">Uhuru Kenyatta</Text>
+            <Text language="sw">Uhuru Kenyatta</Text>
+          </BallotName>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>electoral-commission</OtherType>
+              <Value>can-per-100</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+          <IsIncumbent>1</IsIncumbent>
+          <IsTopTicket>1</IsTopTicket>
+          <PartyId>par-jubilee</PartyId>
+          <PersonId>per-001-kenyatta</PersonId>
+          <PostElectionStatus>projected-winner</PostElectionStatus>
+          <PreElectionStatus>qualified</PreElectionStatus>
+        </Candidate>
+    """
+    self.selection_validator.check(etree.fromstring(self_declared_method))
+
+  def testInvalidCandidateMethod(self):
+    self_declared_method = """
+        <Candidate objectId="can-1001-kenyatta">
+          <BallotName>
+            <Text language="en">Uhuru Kenyatta</Text>
+            <Text language="sw">Uhuru Kenyatta</Text>
+          </BallotName>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>can-per-100</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>electoral-commission</OtherType>
+              <Value>H2NY22097</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+          <IsIncumbent>1</IsIncumbent>
+          <IsTopTicket>1</IsTopTicket>
+          <PartyId>par-jubilee</PartyId>
+          <PersonId>per-001-kenyatta</PersonId>
+          <PostElectionStatus>projected-winner</PostElectionStatus>
+          <PreElectionStatus>self-declared</PreElectionStatus>
+        </Candidate>
+    """
+    with self.assertRaises(loggers.ElectionWarning) as ew:
+      self.selection_validator.check(etree.fromstring(self_declared_method))
+    self.assertIn(
+        "A self declared candidate cannot have an electoral-commission id."
+        " Please update the candidate Pre election Status.",
+        str(ew.exception.log_entry[0].message))
 
 
 class DuplicatedPartyAbbreviationTest(absltest.TestCase):

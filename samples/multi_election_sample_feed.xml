@@ -66,8 +66,8 @@
       <Name>
         <Text language="en">2020 Democratic Party Primary - Super Tuesday</Text>
       </Name>
-      <StartDate>2020-03-03</StartDate>
-      <EndDate>2020-03-03</EndDate>
+      <StartDate>2020-03</StartDate>
+      <EndDate>2020-03</EndDate>
       <Type>partisan-primary-open</Type>
   </Election>
   <Election>
@@ -208,6 +208,7 @@
         </ExternalIdentifiers>
         <PartyId>party1</PartyId>
         <PersonId>person11</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
       <Candidate objectId="candidate12">
         <BallotName>
@@ -222,6 +223,7 @@
         </ExternalIdentifiers>
         <PartyId>party1</PartyId>
         <PersonId>person12</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
       <Candidate objectId="candidate13">
         <BallotName>
@@ -236,6 +238,7 @@
         </ExternalIdentifiers>
         <PartyId>party1</PartyId>
         <PersonId>person13</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
       <Candidate objectId="candidate21">
         <BallotName>
@@ -250,6 +253,7 @@
         </ExternalIdentifiers>
         <PartyId>party2</PartyId>
         <PersonId>person21</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
       <Candidate objectId="candidate22">
         <BallotName>
@@ -264,6 +268,7 @@
         </ExternalIdentifiers>
         <PartyId>party2</PartyId>
         <PersonId>person22</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
       <Candidate objectId="candidate23">
         <BallotName>
@@ -278,6 +283,7 @@
         </ExternalIdentifiers>
         <PartyId>party2</PartyId>
         <PersonId>person23</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
       <Candidate objectId="candidate24">
         <BallotName>
@@ -286,12 +292,13 @@
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
-            <OtherType>stable</OtherType>
+             <OtherType>stable</OtherType>
             <Value>candidate24</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <PartyId>party2</PartyId>
         <PersonId>person24</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
     </CandidateCollection>
     <ContestCollection>

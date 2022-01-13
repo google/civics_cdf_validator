@@ -16,6 +16,7 @@
 from __future__ import print_function
 
 import collections
+import datetime
 import enum
 import hashlib
 import re
@@ -74,6 +75,19 @@ def get_additional_type_values(element, value_type, return_elements=False):
         if val is not None and val.text and val.text.strip()
     ]
   return elements
+
+
+def extract_person_fullname(person):
+  """Extracts the person's fullname or builds it if needed."""
+  full_name_elt = person.find("FullName")
+  if full_name_elt is None:
+    return []
+  full_name_list = set()
+  for name in full_name_elt.findall("Text"):
+    if name.text:
+      full_name_list.add(name.text)
+      return full_name_list
+  return []
 
 
 def get_entity_info_for_value_type(element, info_type, return_elements=False):
@@ -1020,19 +1034,6 @@ class PersonHasUniqueFullName(base.BaseRule):
   def elements(self):
     return ["PersonCollection"]
 
-  def extract_person_fullname(self, person):
-    """Extracts the person's fullname or builds it if needed."""
-    full_name_elt = person.find("FullName")
-    if full_name_elt is not None:
-      names = full_name_elt.findall("Text")
-      if names:
-        full_name_list = set()
-        for name in names:
-          if name.text:
-            full_name_list.add(name.text)
-        return full_name_list
-    return []
-
   def check_specific(self, people):
     person_def = collections.namedtuple("PersonDefinition",
                                         ["fullname", "birthday"])
@@ -1041,7 +1042,7 @@ class PersonHasUniqueFullName(base.BaseRule):
     info_log = []
     for person in people:
       person_object_id = person.get("objectId")
-      full_name_list = self.extract_person_fullname(person)
+      full_name_list = extract_person_fullname(person)
       date_of_birthday = person.find("DateOfBirth")
       birthday_val = "Undefined"
       if date_of_birthday is not None and date_of_birthday.text:
@@ -1069,6 +1070,28 @@ class PersonHasUniqueFullName(base.BaseRule):
     info_log.extend(self.check_specific(people))
     if info_log:
       raise loggers.ElectionInfo(info_log)
+
+
+class BadCharactersInPersonFullName(base.BaseRule):
+  """A person Fullname should not include bad characters."""
+
+  regex = r"([()@$%*/]|alias)"
+
+  def elements(self):
+    return ["Person"]
+
+  def check(self, element):
+    warning_message = ("Person has known bad characters in FullName field."
+                       " Aliases should be included in Nickname field.")
+    fullname = extract_person_fullname(element)
+    person_fullname = re.compile(self.regex, flags=re.U)
+    for name in fullname:
+      if re.search(person_fullname, name.lower()):
+        if "alias" in name.lower():
+          raise loggers.ElectionWarning.from_message(warning_message, [element])
+        else:
+          raise loggers.ElectionWarning.from_message(
+              "Person has known bad characters in FullName field.", [element])
 
 
 class ValidatePartyCollection(base.BaseRule):
@@ -1449,6 +1472,26 @@ class ValidEnumerations(base.BaseRule):
         raise loggers.ElectionError.from_message(
             ("Type is set to 'other' even though '%s' is a valid "
              "enumeration"% other_type_element.text), [element])
+
+
+class SelfDeclaredCandidateMethod(base.BaseRule):
+  """A self declared candidate cannot have an "electoral-commission" id.
+
+  Please update the candidate Pre election Status.
+  """
+
+  def elements(self):
+    return["Candidate"]
+
+  def check(self, element):
+    status = element.find("PreElectionStatus")
+    if status is not None and status.text == "self-declared":
+      externalidvalues = get_external_id_values(element, "electoral-commission")
+      length = len(externalidvalues)
+      if length > 0:
+        msg = ("A self declared candidate cannot have an electoral-commission"
+               " id. Please update the candidate Pre election Status.")
+        raise loggers.ElectionWarning.from_message(msg, [element])
 
 
 class ValidateOcdidLowerCase(base.BaseRule):
@@ -2057,16 +2100,18 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
       term = office.find(".//Term")
       if term is not None:
         date_validator = base.DateRule(None, None)
-        try:
-          date_validator.gather_dates(term)
-          end_date_person = date_validator.end_date
-          today = date_validator.today
-          if end_date_person is not None:
-            limit_date = (today - end_date_person).days
-            if limit_date > 60:
-              outdated_offices.append(office.get("objectId"))
-        except loggers.ElectionError:
-          continue
+        limit_check = 0
+        date_validator.gather_dates(term)
+        end_date_person = date_validator.end_date
+        if end_date_person is not None:
+          sixty_days_earlier = datetime.datetime.now() + datetime.timedelta(
+              days=-60)
+          partial_date_sixty_days = base.PartialDate(sixty_days_earlier.year,
+                                                     sixty_days_earlier.month,
+                                                     sixty_days_earlier.day)
+          limit_check = partial_date_sixty_days.is_older_than(end_date_person)
+          if limit_check < 0:
+            outdated_offices.append(office.get("objectId"))
     for person in persons:
       pid = person.get("objectId")
       if person_office_dict.get(pid) is not None:
@@ -2555,9 +2600,9 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
       # Check that the subsequent contest has a later end date
       if (contest_end_dates[subsequent_contest_id] is not None and
           contest_end_dates[contest_id] is not None):
-        end_delta = (contest_end_dates[subsequent_contest_id] -
-                     contest_end_dates[contest_id]).days
-        if end_delta < 0:
+        end_delta = base.PartialDate.is_older_than(contest_end_dates[
+            subsequent_contest_id], contest_end_dates[contest_id])
+        if end_delta > 0:
           error_log.append(
               loggers.LogEntry(
                   "Contest %s references a subsequent contest with an earlier "
@@ -2727,6 +2772,7 @@ COMMON_RULES = (
     GpUnitOcdId,
     HungarianStyleNotation,
     LanguageCode,
+    BadCharactersInPersonFullName,
     MissingStableIds,
     OtherType,
     OptionalAndEmpty,
@@ -2767,6 +2813,7 @@ ELECTION_RULES = COMMON_RULES + (
     ProperBallotSelection,
     CandidatesReferencedInRelatedContests,
     VoteCountTypesCoherency,
+    SelfDeclaredCandidateMethod,
     PartiesHaveValidColors,
     ValidateDuplicateColors,
     ElectionStartDates,

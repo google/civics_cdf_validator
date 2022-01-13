@@ -287,7 +287,7 @@
             <xs:element name="BallotName" type="InternationalizedText" />
             <xs:element minOccurs="0" name="CampaignSlogan" type="InternationalizedText" />
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
-            <xs:element minOccurs="0" name="FileDate" type="xs:date" />
+            <xs:element minOccurs="0" name="FileDate" type="PartialDate" />
             <xs:element minOccurs="0" name="IsIncumbent" type="xs:boolean" />
             <xs:element minOccurs="0" name="IsTopTicket" type="xs:boolean" />
             <xs:element minOccurs="0" name="PartyId" type="xs:IDREF" />
@@ -430,8 +430,8 @@
             <xs:element name="ElectionScopeId" type="xs:IDREF" />
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
             <xs:element name="Name" type="InternationalizedText" />
-            <xs:element name="StartDate" type="xs:date" />
-            <xs:element name="EndDate" type="xs:date" />
+            <xs:element name="StartDate" type="PartialDate" />
+            <xs:element name="EndDate" type="PartialDate" />
             <xs:element name="Type" type="ElectionType" />
             <xs:element minOccurs="0" name="OtherType" type="xs:string" />
         </xs:sequence>
@@ -543,7 +543,7 @@
             <xs:element minOccurs="0" name="ContactInformation" type="ContactInformation" />
             <xs:element minOccurs="0" name="ElectoralDistrictId" type="xs:IDREF" />
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
-            <xs:element minOccurs="0" name="FilingDeadline" type="xs:date" />
+            <xs:element minOccurs="0" name="FilingDeadline" type="PartialDate" />
             <xs:element minOccurs="0" name="IsPartisan" type="xs:boolean" />
             <xs:element name="Name" type="InternationalizedText" />
             <xs:element minOccurs="0" name="OfficeHolderPersonIds" type="xs:IDREFS" />
@@ -551,8 +551,8 @@
             <xs:element minOccurs="0" name="Term">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="StartDate" type="xs:date" />
-                        <xs:element minOccurs="0" name="EndDate" type="xs:date" />
+                        <xs:element minOccurs="0" name="StartDate" type="PartialDate" />
+                        <xs:element minOccurs="0" name="EndDate" type="PartialDate" />
                         <xs:element minOccurs="0" name="Type" type="OfficeTermType" />
                     </xs:sequence>
                     <xs:attribute name="label" type="xs:string" />
@@ -615,7 +615,7 @@
     <xs:complexType name="Person">
         <xs:sequence>
             <xs:element maxOccurs="unbounded" minOccurs="0" name="ContactInformation" type="ContactInformation" />
-            <xs:element minOccurs="0" name="DateOfBirth" type="xs:date" />
+            <xs:element minOccurs="0" name="DateOfBirth" type="PartialDate" />
 	    <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
             <xs:element minOccurs="0" name="FirstName" type="xs:string" />
             <xs:element minOccurs="0" name="FullName" type="InternationalizedText" />
@@ -680,8 +680,8 @@
             <xs:element minOccurs="0" name="IsOnlyByAppointment" type="xs:boolean" />
             <xs:element minOccurs="0" name="IsOrByAppointment" type="xs:boolean" />
             <xs:element minOccurs="0" name="IsSubjectToChange" type="xs:boolean" />
-            <xs:element minOccurs="0" name="StartDate" type="xs:date" />
-            <xs:element minOccurs="0" name="EndDate" type="xs:date" />
+            <xs:element minOccurs="0" name="StartDate" type="PartialDate" />
+            <xs:element minOccurs="0" name="EndDate" type="PartialDate" />
         </xs:sequence>
         <xs:attribute name="label" type="xs:string" />
     </xs:complexType>
