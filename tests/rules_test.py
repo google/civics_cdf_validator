@@ -9,6 +9,7 @@ import io
 from absl.testing import absltest
 import anytree
 from civics_cdf_validator import base
+from civics_cdf_validator import date
 from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator import rules
@@ -8314,7 +8315,7 @@ class RulesTest(absltest.TestCase):
     possible_rules.remove(base.TreeRule)
     possible_rules.remove(base.ValidReferenceRule)
     possible_rules.remove(rules.ValidatePartyCollection)
-    possible_rules.remove(base.DateRule)
+    possible_rules.remove(date.DateRule)
     possible_rules.remove(base.MissingFieldRule)
     self.assertSetEqual(all_rules, possible_rules)
 

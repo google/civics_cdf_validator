@@ -23,6 +23,7 @@ import re
 import anytree
 
 from civics_cdf_validator import base
+from civics_cdf_validator import date
 from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator import office_utils
@@ -1938,7 +1939,7 @@ class OfficesHaveValidOfficeRole(base.BaseRule):
           [element])
 
 
-class ElectionStartDates(base.DateRule):
+class ElectionStartDates(date.DateRule):
   """Election elements should contain valid start dates.
 
   Start dates in the past should raise a warning. This is not an error
@@ -1959,7 +1960,7 @@ class ElectionStartDates(base.DateRule):
       raise loggers.ElectionWarning(self.error_log)
 
 
-class ElectionEndDatesInThePast(base.DateRule):
+class ElectionEndDatesInThePast(date.DateRule):
   """Election elements would be in the present or in the future.
 
   Using a past end date needs to be notified. The warning is useful to prevent
@@ -1979,7 +1980,7 @@ class ElectionEndDatesInThePast(base.DateRule):
         raise loggers.ElectionWarning(self.error_log)
 
 
-class ElectionEndDatesOccurAfterStartDates(base.DateRule):
+class ElectionEndDatesOccurAfterStartDates(date.DateRule):
   """Election elements should contain a coherent start and end dates.
 
   End dates should not occur before the start date.
@@ -1998,7 +1999,7 @@ class ElectionEndDatesOccurAfterStartDates(base.DateRule):
         raise loggers.ElectionError(self.error_log)
 
 
-class DateStatusMatches(base.DateRule):
+class DateStatusMatches(date.DateRule):
   """In most cases, ContestDateStatus should match ElectionDateStatus.
 
   If all contests contained in an election have the same status, and this status
@@ -2043,7 +2044,7 @@ class DateStatusMatches(base.DateRule):
       raise loggers.ElectionInfo.from_message(msg, [election_elem])
 
 
-class OfficeTermDates(base.DateRule):
+class OfficeTermDates(date.DateRule):
   """Office elements should contain valid term dates.
 
   Offices with OfficeHolderPersonIds should have a Term declared. Given
@@ -2099,14 +2100,14 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
         person_office_dict[ohpid] = [office.get("objectId")]
       term = office.find(".//Term")
       if term is not None:
-        date_validator = base.DateRule(None, None)
+        date_validator = date.DateRule(None, None)
         limit_check = 0
         date_validator.gather_dates(term)
         end_date_person = date_validator.end_date
         if end_date_person is not None:
           sixty_days_earlier = datetime.datetime.now() + datetime.timedelta(
               days=-60)
-          partial_date_sixty_days = base.PartialDate(sixty_days_earlier.year,
+          partial_date_sixty_days = date.PartialDate(sixty_days_earlier.year,
                                                      sixty_days_earlier.month,
                                                      sixty_days_earlier.day)
           limit_check = partial_date_sixty_days.is_older_than(end_date_person)
@@ -2127,7 +2128,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
       raise loggers.ElectionInfo(info_log)
 
 
-class UniqueStartDatesForOfficeRoleAndJurisdiction(base.BaseRule):
+class UniqueStartDatesForOfficeRoleAndJurisdiction(date.DateRule):
   """Office StartDates should be unique within a certain group.
 
   Office StartDates should be unique amongst a group of Office entries
@@ -2142,7 +2143,7 @@ class UniqueStartDatesForOfficeRoleAndJurisdiction(base.BaseRule):
     for office in offices:
       term = office.find(".//Term")
       if term is not None:
-        date_validator = base.DateRule(None, None)
+        date_validator = date.DateRule(None, None)
         try:
           date_validator.gather_dates(term)
           if date_validator.end_date is not None:
@@ -2556,7 +2557,7 @@ class MissingOfficeSelectionMethod(base.BaseRule):
       raise loggers.ElectionInfo.from_message(msg, [element])
 
 
-class SubsequentContestIdIsValidRelatedContest(base.DateRule):
+class SubsequentContestIdIsValidRelatedContest(date.DateRule):
   """Check that SubsequentContests are valid.
 
   Conditions for a valid SubsequentContest:
@@ -2600,7 +2601,7 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
       # Check that the subsequent contest has a later end date
       if (contest_end_dates[subsequent_contest_id] is not None and
           contest_end_dates[contest_id] is not None):
-        end_delta = base.PartialDate.is_older_than(contest_end_dates[
+        end_delta = date.PartialDate.is_older_than(contest_end_dates[
             subsequent_contest_id], contest_end_dates[contest_id])
         if end_delta > 0:
           error_log.append(
