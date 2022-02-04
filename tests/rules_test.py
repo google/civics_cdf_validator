@@ -1848,26 +1848,6 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
   def testChecksElectinReport(self):
     self.assertEqual(["ElectionReport"], self.cand_validator.elements())
 
-  # _find_contest_node_by_object_id tests
-  def testReturnsTreeNodeForGivenContestId(self):
-    self.cand_validator.contest_tree_nodes = [
-        anytree.AnyNode(id="con001"),
-        anytree.AnyNode(id="con002"),
-        anytree.AnyNode(id="con003"),
-    ]
-    expected_node = self.cand_validator.contest_tree_nodes[1]
-    actual_node = self.cand_validator._find_contest_node_by_object_id("con002")
-    self.assertEqual(expected_node, actual_node)
-
-  def testReturnsNoneIfGivenIdDoesNotExist(self):
-    self.cand_validator.contest_tree_nodes = [
-        anytree.AnyNode(id="con001"),
-        anytree.AnyNode(id="con002"),
-        anytree.AnyNode(id="con003"),
-    ]
-    result = self.cand_validator._find_contest_node_by_object_id("con004")
-    self.assertIsNone(result)
-
   # _register_person_to_candidate_to_contests tests
   def testReturnsMapOfPersonsToCandidatesToContests(self):
     election_report = """
@@ -1969,7 +1949,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
 
     for node in expected_contest_nodes:
       found_node = False
-      for validator_node in self.cand_validator.contest_tree_nodes:
+      for validator_node in self.cand_validator.contest_tree_nodes.values():
         if (node.id == validator_node.id and
             node.relatives == validator_node.relatives):
           found_node = True
@@ -1993,14 +1973,14 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     # assert each contest has a node created for it
     for con_id in ["con001", "con002", "con003"]:
       found_node = False
-      for validator_node in self.cand_validator.contest_tree_nodes:
+      for validator_node in self.cand_validator.contest_tree_nodes.values():
         if con_id == validator_node.id:
           found_node = True
       if not found_node:
         self.fail(("No matching node found for id: {}").format(con_id))
 
     # assert parent child relationships were created
-    for node in self.cand_validator.contest_tree_nodes:
+    for node in self.cand_validator.contest_tree_nodes.values():
       if node.id == "con001":
         self.assertEqual("con002", node.children[0].id)
         self.assertEqual("con003", node.children[1].id)
@@ -2037,14 +2017,14 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
         "con006",
     ]:
       found_node = False
-      for validator_node in self.cand_validator.contest_tree_nodes:
+      for validator_node in self.cand_validator.contest_tree_nodes.values():
         if con_id == validator_node.id:
           found_node = True
       if not found_node:
         self.fail(("No matching node found for id: {}").format(con_id))
 
     # assert parent child relationships were created
-    for node in self.cand_validator.contest_tree_nodes:
+    for node in self.cand_validator.contest_tree_nodes.values():
       if node.id == "con001":
         self.assertEqual("con002", node.children[0].id)
         self.assertEqual("con003", node.children[1].id)
@@ -2058,7 +2038,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
 
     # assert roots are connected for subsequent relationships
     tree_roots = set()
-    for node in self.cand_validator.contest_tree_nodes:
+    for node in self.cand_validator.contest_tree_nodes.values():
       tree_roots.add(node.root)
     tree_roots_list = list(tree_roots)
 
@@ -2132,11 +2112,11 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     node_three = anytree.AnyNode(id="con003", relatives=set())
     node_two.parent = node_one
     node_three.parent = node_one
-    self.cand_validator.contest_tree_nodes = [
-        node_one,
-        node_two,
-        node_three,
-    ]
+    self.cand_validator.contest_tree_nodes = {
+        "con001": node_one,
+        "con002": node_two,
+        "con003": node_three,
+    }
 
     contest_id_list = ["con001", "con002", "con003"]
     are_related = self.cand_validator._check_candidate_contests_are_related(
@@ -2148,11 +2128,11 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     node_two = anytree.AnyNode(id="con002", relatives=set())
     node_three = anytree.AnyNode(id="con003", relatives=set())
     node_two.parent = node_one
-    self.cand_validator.contest_tree_nodes = [
-        node_one,
-        node_two,
-        node_three,
-    ]
+    self.cand_validator.contest_tree_nodes = {
+        "con001": node_one,
+        "con002": node_two,
+        "con003": node_three,
+    }
 
     contest_id_list = ["con001", "con002", "con003"]
     are_related = self.cand_validator._check_candidate_contests_are_related(
@@ -2172,9 +2152,12 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     node_one.relatives.add(node_three)
     node_three.relatives.add(node_one)
 
-    self.cand_validator.contest_tree_nodes = [
-        node_one, node_two, node_three, node_four
-    ]
+    self.cand_validator.contest_tree_nodes = {
+        "con001": node_one,
+        "con002": node_two,
+        "con003": node_three,
+        "con004": node_four
+    }
 
     contest_id_list = ["con001", "con002", "con003", "con004"]
     are_related = self.cand_validator._check_candidate_contests_are_related(
@@ -2194,9 +2177,12 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     node_two.parent = node_one
     node_four.parent = node_three
 
-    self.cand_validator.contest_tree_nodes = [
-        node_one, node_two, node_three, node_four
-    ]
+    self.cand_validator.contest_tree_nodes = {
+        "con001": node_one,
+        "con002": node_two,
+        "con003": node_three,
+        "con004": node_four
+    }
 
     contest_id_list = ["con001", "con002", "con003", "con004"]
     are_related = self.cand_validator._check_candidate_contests_are_related(
@@ -2220,14 +2206,14 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     node_four.parent = node_three
     node_six.parent = node_five
 
-    self.cand_validator.contest_tree_nodes = [
-        node_one,
-        node_two,
-        node_three,
-        node_four,
-        node_five,
-        node_six,
-    ]
+    self.cand_validator.contest_tree_nodes = {
+        "con001": node_one,
+        "con002": node_two,
+        "con003": node_three,
+        "con004": node_four,
+        "con005": node_five,
+        "con006": node_six,
+    }
 
     # separate candidates for each contest family
     candidate_contest_mapping = {
@@ -2253,14 +2239,14 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     node_four.parent = node_three
     node_six.parent = node_five
 
-    self.cand_validator.contest_tree_nodes = [
-        node_one,
-        node_two,
-        node_three,
-        node_four,
-        node_five,
-        node_six,
-    ]
+    self.cand_validator.contest_tree_nodes = {
+        "con001": node_one,
+        "con002": node_two,
+        "con003": node_three,
+        "con004": node_four,
+        "con005": node_five,
+        "con006": node_six,
+    }
 
     # a separate candidate is used for con001 and con002
     # con001 is parent of con002 so this should be invalid
@@ -2290,14 +2276,14 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     node_one.relatives.add(node_three)
     node_three.relatives.add(node_one)
 
-    self.cand_validator.contest_tree_nodes = [
-        node_one,
-        node_two,
-        node_three,
-        node_four,
-        node_five,
-        node_six,
-    ]
+    self.cand_validator.contest_tree_nodes = {
+        "con001": node_one,
+        "con002": node_two,
+        "con003": node_three,
+        "con004": node_four,
+        "con005": node_five,
+        "con006": node_six,
+    }
 
     # separate candidates for each contest family
     candidate_contest_mapping = {
