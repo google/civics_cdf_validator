@@ -25,6 +25,7 @@ import shutil
 
 from civics_cdf_validator import loggers
 import github
+import pycountry
 import requests
 
 
@@ -36,10 +37,25 @@ class GpUnitOcdIdValidator(object):
   """
 
   ocd_ids = set()
-  OCD_PATTERN = r"^ocd-division\/(country|region):[a-z]{2}(\/(\w|-)+:(\w|-|\.|~)+)*$"
+  OCD_PATTERN = r"^ocd-division\/(?P<country_code>(country|region):[a-z]{2})(\/(\w|-)+:(\w|-|\.|~)+)*$"
   ocd_matcher = re.compile(OCD_PATTERN, flags=re.U)
   OCD_PATTERN_ROOT = r"^ocd-division\/(country:[a-z]{2}|region:eu)$"
   ocd_matcher_root = re.compile(OCD_PATTERN_ROOT, flags=re.U)
+
+  @classmethod
+  def is_valid_country_code(cls, ocdid):
+    """Check whether country code is valid or not."""
+    match_object = re.match(cls.OCD_PATTERN, ocdid)
+    if match_object is None:
+      return False
+    country_code = match_object.groupdict().get("country_code")
+    if "region" in country_code:
+      return True
+    code = country_code.split(":")[1]
+    for country in pycountry.countries:
+      if code == country.alpha_2.lower():
+        return True
+    return False
 
   @classmethod
   def init_ocd_id_list(cls, country_code, local_file, check_github):
@@ -56,7 +72,8 @@ class GpUnitOcdIdValidator(object):
   @classmethod
   def is_valid_ocd(cls, ocdid_val):
     ocd_id = cls._encode_ocdid_value(ocdid_val)
-    return ocd_id in cls.ocd_ids and cls.ocd_matcher.match(ocd_id)
+    return ocd_id in cls.ocd_ids and cls.ocd_matcher.match(
+        ocd_id) and cls.is_valid_country_code(ocd_id)
 
   @classmethod
   def is_country_or_region_ocd_id(cls, ocdid_val):
