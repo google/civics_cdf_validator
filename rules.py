@@ -778,17 +778,13 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
     super(CandidatesReferencedInRelatedContests,
           self).__init__(election_tree, schema_tree)
     self.error_log = []
-    self.contest_tree_nodes = []
+    self.contest_tree_nodes = dict()
 
   def elements(self):
     return ["ElectionReport"]
 
   def _find_contest_node_by_object_id(self, object_id):
-    node_list = list(filter(
-        lambda c: c.id == object_id, self.contest_tree_nodes
-    ))
-    if node_list:
-      return node_list[0]
+    return self.contest_tree_nodes.get(object_id, None)
 
   def _register_person_to_candidate_to_contests(self, election_report):
     person_candidate_contest_mapping = {}
@@ -828,9 +824,8 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
     contests = self.get_elements_by_class(election_report, "Contest")
     # create a tree node for each contest
     for contest in contests:
-      self.contest_tree_nodes.append(
-          anytree.AnyNode(id=contest.get("objectId"), relatives=set())
-      )
+      self.contest_tree_nodes[contest.get("objectId")] = anytree.AnyNode(
+          id=contest.get("objectId"), relatives=set())
 
     for contest in contests:
       composing_contests = contest.find("ComposingContestIds")

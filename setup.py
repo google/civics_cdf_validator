@@ -55,6 +55,7 @@ setup(
         '%s>=2.10' % requests_version,
         'pygithub>=1.28',
         'anytree==2.4.3',
+        'pycountry==22.1.10',
     ],
     setup_requires=['pytest-runner'],
     tests_require=[

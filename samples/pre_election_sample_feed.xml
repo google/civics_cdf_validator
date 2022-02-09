@@ -556,7 +556,7 @@
         </ExternalIdentifiers>
         <Name>Member House of Delegates District - 025</Name>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off20024</OfficeIds>
+        <OfficeIds>off21</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
 
@@ -577,7 +577,7 @@
         </ExternalIdentifiers>
         <Name>Member House of Delegates District - 057</Name>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off20025</OfficeIds>
+        <OfficeIds>off21</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
 
@@ -598,7 +598,7 @@
         </ExternalIdentifiers>
         <Name>Member House of Delegates District - 059</Name>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off20033</OfficeIds>
+        <OfficeIds>off21</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
 
@@ -625,7 +625,7 @@
         </ExternalIdentifiers>
         <Name>Member House of Delegates District - 058</Name>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off20100</OfficeIds>
+        <OfficeIds>off21</OfficeIds>
         <!-- Links to "Voter Nominated" Party -->
         <PrimaryPartyIds>par0005</PrimaryPartyIds>
         <VotesAllowed>1</VotesAllowed>
@@ -1171,112 +1171,8 @@
         <Type>full-term</Type>
       </Term>
     </Office>
-    <!--
-         There are several House of Delegates offices up for election in this
-         county. Multiple offices may share the same name, but need distinct
-         office IDs for each seat.
-      -->
-    <Office objectId="off20024">
-      <ElectoralDistrictId>ru0150</ElectoralDistrictId>
-      <ExternalIdentifiers>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>stable</OtherType>
-          <Value>stable-off20024</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>jurisdiction-id</OtherType>
-          <Value>ru0150</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>state lower house</Value>
-        </ExternalIdentifier>
-      </ExternalIdentifiers>
-      <FilingDeadline>2013-01-01</FilingDeadline>
-      <IsPartisan>true</IsPartisan>
-      <Name>
-        <Text language="en">Member House of Delegates District - 025</Text>
-      </Name>
-      <Term>
-        <Type>full-term</Type>
-      </Term>
-    </Office>
-    <Office objectId="off20025">
-      <ElectoralDistrictId>ru0311</ElectoralDistrictId>
-      <ExternalIdentifiers>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>stable</OtherType>
-          <Value>stable-off20025</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>jurisdiction-id</OtherType>
-          <Value>ru0311</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>state lower house</Value>
-        </ExternalIdentifier>
-      </ExternalIdentifiers>
-      <FilingDeadline>2013-01-01</FilingDeadline>
-      <IsPartisan>true</IsPartisan>
-      <Name>
-        <Text language="en">Member House of Delegates District - 057</Text>
-      </Name>
-      <Term>
-        <Type>full-term</Type>
-      </Term>
-    </Office>
-    <Office objectId="off20033">
-      <ElectoralDistrictId>ru0107</ElectoralDistrictId>
-      <ExternalIdentifiers>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>stable</OtherType>
-          <Value>stable-off20033</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>jurisdiction-id</OtherType>
-          <Value>ru0107</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>state lower house</Value>
-        </ExternalIdentifier>
-      </ExternalIdentifiers>
-      <FilingDeadline>2013-01-01</FilingDeadline>
-      <IsPartisan>true</IsPartisan>
-      <Name>
-        <Text language="en">Member House of Delegates District - 059</Text>
-      </Name>
-      <Term>
-        <Type>full-term</Type>
-      </Term>
-    </Office>
-    <Office objectId="off20100">
-      <ElectoralDistrictId>ru0076</ElectoralDistrictId>
+    <Office objectId="off21">
+      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1296,13 +1192,13 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
-          <Value>ru0076</Value>
+          <Value>ru0002</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
-        <Text language="en">Member House of Delegates District - 058</Text>
+        <Text language="en">Virginia House of Delegates Member</Text>
       </Name>
       <Term>
         <Type>full-term</Type>
