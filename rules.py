@@ -49,9 +49,9 @@ def get_external_id_values(element, value_type, return_elements=False):
       matches_type = True
     elif id_text == "other":
       other_type = extern_id.find("OtherType")
-      if (other_type is not None and other_type.text
-          and other_type.text.strip() == value_type
-          and value_type not in _IDENTIFIER_TYPES):
+      if (other_type is not None and other_type.text and
+          other_type.text.strip() == value_type and
+          value_type not in _IDENTIFIER_TYPES):
         matches_type = True
     if matches_type:
       value = extern_id.find("Value")
@@ -91,11 +91,10 @@ def extract_person_fullname(person):
 
 
 def get_entity_info_for_value_type(element, info_type, return_elements=False):
-  info_collection = get_additional_type_values(
-      element, info_type, return_elements)
+  info_collection = get_additional_type_values(element, info_type,
+                                               return_elements)
   info_collection.extend(
-      list(get_external_id_values(element, info_type, return_elements))
-  )
+      list(get_external_id_values(element, info_type, return_elements)))
   return info_collection
 
 
@@ -118,8 +117,8 @@ def get_language_to_text_map(element):
 
 
 def element_has_text(element):
-  return (element is not None and element.text is not None
-          and not element.text.isspace())
+  return (element is not None and element.text is not None and
+          not element.text.isspace())
 
 
 class Schema(base.TreeRule):
@@ -140,10 +139,11 @@ class Schema(base.TreeRule):
       errors = []
       for error in schema.error_log:
         errors.append(
-            loggers.LogEntry(lines=[error.line],
-                             message=("The election file didn't validate "
-                                      "against schema : {0}".format(
-                                          error.message.encode("utf-8")))))
+            loggers.LogEntry(
+                lines=[error.line],
+                message=("The election file didn't validate "
+                         "against schema : {0}".format(
+                             error.message.encode("utf-8")))))
       raise loggers.ElectionError(errors)
 
 
@@ -271,7 +271,9 @@ class EmptyText(base.BaseRule):
     return ["Text"]
 
   def check(self, element):
-    if element.text is not None and not element.text.strip():
+    if (element.text is not None and
+        not element.text.strip()) or (element.text is None and
+                                      element.get("language") is not None):
       raise loggers.ElectionWarning.from_message("Text is empty", element)
 
 
@@ -375,9 +377,9 @@ class ValidIDREF(base.BaseRule):
         if id_ref not in reference_object_ids:
           error_log.append(
               loggers.LogEntry(("{} is not a valid IDREF. {} should contain an "
-                                "objectId from a {} element.")
-                               .format(id_ref, element_name,
-                                       element_reference_type), element))
+                                "objectId from a {} element.").format(
+                                    id_ref, element_name,
+                                    element_reference_type), element))
     if error_log:
       raise loggers.ElectionError(error_log)
 
@@ -398,9 +400,10 @@ class ValidStableID(base.BaseRule):
     error_log = []
     for s_id in stable_ids:
       if not self.stable_id_matcher.match(s_id):
-        error_log.append(loggers.LogEntry(
-            "Stable id '{}' is not in the correct format.".format(s_id),
-            [element]))
+        error_log.append(
+            loggers.LogEntry(
+                "Stable id '{}' is not in the correct format.".format(s_id),
+                [element]))
     if error_log:
       raise loggers.ElectionError(error_log)
 
@@ -433,17 +436,18 @@ class ElectoralDistrictOcdId(base.BaseRule):
       ocd_ids = get_external_id_values(referenced_gpunit, "ocd-id")
       if not ocd_ids:
         error_log.append(
-            loggers.LogEntry("The referenced GpUnit %s does not have an ocd-id"
-                             % element.text,
-                             [element], [referenced_gpunit.sourceline]))
+            loggers.LogEntry(
+                "The referenced GpUnit %s does not have an ocd-id" %
+                element.text, [element], [referenced_gpunit.sourceline]))
       else:
         for ocd_id in ocd_ids:
           if not gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd(ocd_id):
             error_log.append(
-                loggers.LogEntry("The ElectoralDistrictId refers to GpUnit %s "
-                                 "that does not have a valid OCD ID (%s)"
-                                 % (element.text, ocd_id),
-                                 [element], [referenced_gpunit.sourceline]))
+                loggers.LogEntry(
+                    "The ElectoralDistrictId refers to GpUnit %s "
+                    "that does not have a valid OCD ID (%s)" %
+                    (element.text, ocd_id), [element],
+                    [referenced_gpunit.sourceline]))
     if error_log:
       raise loggers.ElectionError(error_log)
 
@@ -468,8 +472,8 @@ class GpUnitOcdId(base.BaseRule):
       for extern_id in external_id_elements:
         if not gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd(extern_id.text):
           msg = "The OCD ID %s is not valid" % extern_id.text
-          raise loggers.ElectionWarning.from_message(
-              msg, [element], [extern_id.sourceline])
+          raise loggers.ElectionWarning.from_message(msg, [element],
+                                                     [extern_id.sourceline])
 
 
 class DuplicatedGpUnitOcdId(base.BaseRule):
@@ -510,8 +514,7 @@ class DuplicateGpUnits(base.BaseRule):
       if not object_id:
         continue
       elif object_id in object_ids:
-        error_log.append(
-            loggers.LogEntry("GpUnit is duplicated", [gpunit]))
+        error_log.append(loggers.LogEntry("GpUnit is duplicated", [gpunit]))
         continue
       object_ids.add(object_id)
       composing_gpunits = gpunit.find("ComposingGpUnitIds")
@@ -795,15 +798,13 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
       contest_id = contest.get("objectId", None)
       candidate_ids_elements = self.get_elements_by_class(
           contest, "CandidateIds")
-      candidate_id_elements = self.get_elements_by_class(
-          contest, "CandidateId"
-      )
+      candidate_id_elements = self.get_elements_by_class(contest, "CandidateId")
       id_elements = candidate_ids_elements + candidate_id_elements
       for id_element in id_elements:
         if element_has_text(id_element):
           for candidate_id in id_element.text.split():
-            candidate_to_contest_mapping.setdefault(
-                candidate_id, []).append(contest_id)
+            candidate_to_contest_mapping.setdefault(candidate_id,
+                                                    []).append(contest_id)
 
     candidates = self.get_elements_by_class(election_report, "Candidate")
     for candidate in candidates:
@@ -841,8 +842,8 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
           if child_node is None:
             raise loggers.ElectionError.from_message(
                 ("Contest {} contains a composing Contest Id ({}) that does "
-                 "not exist.").format(contest.get("objectId"), child),
-                [composing_contests])
+                 "not exist.").format(contest.get("objectId"),
+                                      child), [composing_contests])
           # parent exists means contest is listed as composing more than once
           if child_node.parent is not None:
             raise loggers.ElectionError.from_message(
@@ -857,18 +858,16 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
       subsequent_contest = contest.find("SubsequentContestId")
       if element_has_text(subsequent_contest):
         contest_node = self._find_contest_node_by_object_id(
-            contest.get("objectId")
-        )
+            contest.get("objectId"))
         subsequent_node = self._find_contest_node_by_object_id(
-            subsequent_contest.text
-        )
+            subsequent_contest.text)
         # subsequent_node is None if the subsequent contest id is not valid
         if subsequent_node is None:
           raise loggers.ElectionError.from_message(
               ("Contest {} contains a subsequent Contest Id ({}) that does "
                "not exist.").format(
-                   contest.get("objectId"), subsequent_contest.text),
-              [subsequent_contest])
+                   contest.get("objectId"),
+                   subsequent_contest.text), [subsequent_contest])
         # establish connection between trees if related via subsequent contest
         contest_root = contest_node.root
         subsequent_root = subsequent_node.root
@@ -892,7 +891,7 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
     contest_root_list = list(contest_roots)
     for i in range(len(contest_root_list)):
       contest_root = contest_root_list[i]
-      for j in range(i+1, len(contest_root_list)):
+      for j in range(i + 1, len(contest_root_list)):
         checking_root = contest_root_list[j]
         # every unique root should be a relative of one another
         if checking_root not in contest_root.relatives:
@@ -949,8 +948,7 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
         error_message = ("Person {} has separate candidates in contests that "
                          "are related.".format(person))
         self.error_log.append(
-            loggers.LogEntry(error_message, [election_report])
-        )
+            loggers.LogEntry(error_message, [election_report]))
 
     if self.error_log:
       raise loggers.ElectionError(self.error_log)
@@ -1138,8 +1136,8 @@ class ValidateDuplicateColors(ValidatePartyCollection):
 
     for color, parties in party_colors.items():
       if len(parties) > 1:
-        info_log.append(loggers.LogEntry(
-            "Parties has the same color %s." % color, parties))
+        info_log.append(
+            loggers.LogEntry("Parties has the same color %s." % color, parties))
     return info_log
 
 
@@ -1315,15 +1313,15 @@ class DuplicateContestNames(base.BaseRule):
       name = element.find("Name")
       if name is None or not name.text:
         error_message = "The contest is missing a <Name> "
-        error_log.append(
-            loggers.LogEntry(error_message, [element]))
+        error_log.append(loggers.LogEntry(error_message, [element]))
         continue
       name_contest_id.setdefault(name.text, []).append(element)
 
     for name, contests in name_contest_id.items():
       if len(contests) > 1:
-        error_log.append(loggers.LogEntry(
-            "Contests have the same name %s." % name, contests))
+        error_log.append(
+            loggers.LogEntry("Contests have the same name %s." % name,
+                             contests))
     if error_log:
       raise loggers.ElectionError(error_log)
 
@@ -1423,8 +1421,9 @@ class AllLanguages(base.BaseRule):
       languages.add(text.attrib["language"])
     required_language_set = frozenset(self.required_languages)
     if not required_language_set.issubset(languages):
-      msg = ("Element does not contain text in all required languages, missing"
-             + " : %s" % str(required_language_set - languages))
+      msg = (
+          "Element does not contain text in all required languages, missing" +
+          " : %s" % str(required_language_set - languages))
       raise loggers.ElectionError.from_message(msg, [element])
 
 
@@ -1466,7 +1465,7 @@ class ValidEnumerations(base.BaseRule):
           other_type_element.text in self.valid_enumerations):
         raise loggers.ElectionError.from_message(
             ("Type is set to 'other' even though '%s' is a valid "
-             "enumeration"% other_type_element.text), [element])
+             "enumeration" % other_type_element.text), [element])
 
 
 class SelfDeclaredCandidateMethod(base.BaseRule):
@@ -1476,7 +1475,7 @@ class SelfDeclaredCandidateMethod(base.BaseRule):
   """
 
   def elements(self):
-    return["Candidate"]
+    return ["Candidate"]
 
   def check(self, element):
     status = element.find("PreElectionStatus")
@@ -1671,9 +1670,10 @@ class URIValidator(base.BaseRule):
 
     parsed_url = urlparse(url)
     discrepencies = []
-    social_media_platform = ["facebook", "twitter", "wikipedia", "instagram",
-                             "youtube", "website", "linkedin", "line",
-                             "ballotpedia"]
+    social_media_platform = [
+        "facebook", "twitter", "wikipedia", "instagram", "youtube", "website",
+        "linkedin", "line", "ballotpedia"
+    ]
 
     try:
       url.encode("ascii")
@@ -1708,6 +1708,7 @@ class UniqueURIPerAnnotationCategory(base.TreeRule):
 
     Args:
       uri_elements: List of Uri elements
+
     Returns:
       Top level dict contains Annotation values as keys with uri/paths mapping
       as value.
@@ -1763,9 +1764,9 @@ class ValidYoutubeURL(base.BaseRule):
   def check(self, element):
     url = element.text.strip()
     parsed_url = urlparse(url)
-    if "youtube" in parsed_url.netloc and (parsed_url.path in ["", "/"]
-                                           or "watch" in parsed_url.path
-                                           or "playlist" in parsed_url.path):
+    if "youtube" in parsed_url.netloc and (parsed_url.path in ["", "/"] or
+                                           "watch" in parsed_url.path or
+                                           "playlist" in parsed_url.path):
       raise loggers.ElectionError.from_message(
           "'{}' is not a expected value for a youtube channel.".format(url),
           [element])
@@ -1855,9 +1856,7 @@ class OfficesHaveJurisdictionID(base.BaseRule):
   def check(self, element):
     jurisdiction_values = get_entity_info_for_value_type(
         element, "jurisdiction-id")
-    jurisdiction_values = [
-        j_id for j_id in jurisdiction_values if j_id.strip()
-    ]
+    jurisdiction_values = [j_id for j_id in jurisdiction_values if j_id.strip()]
     if not jurisdiction_values:
       raise loggers.ElectionError.from_message(
           "Office is missing a jurisdiction-id.", [element])
@@ -2023,18 +2022,16 @@ class DateStatusMatches(base.DateRule):
     if len(contest_statuses) == 1:
       contest_status = contest_statuses.pop()
       if contest_status != election_date_status:
-        msg = (
-            "All contests on election {} have a date status of {}, but the "
-            "election has a date status of {}.".format(
-                election_elem.get("objectId"), contest_status,
-                election_date_status))
+        msg = ("All contests on election {} have a date status of {}, but the "
+               "election has a date status of {}.".format(
+                   election_elem.get("objectId"), contest_status,
+                   election_date_status))
         raise loggers.ElectionWarning.from_message(msg, [election_elem])
     elif len(contest_statuses) > 1:
       msg = (
           "There are multiple date statuses present for the contests on "
           "election {}.  This may be correct, but is an unusal case.  Please "
-          "confirm.".format(
-              election_elem.get("objectId")))
+          "confirm.".format(election_elem.get("objectId")))
       raise loggers.ElectionInfo.from_message(msg, [election_elem])
 
 
@@ -2080,10 +2077,8 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
 
   def check(self):
     info_log = []
-    persons = self.get_elements_by_class(self.election_tree,
-                                         "Person")
-    offices = self.get_elements_by_class(self.election_tree,
-                                         "Office")
+    persons = self.get_elements_by_class(self.election_tree, "Person")
+    offices = self.get_elements_by_class(self.election_tree, "Office")
     person_office_dict = dict()
     outdated_offices = []
     for office in offices:
@@ -2141,8 +2136,8 @@ class UniqueStartDatesForOfficeRoleAndJurisdiction(base.BaseRule):
         try:
           date_validator.gather_dates(term)
           if date_validator.end_date is not None:
-            date_validator.check_for_date_not_in_past(
-                date_validator.end_date, date_validator.end_elem)
+            date_validator.check_for_date_not_in_past(date_validator.end_date,
+                                                      date_validator.end_elem)
           if not date_validator.error_log:
             valid_offices.append(office)
         except loggers.ElectionError:
@@ -2158,9 +2153,7 @@ class UniqueStartDatesForOfficeRoleAndJurisdiction(base.BaseRule):
       jurisdiction_id = ""
       start_date = ""
 
-      start_date_elem = office.find(
-          ".//Term//StartDate"
-      )
+      start_date_elem = office.find(".//Term//StartDate")
       if not element_has_text(start_date_elem):
         continue
       start_date = start_date_elem.text
@@ -2169,14 +2162,13 @@ class UniqueStartDatesForOfficeRoleAndJurisdiction(base.BaseRule):
       if office_roles:
         office_role = office_roles[0]
 
-      jurisdiction_ids = get_entity_info_for_value_type(
-          office, "jurisdiction-id")
+      jurisdiction_ids = get_entity_info_for_value_type(office,
+                                                        "jurisdiction-id")
       if jurisdiction_ids:
         jurisdiction_id = jurisdiction_ids[0]
 
-      office_hash = hashlib.sha256((
-          office_role + jurisdiction_id
-      ).encode("utf-8")).hexdigest()
+      office_hash = hashlib.sha256(
+          (office_role + jurisdiction_id).encode("utf-8")).hexdigest()
       if office_hash not in jurisdiction_role_mapping.keys():
         jurisdiction_role_mapping[office_hash] = dict({
             "jurisdiction_id": jurisdiction_id,
@@ -2202,12 +2194,13 @@ class UniqueStartDatesForOfficeRoleAndJurisdiction(base.BaseRule):
         start_date = list(start_date_map.keys())[0]
         # this accounts for offices with only one entry (i.e. US Pres)
         if len(start_date_map[start_date]) > 1:
-          warning_log.append(loggers.LogEntry(
-              ("Only one unique StartDate found for each jurisdiction-id: {} "
-               "and office-role: {}. {} appears {} times.").format(
-                   start_info["jurisdiction_id"], start_info["office_role"],
-                   start_date, len(start_date_map[start_date])),
-              start_date_map[start_date]))
+          warning_log.append(
+              loggers.LogEntry((
+                  "Only one unique StartDate found for each jurisdiction-id: {} "
+                  "and office-role: {}. {} appears {} times.").format(
+                      start_info["jurisdiction_id"], start_info["office_role"],
+                      start_date, len(start_date_map[start_date])),
+                               start_date_map[start_date]))
 
     if warning_log:
       raise loggers.ElectionWarning(warning_log)
@@ -2224,8 +2217,8 @@ class GpUnitsHaveInternationalizedName(base.BaseRule):
     object_id = element.get("objectId", "")
     if intl_names is None or not intl_names or len(intl_names) > 1:
       raise loggers.ElectionError.from_message(
-          "GpUnit is required to have exactly one InterationalizedName element."
-          , [element])
+          "GpUnit is required to have exactly one InterationalizedName element.",
+          [element])
     intl_name = intl_names[0]
     name_texts = intl_name.findall("Text")
     if name_texts is None or not name_texts:
@@ -2235,9 +2228,10 @@ class GpUnitsHaveInternationalizedName(base.BaseRule):
     error_log = []
     for name_text in name_texts:
       if name_text is None or not (name_text.text and name_text.text.strip()):
-        error_log.append(loggers.LogEntry(
-            "GpUnit InternationalizedName does not have a text value.",
-            [name_text]))
+        error_log.append(
+            loggers.LogEntry(
+                "GpUnit InternationalizedName does not have a text value.",
+                [name_text]))
 
     if error_log:
       raise loggers.ElectionError(error_log)
@@ -2260,8 +2254,9 @@ class ValidateInfoUriAnnotation(base.BaseRule):
     error_log = []
     annotation = element.attrib["Annotation"]
     if annotation not in self.info_array:
-      error_log.append(loggers.LogEntry(
-          annotation + " is an invalid annotation.", [element]))
+      error_log.append(
+          loggers.LogEntry(annotation + " is an invalid annotation.",
+                           [element]))
     if error_log:
       raise loggers.ElectionError(error_log)
 
@@ -2404,19 +2399,13 @@ class MissingFieldsError(base.MissingFieldRule):
 
   def element_field_mapping(self):
     return {
-        "Person": [
-            "FullName//Text",
-        ],
-        "Candidate": [
-            "PersonId",
-        ],
+        "Person": ["FullName//Text",],
+        "Candidate": ["PersonId",],
         "Election": [
             "StartDate",
             "EndDate",
         ],
-        "Party": [
-            "PartyScopeGpUnitIds",
-        ],
+        "Party": ["PartyScopeGpUnitIds",],
     }
 
 
@@ -2432,9 +2421,7 @@ class MissingFieldsWarning(base.MissingFieldRule):
 
   def element_field_mapping(self):
     return {
-        "Candidate": [
-            "PartyId",
-        ],
+        "Candidate": ["PartyId",],
     }
 
 
@@ -2450,9 +2437,7 @@ class MissingFieldsInfo(base.MissingFieldRule):
 
   def element_field_mapping(self):
     return {
-        "Office": [
-            "ElectoralDistrictId",
-        ],
+        "Office": ["ElectoralDistrictId",],
     }
 
 
@@ -2490,22 +2475,26 @@ class PartySpanMultipleCountries(base.BaseRule):
         referenced_country[country].append(gpunit_id)
 
     if len(referenced_country) > 1:
-      gpunit_country_mapping = " / ".join(
-          ["%s -> %s" % (key, str(value)) for (key, value)
-           in referenced_country.items()])
+      gpunit_country_mapping = " / ".join([
+          "%s -> %s" % (key, str(value))
+          for (key, value) in referenced_country.items()
+      ])
 
       raise loggers.ElectionWarning.from_message(
           ("PartyScopeGpUnitIds refer to GpUnit from different countries: {}. "
-           "Please double check."
-           .format(gpunit_country_mapping)), [element])
+           "Please double check.".format(gpunit_country_mapping)), [element])
 
 
 class OfficeMissingGovernmentBody(base.BaseRule):
   """Ensure non-executive Office elements have a government body defined."""
 
   _EXEMPT_OFFICES = [
-      "head of state", "head of government", "president", "vice president",
-      "state executive", "deputy state executive",
+      "head of state",
+      "head of government",
+      "president",
+      "vice president",
+      "state executive",
+      "deputy state executive",
   ]
 
   def elements(self):
@@ -2518,10 +2507,9 @@ class OfficeMissingGovernmentBody(base.BaseRule):
       if office_role in self._EXEMPT_OFFICES:
         return
 
-    governmental_body = get_entity_info_for_value_type(
-        element, "governmental-body")
-    government_body = get_entity_info_for_value_type(
-        element, "government-body")
+    governmental_body = get_entity_info_for_value_type(element,
+                                                       "governmental-body")
+    government_body = get_entity_info_for_value_type(element, "government-body")
 
     if not governmental_body and not government_body:
       raise loggers.ElectionInfo.from_message(
@@ -2541,7 +2529,7 @@ class MissingOfficeSelectionMethod(base.BaseRule):
   """
 
   def elements(self):
-    return["Office"]
+    return ["Office"]
 
   def check(self, element):
     selection = element.find("SelectionMethod")
@@ -2595,8 +2583,9 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
       # Check that the subsequent contest has a later end date
       if (contest_end_dates[subsequent_contest_id] is not None and
           contest_end_dates[contest_id] is not None):
-        end_delta = base.PartialDate.is_older_than(contest_end_dates[
-            subsequent_contest_id], contest_end_dates[contest_id])
+        end_delta = base.PartialDate.is_older_than(
+            contest_end_dates[subsequent_contest_id],
+            contest_end_dates[contest_id])
         if end_delta > 0:
           error_log.append(
               loggers.LogEntry(

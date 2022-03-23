@@ -607,6 +607,15 @@ class EmptyTextTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionWarning):
       self.empty_text_validator.check(element)
 
+  def testEmptyTextWithLanguage(self):
+    element_string = """
+      <Text language="en" />
+    """
+
+    element = etree.fromstring(element_string)
+    with self.assertRaises(loggers.ElectionWarning):
+      self.empty_text_validator.check(element)
+
 
 class DuplicateIDTest(absltest.TestCase):
 
