@@ -271,7 +271,9 @@ class EmptyText(base.BaseRule):
     return ["Text"]
 
   def check(self, element):
-    if element.text is not None and not element.text.strip():
+    if (element.text is None or
+        not element.text.strip()) or (element.text is None and
+                                      element.get("language") is not None):
       raise loggers.ElectionWarning.from_message("Text is empty", element)
 
 

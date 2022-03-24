@@ -590,13 +590,14 @@ class EmptyTextTest(absltest.TestCase):
     element = etree.fromstring(element_string)
     self.empty_text_validator.check(element)
 
-  def testIgnoresEmptyElements(self):
+  def testThrowsWarningForEmptyElements(self):
     element_string = """
       <Text></Text>
     """
 
     element = etree.fromstring(element_string)
-    self.empty_text_validator.check(element)
+    with self.assertRaises(loggers.ElectionWarning):
+      self.empty_text_validator.check(element)
 
   def testThrowsWarningForSpaceOnlyElements(self):
     empty_string = """
@@ -604,6 +605,15 @@ class EmptyTextTest(absltest.TestCase):
     """
 
     element = etree.fromstring(empty_string)
+    with self.assertRaises(loggers.ElectionWarning):
+      self.empty_text_validator.check(element)
+
+  def testEmptyTextWithLanguage(self):
+    element_string = """
+      <Text language="en" />
+    """
+
+    element = etree.fromstring(element_string)
     with self.assertRaises(loggers.ElectionWarning):
       self.empty_text_validator.check(element)
 
