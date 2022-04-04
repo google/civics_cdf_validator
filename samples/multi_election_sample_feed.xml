@@ -66,8 +66,8 @@
       <Name>
         <Text language="en">2020 Democratic Party Primary - Super Tuesday</Text>
       </Name>
-      <StartDate>2020-03</StartDate>
-      <EndDate>2020-03</EndDate>
+      <StartDate>2024-03</StartDate>
+      <EndDate>2024-03</EndDate>
       <Type>partisan-primary-open</Type>
   </Election>
   <Election>
@@ -152,8 +152,8 @@
     <Name>
       <Text language="en">2020 Florida Primaries</Text>
     </Name>
-    <StartDate>2020-03-17</StartDate>
-    <EndDate>2020-03-17</EndDate>
+    <StartDate>2024-03-17</StartDate>
+    <EndDate>2024-03-17</EndDate>
     <Type>partisan-primary-closed</Type>
   </Election>
   <Election>
@@ -189,8 +189,8 @@
     <Name>
       <Text language="en">2020 Democratic Party Presidential Primary</Text>
     </Name>
-    <StartDate>2020-02-03</StartDate>
-    <EndDate>2020-08-20</EndDate>
+    <StartDate>2024-02-03</StartDate>
+    <EndDate>2024-08-20</EndDate>
     <Type>primary</Type>
   </Election>
   <Election>
@@ -423,8 +423,8 @@
     <Name>
       <Text language="en">2020 United States Presidential General Election</Text>
     </Name>
-    <StartDate>2020-11-03</StartDate>
-    <EndDate>2020-11-03</EndDate>
+    <StartDate>2024-11-03</StartDate>
+    <EndDate>2024-11-03</EndDate>
     <Type>general</Type>
   </Election>
   <Format>summary-contest</Format>

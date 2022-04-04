@@ -42,7 +42,7 @@ class SamplesTest(absltest.TestCase):
     self._TestFile(
         'post_election_sample_feed_precincts.xml',
         self.election_rules,
-        expected_errors=19,
+        expected_errors=0,
     )
 
   def testPostRetentionContestSampleFeedSummary(self):
@@ -61,7 +61,7 @@ class SamplesTest(absltest.TestCase):
     self._TestFile(
         'post_retention_contest_sample_feed_precincts.xml',
         self.election_rules,
-        expected_errors=19,
+        expected_errors=0,
     )
 
   def testPostElectionSampleFeedSummary(self):

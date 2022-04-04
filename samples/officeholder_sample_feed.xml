@@ -86,7 +86,7 @@
       <OfficeHolderPersonIds>per0</OfficeHolderPersonIds>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
-        <StartDate>2019-01</StartDate>
+        <StartDate>2024-01</StartDate>
       </Term>
       <AdditionalData type="jurisdiction-id">ru-gpu0</AdditionalData>
     </Office>
@@ -115,7 +115,7 @@
       <OfficeHolderPersonIds>per1</OfficeHolderPersonIds>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
-        <StartDate>2019-01-02</StartDate>
+        <StartDate>2024-01-02</StartDate>
       </Term>
       <AdditionalData type="jurisdiction-id">ru-gpu1</AdditionalData>
       <AdditionalData type="government-body">United States Senate</AdditionalData>
