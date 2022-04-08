@@ -421,18 +421,16 @@
     </CandidateCollection>
     <ContestCollection>
       <Contest objectId="cc20002" xsi:type="CandidateContest">
-        <!-- This contest is for two offices: (a) President and (b) Vice
-             President. Therefore each BallotSelection should have two
-             candidates, and the Contest should link to two offices.
+        <!-- This contest is for office: President.
           -->
         <BallotSelection objectId="cs10861" xsi:type="CandidateSelection">
-          <CandidateIds>can10861a can10861b</CandidateIds>
+          <CandidateIds>can10861a</CandidateIds>
         </BallotSelection>
         <BallotSelection objectId="cs10862" xsi:type="CandidateSelection">
-          <CandidateIds>can10862a can10862b</CandidateIds>
+          <CandidateIds>can10862a</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">President and Vice-President of the United States</Text>
+          <Text language="en">President of the United States</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
         <ExternalIdentifiers>
@@ -442,9 +440,34 @@
             <Value>vageneral-cont-2013-us1-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>President and Vice-President</Name>
+        <Name>President</Name>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off9999a off9999b</OfficeIds>
+        <OfficeIds>off9999a</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+      <Contest objectId="cc20001" xsi:type="CandidateContest">
+        <!-- This contest is for office: Vice President.
+          -->
+        <BallotSelection objectId="cs10863" xsi:type="CandidateSelection">
+          <CandidateIds>can10861b</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs10864" xsi:type="CandidateSelection">
+          <CandidateIds>can10862b</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Vice President of the United States</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-us1-country-us</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>Vice President</Name>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off9999b</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20003" xsi:type="CandidateContest">

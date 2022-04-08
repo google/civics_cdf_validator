@@ -384,7 +384,7 @@
     </CandidateCollection>
     <ContestCollection>
       <Contest objectId="cc20002" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs10861" xsi:type="CandidateSelection">
+        <BallotSelection objectId="cs10861_a" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
               <GpUnitId>ru0002</GpUnitId>
@@ -407,9 +407,53 @@
               <Count>12223</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10861a can10861b</CandidateIds>
+          <CandidateIds>can10861a</CandidateIds>
         </BallotSelection>
-        <BallotSelection objectId="cs10862" xsi:type="CandidateSelection">
+        <BallotSelection objectId="cs10861_b" xsi:type="CandidateSelection">
+          <VoteCountsCollection>
+            <VoteCounts>
+              <GpUnitId>ru0002</GpUnitId>
+              <Type>absentee</Type>
+              <Count>3394</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru0002</GpUnitId>
+              <Type>early</Type>
+              <Count>3775</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru0002</GpUnitId>
+              <Type>election-day</Type>
+              <Count>5054</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru0002</GpUnitId>
+              <Type>total</Type>
+              <Count>12223</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+          <CandidateIds>can10861b</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">President of the United States</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-us1-country-us</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>President</Name>
+        <SubUnitsReported>21</SubUnitsReported>
+        <TotalSubUnits>31</TotalSubUnits>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off9999a</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+      <Contest objectId="cc20001" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs10862_a" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
               <GpUnitId>ru0002</GpUnitId>
@@ -432,10 +476,35 @@
               <Count>18486</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10862a can10862b</CandidateIds>
+          <CandidateIds>can10862a</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs10862_b" xsi:type="CandidateSelection">
+          <VoteCountsCollection>
+            <VoteCounts>
+              <GpUnitId>ru0002</GpUnitId>
+              <Type>absentee</Type>
+              <Count>8103</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru0002</GpUnitId>
+              <Type>early</Type>
+              <Count>7757</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru0002</GpUnitId>
+              <Type>election-day</Type>
+              <Count>2626</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru0002</GpUnitId>
+              <Type>total</Type>
+              <Count>18486</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+          <CandidateIds>can10862b</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">President and Vice-President of the United States</Text>
+          <Text language="en">Vice-President of the United States</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
         <ExternalIdentifiers>
@@ -445,10 +514,11 @@
             <Value>vageneral-cont-2013-us1-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>President and Vice-President</Name>
+        <Name>Vice-President</Name>
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off9999b</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20003" xsi:type="CandidateContest">
@@ -543,6 +613,7 @@
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off0000</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20004" xsi:type="CandidateContest">
@@ -611,6 +682,7 @@
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off0001</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20005" xsi:type="CandidateContest">
@@ -679,6 +751,7 @@
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off20005</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20024" xsi:type="CandidateContest">
@@ -722,6 +795,7 @@
         <SubUnitsReported>5</SubUnitsReported>
         <TotalSubUnits>7</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off21</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20025" xsi:type="CandidateContest">
@@ -765,6 +839,7 @@
         <SubUnitsReported>6</SubUnitsReported>
         <TotalSubUnits>9</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off21</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20033" xsi:type="CandidateContest">
@@ -808,6 +883,7 @@
         <SubUnitsReported>2</SubUnitsReported>
         <TotalSubUnits>2</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off21</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20100" xsi:type="CandidateContest">
@@ -851,6 +927,7 @@
         <SubUnitsReported>7</SubUnitsReported>
         <TotalSubUnits>13</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off21</OfficeIds>
         <PrimaryPartyIds>par0005</PrimaryPartyIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
@@ -920,6 +997,7 @@
         <SubUnitsReported>3</SubUnitsReported>
         <TotalSubUnits>5</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off20262</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20305" xsi:type="CandidateContest">
@@ -988,6 +1066,7 @@
         <SubUnitsReported>3</SubUnitsReported>
         <TotalSubUnits>5</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off20305</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20350" xsi:type="CandidateContest">
@@ -1056,6 +1135,7 @@
         <SubUnitsReported>4</SubUnitsReported>
         <TotalSubUnits>4</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off20350</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20355" xsi:type="CandidateContest">
@@ -1124,6 +1204,7 @@
         <SubUnitsReported>4</SubUnitsReported>
         <TotalSubUnits>6</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off20355</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20449" xsi:type="CandidateContest">
@@ -1167,6 +1248,7 @@
         <SubUnitsReported>4</SubUnitsReported>
         <TotalSubUnits>6</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off20449</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20473" xsi:type="CandidateContest">
@@ -1210,6 +1292,7 @@
         <SubUnitsReported>4</SubUnitsReported>
         <TotalSubUnits>4</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off20473</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20476" xsi:type="CandidateContest">
@@ -1253,6 +1336,7 @@
         <SubUnitsReported>3</SubUnitsReported>
         <TotalSubUnits>5</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off20476</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
     </ContestCollection>
@@ -1470,6 +1554,439 @@
   </GpUnitCollection>
   <Issuer>Commonwealth of Virginia</Issuer>
   <IssuerAbbreviation>VA</IssuerAbbreviation>
+  <OfficeCollection>
+    <Office objectId="off9999a">
+      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off9999a</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>president</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">President</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off9999b">
+      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off9999b</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>vice president</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Vice President</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off0000">
+      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off0000</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>state executive</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Governor</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off0001">
+      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off0001</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>deputy state executive</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Lieutenant Governor</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20005">
+      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20005</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>attorney general</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Attorney General</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off21">
+      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>state lower house</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20100</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0002</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Virginia House of Delegates Member</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <!-- Board of Supervisors -->
+    <Office objectId="off20262">
+      <ElectoralDistrictId>ru0103</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20262</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0103</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>county council</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member Board of Supervisors - Scottsville</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20305">
+      <ElectoralDistrictId>ru0054</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20305</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0054</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>county council</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member Board of Supervisors - Jack Jouett</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20350">
+      <ElectoralDistrictId>ru0030</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20350</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0030</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>county council</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member Board of Supervisors - Samuel Miller</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20355">
+      <ElectoralDistrictId>ru0081</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20355</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0081</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>county council</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member Board of Supervisors - Rio</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <!-- School board -->
+    <Office objectId="off20449">
+      <ElectoralDistrictId>ru0081</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20449</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0081</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>school board</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member School Board - Rio</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20473">
+      <ElectoralDistrictId>ru0030</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20473</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+       <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0030</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>school board</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member School Board - Samuel Miller</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20476">
+      <ElectoralDistrictId>ru0054</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20476</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0054</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>school board</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member School Board - Jack Jouett</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+  </OfficeCollection>
   <PartyCollection>
     <Party objectId="par0001">
       <InternationalizedAbbreviation>

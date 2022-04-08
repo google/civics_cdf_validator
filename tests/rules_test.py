@@ -4076,7 +4076,17 @@ class ValidateOcdidLowerCaseTest(absltest.TestCase):
 
 class ContestHasMultipleOfficesTest(absltest.TestCase):
 
-  base_string = """<Contest objectId="con123">{}</Contest>"""
+  base_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest objectId="con123" xsi:type="CandidateContest">
+                {}
+             </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+   """
 
   def setUp(self):
     super(ContestHasMultipleOfficesTest, self).setUp()
@@ -4085,7 +4095,8 @@ class ContestHasMultipleOfficesTest(absltest.TestCase):
   def testOneOfficeValid(self):
     root_string = self.base_string.format("<OfficeIds>off-ar1-arb</OfficeIds>")
     element = etree.fromstring(root_string)
-    self.contest_offices_validator.check(element)
+    self.contest_offices_validator.check(
+        element.find("Election//ContestCollection//Contest"))
 
   def testMultipleOfficesFail(self):
     root_string = self.base_string.format(
@@ -4093,7 +4104,8 @@ class ContestHasMultipleOfficesTest(absltest.TestCase):
     element = etree.fromstring(root_string)
 
     with self.assertRaises(loggers.ElectionWarning) as cm:
-      self.contest_offices_validator.check(element)
+      self.contest_offices_validator.check(
+          element.find("Election//ContestCollection//Contest"))
     self.assertEqual("Contest has more than one associated office.",
                      str(cm.exception.log_entry[0].message))
     self.assertEqual("con123",
@@ -4104,7 +4116,8 @@ class ContestHasMultipleOfficesTest(absltest.TestCase):
     element = etree.fromstring(root_string)
 
     with self.assertRaises(loggers.ElectionWarning) as cm:
-      self.contest_offices_validator.check(element)
+      self.contest_offices_validator.check(
+          element.find("Election//ContestCollection//Contest"))
     self.assertEqual("Contest has no associated offices.",
                      str(cm.exception.log_entry[0].message))
     self.assertEqual("con123",
