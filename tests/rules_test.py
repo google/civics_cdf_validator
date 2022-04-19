@@ -2785,6 +2785,209 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
     self.color_validator.check(element)
 
 
+class MultipleCandidatesTest(absltest.TestCase):
+
+  def testValidMultipleCandidates(self):
+    self_multiple_candidate = """
+        <Election xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <ContestCollection>
+            <Contest xsi:type="CandidateContest" objectId="cc-5C78957EE418E5A890173533A936F1CF">
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs-C85609889D594EAC7F97A3C0F3E7B0E7">
+                <CandidateIds>can-319F0CED38589F31E5F24583B5E9D378</CandidateIds>
+              </BallotSelection>
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs-AE04FD87081DDA038DB04AA2EC93A466">
+                <CandidateIds>can-638B16053508E7F90D976423761D018E can-AB5551839E384F61557836FE6249F5C6</CandidateIds>
+              </BallotSelection>
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs-95BDF9F47BACDACAA301C9A78E4E1271">
+                <CandidateIds>can-95BDF9F47BACDACAA301C9A78E4E1271</CandidateIds>
+              </BallotSelection>
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs-AB5551839E384F61557836FE6249F5C">
+                <CandidateIds>can-can-AB5551839E384F61557836FE6249F5C</CandidateIds>
+              </BallotSelection>
+              <ElectoralDistrictId>ru-gpu-B9FD3189B2A9C07EBC466B30A5D60470</ElectoralDistrictId>
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>other</Type>
+                  <OtherType>stable</OtherType>
+                  <Value>stable-cc-5C78957EE418E5A890173533A936F1CF</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+              <Name>Australian Senate Election of Tasmania</Name>
+              <OfficeIds>off-A30A1DC04C3C996D0AC210CCC45D312B</OfficeIds>
+              <VotesAllowed>1</VotesAllowed>
+            </Contest>
+          </ContestCollection>
+          <CandidateCollection>
+            <Candidate objectId="can-319F0CED38589F31E5F24583B5E9D378">
+              <BallotName>
+                <Text language="en">Dudley Todd</Text>
+              </BallotName>
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>other</Type>
+                  <OtherType>stable</OtherType>
+                  <Value>stable-can-319F0CED38589F31E5F24583B5E9D378</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+              <PartyId>par-33BB9F67D7E628638E9326DB9E2B5373</PartyId>
+              <PersonId>per-87F428BFE90AFCF6901B7CB525BA5C92</PersonId>
+              <PreElectionStatus>self-declared</PreElectionStatus>
+            </Candidate>
+            <Candidate objectId="can-638B16053508E7F90D976423761D018E">
+              <BallotName>
+                <Text language="en">Dudley Todd</Text>
+              </BallotName>
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>other</Type>
+                  <OtherType>stable</OtherType>
+                  <Value>stable-can-638B16053508E7F90D976423761D018E</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+              <PartyId>par-33BB9F67D7E628638E9326DB9E2B5373</PartyId>
+              <PersonId>per-87F428BFE90AFCF6901B7CB525BA5C92</PersonId>
+              <PreElectionStatus>self-declared</PreElectionStatus>
+            </Candidate>
+            <Candidate objectId="can-AB5551839E384F61557836FE6249F5C6">
+              <BallotName>
+                <Text language="en">Lockwood Daria</Text>
+              </BallotName>
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>other</Type>
+                  <OtherType>stable</OtherType>
+                  <Value>stable-can-AB5551839E384F61557836FE6249F5C6</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+              <PartyId>par-33BB9F67D7E628638E9326DB9E2B5373</PartyId>
+              <PersonId>per-2CE5627E7A390AAC8DC2CFC2C94EB75E</PersonId>
+              <PreElectionStatus>self-declared</PreElectionStatus>
+            </Candidate>
+            <Candidate objectId="can-95BDF9F47BACDACAA301C9A78E4E1271">
+              <BallotName>
+                <Text language="en">Lockwood Daria</Text>
+              </BallotName>
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>other</Type>
+                  <OtherType>stable</OtherType>
+                  <Value>stable-can-95BDF9F47BACDACAA301C9A78E4E1271</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+                <PartyId>par-33BB9F67D7E628638E9326DB9E2B5373</PartyId>
+                <PersonId>per-2CE5627E7A390AAC8DC2CFC2C94EB75E</PersonId>
+                <PreElectionStatus>self-declared</PreElectionStatus>
+            </Candidate>
+          </CandidateCollection>
+        </Election>
+    """
+    election_tree = etree.fromstring(self_multiple_candidate)
+    multiple_candidate_validator = rules.MultipleCandidates(election_tree, None)
+    multiple_candidate_validator.check()
+
+  def testInValidMultipleCandidates(self):
+    self_multiple_candidate = """
+        <Election xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <ContestCollection>
+            <Contest xsi:type="CandidateContest" objectId="cc-5C78957EE418E5A890173533A936F1CF">
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs-C85609889D594EAC7F97A3C0F3E7B0E7">
+                <CandidateIds>can-319F0CED38589F31E5F24583B5E9D378</CandidateIds>
+              </BallotSelection>
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs-AE04FD87081DDA038DB04AA2EC93A466">
+                <CandidateIds>can-638B16053508E7F90D976423761D018E can-AB5551839E384F61557836FE6249F5C6</CandidateIds>
+              </BallotSelection>
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs-95BDF9F47BACDACAA301C9A78E4E1271">
+                <CandidateIds>can-95BDF9F47BACDACAA301C9A78E4E1271</CandidateIds>
+              </BallotSelection>
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs-AB5551839E384F61557836FE6249F5C">
+                <CandidateIds>can-can-AB5551839E384F61557836FE6249F5C</CandidateIds>
+              </BallotSelection>
+              <ElectoralDistrictId>ru-gpu-B9FD3189B2A9C07EBC466B30A5D60470</ElectoralDistrictId>
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>other</Type>
+                  <OtherType>stable</OtherType>
+                  <Value>stable-cc-5C78957EE418E5A890173533A936F1CF</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+              <Name>Australian Senate Election of Tasmania</Name>
+              <OfficeIds>off-A30A1DC04C3C996D0AC210CCC45D312B</OfficeIds>
+              <VotesAllowed>1</VotesAllowed>
+            </Contest>
+          </ContestCollection>
+          <CandidateCollection>
+            <Candidate objectId="can-319F0CED38589F31E5F24583B5E9D378">
+              <BallotName>
+                <Text language="en">Dudley Todd</Text>
+              </BallotName>
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>other</Type>
+                  <OtherType>stable</OtherType>
+                  <Value>stable-can-319F0CED38589F31E5F24583B5E9D378</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+              <PartyId>par-33BB9F67D7E628638E9326DB9E2B5373</PartyId>
+              <PersonId>per-87F428BFE90AFCF6901B7CB525BA5C92</PersonId>
+              <PreElectionStatus>self-declared</PreElectionStatus>
+            </Candidate>
+            <Candidate objectId="can-638B16053508E7F90D976423761D018E">
+              <BallotName>
+                <Text language="en">Dudley Todd</Text>
+              </BallotName>
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>other</Type>
+                  <OtherType>stable</OtherType>
+                  <Value>stable-can-638B16053508E7F90D976423761D018E</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+              <PartyId>par-33BB9F67D7E628638E9326DB9E2B5373</PartyId>
+              <PersonId>per-2CE5627E7A390AAC8DC2CFC2C94EB75S</PersonId>
+              <PreElectionStatus>self-declared</PreElectionStatus>
+            </Candidate>
+            <Candidate objectId="can-AB5551839E384F61557836FE6249F5C6">
+              <BallotName>
+                <Text language="en">Lockwood Daria</Text>
+              </BallotName>
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>other</Type>
+                  <OtherType>stable</OtherType>
+                  <Value>stable-can-AB5551839E384F61557836FE6249F5C6</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+              <PartyId>par-33BB9F67D7E628638E9326DB9E2B5373</PartyId>
+              <PersonId>per-2CE5627E7A390AAC8DC2CFC2C94EB75Z</PersonId>
+              <PreElectionStatus>self-declared</PreElectionStatus>
+            </Candidate>
+            <Candidate objectId="can-95BDF9F47BACDACAA301C9A78E4E1271">
+              <BallotName>
+                <Text language="en">Lockwood Daria</Text>
+              </BallotName>
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>other</Type>
+                  <OtherType>stable</OtherType>
+                  <Value>stable-can-95BDF9F47BACDACAA301C9A78E4E1271</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+                <PartyId>par-33BB9F67D7E628638E9326DB9E2B5373</PartyId>
+                <PersonId>per-87F428BFE90AFCF6901B7CB525BA5C92</PersonId>
+                <PreElectionStatus>self-declared</PreElectionStatus>
+            </Candidate>
+          </CandidateCollection>
+        </Election>
+    """
+    election_tree = etree.fromstring(self_multiple_candidate)
+    multiple_candidate_validator = rules.MultipleCandidates(election_tree, None)
+    with self.assertRaises(loggers.ElectionError) as ee:
+      multiple_candidate_validator.check()
+    self.assertIn(
+        "Multiple candidates in Contest cc-5C78957EE418E5A890173533A936F1CF reference Person per-87F428BFE90AFCF6901B7CB525BA5C92. Candidates: ['can-319F0CED38589F31E5F24583B5E9D378', 'can-95BDF9F47BACDACAA301C9A78E4E1271']",
+        ee.exception.log_entry[0].message)
+
+
 class SelfDeclaredCandidateMethodTest(absltest.TestCase):
 
   def setUp(self):
