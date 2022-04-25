@@ -144,7 +144,7 @@ class Schema(base.TreeRule):
                              message=("The election file didn't validate "
                                       "against schema : {0}".format(
                                           error.message.encode("utf-8")))))
-      raise loggers.ElectionError(errors)
+      raise loggers.ElectionFatal(errors)
 
 
 class OptionalAndEmpty(base.BaseRule):
@@ -178,7 +178,7 @@ class Encoding(base.TreeRule):
   def check(self):
     docinfo = self.election_tree.docinfo
     if docinfo.encoding != "UTF-8":
-      raise loggers.ElectionError.from_message("Encoding on file is not UTF-8")
+      raise loggers.ElectionFatal.from_message("Encoding on file is not UTF-8")
 
 
 class HungarianStyleNotation(base.BaseRule):

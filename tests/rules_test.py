@@ -272,7 +272,7 @@ class SchemaTest(absltest.TestCase):
     election_tree = etree.fromstring(root_string)
     schema_validator = rules.Schema(election_tree, SchemaTest._schema_tree)
 
-    with self.assertRaises(loggers.ElectionError) as ete:
+    with self.assertRaises(loggers.ElectionFatal) as ete:
       schema_validator.check()
     self.assertIn("The election file didn't validate against schema",
                   ete.exception.log_entry[0].message)
@@ -360,7 +360,7 @@ class EncodingTest(absltest.TestCase):
     election_tree = etree.parse(root_string)
     encoding_validator = rules.Encoding(election_tree, None)
 
-    with self.assertRaises(loggers.ElectionError) as ee:
+    with self.assertRaises(loggers.ElectionFatal) as ee:
       encoding_validator.check()
     self.assertEqual(ee.exception.log_entry[0].message,
                      "Encoding on file is not UTF-8")
