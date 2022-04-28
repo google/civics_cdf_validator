@@ -582,7 +582,6 @@
         <OfficeIds>off21</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-
       <Contest objectId="cc20025" xsi:type="CandidateContest">
         <BallotSelection objectId="cs10388" xsi:type="CandidateSelection">
           <CandidateIds>can10388</CandidateIds>
@@ -1056,8 +1055,9 @@
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
-        <Text language="en">President</Text>
+        <Text language="en">President of the United States</Text>
       </Name>
+      <SelectionMethod>indirectly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1089,8 +1089,9 @@
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
-        <Text language="en">Vice President</Text>
+        <Text language="en">Vice President of the United States</Text>
       </Name>
+      <SelectionMethod>indirectly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1122,8 +1123,9 @@
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
-        <Text language="en">Governor</Text>
+        <Text language="en">Governor of Virginia</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1155,8 +1157,9 @@
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
-        <Text language="en">Lieutenant Governor</Text>
+        <Text language="en">Lieutenant Governor of Virginia</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1188,8 +1191,9 @@
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
-        <Text language="en">Attorney General</Text>
+        <Text language="en">Attorney General of Virginia</Text>
       </Name>
+      <SelectionMethod>indirectly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1223,6 +1227,7 @@
       <Name>
         <Text language="en">Virginia House of Delegates Member</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1257,6 +1262,7 @@
       <Name>
         <Text language="en">Member Board of Supervisors - Scottsville</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1290,6 +1296,7 @@
       <Name>
         <Text language="en">Member Board of Supervisors - Jack Jouett</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1323,6 +1330,7 @@
       <Name>
         <Text language="en">Member Board of Supervisors - Samuel Miller</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1356,6 +1364,7 @@
       <Name>
         <Text language="en">Member Board of Supervisors - Rio</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1390,6 +1399,7 @@
       <Name>
         <Text language="en">Member School Board - Rio</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1423,6 +1433,7 @@
       <Name>
         <Text language="en">Member School Board - Samuel Miller</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1456,6 +1467,7 @@
       <Name>
         <Text language="en">Member School Board - Jack Jouett</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
