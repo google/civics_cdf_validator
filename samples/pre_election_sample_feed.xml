@@ -437,7 +437,7 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-us1-country-us</Value>
+            <Value>vageneral-cont-2013-us1-country-us-pres</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>President</Name>
@@ -462,7 +462,7 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-us1-country-us</Value>
+            <Value>vageneral-cont-2013-us1-country-us-vicepres</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>Vice President</Name>
