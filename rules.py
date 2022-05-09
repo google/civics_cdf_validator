@@ -1330,6 +1330,39 @@ class DuplicateContestNames(base.BaseRule):
       raise loggers.ElectionError(error_log)
 
 
+class UniqueStableID(base.TreeRule):
+  """Check that every stableID is unique.
+
+  Add an error message if stable id is not unique
+  """
+  _TOP_LEVEL_ENTITIES = frozenset(
+      ["Party", "GpUnit", "Office", "Person", "Candidate", "Contest"])
+
+  def check(self):
+    error_log = []
+    stable_obj_dict = dict()
+    for _, element in etree.iterwalk(self.election_tree, events=("end",)):
+      if "Election" not in element.tag:
+        if element.tag in self._TOP_LEVEL_ENTITIES:
+          if "objectId" in element.attrib:
+            object_id = element.get("objectId")
+            stable_ids = get_external_id_values(element, "stable")
+            for stable_id in stable_ids:
+              if stable_id in stable_obj_dict.keys():
+                stable_obj_dict.get(stable_id).append(object_id)
+              else:
+                object_id_list = []
+                object_id_list.append(object_id)
+                stable_obj_dict[stable_id] = object_id_list
+    for k, v in stable_obj_dict.items():
+      if len(v) > 1:
+        error_message = "Stable ID {} is not unique as it is mapped in {}".format(
+            k, v)
+        error_log.append(loggers.LogEntry(error_message))
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
 class MissingStableIds(base.BaseRule):
   """Check that each NIST object in the feed have a stable Id.
 
@@ -2798,6 +2831,7 @@ COMMON_RULES = (
     MissingFieldsWarning,
     MissingFieldsInfo,
     MissingOfficeSelectionMethod,
+    UniqueStableID,
 )
 
 ELECTION_RULES = COMMON_RULES + (
