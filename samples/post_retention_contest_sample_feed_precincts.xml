@@ -915,8 +915,8 @@
     <Name>
       <Text language="en">2013 Virginia Retention of Supreme Court Justice</Text>
     </Name>
-    <StartDate>2013-11-05</StartDate>
-    <EndDate>2013-11-05</EndDate>
+    <StartDate>2024-11-05</StartDate>
+    <EndDate>2024-11-05</EndDate>
     <Type>general</Type>
   </Election>
   <Format>precinct-level</Format>
@@ -1005,8 +1005,7 @@
       <Type>state-house</Type>
     </GpUnit>
     <GpUnit objectId="ru0311" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90111 ru_pre90139 ru_pre90666 ru_pre90994sp0000 ru_pre91602
-      ru_pre91781sp0001 ru_pre91999 ru_pre92175</ComposingGpUnitIds>
+      <ComposingGpUnitIds>ru_pre90994sp0000</ComposingGpUnitIds>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1023,9 +1022,8 @@
       <Type>state-house</Type>
     </GpUnit>
     <GpUnit objectId="ru0076" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90183 ru_pre90614 ru_pre90929 ru_pre90994sp0001 ru_pre91089sp0000
-      ru_pre91089sp0001 ru_pre91298 ru_pre92140 ru_pre92171sp0000 ru_pre92171sp0001
-      ru_pre92320 ru_pre92353</ComposingGpUnitIds>
+      <ComposingGpUnitIds>ru_pre90183 ru_pre90614 ru_pre90994sp0001 ru_pre91089sp0000
+      ru_pre91089sp0001 ru_pre92140 ru_pre92353</ComposingGpUnitIds>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1042,7 +1040,6 @@
       <Type>state-house</Type>
     </GpUnit>
     <GpUnit objectId="ru0107" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre91918 ru_pre92065</ComposingGpUnitIds>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1059,7 +1056,7 @@
       <Type>state-house</Type>
     </GpUnit>
     <GpUnit objectId="ru0030" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre91918 ru_pre92065 ru_pre92360 ru_pre92426</ComposingGpUnitIds>
+      <ComposingGpUnitIds>ru_pre91918 ru_pre92065</ComposingGpUnitIds>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1076,8 +1073,7 @@
       <Type>county-council</Type>
     </GpUnit>
     <GpUnit objectId="ru0054" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90111 ru_pre90348sp0000 ru_pre90348sp0001 ru_pre91602
-      ru_pre92306</ComposingGpUnitIds>
+      <ComposingGpUnitIds>ru_pre90111 ru_pre91602</ComposingGpUnitIds>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
