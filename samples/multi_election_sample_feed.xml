@@ -534,6 +534,7 @@
       <Name>
         <Text language="en">President of the United States</Text>
       </Name>
+      <SelectionMethod>indirectly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -567,6 +568,7 @@
       <Name>
         <Text language="en">Governor of Florida</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>

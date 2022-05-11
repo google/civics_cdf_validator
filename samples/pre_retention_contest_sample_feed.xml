@@ -175,8 +175,9 @@
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>false</IsPartisan>
       <Name>
-        <Text language="en">Justice, Supreme Court of Virginia</Text>
+        <Text language="en">Justice of the Supreme Court of Virginia</Text>
       </Name>
+      <SelectionMethod>appointed</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>

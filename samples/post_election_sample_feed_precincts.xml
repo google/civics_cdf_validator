@@ -383,7 +383,7 @@
       </Candidate>
     </CandidateCollection>
     <ContestCollection>
-      <Contest objectId="cc20002" xsi:type="CandidateContest">
+      <Contest objectId="cc20002_a" xsi:type="CandidateContest">
         <BallotSelection objectId="cs10861" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
@@ -807,9 +807,9 @@
               <Count>8819</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10861a can10861b</CandidateIds>
+          <CandidateIds>can10861a</CandidateIds>
         </BallotSelection>
-        <BallotSelection objectId="cs10862" xsi:type="CandidateSelection">
+        <BallotSelection objectId="cs10862_a" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
               <GpUnitId>ru_pre90111</GpUnitId>
@@ -1232,23 +1232,893 @@
               <Count>7582</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10862a can10862b</CandidateIds>
+          <CandidateIds>can10862a</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">President and Vice-President of the United States</Text>
+          <Text language="en">President of the United States</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-us1-country-us</Value>
+            <Value>vageneral-cont-2013-us1-country-us-pres</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>President and Vice-President</Name>
+        <Name>President</Name>
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off9999a</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+      <Contest objectId="cc20001" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs10861_b" xsi:type="CandidateSelection">
+          <VoteCountsCollection>
+            <VoteCounts>
+              <GpUnitId>ru_pre90111</GpUnitId>
+              <Type>absentee</Type>
+              <Count>7257</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90111</GpUnitId>
+              <Type>early</Type>
+              <Count>9825</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90111</GpUnitId>
+              <Type>election-day</Type>
+              <Count>3775</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90111</GpUnitId>
+              <Type>total</Type>
+              <Count>20857</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90139</GpUnitId>
+              <Type>absentee</Type>
+              <Count>6614</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90139</GpUnitId>
+              <Type>early</Type>
+              <Count>1610</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90139</GpUnitId>
+              <Type>election-day</Type>
+              <Count>668</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90139</GpUnitId>
+              <Type>total</Type>
+              <Count>8892</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90183</GpUnitId>
+              <Type>absentee</Type>
+              <Count>8801</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90183</GpUnitId>
+              <Type>early</Type>
+              <Count>5079</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90183</GpUnitId>
+              <Type>election-day</Type>
+              <Count>4898</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90183</GpUnitId>
+              <Type>total</Type>
+              <Count>18778</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90614</GpUnitId>
+              <Type>absentee</Type>
+              <Count>963</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90614</GpUnitId>
+              <Type>early</Type>
+              <Count>8230</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90614</GpUnitId>
+              <Type>election-day</Type>
+              <Count>4446</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90614</GpUnitId>
+              <Type>total</Type>
+              <Count>13639</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90666</GpUnitId>
+              <Type>absentee</Type>
+              <Count>538</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90666</GpUnitId>
+              <Type>early</Type>
+              <Count>8588</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90666</GpUnitId>
+              <Type>election-day</Type>
+              <Count>5107</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90666</GpUnitId>
+              <Type>total</Type>
+              <Count>14233</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90929</GpUnitId>
+              <Type>absentee</Type>
+              <Count>8746</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90929</GpUnitId>
+              <Type>early</Type>
+              <Count>6247</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90929</GpUnitId>
+              <Type>election-day</Type>
+              <Count>7756</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90929</GpUnitId>
+              <Type>total</Type>
+              <Count>22749</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91298</GpUnitId>
+              <Type>absentee</Type>
+              <Count>1698</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91298</GpUnitId>
+              <Type>early</Type>
+              <Count>3887</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91298</GpUnitId>
+              <Type>election-day</Type>
+              <Count>3506</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91298</GpUnitId>
+              <Type>total</Type>
+              <Count>9091</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91602</GpUnitId>
+              <Type>absentee</Type>
+              <Count>2660</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91602</GpUnitId>
+              <Type>early</Type>
+              <Count>2455</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91602</GpUnitId>
+              <Type>election-day</Type>
+              <Count>6132</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91602</GpUnitId>
+              <Type>total</Type>
+              <Count>11247</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91918</GpUnitId>
+              <Type>absentee</Type>
+              <Count>9741</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91918</GpUnitId>
+              <Type>early</Type>
+              <Count>4327</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91918</GpUnitId>
+              <Type>election-day</Type>
+              <Count>8302</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91918</GpUnitId>
+              <Type>total</Type>
+              <Count>22370</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91999</GpUnitId>
+              <Type>absentee</Type>
+              <Count>9978</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91999</GpUnitId>
+              <Type>early</Type>
+              <Count>5363</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91999</GpUnitId>
+              <Type>election-day</Type>
+              <Count>8781</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91999</GpUnitId>
+              <Type>total</Type>
+              <Count>24122</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92065</GpUnitId>
+              <Type>absentee</Type>
+              <Count>2381</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92065</GpUnitId>
+              <Type>early</Type>
+              <Count>1430</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92065</GpUnitId>
+              <Type>election-day</Type>
+              <Count>1890</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92065</GpUnitId>
+              <Type>total</Type>
+              <Count>5701</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92087</GpUnitId>
+              <Type>absentee</Type>
+              <Count>3539</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92087</GpUnitId>
+              <Type>early</Type>
+              <Count>7922</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92087</GpUnitId>
+              <Type>election-day</Type>
+              <Count>6603</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92087</GpUnitId>
+              <Type>total</Type>
+              <Count>18064</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92140</GpUnitId>
+              <Type>absentee</Type>
+              <Count>9213</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92140</GpUnitId>
+              <Type>early</Type>
+              <Count>9635</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92140</GpUnitId>
+              <Type>election-day</Type>
+              <Count>3447</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92140</GpUnitId>
+              <Type>total</Type>
+              <Count>22295</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92145</GpUnitId>
+              <Type>absentee</Type>
+              <Count>1427</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92145</GpUnitId>
+              <Type>early</Type>
+              <Count>9790</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92145</GpUnitId>
+              <Type>election-day</Type>
+              <Count>1812</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92145</GpUnitId>
+              <Type>total</Type>
+              <Count>13029</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92175</GpUnitId>
+              <Type>absentee</Type>
+              <Count>6161</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92175</GpUnitId>
+              <Type>early</Type>
+              <Count>7757</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92175</GpUnitId>
+              <Type>election-day</Type>
+              <Count>7471</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92175</GpUnitId>
+              <Type>total</Type>
+              <Count>21389</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92306</GpUnitId>
+              <Type>absentee</Type>
+              <Count>458</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92306</GpUnitId>
+              <Type>early</Type>
+              <Count>2330</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92306</GpUnitId>
+              <Type>election-day</Type>
+              <Count>4564</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92306</GpUnitId>
+              <Type>total</Type>
+              <Count>7352</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92320</GpUnitId>
+              <Type>absentee</Type>
+              <Count>7930</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92320</GpUnitId>
+              <Type>early</Type>
+              <Count>6576</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92320</GpUnitId>
+              <Type>election-day</Type>
+              <Count>6833</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92320</GpUnitId>
+              <Type>total</Type>
+              <Count>21339</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92353</GpUnitId>
+              <Type>absentee</Type>
+              <Count>4802</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92353</GpUnitId>
+              <Type>early</Type>
+              <Count>5824</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92353</GpUnitId>
+              <Type>election-day</Type>
+              <Count>6632</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92353</GpUnitId>
+              <Type>total</Type>
+              <Count>17258</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92360</GpUnitId>
+              <Type>absentee</Type>
+              <Count>6827</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92360</GpUnitId>
+              <Type>early</Type>
+              <Count>4676</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92360</GpUnitId>
+              <Type>election-day</Type>
+              <Count>8397</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92360</GpUnitId>
+              <Type>total</Type>
+              <Count>19900</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92426</GpUnitId>
+              <Type>absentee</Type>
+              <Count>9512</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92426</GpUnitId>
+              <Type>early</Type>
+              <Count>7144</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92426</GpUnitId>
+              <Type>election-day</Type>
+              <Count>9789</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92426</GpUnitId>
+              <Type>total</Type>
+              <Count>26445</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_preXXXXX</GpUnitId>
+              <Type>absentee</Type>
+              <Count>1786</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_preXXXXX</GpUnitId>
+              <Type>early</Type>
+              <Count>5344</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_preXXXXX</GpUnitId>
+              <Type>election-day</Type>
+              <Count>1689</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_preXXXXX</GpUnitId>
+              <Type>total</Type>
+              <Count>8819</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+          <CandidateIds>can10861b</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs10862_b" xsi:type="CandidateSelection">
+          <VoteCountsCollection>
+            <VoteCounts>
+              <GpUnitId>ru_pre90111</GpUnitId>
+              <Type>absentee</Type>
+              <Count>5945</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90111</GpUnitId>
+              <Type>early</Type>
+              <Count>9874</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90111</GpUnitId>
+              <Type>election-day</Type>
+              <Count>1388</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90111</GpUnitId>
+              <Type>total</Type>
+              <Count>17207</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90139</GpUnitId>
+              <Type>absentee</Type>
+              <Count>182</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90139</GpUnitId>
+              <Type>early</Type>
+              <Count>9160</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90139</GpUnitId>
+              <Type>election-day</Type>
+              <Count>3904</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90139</GpUnitId>
+              <Type>total</Type>
+              <Count>13246</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90183</GpUnitId>
+              <Type>absentee</Type>
+              <Count>2025</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90183</GpUnitId>
+              <Type>early</Type>
+              <Count>1981</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90183</GpUnitId>
+              <Type>election-day</Type>
+              <Count>3695</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90183</GpUnitId>
+              <Type>total</Type>
+              <Count>7701</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90614</GpUnitId>
+              <Type>absentee</Type>
+              <Count>4544</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90614</GpUnitId>
+              <Type>early</Type>
+              <Count>8397</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90614</GpUnitId>
+              <Type>election-day</Type>
+              <Count>3016</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90614</GpUnitId>
+              <Type>total</Type>
+              <Count>15957</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90666</GpUnitId>
+              <Type>absentee</Type>
+              <Count>876</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90666</GpUnitId>
+              <Type>early</Type>
+              <Count>8072</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90666</GpUnitId>
+              <Type>election-day</Type>
+              <Count>604</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90666</GpUnitId>
+              <Type>total</Type>
+              <Count>9552</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90929</GpUnitId>
+              <Type>absentee</Type>
+              <Count>8196</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90929</GpUnitId>
+              <Type>early</Type>
+              <Count>8352</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90929</GpUnitId>
+              <Type>election-day</Type>
+              <Count>6369</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre90929</GpUnitId>
+              <Type>total</Type>
+              <Count>22917</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91298</GpUnitId>
+              <Type>absentee</Type>
+              <Count>6924</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91298</GpUnitId>
+              <Type>early</Type>
+              <Count>8867</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91298</GpUnitId>
+              <Type>election-day</Type>
+              <Count>9812</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91298</GpUnitId>
+              <Type>total</Type>
+              <Count>25603</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91602</GpUnitId>
+              <Type>absentee</Type>
+              <Count>5070</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91602</GpUnitId>
+              <Type>early</Type>
+              <Count>4731</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91602</GpUnitId>
+              <Type>election-day</Type>
+              <Count>6941</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91602</GpUnitId>
+              <Type>total</Type>
+              <Count>16742</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91918</GpUnitId>
+              <Type>absentee</Type>
+              <Count>3619</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91918</GpUnitId>
+              <Type>early</Type>
+              <Count>6121</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91918</GpUnitId>
+              <Type>election-day</Type>
+              <Count>6659</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91918</GpUnitId>
+              <Type>total</Type>
+              <Count>16399</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91999</GpUnitId>
+              <Type>absentee</Type>
+              <Count>4367</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91999</GpUnitId>
+              <Type>early</Type>
+              <Count>7203</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91999</GpUnitId>
+              <Type>election-day</Type>
+              <Count>1649</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre91999</GpUnitId>
+              <Type>total</Type>
+              <Count>13219</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92065</GpUnitId>
+              <Type>absentee</Type>
+              <Count>3116</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92065</GpUnitId>
+              <Type>early</Type>
+              <Count>1285</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92065</GpUnitId>
+              <Type>election-day</Type>
+              <Count>2326</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92065</GpUnitId>
+              <Type>total</Type>
+              <Count>6727</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92087</GpUnitId>
+              <Type>absentee</Type>
+              <Count>9910</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92087</GpUnitId>
+              <Type>early</Type>
+              <Count>8079</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92087</GpUnitId>
+              <Type>election-day</Type>
+              <Count>5101</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92087</GpUnitId>
+              <Type>total</Type>
+              <Count>23090</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92140</GpUnitId>
+              <Type>absentee</Type>
+              <Count>9460</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92140</GpUnitId>
+              <Type>early</Type>
+              <Count>5822</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92140</GpUnitId>
+              <Type>election-day</Type>
+              <Count>7948</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92140</GpUnitId>
+              <Type>total</Type>
+              <Count>23230</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92145</GpUnitId>
+              <Type>absentee</Type>
+              <Count>5870</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92145</GpUnitId>
+              <Type>early</Type>
+              <Count>4974</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92145</GpUnitId>
+              <Type>election-day</Type>
+              <Count>1005</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92145</GpUnitId>
+              <Type>total</Type>
+              <Count>11849</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92175</GpUnitId>
+              <Type>absentee</Type>
+              <Count>983</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92175</GpUnitId>
+              <Type>early</Type>
+              <Count>4481</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92175</GpUnitId>
+              <Type>election-day</Type>
+              <Count>3702</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92175</GpUnitId>
+              <Type>total</Type>
+              <Count>9166</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92306</GpUnitId>
+              <Type>absentee</Type>
+              <Count>6774</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92306</GpUnitId>
+              <Type>early</Type>
+              <Count>4639</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92306</GpUnitId>
+              <Type>election-day</Type>
+              <Count>1288</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92306</GpUnitId>
+              <Type>total</Type>
+              <Count>12701</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92320</GpUnitId>
+              <Type>absentee</Type>
+              <Count>3109</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92320</GpUnitId>
+              <Type>early</Type>
+              <Count>6284</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92320</GpUnitId>
+              <Type>election-day</Type>
+              <Count>3420</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92320</GpUnitId>
+              <Type>total</Type>
+              <Count>12813</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92353</GpUnitId>
+              <Type>absentee</Type>
+              <Count>106</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92353</GpUnitId>
+              <Type>early</Type>
+              <Count>2612</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92353</GpUnitId>
+              <Type>election-day</Type>
+              <Count>9611</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92353</GpUnitId>
+              <Type>total</Type>
+              <Count>12329</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92360</GpUnitId>
+              <Type>absentee</Type>
+              <Count>4229</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92360</GpUnitId>
+              <Type>early</Type>
+              <Count>8592</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92360</GpUnitId>
+              <Type>election-day</Type>
+              <Count>5607</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92360</GpUnitId>
+              <Type>total</Type>
+              <Count>18428</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92426</GpUnitId>
+              <Type>absentee</Type>
+              <Count>5101</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92426</GpUnitId>
+              <Type>early</Type>
+              <Count>4284</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92426</GpUnitId>
+              <Type>election-day</Type>
+              <Count>3758</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_pre92426</GpUnitId>
+              <Type>total</Type>
+              <Count>13143</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_preXXXXX</GpUnitId>
+              <Type>absentee</Type>
+              <Count>482</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_preXXXXX</GpUnitId>
+              <Type>early</Type>
+              <Count>344</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_preXXXXX</GpUnitId>
+              <Type>election-day</Type>
+              <Count>6756</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru_preXXXXX</GpUnitId>
+              <Type>total</Type>
+              <Count>7582</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+          <CandidateIds>can10862b</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Vice-President of the United States</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-us1-country-us-vicepres</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>Vice-President</Name>
+        <SubUnitsReported>21</SubUnitsReported>
+        <TotalSubUnits>31</TotalSubUnits>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off9999b</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20003" xsi:type="CandidateContest">
@@ -2543,6 +3413,7 @@
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off0000</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20004" xsi:type="CandidateContest">
@@ -3411,6 +4282,7 @@
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off0001</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20005" xsi:type="CandidateContest">
@@ -4279,6 +5151,7 @@
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off20005</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20024" xsi:type="CandidateContest">
@@ -4402,6 +5275,7 @@
         <SubUnitsReported>5</SubUnitsReported>
         <TotalSubUnits>7</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off21</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20025" xsi:type="CandidateContest">
@@ -4545,6 +5419,7 @@
         <SubUnitsReported>6</SubUnitsReported>
         <TotalSubUnits>9</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off21</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20033" xsi:type="CandidateContest">
@@ -4608,6 +5483,7 @@
         <SubUnitsReported>2</SubUnitsReported>
         <TotalSubUnits>2</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off21</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20100" xsi:type="CandidateContest">
@@ -4771,6 +5647,7 @@
         <SubUnitsReported>7</SubUnitsReported>
         <TotalSubUnits>13</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off21</OfficeIds>
         <PrimaryPartyIds>par0005</PrimaryPartyIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
@@ -4920,6 +5797,7 @@
         <SubUnitsReported>3</SubUnitsReported>
         <TotalSubUnits>5</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off20262</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20305" xsi:type="CandidateContest">
@@ -5068,6 +5946,7 @@
         <SubUnitsReported>3</SubUnitsReported>
         <TotalSubUnits>5</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off20305</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20350" xsi:type="CandidateContest">
@@ -5256,6 +6135,7 @@
         <SubUnitsReported>4</SubUnitsReported>
         <TotalSubUnits>4</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off20350</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20355" xsi:type="CandidateContest">
@@ -5444,6 +6324,7 @@
         <SubUnitsReported>4</SubUnitsReported>
         <TotalSubUnits>6</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off20355</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20449" xsi:type="CandidateContest">
@@ -5547,6 +6428,7 @@
         <SubUnitsReported>4</SubUnitsReported>
         <TotalSubUnits>6</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off20449</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20473" xsi:type="CandidateContest">
@@ -5650,6 +6532,7 @@
         <SubUnitsReported>4</SubUnitsReported>
         <TotalSubUnits>4</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off20473</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20476" xsi:type="CandidateContest">
@@ -5733,6 +6616,7 @@
         <SubUnitsReported>3</SubUnitsReported>
         <TotalSubUnits>5</TotalSubUnits>
         <NumberElected>1</NumberElected>
+        <OfficeIds>off20476</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
     </ContestCollection>
@@ -6324,6 +7208,439 @@
   </GpUnitCollection>
   <Issuer>Commonwealth of Virginia</Issuer>
   <IssuerAbbreviation>VA</IssuerAbbreviation>
+  <OfficeCollection>
+    <Office objectId="off9999a">
+      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off9999a</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>president</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">President</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off9999b">
+      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off9999b</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>vice president</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Vice President</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off0000">
+      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off0000</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>state executive</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Governor</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off0001">
+      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off0001</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>deputy state executive</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Lieutenant Governor</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20005">
+      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20005</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>attorney general</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Attorney General</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off21">
+      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>state lower house</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20100</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0002</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Virginia House of Delegates Member</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <!-- Board of Supervisors -->
+    <Office objectId="off20262">
+      <ElectoralDistrictId>ru0103</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20262</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0103</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>county council</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member Board of Supervisors - Scottsville</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20305">
+      <ElectoralDistrictId>ru0054</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20305</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0054</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>county council</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member Board of Supervisors - Jack Jouett</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20350">
+      <ElectoralDistrictId>ru0030</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20350</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0030</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>county council</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member Board of Supervisors - Samuel Miller</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20355">
+      <ElectoralDistrictId>ru0081</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20355</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0081</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>county council</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member Board of Supervisors - Rio</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <!-- School board -->
+    <Office objectId="off20449">
+      <ElectoralDistrictId>ru0081</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20449</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0081</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>school board</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member School Board - Rio</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20473">
+      <ElectoralDistrictId>ru0030</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20473</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+       <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0030</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>school board</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member School Board - Samuel Miller</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="off20476">
+      <ElectoralDistrictId>ru0054</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off20476</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru0054</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>school board</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Member School Board - Jack Jouett</Text>
+      </Name>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+  </OfficeCollection>
   <PartyCollection>
     <Party objectId="par0001">
       <InternationalizedAbbreviation>

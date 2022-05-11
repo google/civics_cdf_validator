@@ -590,13 +590,14 @@ class EmptyTextTest(absltest.TestCase):
     element = etree.fromstring(element_string)
     self.empty_text_validator.check(element)
 
-  def testIgnoresEmptyElements(self):
+  def testThrowsWarningForEmptyElements(self):
     element_string = """
       <Text></Text>
     """
 
     element = etree.fromstring(element_string)
-    self.empty_text_validator.check(element)
+    with self.assertRaises(loggers.ElectionWarning):
+      self.empty_text_validator.check(element)
 
   def testThrowsWarningForSpaceOnlyElements(self):
     empty_string = """
@@ -604,6 +605,15 @@ class EmptyTextTest(absltest.TestCase):
     """
 
     element = etree.fromstring(empty_string)
+    with self.assertRaises(loggers.ElectionWarning):
+      self.empty_text_validator.check(element)
+
+  def testEmptyTextWithLanguage(self):
+    element_string = """
+      <Text language="en" />
+    """
+
+    element = etree.fromstring(element_string)
     with self.assertRaises(loggers.ElectionWarning):
       self.empty_text_validator.check(element)
 
@@ -3575,6 +3585,110 @@ class ValidStableIDTest(absltest.TestCase):
                      "ExternalIdentifiers")
 
 
+class UniqueStableIDTest(absltest.TestCase):
+
+  def setUp(self):
+    super(UniqueStableIDTest, self).setUp()
+    self.root_string = """
+      <Election objectId="el0110">
+        <OfficeCollection>
+          <Office objectId="off04_AS">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>{}</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Office>
+          <Office objectId= "off04_A">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>stable</OtherType>
+                <Value>{}</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Office>
+        </OfficeCollection>
+        <CandidateCollection>
+          <Candidate objectId="can1">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>stable</OtherType>
+                <Value>{}</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Candidate>
+          <Candidate objectId="can2">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>stable</OtherType>
+                <Value>{}</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Candidate>
+          <Candidate objectId="can3">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>stable</OtherType>
+                <Value>{}</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Candidate>
+        </CandidateCollection>
+      </Election>
+  """
+
+  def testUniqueStableIDPass(self):
+
+    test_string = self.root_string.format("04_AS", "04_A", "stable-can-1",
+                                          "stable-can-2", "stable-can-3")
+    election_tree = etree.fromstring(test_string)
+    rules.UniqueStableID(election_tree, None).check()
+
+  def testUniqueStableIDFail(self):
+
+    test_string = self.root_string.format("04_AS", "04_A", "04_AS",
+                                          "stable-can-2", "stable-can-3")
+    election_tree = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError) as ee:
+      rules.UniqueStableID(election_tree, None).check()
+    self.assertEqual(
+        "Stable ID 04_AS is not unique as it is mapped in ['off04_AS', 'can1']",
+        ee.exception.log_entry[0].message)
+
+  def testUniqueStableIDFailMultipleElements(self):
+
+    test_string = self.root_string.format("04_AS", "04_A", "04_AS", "04_A",
+                                          "stable-can-3")
+    election_tree = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError) as ee:
+      rules.UniqueStableID(election_tree, None).check()
+    self.assertEqual(
+        "Stable ID 04_AS is not unique as it is mapped in ['off04_AS', 'can1']",
+        ee.exception.log_entry[0].message)
+    self.assertEqual(
+        "Stable ID 04_A is not unique as it is mapped in ['off04_A', 'can2']",
+        ee.exception.log_entry[1].message)
+
+  def testUniqueStableIDFailThreeElements(self):
+    test_string = self.root_string.format("04_AS", "04_A", "04_AS", "04_A",
+                                          "04_A")
+    election_tree = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError) as ee:
+      rules.UniqueStableID(election_tree, None).check()
+    self.assertEqual(
+        "Stable ID 04_AS is not unique as it is mapped in ['off04_AS', 'can1']",
+        ee.exception.log_entry[0].message)
+    self.assertEqual(
+        "Stable ID 04_A is not unique as it is mapped in ['off04_A', 'can2', 'can3']",
+        ee.exception.log_entry[1].message)
+
+
 class MissingStableIdsTest(absltest.TestCase):
 
   def setUp(self):
@@ -4066,7 +4180,17 @@ class ValidateOcdidLowerCaseTest(absltest.TestCase):
 
 class ContestHasMultipleOfficesTest(absltest.TestCase):
 
-  base_string = """<Contest objectId="con123">{}</Contest>"""
+  base_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest objectId="con123" xsi:type="CandidateContest">
+                {}
+             </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+   """
 
   def setUp(self):
     super(ContestHasMultipleOfficesTest, self).setUp()
@@ -4075,7 +4199,8 @@ class ContestHasMultipleOfficesTest(absltest.TestCase):
   def testOneOfficeValid(self):
     root_string = self.base_string.format("<OfficeIds>off-ar1-arb</OfficeIds>")
     element = etree.fromstring(root_string)
-    self.contest_offices_validator.check(element)
+    self.contest_offices_validator.check(
+        element.find("Election//ContestCollection//Contest"))
 
   def testMultipleOfficesFail(self):
     root_string = self.base_string.format(
@@ -4083,7 +4208,8 @@ class ContestHasMultipleOfficesTest(absltest.TestCase):
     element = etree.fromstring(root_string)
 
     with self.assertRaises(loggers.ElectionWarning) as cm:
-      self.contest_offices_validator.check(element)
+      self.contest_offices_validator.check(
+          element.find("Election//ContestCollection//Contest"))
     self.assertEqual("Contest has more than one associated office.",
                      str(cm.exception.log_entry[0].message))
     self.assertEqual("con123",
@@ -4094,7 +4220,8 @@ class ContestHasMultipleOfficesTest(absltest.TestCase):
     element = etree.fromstring(root_string)
 
     with self.assertRaises(loggers.ElectionWarning) as cm:
-      self.contest_offices_validator.check(element)
+      self.contest_offices_validator.check(
+          element.find("Election//ContestCollection//Contest"))
     self.assertEqual("Contest has no associated offices.",
                      str(cm.exception.log_entry[0].message))
     self.assertEqual("con123",

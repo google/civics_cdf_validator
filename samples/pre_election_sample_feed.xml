@@ -421,30 +421,53 @@
     </CandidateCollection>
     <ContestCollection>
       <Contest objectId="cc20002" xsi:type="CandidateContest">
-        <!-- This contest is for two offices: (a) President and (b) Vice
-             President. Therefore each BallotSelection should have two
-             candidates, and the Contest should link to two offices.
+        <!-- This contest is for office: President.
           -->
         <BallotSelection objectId="cs10861" xsi:type="CandidateSelection">
-          <CandidateIds>can10861a can10861b</CandidateIds>
+          <CandidateIds>can10861a</CandidateIds>
         </BallotSelection>
         <BallotSelection objectId="cs10862" xsi:type="CandidateSelection">
-          <CandidateIds>can10862a can10862b</CandidateIds>
+          <CandidateIds>can10862a</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">President and Vice-President of the United States</Text>
+          <Text language="en">President of the United States</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-us1-country-us</Value>
+            <Value>vageneral-cont-2013-us1-country-us-pres</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>President and Vice-President</Name>
+        <Name>President</Name>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off9999a off9999b</OfficeIds>
+        <OfficeIds>off9999a</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+      <Contest objectId="cc20001" xsi:type="CandidateContest">
+        <!-- This contest is for office: Vice President.
+          -->
+        <BallotSelection objectId="cs10863" xsi:type="CandidateSelection">
+          <CandidateIds>can10861b</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs10864" xsi:type="CandidateSelection">
+          <CandidateIds>can10862b</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Vice President of the United States</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>vageneral-cont-2013-us1-country-us-vicepres</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>Vice President</Name>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off9999b</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20003" xsi:type="CandidateContest">
@@ -559,7 +582,6 @@
         <OfficeIds>off21</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-
       <Contest objectId="cc20025" xsi:type="CandidateContest">
         <BallotSelection objectId="cs10388" xsi:type="CandidateSelection">
           <CandidateIds>can10388</CandidateIds>
@@ -1033,8 +1055,9 @@
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
-        <Text language="en">President</Text>
+        <Text language="en">President of the United States</Text>
       </Name>
+      <SelectionMethod>indirectly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1066,8 +1089,9 @@
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
-        <Text language="en">Vice President</Text>
+        <Text language="en">Vice President of the United States</Text>
       </Name>
+      <SelectionMethod>indirectly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1099,8 +1123,9 @@
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
-        <Text language="en">Governor</Text>
+        <Text language="en">Governor of Virginia</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1132,8 +1157,9 @@
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
-        <Text language="en">Lieutenant Governor</Text>
+        <Text language="en">Lieutenant Governor of Virginia</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1165,8 +1191,9 @@
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
-        <Text language="en">Attorney General</Text>
+        <Text language="en">Attorney General of Virginia</Text>
       </Name>
+      <SelectionMethod>indirectly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1200,6 +1227,7 @@
       <Name>
         <Text language="en">Virginia House of Delegates Member</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1234,6 +1262,7 @@
       <Name>
         <Text language="en">Member Board of Supervisors - Scottsville</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1267,6 +1296,7 @@
       <Name>
         <Text language="en">Member Board of Supervisors - Jack Jouett</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1300,6 +1330,7 @@
       <Name>
         <Text language="en">Member Board of Supervisors - Samuel Miller</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1333,6 +1364,7 @@
       <Name>
         <Text language="en">Member Board of Supervisors - Rio</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1367,6 +1399,7 @@
       <Name>
         <Text language="en">Member School Board - Rio</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1400,6 +1433,7 @@
       <Name>
         <Text language="en">Member School Board - Samuel Miller</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1433,6 +1467,7 @@
       <Name>
         <Text language="en">Member School Board - Jack Jouett</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
