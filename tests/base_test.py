@@ -214,11 +214,17 @@ class PartialDateTest(absltest.TestCase):
     complete_date = base.PartialDate(2021, 12, 21)
     self.assertEqual(1, partial_date_year.is_older_than(complete_date))
 
-  def testShouldCheckSameMonthButDifferentDay(self):
-    complete_year_day_late = base.PartialDate(2021, 9, 20)
-    complete_year_day_early = base.PartialDate(2021, 9, 15)
+  def testShouldCheckMonthForCompleteAndPartialDate(self):
+    complete_start_date = base.PartialDate(2021, 6, 30)
+    partial_end_date = base.PartialDate(2021, 11, None)
     self.assertEqual(
-        5, complete_year_day_early.is_older_than(complete_year_day_late))
+        5, complete_start_date.is_older_than(partial_end_date))
+
+  def testShouldCheckYearForCompleteAndPartialDate(self):
+    year_only_start_date = base.PartialDate(2020, None, None)
+    partial_end_date = base.PartialDate(2021, 11, None)
+    self.assertEqual(
+        1, year_only_start_date.is_older_than(partial_end_date))
 
   def testShouldCheckIsOnlyYearTrue(self):
     partial_date_year = base.PartialDate(2021, None, None)

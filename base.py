@@ -283,7 +283,7 @@ class PartialDate():
 
     if self.is_only_year_date() or other_date.is_only_year_date():
       return other_date.year - self.year
-    elif self.is_month_date() or self.is_month_date():
+    elif self.is_month_date() or other_date.is_month_date():
       if other_date.year - self.year != 0:
         return other_date.year - self.year
       return other_date.month - self.month
