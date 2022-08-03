@@ -199,6 +199,19 @@
         <BallotName>
           <Text language="en">Republican Presidential Candidate1</Text>
         </BallotName>
+        <ContactInformation language="en">
+          <AddressLine>655 New York Ave, NW</AddressLine>
+          <AddressLine>Washington, DC 20005</AddressLine>
+          <Email>person@congress.gov</Email>
+          <Fax>888-7777</Fax>
+          <Name>Congressional Office</Name>
+          <Phone>999-8888</Phone>
+        </ContactInformation>
+        <ContactInformation language="es">
+          <AddressLine>655 Nueva York Ave, NW</AddressLine>
+          <AddressLine>Washington, DC 20005</AddressLine>
+          <Name>Oficina del Congreso</Name>
+        </ContactInformation>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
@@ -506,6 +519,19 @@
   <IssuerAbbreviation>DP1</IssuerAbbreviation>
   <OfficeCollection>
     <Office objectId="office1">
+      <ContactInformation language="en">
+        <AddressLine>655 New York Ave, NW</AddressLine>
+        <AddressLine>Washington, DC 20005</AddressLine>
+        <Email>person@congress.gov</Email>
+        <Fax>888-7777</Fax>
+        <Name>Congressional Office</Name>
+        <Phone>999-8888</Phone>
+      </ContactInformation>
+      <ContactInformation language="es">
+        <AddressLine>655 Nueva York Ave, NW</AddressLine>
+        <AddressLine>Washington, DC 20005</AddressLine>
+        <Name>Oficina del Congreso</Name>
+      </ContactInformation>
       <ElectoralDistrictId>ru-united-states</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -612,6 +638,19 @@
   </PartyCollection>
   <PersonCollection>
     <Person objectId="person21">
+      <ContactInformation language="en">
+        <AddressLine>655 New York Ave, NW</AddressLine>
+        <AddressLine>Washington, DC 20005</AddressLine>
+        <Email>person@congress.gov</Email>
+        <Fax>888-7777</Fax>
+        <Name>Congressional Office</Name>
+        <Phone>999-8888</Phone>
+      </ContactInformation>
+      <ContactInformation language="es">
+        <AddressLine>655 Nueva York Ave, NW</AddressLine>
+        <AddressLine>Washington, DC 20005</AddressLine>
+        <Name>Oficina del Congreso</Name>
+      </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
