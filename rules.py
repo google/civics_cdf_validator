@@ -991,6 +991,26 @@ class ProperBallotSelection(base.BaseRule):
         raise loggers.ElectionError.from_message(msg, [element])
 
 
+class SingularPartySelection(base.BaseRule):
+  """Each PartySelection should have exactly one Party in the PartyIds.
+
+  While technically the schema allows multiple IDs, currently our pipeline does
+  not support this. Having multiple parties can cause undefined behavior.
+  """
+
+  def elements(self):
+    return ["PartySelection"]
+
+  def check(self, element):
+    party_ids = element.find("PartyIds")
+    if (party_ids is None or not party_ids.text or not party_ids.text.strip()):
+      raise loggers.ElectionError.from_message(
+          "PartySelection has no associated parties.", [element])
+    elif len(party_ids.text.split()) != 1:
+      raise loggers.ElectionError.from_message(
+          "PartySelection has more than one associated party.", [element])
+
+
 class PartiesHaveValidColors(base.BaseRule):
   """Each Party should have a valid hex Color without a leading '#'.
 
@@ -2864,6 +2884,7 @@ ELECTION_RULES = COMMON_RULES + (
     ImproperCandidateContest,
     SubsequentContestIdIsValidRelatedContest,
     ComposingContestIdsAreValidRelatedContests,
+    SingularPartySelection,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (

@@ -2656,6 +2656,65 @@ class ProperBallotSelectionTest(absltest.TestCase):
       self.ballot_selection_validator.check(element.find("Contest"))
 
 
+class SingularPartySelectionTest(absltest.TestCase):
+
+  def setUp(self):
+    super(SingularPartySelectionTest, self).setUp()
+    self.party_selection_validator = rules.SingularPartySelection(None, None)
+
+  def testOnePartyValid(self):
+    element_string = """
+        <PartySelection objectId="ps-123">
+          <PartyIds>par123</PartyIds>
+        </PartySelection>
+    """
+    element = etree.fromstring(element_string)
+    self.party_selection_validator.check(element)
+
+  def testMultiplePartiesFail(self):
+    element_string = """
+        <PartySelection objectId="ps-456-789">
+          <PartyIds>par456 par789</PartyIds>
+        </PartySelection>
+    """
+    element = etree.fromstring(element_string)
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.party_selection_validator.check(element)
+    self.assertEqual("PartySelection has more than one associated party.",
+                     str(cm.exception.log_entry[0].message))
+    self.assertEqual("ps-456-789",
+                     str(cm.exception.log_entry[0].elements[0].get("objectId")))
+
+  def testNoPartiesFail(self):
+    # Internal string is missing
+    element_string = """
+        <PartySelection objectId="ps-none">
+          <PartyIds />
+        </PartySelection>
+    """
+    element = etree.fromstring(element_string)
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.party_selection_validator.check(element)
+    self.assertEqual("PartySelection has no associated parties.",
+                     str(cm.exception.log_entry[0].message))
+    self.assertEqual("ps-none",
+                     str(cm.exception.log_entry[0].elements[0].get("objectId")))
+
+    # Internal string is just blank space
+    element_string = """
+        <PartySelection objectId="ps-blank">
+          <PartyIds> </PartyIds>
+        </PartySelection>
+    """
+    element = etree.fromstring(element_string)
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.party_selection_validator.check(element)
+    self.assertEqual("PartySelection has no associated parties.",
+                     str(cm.exception.log_entry[0].message))
+    self.assertEqual("ps-blank",
+                     str(cm.exception.log_entry[0].elements[0].get("objectId")))
+
+
 class PartiesHaveValidColorsTest(absltest.TestCase):
 
   def setUp(self):
