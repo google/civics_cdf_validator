@@ -1092,7 +1092,7 @@ class PersonHasUniqueFullName(base.BaseRule):
 class BadCharactersInPersonFullName(base.BaseRule):
   """A person Fullname should not include bad characters."""
 
-  regex = r"([()@$%*/]|alias)"
+  regex = r"([()@$%*/]|\balias\b)"
 
   def elements(self):
     return ["Person"]
@@ -1103,12 +1103,13 @@ class BadCharactersInPersonFullName(base.BaseRule):
     fullname = extract_person_fullname(element)
     person_fullname = re.compile(self.regex, flags=re.U)
     for name in fullname:
-      if re.search(person_fullname, name.lower()):
-        if "alias" in name.lower():
-          raise loggers.ElectionWarning.from_message(warning_message, [element])
-        else:
-          raise loggers.ElectionWarning.from_message(
-              "Person has known bad characters in FullName field.", [element])
+      bad_characters_match = re.search(person_fullname, name.lower())
+    if bad_characters_match:
+      if "alias" in bad_characters_match.group():
+        raise loggers.ElectionWarning.from_message(warning_message, [element])
+      else:
+        raise loggers.ElectionWarning.from_message(
+            "Person has known bad characters in FullName field.", [element])
 
 
 class ValidatePartyCollection(base.BaseRule):

@@ -1246,6 +1246,17 @@ class BadCharactersInPersonFullNameTest(absltest.TestCase):
     element = etree.fromstring(root_string)
     self.person_validator.check(element)
 
+  def testPersonFullnameValidAlias(self):
+    root_string = """
+      <Person>
+        <FullName>
+          <Text language="en">Jidalias Dos Anjos Pinto</Text>
+        </FullName>
+      </Person>
+    """
+    element = etree.fromstring(root_string)
+    self.person_validator.check(element)
+
   def testPersonFullnameInValidSpecialCharacters(self):
     root_string = """
         <Person>
