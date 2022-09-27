@@ -27,14 +27,13 @@ import hashlib
 import io
 import os
 import pstats
-import re
 
 from civics_cdf_validator import base
 from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator import rules
 from civics_cdf_validator import version
-import github
+import pycountry
 
 
 def _validate_path(parser, arg):
@@ -75,32 +74,18 @@ def _validate_severity(parser, arg):
 def _validate_country_codes(parser, arg):
   """Check that the supplied 2 country code is correct.
 
-  The repo is at https://github.com/opencivicdata/ocd-division-ids
+  Check if the provided country code is listed in ISO 3166-1 alpha-2 codes
   """
   country_code = arg.strip().lower()
 
-  # 'us' is the default country code and will always be valid.
-  # This is so we bypass the call to the GitHub API when no -c flag
-  if country_code == "us":
-    return country_code
+  for country in pycountry.countries:
+    if country_code == country.alpha_2.lower():
+      return country_code
 
-  github_api = github.Github()
-  country_ids = github_api.get_repo(
-      "opencivicdata/ocd-division-ids").get_contents("identifiers")
-  valid_codes = []
-
-  for content_file in country_ids:
-    if content_file.type == "file":
-      result = re.search(r"country-([a-z]{2})\.csv", content_file.name)
-      if result:
-        ocd_id = result.group(1)
-        if country_code == ocd_id:
-          return country_code
-        else:
-          valid_codes.append(ocd_id)
-
-  parser.error("Invalid country code. Available codes are: %s" %
-               ", ".join(valid_codes))
+  parser.error(
+      "Invalid country code. Please make sure it is listed under the officially"
+      " assigned ISO 3166-1 alpha-2 codes."
+  )
 
 
 def arg_parser():

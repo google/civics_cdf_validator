@@ -286,6 +286,7 @@
         <xs:sequence>
             <xs:element name="BallotName" type="InternationalizedText" />
             <xs:element minOccurs="0" name="CampaignSlogan" type="InternationalizedText" />
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="ContactInformation" type="ContactInformation" />
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
             <xs:element minOccurs="0" name="FileDate" type="PartialDate" />
             <xs:element minOccurs="0" name="IsIncumbent" type="xs:boolean" />
@@ -352,6 +353,7 @@
             <xs:element maxOccurs="unbounded" minOccurs="0" name="Uri" type="AnnotatedUri" />
         </xs:sequence>
         <xs:attribute name="label" type="xs:string" />
+        <xs:attribute name="language" type="xs:language" />
     </xs:complexType>
     <xs:complexType abstract="true" name="Contest">
         <xs:sequence>
@@ -540,7 +542,7 @@
     </xs:complexType>
     <xs:complexType name="Office">
         <xs:sequence>
-            <xs:element minOccurs="0" name="ContactInformation" type="ContactInformation" />
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="ContactInformation" type="ContactInformation" />
             <xs:element minOccurs="0" name="ElectoralDistrictId" type="xs:IDREF" />
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
             <xs:element minOccurs="0" name="FilingDeadline" type="PartialDate" />

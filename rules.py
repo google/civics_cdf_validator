@@ -991,6 +991,26 @@ class ProperBallotSelection(base.BaseRule):
         raise loggers.ElectionError.from_message(msg, [element])
 
 
+class SingularPartySelection(base.BaseRule):
+  """Each PartySelection should have exactly one Party in the PartyIds.
+
+  While technically the schema allows multiple IDs, currently our pipeline does
+  not support this. Having multiple parties can cause undefined behavior.
+  """
+
+  def elements(self):
+    return ["PartySelection"]
+
+  def check(self, element):
+    party_ids = element.find("PartyIds")
+    if (party_ids is None or not party_ids.text or not party_ids.text.strip()):
+      raise loggers.ElectionError.from_message(
+          "PartySelection has no associated parties.", [element])
+    elif len(party_ids.text.split()) != 1:
+      raise loggers.ElectionError.from_message(
+          "PartySelection has more than one associated party.", [element])
+
+
 class PartiesHaveValidColors(base.BaseRule):
   """Each Party should have a valid hex Color without a leading '#'.
 
@@ -1072,7 +1092,7 @@ class PersonHasUniqueFullName(base.BaseRule):
 class BadCharactersInPersonFullName(base.BaseRule):
   """A person Fullname should not include bad characters."""
 
-  regex = r"([()@$%*/]|alias)"
+  regex = r"([()@$%*/]|\balias\b)"
 
   def elements(self):
     return ["Person"]
@@ -1083,12 +1103,13 @@ class BadCharactersInPersonFullName(base.BaseRule):
     fullname = extract_person_fullname(element)
     person_fullname = re.compile(self.regex, flags=re.U)
     for name in fullname:
-      if re.search(person_fullname, name.lower()):
-        if "alias" in name.lower():
-          raise loggers.ElectionWarning.from_message(warning_message, [element])
-        else:
-          raise loggers.ElectionWarning.from_message(
-              "Person has known bad characters in FullName field.", [element])
+      bad_characters_match = re.search(person_fullname, name.lower())
+    if bad_characters_match:
+      if "alias" in bad_characters_match.group():
+        raise loggers.ElectionWarning.from_message(warning_message, [element])
+      else:
+        raise loggers.ElectionWarning.from_message(
+            "Person has known bad characters in FullName field.", [element])
 
 
 class ValidatePartyCollection(base.BaseRule):
@@ -2864,6 +2885,7 @@ ELECTION_RULES = COMMON_RULES + (
     ImproperCandidateContest,
     SubsequentContestIdIsValidRelatedContest,
     ComposingContestIdsAreValidRelatedContests,
+    SingularPartySelection,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (
