@@ -84,7 +84,7 @@ def _validate_country_codes(parser, arg):
 
   parser.error(
       "Invalid country code. Please make sure it is listed under the officially"
-      "assigned ISO 3166-1 alpha-2 codes."
+      " assigned ISO 3166-1 alpha-2 codes."
   )
 
 
