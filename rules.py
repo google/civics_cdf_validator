@@ -33,6 +33,10 @@ from six.moves.urllib.parse import urlparse
 _PARTY_LEADERSHIP_TYPES = ["party-leader-id", "party-chair-id"]
 _IDENTIFIER_TYPES = frozenset(
     ["local-level", "national-level", "ocd-id", "state-level"])
+_CONTEST_STAGE_TYPES = frozenset([
+    "exit-polls", "estimates", "projections", "preliminary", "official",
+    "unnamed"
+])
 
 
 def get_external_id_values(element, value_type, return_elements=False):
@@ -1989,6 +1993,25 @@ class OfficesHaveValidOfficeRole(base.BaseRule):
           [element])
 
 
+class ContestHasValidContestStage(base.BaseRule):
+  """Each Contest must have a valid contest-stage."""
+
+  def elements(self):
+    return ["Contest"]
+
+  def check(self, element):
+    contest_stage_values = [
+        contest_stage_value.strip()
+        for contest_stage_value in get_external_id_values(
+            element, "contest-stage")
+    ]
+    contest_stage_value = contest_stage_values[0]
+    if contest_stage_value not in _CONTEST_STAGE_TYPES:
+      raise loggers.ElectionError.from_message(
+          "The contest has invalid contest-stage '{}'.".format(
+              contest_stage_value), [element])
+
+
 class ElectionStartDates(base.DateRule):
   """Election elements should contain valid start dates.
 
@@ -2864,6 +2887,7 @@ ELECTION_RULES = COMMON_RULES + (
     PercentSum,
     ProperBallotSelection,
     CandidatesReferencedInRelatedContests,
+    ContestHasValidContestStage,
     VoteCountTypesCoherency,
     SelfDeclaredCandidateMethod,
     PartiesHaveValidColors,

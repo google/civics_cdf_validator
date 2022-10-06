@@ -5962,6 +5962,43 @@ class OfficesHaveValidOfficeRoleTest(absltest.TestCase):
                      "off2")
 
 
+class ContestHasValidContestStageTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ContestHasValidContestStageTest, self).setUp()
+    self.contest_validator = rules.ContestHasValidContestStage(None, None)
+
+  def testContestHasValidContestStage(self):
+    root_string = """
+     <Contest objectId="con-1">
+       <ExternalIdentifier>
+         <Type>other</Type>
+         <OtherType>contest-stage</OtherType>
+         <Value>preliminary</Value>
+       </ExternalIdentifier>
+      </Contest>
+      """
+    self.contest_validator.check(etree.fromstring(root_string))
+
+  def testContestHasInvalidContestStage(self):
+    root_string = """
+     <Contest objectId="con-2">
+       <ExternalIdentifier>
+         <Type>other</Type>
+         <OtherType>contest-stage</OtherType>
+         <Value>invalidconteststage</Value>
+       </ExternalIdentifier>
+      </Contest>
+      """
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.contest_validator.check(etree.fromstring(root_string))
+    self.assertEqual(
+        ee.exception.log_entry[0].message,
+        "The contest has invalid contest-stage 'invalidconteststage'.")
+    self.assertEqual(ee.exception.log_entry[0].elements[0].get("objectId"),
+                     "con-2")
+
+
 class GpUnitsHaveSingleRootTest(absltest.TestCase):
 
   def setUp(self):
