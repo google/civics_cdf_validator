@@ -178,6 +178,7 @@ def add_parser_rules_filter_args(parser, cmd_parser):
   """Enriches cmd parser with rules related arguments."""
   cmd_parser.add_argument(
       "-e",
+      "--exclude",
       help="Comma separated list of rules to be excluded.",
       required=False,
       type=lambda x: _validate_rules(parser, x))
@@ -185,6 +186,7 @@ def add_parser_rules_filter_args(parser, cmd_parser):
   group = cmd_parser.add_mutually_exclusive_group(required=False)
   group.add_argument(
       "-i",
+      "--include",
       help="Comma separated list of rules to be validated.",
       required=False,
       type=lambda x: _validate_rules(parser, x))
@@ -223,8 +225,9 @@ def get_metadata(file):
 def display_rules_details(options):
   """Display rules set details based on user input."""
   print("Selected rules details:")
-  rules_to_display = filter_all_rules_using_user_arg(
-      options.i, options.rule_set, options.e)
+  rules_to_display = filter_all_rules_using_user_arg(options.include,
+                                                     options.rule_set,
+                                                     options.exclude)
   for rule in sorted(rules_to_display, key=lambda x: x.__name__):
     print("\t{} - {}".format(rule.__name__, rule.__doc__.split("\n")[0]))
 
@@ -291,7 +294,7 @@ def feed_validation(options):
         base.RuleOption("required_languages",
                         str.split(options.required_languages, ",")))
   rule_classes_to_check = filter_all_rules_using_user_arg(
-      options.i, options.rule_set, options.e)
+      options.include, options.rule_set, options.exclude)
 
   errors = 0
   for election_file in options.election_files:
