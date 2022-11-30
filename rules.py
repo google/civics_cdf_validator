@@ -1997,7 +1997,7 @@ class ContestHasValidContestStage(base.BaseRule):
   """Each Contest must have a valid contest-stage."""
 
   def elements(self):
-    return ["Contest"]
+    return ["CandidateContest", "PartyContest", "BallotMeasureContest"]
 
   def check(self, element):
     contest_stage_values = [
@@ -2005,11 +2005,11 @@ class ContestHasValidContestStage(base.BaseRule):
         for contest_stage_value in get_external_id_values(
             element, "contest-stage")
     ]
-    contest_stage_value = contest_stage_values[0]
-    if contest_stage_value not in _CONTEST_STAGE_TYPES:
-      raise loggers.ElectionError.from_message(
-          "The contest has invalid contest-stage '{}'.".format(
-              contest_stage_value), [element])
+    for contest_stage_value in contest_stage_values:
+      if contest_stage_value not in _CONTEST_STAGE_TYPES:
+        raise loggers.ElectionError.from_message(
+            "The contest has invalid contest-stage '{}'.".format(
+                contest_stage_value), [element])
 
 
 class ElectionStartDates(base.DateRule):
