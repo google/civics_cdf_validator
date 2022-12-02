@@ -37,6 +37,28 @@ _CONTEST_STAGE_TYPES = frozenset([
     "exit-polls", "estimates", "projections", "preliminary", "official",
     "unnamed"
 ])
+_INTERNATIONALIZED_TEXT_ELEMENTS = [
+    # go/keep-sorted start
+    "BallotName",
+    "BallotSubTitle",
+    "BallotText",
+    "BallotTitle",
+    "ConStatement",
+    "Directions",
+    "EffectOfAbstain",
+    "FullName",
+    "FullText",
+    "InternationalizedAbbreviation",
+    "InternationalizedName",
+    "Name",
+    "PassageThreshold",
+    "ProStatement",
+    "Profession",
+    "Selection",
+    "SummaryText",
+    "Title",
+    # go/keep-sorted end
+]
 
 
 def get_external_id_values(element, value_type, return_elements=False):
@@ -117,7 +139,10 @@ def get_language_to_text_map(element):
     language = intl_string.get("language")
     if language is None or not language:
       continue
-    language_map[language] = text
+    if language not in language_map:
+      language_map[language] = [text]
+    else:
+      language_map[language].append(text)
   return language_map
 
 
@@ -2377,7 +2402,8 @@ class FullTextOrBallotText(base.BaseRule):
       return
 
     ballot_text_map = get_language_to_text_map(element.find("BallotText"))
-    for language, full_text_string in full_text_map.items():
+    for language, full_text_strings in full_text_map.items():
+      full_text_string = full_text_strings[0]
       if language not in ballot_text_map.keys(
       ) and len(full_text_string) < self.SUGGESTION_CUTOFF_LENGTH:
         msg = ("Language: %s.  BallotText is missing but FullText is present "
@@ -2405,9 +2431,10 @@ class BallotTitle(base.BaseRule):
              "text/question is not in BallotTitle.")
       raise loggers.ElectionWarning.from_message(msg, [element])
 
-    for language, ballot_title_string in ballot_title_map.items():
+    for language, ballot_title_strings in ballot_title_map.items():
+      ballot_title_string = ballot_title_strings[0]
       if language not in ballot_text_map.keys() or len(
-          ballot_text_map[language]) < len(ballot_title_string):
+          ballot_text_map[language][0]) < len(ballot_title_string):
         msg = ("Language: %s. BallotText is missing or shorter than "
                " Please confirm that the ballot text/question is not "
                "in BallotTitle." % (language))
@@ -2827,6 +2854,22 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
       raise loggers.ElectionError(error_log)
 
 
+class MultipleInternationalizedTextWithSameLanguageCode(base.BaseRule):
+  """Checks for muliple InternationalizedText with the same language code."""
+
+  def elements(self):
+    return _INTERNATIONALIZED_TEXT_ELEMENTS
+
+  def check(self, element):
+    language_map = get_language_to_text_map(element)
+
+    for language, texts in language_map.items():
+      if len(texts) > 1:
+        raise loggers.ElectionError.from_message(
+            "Multiple \"%s\" texts found for \"%s\"" %
+            (language, texts[0].strip()))
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
@@ -2910,6 +2953,7 @@ ELECTION_RULES = COMMON_RULES + (
     SubsequentContestIdIsValidRelatedContest,
     ComposingContestIdsAreValidRelatedContests,
     SingularPartySelection,
+    MultipleInternationalizedTextWithSameLanguageCode,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (

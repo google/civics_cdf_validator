@@ -8526,6 +8526,49 @@ class ComposingContestIdsTest(absltest.TestCase):
         "contests", str(ee.exception.log_entry[0].message))
 
 
+class MultipleInternationalizedTextWithSameLanguageCodeTest(absltest.TestCase):
+
+  def setUp(self):
+    super(MultipleInternationalizedTextWithSameLanguageCodeTest, self).setUp()
+    self.election_validator = rules.MultipleInternationalizedTextWithSameLanguageCode(
+        None, None)
+
+  def testMultipleTextsWithSameLanguageCode(self):
+    election_string = """
+      <Name>
+        <Text language="en">
+          <![CDATA[Jamaica General Election, 2022]]>
+        </Text>
+        <Text language="en">
+          <![CDATA[Other Jamaica General Election, 2022]]>
+        </Text>
+        <Text language="es">
+          <![CDATA[Elecciones Generales de Jamaica, 2022]]>
+        </Text>
+      </Name>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.election_validator.check(etree.fromstring(election_string))
+    self.assertEqual(
+        ee.exception.log_entry[0].message,
+        "Multiple \"en\" texts found for \"Jamaica General Election, 2022\"")
+
+  def testOneTextPerLanguageCode(self):
+    election_string = """
+      <Name>
+        <Text language="en">
+          <![CDATA[Jamaica General Election, 2022]]>
+        </Text>
+        <Text language="es">
+          <![CDATA[Elecciones Generales de Jamaica, 2022]]>
+        </Text>
+      </Name>
+    """
+
+    self.election_validator.check(etree.fromstring(election_string))
+
+
 class RulesTest(absltest.TestCase):
 
   def testAllRulesIncluded(self):
