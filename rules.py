@@ -33,6 +33,32 @@ from six.moves.urllib.parse import urlparse
 _PARTY_LEADERSHIP_TYPES = ["party-leader-id", "party-chair-id"]
 _IDENTIFIER_TYPES = frozenset(
     ["local-level", "national-level", "ocd-id", "state-level"])
+_CONTEST_STAGE_TYPES = frozenset([
+    "exit-polls", "estimates", "projections", "preliminary", "official",
+    "unnamed"
+])
+_INTERNATIONALIZED_TEXT_ELEMENTS = [
+    # go/keep-sorted start
+    "BallotName",
+    "BallotSubTitle",
+    "BallotText",
+    "BallotTitle",
+    "ConStatement",
+    "Directions",
+    "EffectOfAbstain",
+    "FullName",
+    "FullText",
+    "InternationalizedAbbreviation",
+    "InternationalizedName",
+    "Name",
+    "PassageThreshold",
+    "ProStatement",
+    "Profession",
+    "Selection",
+    "SummaryText",
+    "Title",
+    # go/keep-sorted end
+]
 
 
 def get_external_id_values(element, value_type, return_elements=False):
@@ -113,7 +139,10 @@ def get_language_to_text_map(element):
     language = intl_string.get("language")
     if language is None or not language:
       continue
-    language_map[language] = text
+    if language not in language_map:
+      language_map[language] = [text]
+    else:
+      language_map[language].append(text)
   return language_map
 
 
@@ -1989,6 +2018,25 @@ class OfficesHaveValidOfficeRole(base.BaseRule):
           [element])
 
 
+class ContestHasValidContestStage(base.BaseRule):
+  """Each Contest must have a valid contest-stage."""
+
+  def elements(self):
+    return ["CandidateContest", "PartyContest", "BallotMeasureContest"]
+
+  def check(self, element):
+    contest_stage_values = [
+        contest_stage_value.strip()
+        for contest_stage_value in get_external_id_values(
+            element, "contest-stage")
+    ]
+    for contest_stage_value in contest_stage_values:
+      if contest_stage_value not in _CONTEST_STAGE_TYPES:
+        raise loggers.ElectionError.from_message(
+            "The contest has invalid contest-stage '{}'.".format(
+                contest_stage_value), [element])
+
+
 class ElectionStartDates(base.DateRule):
   """Election elements should contain valid start dates.
 
@@ -2354,7 +2402,8 @@ class FullTextOrBallotText(base.BaseRule):
       return
 
     ballot_text_map = get_language_to_text_map(element.find("BallotText"))
-    for language, full_text_string in full_text_map.items():
+    for language, full_text_strings in full_text_map.items():
+      full_text_string = full_text_strings[0]
       if language not in ballot_text_map.keys(
       ) and len(full_text_string) < self.SUGGESTION_CUTOFF_LENGTH:
         msg = ("Language: %s.  BallotText is missing but FullText is present "
@@ -2382,9 +2431,10 @@ class BallotTitle(base.BaseRule):
              "text/question is not in BallotTitle.")
       raise loggers.ElectionWarning.from_message(msg, [element])
 
-    for language, ballot_title_string in ballot_title_map.items():
+    for language, ballot_title_strings in ballot_title_map.items():
+      ballot_title_string = ballot_title_strings[0]
       if language not in ballot_text_map.keys() or len(
-          ballot_text_map[language]) < len(ballot_title_string):
+          ballot_text_map[language][0]) < len(ballot_title_string):
         msg = ("Language: %s. BallotText is missing or shorter than "
                " Please confirm that the ballot text/question is not "
                "in BallotTitle." % (language))
@@ -2804,6 +2854,22 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
       raise loggers.ElectionError(error_log)
 
 
+class MultipleInternationalizedTextWithSameLanguageCode(base.BaseRule):
+  """Checks for muliple InternationalizedText with the same language code."""
+
+  def elements(self):
+    return _INTERNATIONALIZED_TEXT_ELEMENTS
+
+  def check(self, element):
+    language_map = get_language_to_text_map(element)
+
+    for language, texts in language_map.items():
+      if len(texts) > 1:
+        raise loggers.ElectionError.from_message(
+            "Multiple \"%s\" texts found for \"%s\"" %
+            (language, texts[0].strip()))
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
@@ -2864,6 +2930,7 @@ ELECTION_RULES = COMMON_RULES + (
     PercentSum,
     ProperBallotSelection,
     CandidatesReferencedInRelatedContests,
+    ContestHasValidContestStage,
     VoteCountTypesCoherency,
     SelfDeclaredCandidateMethod,
     PartiesHaveValidColors,
@@ -2886,6 +2953,7 @@ ELECTION_RULES = COMMON_RULES + (
     SubsequentContestIdIsValidRelatedContest,
     ComposingContestIdsAreValidRelatedContests,
     SingularPartySelection,
+    MultipleInternationalizedTextWithSameLanguageCode,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (

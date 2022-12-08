@@ -5962,6 +5962,43 @@ class OfficesHaveValidOfficeRoleTest(absltest.TestCase):
                      "off2")
 
 
+class ContestHasValidContestStageTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ContestHasValidContestStageTest, self).setUp()
+    self.contest_validator = rules.ContestHasValidContestStage(None, None)
+
+  def testContestHasValidContestStage(self):
+    root_string = """
+     <Contest objectId="con-1">
+       <ExternalIdentifier>
+         <Type>other</Type>
+         <OtherType>contest-stage</OtherType>
+         <Value>preliminary</Value>
+       </ExternalIdentifier>
+      </Contest>
+      """
+    self.contest_validator.check(etree.fromstring(root_string))
+
+  def testContestHasInvalidContestStage(self):
+    root_string = """
+     <Contest objectId="con-2">
+       <ExternalIdentifier>
+         <Type>other</Type>
+         <OtherType>contest-stage</OtherType>
+         <Value>invalidconteststage</Value>
+       </ExternalIdentifier>
+      </Contest>
+      """
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.contest_validator.check(etree.fromstring(root_string))
+    self.assertEqual(
+        ee.exception.log_entry[0].message,
+        "The contest has invalid contest-stage 'invalidconteststage'.")
+    self.assertEqual(ee.exception.log_entry[0].elements[0].get("objectId"),
+                     "con-2")
+
+
 class GpUnitsHaveSingleRootTest(absltest.TestCase):
 
   def setUp(self):
@@ -8487,6 +8524,49 @@ class ComposingContestIdsTest(absltest.TestCase):
     self.assertIn(
         "Contest cc_456 and contest cc_123 reference each other as composing "
         "contests", str(ee.exception.log_entry[0].message))
+
+
+class MultipleInternationalizedTextWithSameLanguageCodeTest(absltest.TestCase):
+
+  def setUp(self):
+    super(MultipleInternationalizedTextWithSameLanguageCodeTest, self).setUp()
+    self.election_validator = rules.MultipleInternationalizedTextWithSameLanguageCode(
+        None, None)
+
+  def testMultipleTextsWithSameLanguageCode(self):
+    election_string = """
+      <Name>
+        <Text language="en">
+          <![CDATA[Jamaica General Election, 2022]]>
+        </Text>
+        <Text language="en">
+          <![CDATA[Other Jamaica General Election, 2022]]>
+        </Text>
+        <Text language="es">
+          <![CDATA[Elecciones Generales de Jamaica, 2022]]>
+        </Text>
+      </Name>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.election_validator.check(etree.fromstring(election_string))
+    self.assertEqual(
+        ee.exception.log_entry[0].message,
+        "Multiple \"en\" texts found for \"Jamaica General Election, 2022\"")
+
+  def testOneTextPerLanguageCode(self):
+    election_string = """
+      <Name>
+        <Text language="en">
+          <![CDATA[Jamaica General Election, 2022]]>
+        </Text>
+        <Text language="es">
+          <![CDATA[Elecciones Generales de Jamaica, 2022]]>
+        </Text>
+      </Name>
+    """
+
+    self.election_validator.check(etree.fromstring(election_string))
 
 
 class RulesTest(absltest.TestCase):
