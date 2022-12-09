@@ -76,7 +76,7 @@
       <Text language="en">GENERAL ELECTION</Text>
     </Name>
     <StartDate>2018</StartDate>
-    <EndDate>2018-11-05</EndDate>
+    <EndDate>2025-11-05</EndDate>
     <Type>general</Type>
   </Election>
   <Format>precinct-level</Format>

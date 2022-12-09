@@ -823,7 +823,7 @@
       <Text language="en">2013 Virginia General Election</Text>
     </Name>
     <StartDate>2013-11-05</StartDate>
-    <EndDate>2013-11-05</EndDate>
+    <EndDate>2025-11-05</EndDate>
     <Type>general</Type>
   </Election>
   <!-- This is a precinct-level report, so this means that all results should be

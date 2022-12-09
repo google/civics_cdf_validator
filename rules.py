@@ -2071,11 +2071,15 @@ class ElectionEndDatesInThePast(base.DateRule):
   def check(self, element):
     self.reset_instance_vars()
     self.gather_dates(element)
-
-    if self.end_date:
-      self.check_for_date_not_in_past(self.end_date, self.end_elem)
-      if self.error_log:
-        raise loggers.ElectionWarning(self.error_log)
+    for contest in self.get_elements_by_class(element, "Contest"):
+      subsequent_contest_id_element = contest.find("SubsequentContestId")
+      if subsequent_contest_id_element is not None:
+        continue
+      else:
+        if self.end_date:
+          self.check_for_date_not_in_past(self.end_date, self.end_elem)
+    if self.error_log:
+      raise loggers.ElectionWarning(self.error_log)
 
 
 class ElectionEndDatesOccurAfterStartDates(base.DateRule):
