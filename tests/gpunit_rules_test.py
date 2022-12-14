@@ -65,6 +65,7 @@ class GpUnitOcdIdValidatorTest(absltest.TestCase):
   def testCountryOCDIDsAreValid(self):
     ocd_value = "ocd-division/country:la"
     gpunit_rules.GpUnitOcdIdValidator.ocd_ids = set([ocd_value])
+    gpunit_rules.GpUnitOcdIdValidator.canonical_ids = set([ocd_value])
     self.assertTrue(gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd(ocd_value))
 
   def testCountryOCDIDsAreInValid(self):
@@ -87,23 +88,26 @@ class GpUnitOcdIdValidatorTest(absltest.TestCase):
   def testRegionOCDIDsAreValid(self):
     ocd_value = "ocd-division/region:la"
     gpunit_rules.GpUnitOcdIdValidator.ocd_ids = set([ocd_value])
+    gpunit_rules.GpUnitOcdIdValidator.canonical_ids = set([ocd_value])
     self.assertTrue(gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd(ocd_value))
 
   def testLongOCDIDsAreValid(self):
     ocd_value = "ocd-division/country:us/state:la"
+    gpunit_rules.GpUnitOcdIdValidator.canonical_ids = set([ocd_value])
     gpunit_rules.GpUnitOcdIdValidator.ocd_ids = set([ocd_value])
     self.assertTrue(gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd(ocd_value))
 
   def testUnicodeOCDIDsAreValid(self):
     ocd_value = "ocd-division/country:la/regionalwahlkreis:burgenland_süd"
     gpunit_rules.GpUnitOcdIdValidator.ocd_ids = set([ocd_value])
+    gpunit_rules.GpUnitOcdIdValidator.canonical_ids = set([ocd_value])
     self.assertTrue(gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd(ocd_value))
 
   def testUnicodeOCDIDsAreValid_is_invalid(self):
     ocd_value = "ocd-division/country:la/regionalwahlkreis:kärnten_west"
     gpunit_rules.GpUnitOcdIdValidator.ocd_ids = set(
-        ["ocd-division/country:la"
-         "/regionalwahlkreis:burgenland_süd"])
+        ["ocd-division/country:la/regionalwahlkreis:burgenland_süd"]
+    )
     self.assertFalse(gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd(ocd_value))
 
   def testUnicodeOCDIDsAreInValid(self):
@@ -114,13 +118,14 @@ class GpUnitOcdIdValidatorTest(absltest.TestCase):
   def testNonUnicodeOCDIDsAreValid(self):
     ocd_value = "ocd-division/country:to/regionalwahlkreis:burgenland_sued"
     gpunit_rules.GpUnitOcdIdValidator.ocd_ids = set([ocd_value])
+    gpunit_rules.GpUnitOcdIdValidator.canonical_ids = set([ocd_value])
     self.assertTrue(gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd(ocd_value))
 
   def testNonUnicodeOCDIDsAreValid_is_invalid(self):
     ocd_value = "ocd-division/country:to/regionalwahlkreis:burgenland_sued"
     gpunit_rules.GpUnitOcdIdValidator.ocd_ids = set(
-        ["ocd-division/country:to"
-         "/regionalwahlkreis:karnten_west"])
+        ["ocd-division/country:to", "/regionalwahlkreis:karnten_west"]
+    )
     self.assertFalse(gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd(ocd_value))
 
 
@@ -134,7 +139,11 @@ class OcdIdsExtractorTest(absltest.TestCase):
     self.builtins_name = open_mod.__builtins__["__name__"]
 
     # mock open function call to read provided csv data
-    downloaded_ocdid_file = "id,name\nocd-division/country:ar,Argentina"
+    # downloaded_ocdid_file = "id,name\nocd-division/country:ar,Argentina"
+    downloaded_ocdid_file = (
+        "id,name,sameAs\nocd-division/country:ar,Argentina,,"
+    )
+
     self.mock_open_func = MagicMock(
         return_value=io.StringIO(downloaded_ocdid_file))
 
@@ -233,7 +242,6 @@ class OcdIdsExtractorTest(absltest.TestCase):
     codes = self.ocdid_extractor._get_ocd_data()
 
     expected_codes = set(["ocd-division/country:ar"])
-
     self.assertEqual(expected_codes, codes)
 
   def testDownloadsDataIfNoLocalFileAndNoCachedFile(self):
@@ -376,4 +384,3 @@ class OcdIdsExtractorTest(absltest.TestCase):
 
 if __name__ == "__main__":
   absltest.main()
-

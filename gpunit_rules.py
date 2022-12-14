@@ -80,6 +80,13 @@ class GpUnitOcdIdValidator(object):
     ocd_id = cls._encode_ocdid_value(ocdid_val)
     return cls.ocd_matcher_root.match(ocd_id)
 
+  @classmethod
+  def is_canonical(cls, ocd_id):
+    if ocd_id not in cls.canonical_ids:
+      raise loggers.ElectionError.from_message(
+          "OCD-ID %s is not canonical." % (ocd_id)
+      )
+
 
 class OcdIdsExtractor(object):
   """Extract OCD IDs from github or from a local file if defined."""
@@ -104,7 +111,10 @@ class OcdIdsExtractor(object):
   def _read_csv(self, reader, ocd_id_codes):
     """Reads in OCD IDs from CSV file."""
     for row in reader:
-      if "id" in row and row["id"]:
+      if "id" in row and row["id"] and "sameAs" in row:
+        if not row.get("sameAs"):
+          ocd_id_codes.add(row["id"])
+      elif "id" in row and row["id"]:
         ocd_id_codes.add(row["id"])
 
   def _get_ocd_data(self):
@@ -197,5 +207,3 @@ class OcdIdsExtractor(object):
         blob_sha = content_file.sha
         break
     return blob_sha
-
-
