@@ -6,6 +6,19 @@
         <BallotName>
           <Text language="en">Barack H. Obama</Text>
         </BallotName>
+        <ContactInformation language="en">
+          <AddressLine>655 New York Ave, NW</AddressLine>
+          <AddressLine>Washington, DC 20005</AddressLine>
+          <Email>obama.library@nara.gov</Email>
+          <Fax>888-7777</Fax>
+          <Name>Barack Obama Office</Name>
+          <Phone>(847) 252-5700</Phone>
+        </ContactInformation>
+        <ContactInformation language="es">
+          <AddressLine>655 Nueva York Ave, NW</AddressLine>
+          <AddressLine>Washington, DC 20005</AddressLine>
+          <Name>Oficina de Barack Obama</Name>
+        </ContactInformation>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
@@ -7210,6 +7223,19 @@
   <IssuerAbbreviation>VA</IssuerAbbreviation>
   <OfficeCollection>
     <Office objectId="off9999a">
+      <ContactInformation language="en">
+        <AddressLine>1600 Pennsylvania Ave., NW</AddressLine>
+        <AddressLine>Washington, DC 20500</AddressLine>
+        <Email>comments@whitehouse.gov.</Email>
+        <Fax>202-456-2461</Fax>
+        <Name>White House</Name>
+        <Phone>1 202-456-1111</Phone>
+      </ContactInformation>
+      <ContactInformation language="es">
+        <AddressLine>1600 Pennsylvania Ave., NW</AddressLine>
+        <AddressLine>Washington, DC 20500</AddressLine>
+        <Name>casa Blanca</Name>
+      </ContactInformation>
       <ElectoralDistrictId>ru0002</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -7794,6 +7820,19 @@
       <PartyId>par0002</PartyId>
     </Person>
     <Person objectId="per10861b">
+      <ContactInformation language="en">
+        <AddressLine>1600 Pennsylvania Ave., NW</AddressLine>
+        <AddressLine>Washington, DC 20500</AddressLine>
+        <Email>PRESIDENT@WHITEHOUSE.GOV</Email>
+        <Fax>202-456-2461</Fax>
+        <Name>Joe Biden</Name>
+        <Phone>1 202-456-1111</Phone>
+      </ContactInformation>
+      <ContactInformation language="es">
+        <AddressLine>1600 Pennsylvania Ave., NW</AddressLine>
+        <AddressLine>Washington, DC 20500</AddressLine>
+        <Name>Joe Biden</Name>
+      </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>

@@ -5,6 +5,19 @@
         <BallotName>
           <Text language="en">Dwayne Johnson</Text>
         </BallotName>
+        <ContactInformation language="en">
+          <AddressLine>Jonesworks, Inc.9301 Wilshire Blvd.Suite 504</AddressLine>
+          <AddressLine>Beverly Hills, CA 90210-6149</AddressLine>
+          <Email>therock@studiofanmail.com</Email>
+          <Fax>888-7777</Fax>
+          <Name>Dwayne Johnson</Name>
+          <Phone>(310) 620-2187</Phone>
+        </ContactInformation>
+        <ContactInformation language="es">
+          <AddressLine>Jonesworks, Inc.9301 Wilshire Blvd.Suite 504</AddressLine>
+          <AddressLine>Beverly Hills, CA 90210-6149</AddressLine>
+          <Name>Dwayne Johnson</Name>
+        </ContactInformation>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
@@ -1528,11 +1541,18 @@
   </PartyCollection>
   <PersonCollection>
     <Person objectId="per12345">
-      <ContactInformation>
-        <AddressLine>4 Privet Drive</AddressLine>
-        <AddressLine>Sample, HI 99999</AddressLine>
-        <Email>dwayne@therock.com</Email>
-        <Phone>1234567890</Phone>
+      <ContactInformation language="en">
+        <AddressLine>Jonesworks, Inc.9301 Wilshire Blvd.Suite 504</AddressLine>
+        <AddressLine>Beverly Hills, CA 90210-6149</AddressLine>
+        <Email>therock@studiofanmail.com</Email>
+        <Fax>888-7777</Fax>
+        <Name>Dwayne Johnson</Name>
+        <Phone>(310) 620-2187</Phone>
+      </ContactInformation>
+      <ContactInformation language="es">
+        <AddressLine>Jonesworks, Inc.9301 Wilshire Blvd.Suite 504</AddressLine>
+        <AddressLine>Beverly Hills, CA 90210-6149</AddressLine>
+        <Name>Dwayne Johnson</Name>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
