@@ -2856,6 +2856,239 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
     self.color_validator.check(element)
 
 
+class MultipleCandidatesPointToTheSamePersonInTheSameContestTest(
+    absltest.TestCase
+):
+  base_string_single_contest = """
+    <Election xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <ContestCollection>
+        <Contest xsi:type="CandidateContest" objectId={}>
+          <BallotSelection xsi:type="CandidateSelection" objectId="cs-001">
+            <CandidateIds>{}</CandidateIds>
+          </BallotSelection>
+          <BallotSelection xsi:type="CandidateSelection" objectId="cs-002">
+            <CandidateIds>{}</CandidateIds>
+          </BallotSelection>
+          <BallotSelection xsi:type="CandidateSelection" objectId="cs-003">
+            <CandidateIds>{}</CandidateIds>
+          </BallotSelection>
+          <BallotSelection xsi:type="CandidateSelection" objectId="cs-004">
+            <CandidateIds>{}</CandidateIds>
+          </BallotSelection>
+        </Contest>
+      </ContestCollection>
+      <CandidateCollection>
+        <Candidate objectId={}>
+          <PersonId>{}</PersonId>
+        </Candidate>
+        <Candidate objectId={}>
+          <PersonId>{}</PersonId>
+        </Candidate>
+        <Candidate objectId={}>
+          <PersonId>{}</PersonId>
+        </Candidate>
+        <Candidate objectId={}>
+          <PersonId>{}</PersonId>
+        </Candidate>
+        <Candidate objectId={}>
+          <PersonId>{}</PersonId>
+        </Candidate>
+      </CandidateCollection>
+    </Election>
+    """
+
+  base_string_multiple_contest = """
+    <Election xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <ContestCollection>
+            <Contest xsi:type="CandidateContest" objectId={}>
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs-001">
+                <CandidateIds>{}</CandidateIds>
+              </BallotSelection>
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs-002">
+                <CandidateIds>{}</CandidateIds>
+              </BallotSelection>
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs-003">
+                <CandidateIds>{}</CandidateIds>
+              </BallotSelection>
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs-004">
+                <CandidateIds>{}</CandidateIds>
+              </BallotSelection>
+            </Contest>
+            <Contest xsi:type="CandidateContest" objectId={}>
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs-001B">
+                <CandidateIds>{}</CandidateIds>
+              </BallotSelection>
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs-002B">
+                <CandidateIds>{}</CandidateIds>
+              </BallotSelection>
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs-003B">
+                <CandidateIds>{}</CandidateIds>
+              </BallotSelection>
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs-004B">
+                <CandidateIds>{}</CandidateIds>
+              </BallotSelection>
+            </Contest>
+          </ContestCollection>
+          <CandidateCollection>
+            <Candidate objectId={}>
+              <PersonId>{}</PersonId>
+            </Candidate>
+            <Candidate objectId={}>
+              <PersonId>{}</PersonId>
+            </Candidate>
+            <Candidate objectId={}>
+              <PersonId>{}</PersonId>
+            </Candidate>
+            <Candidate objectId={}>
+              <PersonId>{}</PersonId>
+            </Candidate>
+            <Candidate objectId={}>
+              <PersonId>{}</PersonId>
+            </Candidate>
+          </CandidateCollection>
+        </Election>
+    """
+
+  def testValidMultipleCandidatesNotPointToTheSamePersonInSameContest(self):
+    test_string = self.base_string_single_contest.format(
+        "'cc-001'",
+        "can-001",
+        "can-002 can-003",
+        "can-004",
+        "can-005",
+        "'can-001'",
+        "per-001",
+        "'can-002'",
+        "per-002",
+        "'can-003'",
+        "per-003",
+        "'can-004'",
+        "per-004",
+        "'can-005'",
+        "per-005",
+    )
+    election_tree = etree.fromstring(test_string)
+    multiple_candidate_validator = (
+        rules.MultipleCandidatesPointToTheSamePersonInTheSameContest(
+            election_tree, None
+        )
+    )
+    multiple_candidate_validator.check()
+
+  def testInvalidMultipleCandidatesPointToTheSamePersonInSameContest(self):
+    test_string = self.base_string_single_contest.format(
+        "'cc-001'",
+        "can-001",
+        "can-002 can-003",
+        "can-004",
+        "can-005",
+        "'can-001'",
+        "per-001",
+        "'can-002'",
+        "per-002",
+        "'can-003'",
+        "per-003",
+        "'can-004'",
+        "per-004",
+        "'can-005'",
+        "per-004",
+    )
+    election_tree = etree.fromstring(test_string)
+    multiple_candidate_validator = (
+        rules.MultipleCandidatesPointToTheSamePersonInTheSameContest(
+            election_tree, None
+        )
+    )
+    with self.assertRaises(loggers.ElectionError) as ee:
+      multiple_candidate_validator.check()
+    self.assertIn(
+        (
+            "Multiple candidates in Contest reference the same Person per-004."
+            " Candidates: ['can-004', 'can-005']"
+        ),
+        ee.exception.log_entry[0].message,
+    )
+
+  def testValidMultipleCandidatesDifferentPersonInDifferentContest(self):
+    test_string = self.base_string_multiple_contest.format(
+        "'cc-001'",
+        "can-001",
+        "can-002 can-003",
+        "can-004",
+        "can-005",
+        "'cc-001DIFF'",
+        "can-001",
+        "can-002 can-003",
+        "can-004",
+        "can-005",
+        "'can-001'",
+        "per-001",
+        "'can-002'",
+        "per-002",
+        "'can-003'",
+        "per-003",
+        "'can-004'",
+        "per-004",
+        "'can-005'",
+        "per-005",
+    )
+    election_tree = etree.fromstring(test_string)
+    multiple_candidate_validator = (
+        rules.MultipleCandidatesPointToTheSamePersonInTheSameContest(
+            election_tree, None
+        )
+    )
+    multiple_candidate_validator.check()
+
+  def testInvalidMultipleCandidatesPointToTheSamePersonInSameContestWithTwoContests(
+      self,
+  ):
+    test_string = self.base_string_multiple_contest.format(
+        "'cc-001'",
+        "can-001",
+        "can-002 can-003",
+        "can-004",
+        "can-005",
+        "'cc-001DIFF'",
+        "can-001",
+        "can-002 can-003",
+        "can-004",
+        "can-005",
+        "'can-001'",
+        "per-001",
+        "'can-002'",
+        "per-002",
+        "'can-003'",
+        "per-003",
+        "'can-004'",
+        "per-004",
+        "'can-005'",
+        "per-004",
+    )
+    election_tree = etree.fromstring(test_string)
+    multiple_candidate_validator = (
+        rules.MultipleCandidatesPointToTheSamePersonInTheSameContest(
+            election_tree, None
+        )
+    )
+    with self.assertRaises(loggers.ElectionError) as ee:
+      multiple_candidate_validator.check()
+    self.assertIn(
+        (
+            "Multiple candidates in Contest reference the same Person per-004."
+            " Candidates: ['can-004', 'can-005']"
+        ),
+        ee.exception.log_entry[0].message,
+    )
+    self.assertIn(
+        (
+            "Multiple candidates in Contest reference the same Person per-004."
+            " Candidates: ['can-004', 'can-005']"
+        ),
+        ee.exception.log_entry[1].message,
+    )
+
+
 class SelfDeclaredCandidateMethodTest(absltest.TestCase):
 
   def setUp(self):

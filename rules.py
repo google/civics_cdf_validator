@@ -1554,6 +1554,55 @@ class ValidEnumerations(base.BaseRule):
              "enumeration"% other_type_element.text), [element])
 
 
+class MultipleCandidatesPointToTheSamePersonInTheSameContest(base.TreeRule):
+  """Raise an error when multiple candidates point to the same person in the same contest."""
+
+  def check(self):
+    candidates = self.get_elements_by_class(self.election_tree, "Candidate")
+    contests = self.get_elements_by_class(self.election_tree, "Contest")
+    error_log = []
+    person_id_dict = dict()
+    for candidate in candidates:
+      candidate_object_id = candidate.get("objectId")
+      person_id = candidate.find("PersonId").text
+      if person_id not in person_id_dict.keys():
+        candidate_list = []
+        candidate_list.append(candidate_object_id)
+        person_id_dict[person_id] = candidate_list
+      else:
+        person_id_dict.get(person_id).append(candidate_object_id)
+    for contest in contests:
+      candidate_ids_elements = self.get_elements_by_class(
+          contest, "CandidateIds"
+      )
+      candidate_ids_list = [
+          candidate_ids.text
+          for candidate_ids in candidate_ids_elements
+          if " " not in candidate_ids.text
+      ]
+      candidate_ids_list_space = [
+          candidate_ids.text.split()
+          for candidate_ids in candidate_ids_elements
+          if " " in candidate_ids.text
+      ]
+      for candidate_ids_space in candidate_ids_list_space:
+        candidate_ids_list.extend(candidate_ids_space)
+      for person_id, candidate_list_in_dict in person_id_dict.items():
+        candidate_list_updated = [
+            candidate_id_dict
+            for candidate_id_dict in candidate_list_in_dict
+            if candidate_id_dict in candidate_ids_list
+        ]
+        if len(candidate_list_updated) > 1:
+          error_message = (
+              "Multiple candidates in Contest reference the same Person "
+              "{}. Candidates: {}"
+          ).format(person_id, candidate_list_updated)
+          error_log.append(loggers.LogEntry((error_message), [contest]))
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
 class SelfDeclaredCandidateMethod(base.BaseRule):
   """A self declared candidate cannot have an "electoral-commission" id.
 
@@ -2957,7 +3006,6 @@ ELECTION_RULES = COMMON_RULES + (
     SubsequentContestIdIsValidRelatedContest,
     ComposingContestIdsAreValidRelatedContests,
     SingularPartySelection,
-    MultipleInternationalizedTextWithSameLanguageCode,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (
