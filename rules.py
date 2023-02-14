@@ -2656,9 +2656,8 @@ class MissingOfficeSelectionMethod(base.BaseRule):
   def check(self, element):
     selection = element.find("SelectionMethod")
     if selection is None:
-      msg = ("It is highly recommended to provide the Office Selection Method "
-             "information.")
-      raise loggers.ElectionInfo.from_message(msg, [element])
+      raise loggers.ElectionWarning.from_message(
+          "Office element is missing its SelectionMethod.", [element])
 
 
 class SubsequentContestIdIsValidRelatedContest(base.DateRule):

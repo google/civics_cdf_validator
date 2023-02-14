@@ -8290,11 +8290,11 @@ class OfficeSelectionMethodTest(absltest.TestCase):
         <Office>
         </Office>
     """
-    with self.assertRaises(loggers.ElectionInfo) as ei:
+    with self.assertRaises(loggers.ElectionWarning) as ew:
       self.selection_validator.check(etree.fromstring(office_string))
     self.assertEqual(
-        "It is highly recommended to provide the Office Selection Method "
-        "information.", str(ei.exception.log_entry[0].message))
+        "Office element is missing its SelectionMethod.",
+        str(ew.exception.log_entry[0].message))
 
 
 class SubsequentContestIdTest(absltest.TestCase):

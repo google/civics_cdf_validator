@@ -43,6 +43,7 @@ class SamplesTest(absltest.TestCase):
         'post_election_sample_feed_precincts.xml',
         self.election_rules,
         expected_errors=19,
+        expected_warnings=13,
     )
 
   def testPostRetentionContestSampleFeedSummary(self):
@@ -68,6 +69,7 @@ class SamplesTest(absltest.TestCase):
     self._TestFile(
         'post_election_sample_feed_summary.xml',
         self.election_rules,
+        expected_warnings=13,
     )
 
   def testPreElectionSampleFeed(self):
@@ -86,8 +88,13 @@ class SamplesTest(absltest.TestCase):
   def testMultiElectionSampleFeed(self):
     self._TestFile('multi_election_sample_feed.xml', self.election_rules)
 
-  def _TestFile(self, filename, rules_to_check,
-                expected_errors=0, expected_warnings=0):
+  def _TestFile(
+      self,
+      filename,
+      rules_to_check,
+      expected_errors=0,
+      expected_warnings=0,
+  ):
     sample_file = os.path.join(
         FLAGS.test_srcdir,
         'google3/third_party/py/civics_cdf_validator/'
