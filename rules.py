@@ -2614,8 +2614,12 @@ class OfficeMissingGovernmentBody(base.BaseRule):
   """Ensure non-executive Office elements have a government body defined."""
 
   _EXEMPT_OFFICES = [
-      "head of state", "head of government", "president", "vice president",
-      "state executive", "deputy state executive",
+      "head of state",
+      "head of government",
+      "president",
+      "vice president",
+      "state executive",
+      "deputy state executive",
   ]
 
   def elements(self):
@@ -2623,20 +2627,36 @@ class OfficeMissingGovernmentBody(base.BaseRule):
 
   def check(self, element):
     office_roles = get_entity_info_for_value_type(element, "office-role")
+    governmental_body = get_entity_info_for_value_type(
+        element, "governmental-body"
+    )
+    government_body = get_entity_info_for_value_type(element, "government-body")
+
     if office_roles:
       office_role = office_roles[0]
-      if office_role in self._EXEMPT_OFFICES:
-        return
-
-    governmental_body = get_entity_info_for_value_type(
-        element, "governmental-body")
-    government_body = get_entity_info_for_value_type(
-        element, "government-body")
-
-    if not governmental_body and not government_body:
-      raise loggers.ElectionInfo.from_message(
-          ("Office element is missing an external identifier of other-type "
-           "government-body."), [element])
+      if (
+          office_role not in self._EXEMPT_OFFICES
+          and not governmental_body
+          and not government_body
+      ):
+        raise loggers.ElectionInfo.from_message(
+            (
+                "Office element is missing an external identifier of"
+                " other-type government-body."
+            ),
+            [element],
+        )
+      else:
+        if office_role in self._EXEMPT_OFFICES and (
+            governmental_body or government_body
+        ):
+          raise loggers.ElectionInfo.from_message(
+              (
+                  "Office element has an external identifier of other-type"
+                  " government-body and is expected not to."
+              ),
+              [element],
+          )
 
 
 class MissingOfficeSelectionMethod(base.BaseRule):

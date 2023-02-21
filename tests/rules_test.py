@@ -8219,7 +8219,8 @@ class OfficeMissingGovernmentBodyTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionInfo):
       self.gov_validator.check(non_exempt_office)
 
-  def testOfficeElementHasGovernmentBodyDefined(self):
+  # non-exempt role doesn't have a government(al) body:should raise error
+  def testOfficeNonExemptWithoutGovernmentBody(self):
     office_string = """
       <Office>
         <ExternalIdentifiers>
@@ -8228,47 +8229,85 @@ class OfficeMissingGovernmentBodyTest(absltest.TestCase):
             <OtherType>office-role</OtherType>
             <Value>senate</Value>
           </ExternalIdentifier>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>{}</OtherType>
-            <Value>United States Senate</Value>
-          </ExternalIdentifier>
         </ExternalIdentifiers>
       </Office>
     """
 
-    government_body_office = etree.fromstring(
-        office_string.format("government-body"))
-    self.gov_validator.check(government_body_office)
-
-    governmental_body_office = etree.fromstring(
-        office_string.format("governmental-body"))
-    self.gov_validator.check(governmental_body_office)
-
-  def testRaisesInfoIfNoGovernmentBodyDefined(self):
-    office_string = """
-      <Office>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>office-role</OtherType>
-            <Value>senate</Value>
-          </ExternalIdentifier>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>{}</OtherType>
-            <Value>United States Senate</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-      </Office>
-    """
-
-    government_body_office = etree.fromstring(office_string.format("body"))
     with self.assertRaises(loggers.ElectionInfo) as ei:
-      self.gov_validator.check(government_body_office)
+      self.gov_validator.check(etree.fromstring(office_string))
     self.assertEqual(
-        "Office element is missing an external identifier of "
-        "other-type government-body.", str(ei.exception.log_entry[0].message))
+        (
+            "Office element is missing an external identifier of "
+            "other-type government-body."
+        ),
+        str(ei.exception.log_entry[0].message),
+    )
+
+  # non-exempt role that has a government(al) body: should NOT raise error
+  def testOfficeNonExemptWithGovernmentBody(self):
+    office_string = """
+      <Office>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>office-role</OtherType>
+            <Value>senate</Value>
+          </ExternalIdentifier>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>government-body</OtherType>
+            <Value>United States Senate</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Office>
+    """
+
+    self.gov_validator.check(etree.fromstring(office_string))
+
+  # exempt role that has a government(al) body: should raise error
+  def testOfficeExemptWithGovernmentBody(self):
+    office_string = """
+      <Office>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>office-role</OtherType>
+            <Value>head of state</Value>
+          </ExternalIdentifier>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>government-body</OtherType>
+            <Value>United States Senate</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Office>
+    """
+
+    with self.assertRaises(loggers.ElectionInfo) as ei:
+      self.gov_validator.check(etree.fromstring(office_string))
+    self.assertEqual(
+        (
+            "Office element has an external identifier of other-type "
+            "government-body and is expected not to."
+        ),
+        str(ei.exception.log_entry[0].message),
+    )
+
+  # exempt role that does not have a government(al) body: should not raise error
+  def testOfficeExemptWithoutGovernmentBody(self):
+    office_string = """
+      <Office>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>office-role</OtherType>
+            <Value>head of state</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Office>
+    """
+
+    self.gov_validator.check(etree.fromstring(office_string))
 
 
 class OfficeSelectionMethodTest(absltest.TestCase):
