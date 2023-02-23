@@ -218,6 +218,7 @@
         <xs:restriction base="xs:string">
             <xs:enumeration value="appointed" />
             <xs:enumeration value="directly-elected" />
+            <xs:enumeration value="ex-officio"/>
             <xs:enumeration value="hereditary" />
             <xs:enumeration value="indirectly-elected" />
             <xs:enumeration value="succession" />

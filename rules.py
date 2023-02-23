@@ -2648,6 +2648,7 @@ class MissingOfficeSelectionMethod(base.BaseRule):
   -hereditary
   -indirectly-elected
   -succession
+  -ex-officio
   """
 
   def elements(self):
