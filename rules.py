@@ -2071,11 +2071,15 @@ class ElectionEndDatesInThePast(base.DateRule):
   def check(self, element):
     self.reset_instance_vars()
     self.gather_dates(element)
-
-    if self.end_date:
-      self.check_for_date_not_in_past(self.end_date, self.end_elem)
-      if self.error_log:
-        raise loggers.ElectionWarning(self.error_log)
+    for contest in self.get_elements_by_class(element, "Contest"):
+      subsequent_contest_id_element = contest.find("SubsequentContestId")
+      if subsequent_contest_id_element is not None:
+        continue
+      else:
+        if self.end_date:
+          self.check_for_date_not_in_past(self.end_date, self.end_elem)
+    if self.error_log:
+      raise loggers.ElectionWarning(self.error_log)
 
 
 class ElectionEndDatesOccurAfterStartDates(base.DateRule):
@@ -2644,6 +2648,7 @@ class MissingOfficeSelectionMethod(base.BaseRule):
   -hereditary
   -indirectly-elected
   -succession
+  -ex-officio
   """
 
   def elements(self):
@@ -2652,9 +2657,8 @@ class MissingOfficeSelectionMethod(base.BaseRule):
   def check(self, element):
     selection = element.find("SelectionMethod")
     if selection is None:
-      msg = ("It is highly recommended to provide the Office Selection Method "
-             "information.")
-      raise loggers.ElectionInfo.from_message(msg, [element])
+      raise loggers.ElectionWarning.from_message(
+          "Office element is missing its SelectionMethod.", [element])
 
 
 class SubsequentContestIdIsValidRelatedContest(base.DateRule):

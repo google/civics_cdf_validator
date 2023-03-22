@@ -5,6 +5,19 @@
         <BallotName>
           <Text language="en">Dwayne Johnson</Text>
         </BallotName>
+        <ContactInformation language="en">
+          <AddressLine>Jonesworks, Inc.9301 Wilshire Blvd.Suite 504</AddressLine>
+          <AddressLine>Beverly Hills, CA 90210-6149</AddressLine>
+          <Email>therock@studiofanmail.com</Email>
+          <Fax>888-7777</Fax>
+          <Name>Dwayne Johnson</Name>
+          <Phone>(310) 620-2187</Phone>
+        </ContactInformation>
+        <ContactInformation language="es">
+          <AddressLine>Jonesworks, Inc.9301 Wilshire Blvd.Suite 504</AddressLine>
+          <AddressLine>Beverly Hills, CA 90210-6149</AddressLine>
+          <Name>Dwayne Johnson</Name>
+        </ContactInformation>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
@@ -916,7 +929,7 @@
       <Text language="en">2013 Virginia Retention of Supreme Court Justice</Text>
     </Name>
     <StartDate>2013-11-05</StartDate>
-    <EndDate>2013-11-05</EndDate>
+    <EndDate>2025-11-05</EndDate>
     <Type>general</Type>
   </Election>
   <Format>precinct-level</Format>
@@ -1528,11 +1541,18 @@
   </PartyCollection>
   <PersonCollection>
     <Person objectId="per12345">
-      <ContactInformation>
-        <AddressLine>4 Privet Drive</AddressLine>
-        <AddressLine>Sample, HI 99999</AddressLine>
-        <Email>dwayne@therock.com</Email>
-        <Phone>1234567890</Phone>
+      <ContactInformation language="en">
+        <AddressLine>Jonesworks, Inc.9301 Wilshire Blvd.Suite 504</AddressLine>
+        <AddressLine>Beverly Hills, CA 90210-6149</AddressLine>
+        <Email>therock@studiofanmail.com</Email>
+        <Fax>888-7777</Fax>
+        <Name>Dwayne Johnson</Name>
+        <Phone>(310) 620-2187</Phone>
+      </ContactInformation>
+      <ContactInformation language="es">
+        <AddressLine>Jonesworks, Inc.9301 Wilshire Blvd.Suite 504</AddressLine>
+        <AddressLine>Beverly Hills, CA 90210-6149</AddressLine>
+        <Name>Dwayne Johnson</Name>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>

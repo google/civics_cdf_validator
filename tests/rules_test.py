@@ -12,6 +12,7 @@ from civics_cdf_validator import base
 from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator import rules
+import freezegun
 from lxml import etree
 from mock import MagicMock
 
@@ -6290,29 +6291,60 @@ class ElectionEndDatesInThePastTest(absltest.TestCase):
     </Election>
     """
 
-  def testChecksElectionElements(self):
-    self.assertEqual(["Election"], self.date_validator.elements())
-
-  def testEndDatesAreNotFlaggedIfNotInThePast(self):
-    election_string = self.election_string.format(
-        self.today + datetime.timedelta(days=1),
-        self.today + datetime.timedelta(days=2))
-    election = etree.fromstring(election_string)
-    self.date_validator.check(election)
-
-  def testAWarningIsThrownIfEndDateIsInPast(self):
-    election_string = self.election_string.format(
-        self.today + datetime.timedelta(days=-11),
-        self.today + datetime.timedelta(days=-2))
-    election = etree.fromstring(election_string)
-    with self.assertRaises(loggers.ElectionWarning):
-      self.date_validator.check(election)
-
-  def testIgnoresElectionsWithNoEndDateElement(self):
+  @freezegun.freeze_time("2022-01-01")
+  def testSubsequentContestIdIsNotPresentEndDateNotInPast(self):
     election_string = """
       <Election>
+        <ContestCollection>
+          <Contest objectId="cc_fr_999_2"/>
+        </ContestCollection>
         <StartDate>2012-01-01</StartDate>
+        <EndDate>2023-01-01</EndDate>
       </Election>
+    """
+    self.date_validator.check(etree.fromstring(election_string))
+
+  def testSubsequentContestIdIsNotPresentEndDateInPast(self):
+    election_string = """
+        <Election>
+          <ContestCollection>
+            <Contest objectId="cc_fr_999_2"/>
+          </ContestCollection>
+          <StartDate>2012-01-01</StartDate>
+          <EndDate>2018-01-01</EndDate>
+        </Election>
+    """
+    with self.assertRaises(loggers.ElectionWarning) as ew:
+      self.date_validator.check(etree.fromstring(election_string))
+    self.assertIn(
+        "The date 2018-01-01 is in the past", ew.exception.log_entry[0].message)
+
+  def testSubsequentContestIdIsPresentEndDateInPast(self):
+    election_string = """
+        <Election>
+          <ContestCollection>
+            <Contest objectId="cc_fr_999_2">
+              <SubsequentContestId>cc_fr_999_3</SubsequentContestId>
+            </Contest>
+          </ContestCollection>
+          <StartDate>2012-01-01</StartDate>
+          <EndDate>2018-01-01</EndDate>
+        </Election>
+    """
+    self.date_validator.check(etree.fromstring(election_string))
+
+  @freezegun.freeze_time("2022-01-01")
+  def testSubsequentContestIdIsPresentEndDateNotInPast(self):
+    election_string = """
+        <Election>
+          <ContestCollection>
+            <Contest objectId="cc_fr_999_2">
+              <SubsequentContestId>cc_fr_999_3</SubsequentContestId>
+            </Contest>
+          </ContestCollection>
+          <StartDate>2012-01-01</StartDate>
+          <EndDate>2023-03-01</EndDate>
+        </Election>
     """
     self.date_validator.check(etree.fromstring(election_string))
 
@@ -6594,6 +6626,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     self.assertEqual("per1",
                      ei.exception.log_entry[1].elements[0].get("objectId"))
 
+  @freezegun.freeze_time("2022-01-01")
   def testEndDateOfficeHolderDoesNotRaiseInfo(self):
     office_string = self.base_string.format("per0", "2019-01-31", "2023-04-16",
                                             "per1", "2019-01-22", "2023-05-12",
@@ -8257,11 +8290,11 @@ class OfficeSelectionMethodTest(absltest.TestCase):
         <Office>
         </Office>
     """
-    with self.assertRaises(loggers.ElectionInfo) as ei:
+    with self.assertRaises(loggers.ElectionWarning) as ew:
       self.selection_validator.check(etree.fromstring(office_string))
     self.assertEqual(
-        "It is highly recommended to provide the Office Selection Method "
-        "information.", str(ei.exception.log_entry[0].message))
+        "Office element is missing its SelectionMethod.",
+        str(ew.exception.log_entry[0].message))
 
 
 class SubsequentContestIdTest(absltest.TestCase):

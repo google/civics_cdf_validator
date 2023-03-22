@@ -91,6 +91,19 @@
       <AdditionalData type="jurisdiction-id">ru-gpu0</AdditionalData>
     </Office>
     <Office objectId="off1">
+      <ContactInformation language="en">
+        <AddressLine>655 New York Ave, NW</AddressLine>
+        <AddressLine>Washington, DC 20005</AddressLine>
+        <Email>person@congress.gov</Email>
+        <Fax>888-7777</Fax>
+        <Name>Congressional Office</Name>
+        <Phone>999-8888</Phone>
+      </ContactInformation>
+      <ContactInformation language="es">
+        <AddressLine>655 Nueva York Ave, NW</AddressLine>
+        <AddressLine>Washington, DC 20005</AddressLine>
+        <Name>Oficina del Congreso</Name>
+      </ContactInformation>
       <ElectoralDistrictId>ru-gpu1</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -171,6 +184,19 @@
   </PartyCollection>
   <PersonCollection>
     <Person objectId="per0">
+      <ContactInformation language="en">
+        <AddressLine>655 New York Ave, NW</AddressLine>
+        <AddressLine>Washington, DC 20005</AddressLine>
+        <Email>obama.library@nara.gov</Email>
+        <Fax>888-7777</Fax>
+        <Name>Barack Obama Office</Name>
+        <Phone>(847) 252-5700</Phone>
+      </ContactInformation>
+      <ContactInformation language="es">
+        <AddressLine>655 Nueva York Ave, NW</AddressLine>
+        <AddressLine>Washington, DC 20005</AddressLine>
+        <Name>Oficina de Barack Obama</Name>
+      </ContactInformation>
       <ContactInformation>
         <Uri Annotation="personal-facebook">https://www.facebook.com/tedcruzpage</Uri>
         <Uri Annotation="personal-twitter">https://twitter.com/tedcruz</Uri>
