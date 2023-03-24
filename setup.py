@@ -45,9 +45,11 @@ setup(
     maintainer_email='election-results-xml-validator@google.com',
     license='Apache License',
     description='Checks if an election feed follows best practices',
-    long_description='civics_cdf_validator is a script that checks '
-    'if an election data feed follows best practices and outputs errors, '
-    'warnings and info messages for common issues.',
+    long_description=(
+        'civics_cdf_validator is a script that checks '
+        'if an election data feed follows best practices and outputs errors, '
+        'warnings and info messages for common issues.'
+    ),
     url='https://github.com/google/civics_cdf_validator',
     install_requires=[
         'lxml>=3.3.4',
@@ -62,6 +64,7 @@ setup(
         'pytest',
         'absl-py',
         'mock==3.0.5',
+        'freezegun',
     ],
     entry_points=ENTRY_POINTS,
     package_dir={'civics_cdf_validator': ''},
