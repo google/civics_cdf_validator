@@ -2578,6 +2578,7 @@ class OfficeMissingGovernmentBody(base.BaseRule):
       "vice president",
       "state executive",
       "deputy state executive",
+      "deputy head of government",
   ]
 
   def elements(self):

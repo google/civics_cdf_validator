@@ -42,5 +42,5 @@ valid_office_role_values = {
     "state tribal relations", "state upper house", "subcounty executive",
     "superior clerk", "superior court", "tax court", "taxes", "treasurer",
     "upper house", "utilities", "vice president", "water",
-    "workers compensation court"
+    "workers compensation court", "deputy head of government",
 }

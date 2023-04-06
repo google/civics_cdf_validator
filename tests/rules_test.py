@@ -8172,19 +8172,6 @@ class OfficeMissingGovernmentBodyTest(absltest.TestCase):
   def testChecksOfficeElements(self):
     self.assertEqual(["Office"], self.gov_validator.elements())
 
-  # test exempt office list to ensure a double check if/when list is changed
-  def testExemptOfficesList(self):
-    expected_exempt_offices = [
-        "head of state",
-        "head of government",
-        "president",
-        "vice president",
-        "state executive",
-        "deputy state executive",
-    ]
-    self.assertEqual(expected_exempt_offices,
-                     self.gov_validator._EXEMPT_OFFICES)
-
   # non-exempt role doesn't have a government(al) body: should raise error
   def testOfficeNonExemptWithoutGovernmentBody(self):
     office_string = """
@@ -8232,32 +8219,34 @@ class OfficeMissingGovernmentBodyTest(absltest.TestCase):
 
   # exempt role that has a government(al) body: should raise error
   def testOfficeExemptWithGovernmentBody(self):
-    office_string = """
-      <Office>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>office-role</OtherType>
-            <Value>head of state</Value>
-          </ExternalIdentifier>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>government-body</OtherType>
-            <Value>United States Senate</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-      </Office>
-    """
+    for office in self.gov_validator._EXEMPT_OFFICES:
+      with self.subTest(office=office):
+        office_string = f"""
+          <Office>
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value>{office}</Value>
+              </ExternalIdentifier>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>government-body</OtherType>
+                <Value>United States Senate</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Office>
+        """
 
-    with self.assertRaises(loggers.ElectionError) as ei:
-      self.gov_validator.check(etree.fromstring(office_string))
-    self.assertEqual(
-        (
-            "Office element has an external identifier of other-type "
-            "government-body and is expected not to."
-        ),
-        str(ei.exception.log_entry[0].message),
-    )
+        with self.assertRaises(loggers.ElectionError) as ei:
+          self.gov_validator.check(etree.fromstring(office_string))
+        self.assertEqual(
+            (
+                "Office element has an external identifier of other-type "
+                "government-body and is expected not to."
+            ),
+            str(ei.exception.log_entry[0].message),
+        )
 
   # exempt role that does not have a government(al) body: should not raise error
   def testOfficeExemptWithoutGovernmentBody(self):
