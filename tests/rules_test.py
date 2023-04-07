@@ -2654,6 +2654,65 @@ class ProperBallotSelectionTest(absltest.TestCase):
       self.ballot_selection_validator.check(element.find("Contest"))
 
 
+class CorrectCandidateSelectionCountTest(absltest.TestCase):
+
+  def setUp(self):
+    super(CorrectCandidateSelectionCountTest, self).setUp()
+    self.candidate_selection_validator = rules.CorrectCandidateSelectionCount(
+        None, None
+    )
+
+  def testCandidateSelectionWithMissingCandidateIds(self):
+    contest_string = """
+      <Contest objectId="con-1" type="CandidateContest">
+        <BallotSelection objectId="bs-1" type="CandidateSelection"/>
+      </Contest>
+    """
+    element = etree.fromstring(contest_string)
+
+    with self.assertRaises(loggers.ElectionWarning):
+      self.candidate_selection_validator.check(element.find("BallotSelection"))
+
+  def testCandidateSelectionWithMultipleCandidateIds(self):
+    contest_string = """
+      <Contest objectId="con-1" type="CandidateContest">
+        <BallotSelection objectId="bs-1" type="CandidateSelection">
+          <CandidateIds>cand-1</CandidateIds>
+          <CandidateIds>cand-2</CandidateIds>
+        </BallotSelection>
+      </Contest>
+    """
+    element = etree.fromstring(contest_string)
+
+    with self.assertRaises(loggers.ElectionWarning):
+      self.candidate_selection_validator.check(element.find("BallotSelection"))
+
+  def testCandidateSelectionWithSingleCandidateIdsAndMultipleCandidates(self):
+    contest_string = """
+      <Contest objectId="con-1" type="CandidateContest">
+        <BallotSelection objectId="bs-1" type="CandidateSelection">
+          <CandidateIds>cand-1 cand-2 cand-3</CandidateIds>
+        </BallotSelection>
+      </Contest>
+    """
+    element = etree.fromstring(contest_string)
+
+    with self.assertRaises(loggers.ElectionWarning):
+      self.candidate_selection_validator.check(element.find("BallotSelection"))
+
+  def testCandidateSelectionWithCorrectCandidateIds(self):
+    contest_string = """
+      <Contest objectId="con-1" type="CandidateContest">
+        <BallotSelection objectId="bs-1" type="CandidateSelection">
+          <CandidateIds>cand-1</CandidateIds>
+        </BallotSelection>
+      </Contest>
+    """
+    element = etree.fromstring(contest_string)
+
+    self.candidate_selection_validator.check(element.find("BallotSelection"))
+
+
 class SingularPartySelectionTest(absltest.TestCase):
 
   def setUp(self):

@@ -978,6 +978,37 @@ class ProperBallotSelection(base.BaseRule):
         raise loggers.ElectionError.from_message(msg, [element])
 
 
+class CorrectCandidateSelectionCount(base.BaseRule):
+  """CandidateSelections should only reference one candidate.
+
+  This rule will throw a warning if a CandidateSelection references multiple
+  candidates. We currently do not support tickets (i.e. CandidateSelections with
+  multiple candidates).
+  """
+
+  def elements(self):
+    return ["CandidateSelection"]
+
+  def check(self, element):
+    selection_id = element.get("objectId")
+    candidate_ids = element.findall("CandidateIds")
+    if len(candidate_ids) != 1:
+      msg = (
+          "The CandidateSelection {} is expected to have one CandidateIds "
+          "but {} were found.".format(selection_id, len(candidate_ids))
+      )
+      raise loggers.ElectionWarning.from_message(msg, [element])
+    candidates = candidate_ids[0].text.split()
+    if len(candidates) != 1:
+      msg = (
+          "CandidateIds for CandidateSelection {} is expected to reference "
+          "one candidate but {} candidates were found".format(
+              selection_id, len(candidates)
+          )
+      )
+      raise loggers.ElectionWarning.from_message(msg, [element])
+
+
 class SingularPartySelection(base.BaseRule):
   """Each PartySelection should have exactly one Party in the PartyIds.
 
@@ -2937,6 +2968,7 @@ ELECTION_RULES = COMMON_RULES + (
     ComposingContestIdsAreValidRelatedContests,
     SingularPartySelection,
     MultipleInternationalizedTextWithSameLanguageCode,
+    CorrectCandidateSelectionCount,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (
