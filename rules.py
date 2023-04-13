@@ -1543,6 +1543,64 @@ class ValidEnumerations(base.BaseRule):
              "enumeration"% other_type_element.text), [element])
 
 
+class MultipleCandidatesPointToTheSamePersonInTheSameContest(base.TreeRule):
+  """Raise an error when multiple candidates point to the same person in the same contest."""
+
+  def check(self):
+    # Keep track of rule violations
+    error_log = []
+    rule_violations = []
+    # Get all Candidate objects in the feed
+    candidates = self.get_elements_by_class(self.election_tree, "Candidate")
+    # Store link between candidate_id and person_id for each Candidate object
+    person_id_by_candidate_id = {
+        candidate.get("objectId"): candidate.find("PersonId").text
+        for candidate in candidates
+    }
+    # Get all Contest objects in the feed
+    contests = self.get_elements_by_class(self.election_tree, "Contest")
+    for contest in contests:
+      rule_violations.extend(
+          self._check_for_bad_candidates(person_id_by_candidate_id, contest)
+      )
+    # Combine rule violations into one error message
+    if rule_violations:
+      for rule_violation in rule_violations:
+        contest_id = rule_violation[0]
+        person_id = rule_violation[1]
+        candidate_list = rule_violation[2]
+        error_message = (
+            "Multiple candidates in Contest {} reference the same Person "
+            "{}. Candidates: {}"
+        ).format(contest_id, person_id, candidate_list)
+        error_log.append(loggers.LogEntry((error_message), [contest_id]))
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+  def _check_for_bad_candidates(self, person_id_by_candidate_id, contest):
+    candidate_ids_by_person_id = dict()
+    rule_violating_person_ids = []
+    contest_id = contest.get("objectId")
+    for candidate_id in self._get_candidate_ids_for_contest(contest):
+      person_id = person_id_by_candidate_id[candidate_id]
+      if person_id not in candidate_ids_by_person_id:
+        candidate_ids_by_person_id[person_id] = [candidate_id]
+      else:
+        candidate_ids_by_person_id[person_id].append(candidate_id)
+        rule_violating_person_ids.append(person_id)
+    return [
+        (contest_id, person_id, str(candidate_ids_by_person_id[person_id]))
+        for person_id in rule_violating_person_ids
+    ]
+
+  def _get_candidate_ids_for_contest(self, contest):
+    candidate_id_elements = self.get_elements_by_class(contest, "CandidateIds")
+    candidate_ids = []
+    for candidate_id_element in candidate_id_elements:
+      candidate_ids.extend(candidate_id_element.text.split())
+    return candidate_ids
+
+
 class SelfDeclaredCandidateMethod(base.BaseRule):
   """A self declared candidate cannot have an "electoral-commission" id.
 
@@ -2969,6 +3027,7 @@ ELECTION_RULES = COMMON_RULES + (
     SingularPartySelection,
     MultipleInternationalizedTextWithSameLanguageCode,
     CorrectCandidateSelectionCount,
+    MultipleCandidatesPointToTheSamePersonInTheSameContest,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (
