@@ -18,12 +18,6 @@ in order to build lxml.
 
 # USAGE
 
-## Branch Definitions
-* `master` - Branch used in production.
-* `staging` - Branch that contains next version of production code, typically available one month in advance of a production push.
-* `dev` - Branch that contains development code with latest changes changes to the validator. This branch is rolled into staging on a monthly basis.
-
-
 ## Supported feeds
 You can use `civics_cdf_validator` to check different types of feed:
 

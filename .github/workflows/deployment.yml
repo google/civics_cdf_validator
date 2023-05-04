@@ -6,7 +6,6 @@ on:
     branches:
       - master
       - dev
-      - staging
 
 jobs:
   build-n-test:
