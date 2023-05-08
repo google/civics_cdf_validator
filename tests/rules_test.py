@@ -7,7 +7,6 @@ import inspect
 import io
 
 from absl.testing import absltest
-import anytree
 from civics_cdf_validator import base
 from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
@@ -15,6 +14,7 @@ from civics_cdf_validator import rules
 import freezegun
 from lxml import etree
 from mock import MagicMock
+import networkx
 
 
 class HelpersTest(absltest.TestCase):
@@ -1951,7 +1951,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
                       "Candidate can004 is not referenced."),
                      ee.exception.log_entry[0].message)
 
-  # _construct_contest_trees tests
+  # _construct_contest_graph tests
   def testCreatesNodeForEachContest_NoRelationships(self):
     election_report = """
       <ContestCollection>
@@ -1962,19 +1962,11 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     """
     report_elem = etree.fromstring(election_report)
 
-    expected_contest_nodes = [
-        anytree.AnyNode(id="con001", relatives=set()),
-        anytree.AnyNode(id="con002", relatives=set()),
-        anytree.AnyNode(id="con003", relatives=set()),
-    ]
-    self.cand_validator._construct_contest_trees(report_elem)
+    expected_contest_nodes = ["con001", "con002", "con003"]
+    self.cand_validator._construct_contest_graph(report_elem)
 
     for node in expected_contest_nodes:
-      found_node = False
-      for validator_node in self.cand_validator.contest_tree_nodes.values():
-        if (node.id == validator_node.id and
-            node.relatives == validator_node.relatives):
-          found_node = True
+      found_node = node in self.cand_validator.contest_graph.nodes()
       if not found_node:
         self.fail(("No matching node found for id: {} and "
                    "relative set: {}").format(node.id, node.relatives))
@@ -1990,24 +1982,27 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
       </ContestCollection>
     """
     report_elem = etree.fromstring(election_report)
-    self.cand_validator._construct_contest_trees(report_elem)
+    self.cand_validator._construct_contest_graph(report_elem)
 
     # assert each contest has a node created for it
     for con_id in ["con001", "con002", "con003"]:
-      found_node = False
-      for validator_node in self.cand_validator.contest_tree_nodes.values():
-        if con_id == validator_node.id:
-          found_node = True
+      found_node = con_id in self.cand_validator.contest_graph.nodes()
       if not found_node:
         self.fail(("No matching node found for id: {}").format(con_id))
 
     # assert parent child relationships were created
-    for node in self.cand_validator.contest_tree_nodes.values():
-      if node.id == "con001":
-        self.assertEqual("con002", node.children[0].id)
-        self.assertEqual("con003", node.children[1].id)
-      if node.id == "con002" or node.id == "con003":
-        self.assertEqual("con001", node.parent.id)
+    for node in self.cand_validator.contest_graph.nodes():
+      if node == "con001":
+        self.assertTrue(
+            networkx.has_path(self.cand_validator.contest_graph, node, "con002")
+        )
+        self.assertTrue(
+            networkx.has_path(self.cand_validator.contest_graph, node, "con003")
+        )
+      if node == "con002" or node == "con003":
+        self.assertEqual(
+            "con001", self.cand_validator.contest_graph.nodes()[node]["parent"]
+        )
 
   def testTreeRootsAreConnectedForAnySubsequentRelationship(self):
     election_report = """
@@ -2027,48 +2022,15 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
       </ContestCollection>
     """
     report_elem = etree.fromstring(election_report)
-    self.cand_validator._construct_contest_trees(report_elem)
-
-    # assert each contest has a node created for it
-    for con_id in [
-        "con001",
-        "con002",
-        "con003",
-        "con004",
-        "con005",
-        "con006",
-    ]:
-      found_node = False
-      for validator_node in self.cand_validator.contest_tree_nodes.values():
-        if con_id == validator_node.id:
-          found_node = True
-      if not found_node:
-        self.fail(("No matching node found for id: {}").format(con_id))
-
-    # assert parent child relationships were created
-    for node in self.cand_validator.contest_tree_nodes.values():
-      if node.id == "con001":
-        self.assertEqual("con002", node.children[0].id)
-        self.assertEqual("con003", node.children[1].id)
-      if node.id == "con002" or node.id == "con003":
-        self.assertEqual("con001", node.parent.id)
-      if node.id == "con004":
-        self.assertEqual("con005", node.children[0].id)
-        self.assertEqual("con006", node.children[1].id)
-      if node.id == "con005" or node.id == "con006":
-        self.assertEqual("con004", node.parent.id)
+    self.cand_validator._construct_contest_graph(report_elem)
 
     # assert roots are connected for subsequent relationships
-    tree_roots = set()
-    for node in self.cand_validator.contest_tree_nodes.values():
-      tree_roots.add(node.root)
-    tree_roots_list = list(tree_roots)
-
-    self.assertLen(tree_roots_list, 2)
-    self.assertIn("con004", [node.id for node in tree_roots_list])
-    self.assertIn("con001", [node.id for node in tree_roots_list])
-    self.assertIn(tree_roots_list[1], tree_roots_list[0].relatives)
-    self.assertIn(tree_roots_list[0], tree_roots_list[1].relatives)
+    self.assertTrue(
+        networkx.has_path(self.cand_validator.contest_graph, "con002", "con005")
+    )
+    self.assertTrue(
+        networkx.has_path(self.cand_validator.contest_graph, "con001", "con004")
+    )
 
   def testRaisesErrorIfInvalidComposingContestId(self):
     election_report = """
@@ -2083,7 +2045,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     report_elem = etree.fromstring(election_report)
 
     with self.assertRaises(loggers.ElectionError) as ee:
-      self.cand_validator._construct_contest_trees(report_elem)
+      self.cand_validator._construct_contest_graph(report_elem)
     self.assertEqual(("Contest con001 contains a composing Contest Id "
                       "(con004) that does not exist."),
                      ee.exception.log_entry[0].message)
@@ -2103,7 +2065,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     report_elem = etree.fromstring(election_report)
 
     with self.assertRaises(loggers.ElectionError) as ee:
-      self.cand_validator._construct_contest_trees(report_elem)
+      self.cand_validator._construct_contest_graph(report_elem)
     self.assertEqual(("Contest con003 is listed as a composing contest for "
                       "multiple contests (con002 and con001). A contest should"
                       " have no more than one parent."),
@@ -2122,23 +2084,24 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     report_elem = etree.fromstring(election_report)
 
     with self.assertRaises(loggers.ElectionError) as ee:
-      self.cand_validator._construct_contest_trees(report_elem)
+      self.cand_validator._construct_contest_graph(report_elem)
     self.assertEqual(("Contest con001 contains a subsequent Contest Id "
                       "(con004) that does not exist."),
                      ee.exception.log_entry[0].message)
 
   # _check_candidate_contests_are_related tests
   def testReturnsTrueIfAllContestsInGivenListAreRelated_ParentChild(self):
-    node_one = anytree.AnyNode(id="con001", relatives=set())
-    node_two = anytree.AnyNode(id="con002", relatives=set())
-    node_three = anytree.AnyNode(id="con003", relatives=set())
-    node_two.parent = node_one
-    node_three.parent = node_one
-    self.cand_validator.contest_tree_nodes = {
-        "con001": node_one,
-        "con002": node_two,
-        "con003": node_three,
-    }
+    election_report = """
+      <ContestCollection>
+        <Contest objectId="con001">
+          <ComposingContestIds>con002 con003</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con002"/>
+        <Contest objectId="con003"/>
+      </ContestCollection>
+    """
+    report_elem = etree.fromstring(election_report)
+    self.cand_validator._construct_contest_graph(report_elem)
 
     contest_id_list = ["con001", "con002", "con003"]
     are_related = self.cand_validator._check_candidate_contests_are_related(
@@ -2146,15 +2109,17 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     self.assertTrue(are_related)
 
   def testReturnsFalseIfAnyContestInGivenListNotRelated_ParentChild(self):
-    node_one = anytree.AnyNode(id="con001", relatives=set())
-    node_two = anytree.AnyNode(id="con002", relatives=set())
-    node_three = anytree.AnyNode(id="con003", relatives=set())
-    node_two.parent = node_one
-    self.cand_validator.contest_tree_nodes = {
-        "con001": node_one,
-        "con002": node_two,
-        "con003": node_three,
-    }
+    election_report = """
+      <ContestCollection>
+        <Contest objectId="con001">
+          <ComposingContestIds>con002</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con002"/>
+        <Contest objectId="con003"/>
+      </ContestCollection>
+    """
+    report_elem = etree.fromstring(election_report)
+    self.cand_validator._construct_contest_graph(report_elem)
 
     contest_id_list = ["con001", "con002", "con003"]
     are_related = self.cand_validator._check_candidate_contests_are_related(
@@ -2162,80 +2127,70 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     self.assertFalse(are_related)
 
   def testReturnsTrueIfAllContestsInGivenListAreRelated_SubsequentRel(self):
-    node_one = anytree.AnyNode(id="con001", relatives=set())
-    node_two = anytree.AnyNode(id="con002", relatives=set())
-    node_three = anytree.AnyNode(id="con003", relatives=set())
-    node_four = anytree.AnyNode(id="con004", relatives=set())
-
-    # nodes one-two and three-four have parent-child rel
-    # nodes one-three are relatives
-    node_two.parent = node_one
-    node_four.parent = node_three
-    node_one.relatives.add(node_three)
-    node_three.relatives.add(node_one)
-
-    self.cand_validator.contest_tree_nodes = {
-        "con001": node_one,
-        "con002": node_two,
-        "con003": node_three,
-        "con004": node_four
-    }
+    election_report = """
+      <ContestCollection>
+        <Contest objectId="con001">
+          <ComposingContestIds>con002</ComposingContestIds>
+          <SubsequentContestId>con003</SubsequentContestId>
+        </Contest>
+        <Contest objectId="con002"/>
+        <Contest objectId="con003">
+          <ComposingContestIds>con004</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con004"/>
+      </ContestCollection>
+    """
+    report_elem = etree.fromstring(election_report)
+    self.cand_validator._construct_contest_graph(report_elem)
 
     contest_id_list = ["con001", "con002", "con003", "con004"]
     are_related = self.cand_validator._check_candidate_contests_are_related(
-        contest_id_list)
-    self.assertEqual(node_one, node_two.root)
-    self.assertEqual(node_three, node_four.root)
+        contest_id_list
+    )
     self.assertTrue(are_related)
 
   def testReturnsFalseIfContestTreesNotRelated_SubsequentRel(self):
-    node_one = anytree.AnyNode(id="con001", relatives=set())
-    node_two = anytree.AnyNode(id="con002", relatives=set())
-    node_three = anytree.AnyNode(id="con003", relatives=set())
-    node_four = anytree.AnyNode(id="con004", relatives=set())
-
-    # nodes one-two and three-four have parent-child rel
-    # nodes one-three are not relatives
-    node_two.parent = node_one
-    node_four.parent = node_three
-
-    self.cand_validator.contest_tree_nodes = {
-        "con001": node_one,
-        "con002": node_two,
-        "con003": node_three,
-        "con004": node_four
-    }
+    election_report = """
+      <ContestCollection>
+        <Contest objectId="con001">
+          <ComposingContestIds>con002</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con002"/>
+        <Contest objectId="con003">
+          <ComposingContestIds>con004</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con004"/>
+      </ContestCollection>
+    """
+    report_elem = etree.fromstring(election_report)
+    self.cand_validator._construct_contest_graph(report_elem)
 
     contest_id_list = ["con001", "con002", "con003", "con004"]
     are_related = self.cand_validator._check_candidate_contests_are_related(
-        contest_id_list)
-    self.assertEqual(node_one, node_two.root)
-    self.assertEqual(node_three, node_four.root)
+        contest_id_list
+    )
     self.assertFalse(are_related)
 
   # _check_separate_candidates_not_related tests
   def testReturnsTrueIfSeparateCandidatesBelongToSeparateContestFamilies(self):
-    node_one = anytree.AnyNode(id="con001", relatives=set())
-    node_two = anytree.AnyNode(id="con002", relatives=set())
-    node_three = anytree.AnyNode(id="con003", relatives=set())
-    node_four = anytree.AnyNode(id="con004", relatives=set())
-    node_five = anytree.AnyNode(id="con005", relatives=set())
-    node_six = anytree.AnyNode(id="con006", relatives=set())
-
-    # nodes one-two three-four five-six have parent-child rel
-    # none of three families are related
-    node_two.parent = node_one
-    node_four.parent = node_three
-    node_six.parent = node_five
-
-    self.cand_validator.contest_tree_nodes = {
-        "con001": node_one,
-        "con002": node_two,
-        "con003": node_three,
-        "con004": node_four,
-        "con005": node_five,
-        "con006": node_six,
-    }
+    election_report = """
+      <ContestCollection>
+        <Contest objectId="con001">
+          <ComposingContestIds>con002</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con002"/>
+        <Contest objectId="con003">
+          <ComposingContestIds>con004</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con004"/>
+        <Contest objectId="con005">
+          <ComposingContestIds>con006</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con006"/>
+      </ContestCollection>
+    """
+    report_elem = etree.fromstring(election_report)
+    self.cand_validator._construct_contest_graph(report_elem)
 
     # separate candidates for each contest family
     candidate_contest_mapping = {
@@ -2249,26 +2204,24 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     self.assertTrue(valid_cands)
 
   def testReturnsFalseIfParentChildBelongToSeparateCandidates(self):
-    node_one = anytree.AnyNode(id="con001", relatives=set())
-    node_two = anytree.AnyNode(id="con002", relatives=set())
-    node_three = anytree.AnyNode(id="con003", relatives=set())
-    node_four = anytree.AnyNode(id="con004", relatives=set())
-    node_five = anytree.AnyNode(id="con005", relatives=set())
-    node_six = anytree.AnyNode(id="con006", relatives=set())
-
-    # nodes one-two three-four five-six have parent-child rel
-    node_two.parent = node_one
-    node_four.parent = node_three
-    node_six.parent = node_five
-
-    self.cand_validator.contest_tree_nodes = {
-        "con001": node_one,
-        "con002": node_two,
-        "con003": node_three,
-        "con004": node_four,
-        "con005": node_five,
-        "con006": node_six,
-    }
+    election_report = """
+      <ContestCollection>
+        <Contest objectId="con001">
+          <ComposingContestIds>con002</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con002"/>
+        <Contest objectId="con003">
+          <ComposingContestIds>con004</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con004"/>
+        <Contest objectId="con005">
+          <ComposingContestIds>con006</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con006"/>
+      </ContestCollection>
+    """
+    report_elem = etree.fromstring(election_report)
+    self.cand_validator._construct_contest_graph(report_elem)
 
     # a separate candidate is used for con001 and con002
     # con001 is parent of con002 so this should be invalid
@@ -2283,29 +2236,25 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     self.assertFalse(valid_cands)
 
   def testReturnsFalseIfSeparateCandidatesBelongToRelatedContestFamilies(self):
-    node_one = anytree.AnyNode(id="con001", relatives=set())
-    node_two = anytree.AnyNode(id="con002", relatives=set())
-    node_three = anytree.AnyNode(id="con003", relatives=set())
-    node_four = anytree.AnyNode(id="con004", relatives=set())
-    node_five = anytree.AnyNode(id="con005", relatives=set())
-    node_six = anytree.AnyNode(id="con006", relatives=set())
-
-    # nodes one-two three-four five-six have parent-child rel
-    # two of the families are related
-    node_two.parent = node_one
-    node_four.parent = node_three
-    node_six.parent = node_five
-    node_one.relatives.add(node_three)
-    node_three.relatives.add(node_one)
-
-    self.cand_validator.contest_tree_nodes = {
-        "con001": node_one,
-        "con002": node_two,
-        "con003": node_three,
-        "con004": node_four,
-        "con005": node_five,
-        "con006": node_six,
-    }
+    election_report = """
+      <ContestCollection>
+        <Contest objectId="con001">
+          <ComposingContestIds>con002</ComposingContestIds>
+          <SubsequentContestId>con003</SubsequentContestId>
+        </Contest>
+        <Contest objectId="con002"/>
+        <Contest objectId="con003">
+          <ComposingContestIds>con004</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con004"/>
+        <Contest objectId="con005">
+          <ComposingContestIds>con006</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con006"/>
+      </ContestCollection>
+    """
+    report_elem = etree.fromstring(election_report)
+    self.cand_validator._construct_contest_graph(report_elem)
 
     # separate candidates for each contest family
     candidate_contest_mapping = {
@@ -2377,6 +2326,43 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
             <CandidateIds>can001 can002</CandidateIds>
           </Contest>
         </ContestCollection>
+      </ElectionReport>
+    """
+    report_elem = etree.fromstring(election_report)
+    self.cand_validator.check(report_elem)
+
+  def testChecksRepeatCandidateValidInRelatedContests_SubsequentOfSubsequent(
+      self,
+  ):
+    election_report = """
+      <ElectionReport>	
+        <PersonCollection>	
+          <Person objectId="per001"/>	
+        </PersonCollection>	
+        <CandidateCollection>	
+          <Candidate objectId="can001">	
+            <PersonId>per001</PersonId>	
+          </Candidate>	
+        </CandidateCollection>	
+        <ContestCollection>	
+          <Contest objectId="rep" type="CandidateContest">	
+            <BallotSelection objectId="two" type="CandidateSelection">	
+              <CandidateIds>can001</CandidateIds>	
+            </BallotSelection>	
+            <SubsequentContestId>gen</SubsequentContestId>	
+          </Contest>	
+          <Contest objectId="dem" type="CandidateContest">	
+            <BallotSelection objectId="one" type="CandidateSelection">	
+              <CandidateIds>can001</CandidateIds>	
+            </BallotSelection>	
+            <SubsequentContestId>runoff</SubsequentContestId>	
+          </Contest>	
+          <Contest objectId="runoff" type="CandidateContest">	
+            <SubsequentContestId>gen</SubsequentContestId>	
+          </Contest>	
+          <Contest objectId="gen" type="CandidateContest">	
+          </Contest>	
+        </ContestCollection>	
       </ElectionReport>
     """
     report_elem = etree.fromstring(election_report)
@@ -8199,27 +8185,8 @@ class OfficeMissingGovernmentBodyTest(absltest.TestCase):
     self.assertEqual(expected_exempt_offices,
                      self.gov_validator._EXEMPT_OFFICES)
 
-  def testIgnoresExemptOffices(self):
-    office_string = """
-      <Office>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>office-role</OtherType>
-            <Value>{}</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-      </Office>
-    """
-
-    exempt_office = etree.fromstring(office_string.format("head of state"))
-    self.gov_validator.check(exempt_office)
-
-    non_exempt_office = etree.fromstring(office_string.format("senate"))
-    with self.assertRaises(loggers.ElectionInfo):
-      self.gov_validator.check(non_exempt_office)
-
-  def testOfficeElementHasGovernmentBodyDefined(self):
+  # non-exempt role doesn't have a government(al) body: should raise error
+  def testOfficeNonExemptWithoutGovernmentBody(self):
     office_string = """
       <Office>
         <ExternalIdentifiers>
@@ -8228,47 +8195,85 @@ class OfficeMissingGovernmentBodyTest(absltest.TestCase):
             <OtherType>office-role</OtherType>
             <Value>senate</Value>
           </ExternalIdentifier>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>{}</OtherType>
-            <Value>United States Senate</Value>
-          </ExternalIdentifier>
         </ExternalIdentifiers>
       </Office>
     """
 
-    government_body_office = etree.fromstring(
-        office_string.format("government-body"))
-    self.gov_validator.check(government_body_office)
-
-    governmental_body_office = etree.fromstring(
-        office_string.format("governmental-body"))
-    self.gov_validator.check(governmental_body_office)
-
-  def testRaisesInfoIfNoGovernmentBodyDefined(self):
-    office_string = """
-      <Office>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>office-role</OtherType>
-            <Value>senate</Value>
-          </ExternalIdentifier>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>{}</OtherType>
-            <Value>United States Senate</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-      </Office>
-    """
-
-    government_body_office = etree.fromstring(office_string.format("body"))
     with self.assertRaises(loggers.ElectionInfo) as ei:
-      self.gov_validator.check(government_body_office)
+      self.gov_validator.check(etree.fromstring(office_string))
     self.assertEqual(
-        "Office element is missing an external identifier of "
-        "other-type government-body.", str(ei.exception.log_entry[0].message))
+        (
+            "Office element is missing an external identifier of "
+            "other-type government-body."
+        ),
+        str(ei.exception.log_entry[0].message),
+    )
+
+  # non-exempt role that has a government(al) body: should NOT raise error
+  def testOfficeNonExemptWithGovernmentBody(self):
+    office_string = """
+      <Office>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>office-role</OtherType>
+            <Value>senate</Value>
+          </ExternalIdentifier>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>government-body</OtherType>
+            <Value>United States Senate</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Office>
+    """
+
+    self.gov_validator.check(etree.fromstring(office_string))
+
+  # exempt role that has a government(al) body: should raise error
+  def testOfficeExemptWithGovernmentBody(self):
+    office_string = """
+      <Office>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>office-role</OtherType>
+            <Value>head of state</Value>
+          </ExternalIdentifier>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>government-body</OtherType>
+            <Value>United States Senate</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Office>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as ei:
+      self.gov_validator.check(etree.fromstring(office_string))
+    self.assertEqual(
+        (
+            "Office element has an external identifier of other-type "
+            "government-body and is expected not to."
+        ),
+        str(ei.exception.log_entry[0].message),
+    )
+
+  # exempt role that does not have a government(al) body: should not raise error
+  def testOfficeExemptWithoutGovernmentBody(self):
+    office_string = """
+      <Office>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>office-role</OtherType>
+            <Value>head of state</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Office>
+    """
+
+    self.gov_validator.check(etree.fromstring(office_string))
 
 
 class OfficeSelectionMethodTest(absltest.TestCase):

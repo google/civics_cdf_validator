@@ -20,7 +20,6 @@ import datetime
 import enum
 import hashlib
 import re
-import anytree
 
 from civics_cdf_validator import base
 from civics_cdf_validator import gpunit_rules
@@ -28,6 +27,7 @@ from civics_cdf_validator import loggers
 from civics_cdf_validator import office_utils
 import language_tags
 from lxml import etree
+import networkx
 from six.moves.urllib.parse import urlparse
 
 _PARTY_LEADERSHIP_TYPES = ["party-leader-id", "party-chair-id"]
@@ -809,13 +809,10 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
     super(CandidatesReferencedInRelatedContests,
           self).__init__(election_tree, schema_tree)
     self.error_log = []
-    self.contest_tree_nodes = dict()
+    self.contest_graph = networkx.Graph()
 
   def elements(self):
     return ["ElectionReport"]
-
-  def _find_contest_node_by_object_id(self, object_id):
-    return self.contest_tree_nodes.get(object_id, None)
 
   def _register_person_to_candidate_to_contests(self, election_report):
     person_candidate_contest_mapping = {}
@@ -851,117 +848,78 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
 
     return person_candidate_contest_mapping
 
-  def _construct_contest_trees(self, election_report):
+  def _construct_contest_graph(self, election_report):
     contests = self.get_elements_by_class(election_report, "Contest")
-    # create a tree node for each contest
+    # create a node for each contest
     for contest in contests:
-      self.contest_tree_nodes[contest.get("objectId")] = anytree.AnyNode(
-          id=contest.get("objectId"), relatives=set())
+      self.contest_graph.add_node(contest.get("objectId"))
 
     for contest in contests:
       composing_contests = contest.find("ComposingContestIds")
       if element_has_text(composing_contests):
-        # find existing tree node for given contest
-        contest_node = self._find_contest_node_by_object_id(
-            contest.get("objectId"))
         children = composing_contests.text.split()
         for child in children:
-          # find existing tree node for given child id
-          child_node = self._find_contest_node_by_object_id(child)
-          # child_node is None if the composing contest id is not valid
-          if child_node is None:
+          # composing contest id is not valid if it isn't in the graph
+          if not self.contest_graph.has_node(child):
             raise loggers.ElectionError.from_message(
                 ("Contest {} contains a composing Contest Id ({}) that does "
                  "not exist.").format(contest.get("objectId"), child),
                 [composing_contests])
           # parent exists means contest is listed as composing more than once
-          if child_node.parent is not None:
+          if "parent" in self.contest_graph.nodes[child]:
             raise loggers.ElectionError.from_message(
-                ("Contest {} is listed as a composing contest for multiple "
-                 "contests ({} and {}). A contest should have no more than one "
-                 "parent.").format(child, contest.get("objectId"),
-                                   child_node.parent.id), [composing_contests])
+                (
+                    "Contest {} is listed as a composing contest for multiple"
+                    " contests ({} and {}). A contest should have no more than"
+                    " one parent."
+                ).format(
+                    child,
+                    contest.get("objectId"),
+                    self.contest_graph.nodes[child]["parent"],
+                ),
+                [composing_contests],
+            )
           # establish parent-child relationship between nodes
-          child_node.parent = contest_node
+          self.contest_graph.nodes[child]["parent"] = contest.get("objectId")
+          self.contest_graph.add_edge(contest.get("objectId"), child)
 
-    for contest in contests:
       subsequent_contest = contest.find("SubsequentContestId")
       if element_has_text(subsequent_contest):
-        contest_node = self._find_contest_node_by_object_id(
-            contest.get("objectId")
-        )
-        subsequent_node = self._find_contest_node_by_object_id(
-            subsequent_contest.text
-        )
-        # subsequent_node is None if the subsequent contest id is not valid
-        if subsequent_node is None:
+        # subsequent contest id is not valid if it isn't in the graph
+        if not self.contest_graph.has_node(subsequent_contest.text):
           raise loggers.ElectionError.from_message(
               ("Contest {} contains a subsequent Contest Id ({}) that does "
                "not exist.").format(
                    contest.get("objectId"), subsequent_contest.text),
               [subsequent_contest])
-        # establish connection between trees if related via subsequent contest
-        contest_root = contest_node.root
-        subsequent_root = subsequent_node.root
-        contest_root.relatives.add(subsequent_root)
-        for contest_relative in contest_root.relatives:
-          contest_relative.relatives.add(subsequent_root)
-          subsequent_root.relatives.add(contest_relative)
-
-        subsequent_root.relatives.add(contest_root)
-        for subsequent_relative in subsequent_root.relatives:
-          subsequent_relative.relatives.add(contest_root)
-          contest_root.relatives.add(subsequent_relative)
+        self.contest_graph.add_edge(
+            contest.get("objectId"), subsequent_contest.text
+        )
 
   def _check_candidate_contests_are_related(self, contest_id_list):
-    # create set of roots for each contest id
-    contest_roots = set()
-    for contest_id in contest_id_list:
-      contest_node = self._find_contest_node_by_object_id(contest_id)
-      contest_roots.add(contest_node.root)
-
-    contest_root_list = list(contest_roots)
-    for i in range(len(contest_root_list)):
-      contest_root = contest_root_list[i]
-      for j in range(i+1, len(contest_root_list)):
-        checking_root = contest_root_list[j]
-        # every unique root should be a relative of one another
-        if checking_root not in contest_root.relatives:
-          return False
+    for i in range(len(contest_id_list) - 1):
+      contest_one = contest_id_list[i]
+      contest_two = contest_id_list[i + 1]
+      # every unique contest should be related, but since paths are transitive
+      # checking each subsequent pair is enough to ensure this
+      if not networkx.has_path(self.contest_graph, contest_one, contest_two):
+        return False
 
     return True
 
   def _check_separate_candidates_not_related(self, candidate_contest_mapping):
     for contests in candidate_contest_mapping.values():
-      contest_roots = set()
-      # create set of roots for given list of contest ids
-      for contest in contests:
-        contest_node = self._find_contest_node_by_object_id(contest)
-        contest_root = contest_node.root
-        contest_roots.add(contest_root)
-
-      other_contest_roots = set()
-      # create set of roots for contests in separate candidate families
-      for con_list in candidate_contest_mapping.values():
-        for c_id in con_list:
-          if c_id not in contests:
-            other_contest = self._find_contest_node_by_object_id(c_id)
-            other_contest_root = other_contest.root
-            # if other root is part of base contest root set then should not
-            # be part of contest list for two separate candidates
-            if other_contest_root in contest_roots:
+      for other_contests in [
+          con for con in candidate_contest_mapping.values() if con != contests
+      ]:
+        for contest in contests:
+          for other_contest in other_contests:
+            if networkx.has_path(self.contest_graph, contest, other_contest):
               return False
-            other_contest_roots.add(other_contest_root)
-
-      for contest_root in contest_roots:
-        for checking_root in other_contest_roots:
-          # the roots in each list should not be relatives of eachother
-          if checking_root in contest_root.relatives:
-            return False
     return True
 
   def check(self, election_report):
-    self._construct_contest_trees(election_report)
+    self._construct_contest_graph(election_report)
     person_candidate_to_contest_map = (
         self._register_person_to_candidate_to_contests(election_report))
     for person, cand_con_mapping in person_candidate_to_contest_map.items():
@@ -2614,8 +2572,12 @@ class OfficeMissingGovernmentBody(base.BaseRule):
   """Ensure non-executive Office elements have a government body defined."""
 
   _EXEMPT_OFFICES = [
-      "head of state", "head of government", "president", "vice president",
-      "state executive", "deputy state executive",
+      "head of state",
+      "head of government",
+      "president",
+      "vice president",
+      "state executive",
+      "deputy state executive",
   ]
 
   def elements(self):
@@ -2623,20 +2585,36 @@ class OfficeMissingGovernmentBody(base.BaseRule):
 
   def check(self, element):
     office_roles = get_entity_info_for_value_type(element, "office-role")
+    governmental_body = get_entity_info_for_value_type(
+        element, "governmental-body"
+    )
+    government_body = get_entity_info_for_value_type(element, "government-body")
+
     if office_roles:
       office_role = office_roles[0]
-      if office_role in self._EXEMPT_OFFICES:
-        return
-
-    governmental_body = get_entity_info_for_value_type(
-        element, "governmental-body")
-    government_body = get_entity_info_for_value_type(
-        element, "government-body")
-
-    if not governmental_body and not government_body:
-      raise loggers.ElectionInfo.from_message(
-          ("Office element is missing an external identifier of other-type "
-           "government-body."), [element])
+      if (
+          office_role not in self._EXEMPT_OFFICES
+          and not governmental_body
+          and not government_body
+      ):
+        raise loggers.ElectionInfo.from_message(
+            (
+                "Office element is missing an external identifier of"
+                " other-type government-body."
+            ),
+            [element],
+        )
+      else:
+        if office_role in self._EXEMPT_OFFICES and (
+            governmental_body or government_body
+        ):
+          raise loggers.ElectionError.from_message(
+              (
+                  "Office element has an external identifier of other-type"
+                  " government-body and is expected not to."
+              ),
+              [element],
+          )
 
 
 class MissingOfficeSelectionMethod(base.BaseRule):

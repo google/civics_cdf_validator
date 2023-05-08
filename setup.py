@@ -56,8 +56,9 @@ setup(
         'language-tags>=0.4.2',
         '%s>=2.10' % requests_version,
         'pygithub>=1.28',
-        'anytree==2.4.3',
+        'networkx>=2.6.3',
         'pycountry==22.1.10',
+        'six',
     ],
     setup_requires=['pytest-runner'],
     tests_require=[
