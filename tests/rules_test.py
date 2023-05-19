@@ -1512,6 +1512,20 @@ class OtherTypeTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError):
       self.other_type_validator.check(complex_element)
 
+  def testItRaisesErrorIfOtherTypeSetButTypeNotSetToOther(self):
+    complex_element_string = """
+      <Device>
+        <Manufacturer>Google</Manufacturer>
+        <Model>Pixel</Model>
+        <Type>phone</Type>
+        <OtherType>Best phone ever</OtherType>
+      </Device>
+    """
+
+    complex_element = etree.fromstring(complex_element_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.other_type_validator.check(complex_element)
+
 
 class PartisanPrimaryTest(absltest.TestCase):
 
@@ -6551,6 +6565,36 @@ class ElectionEndDatesOccurAfterStartDatesTest(absltest.TestCase):
       </Election>
     """
     self.date_validator.check(etree.fromstring(election_string))
+
+
+class ElectionTypesTest(absltest.TestCase):
+
+  def testRaisesErrorIfElectionTypesIncompatible(self):
+    election_string = """
+      <Election>
+        <Type>primary</Type>
+        <Type>general</Type>
+      </Election>
+      """
+    with self.assertRaises(loggers.ElectionError) as ee:
+      rules.ElectionTypesAreCompatible(None, None).check(
+          etree.fromstring(election_string)
+      )
+    self.assertIn(
+        "Election element has incompatible election-type values.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testAllowsIfElectionTypesCompatible(self):
+    election_string = """
+      <Election>
+        <Type>general</Type>
+        <Type>runoff</Type>
+      </Election>
+      """
+    rules.ElectionTypesAreCompatible(None, None).check(
+        etree.fromstring(election_string)
+    )
 
 
 class DateStatusTest(absltest.TestCase):

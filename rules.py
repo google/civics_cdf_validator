@@ -673,11 +673,20 @@ class OtherType(base.BaseRule):
 
   def check(self, element):
     type_element = element.find("Type")
+    other_type_element = element.find("OtherType")
     if type_element is not None and type_element.text == "other":
-      other_type_element = element.find("OtherType")
       if other_type_element is None:
-        msg = ("Type on this element is set to 'other' but OtherType element "
-               "is not defined")
+        msg = (
+            "Type on this element is set to 'other' but OtherType element "
+            "is not defined"
+        )
+        raise loggers.ElectionError.from_message(msg, [element])
+    if type_element is not None and type_element.text != "other":
+      if other_type_element is not None:
+        msg = (
+            "Type on this element is not set to 'other' but OtherType "
+            "element is defined"
+        )
         raise loggers.ElectionError.from_message(msg, [element])
 
 
@@ -2148,6 +2157,27 @@ class ElectionEndDatesOccurAfterStartDates(base.DateRule):
         raise loggers.ElectionError(self.error_log)
 
 
+class ElectionTypesAreCompatible(base.BaseRule):
+  """Election element Type values cannot be both a general and primary type."""
+
+  def elements(self):
+    return ["Election"]
+
+  def check(self, element):
+    election_types = element.findall("Type")
+    if election_types:
+      for i in range(len(election_types)):
+        election_types[i] = election_types[i].text
+      if "general" in election_types and (
+          "primary" in election_types
+          or "primary-partisan-open" in election_types
+          or "primary-partisan-closed" in election_types
+      ):
+        raise loggers.ElectionError.from_message(
+            "Election element has incompatible election-type values.", [element]
+        )
+
+
 class DateStatusMatches(base.DateRule):
   """In most cases, ContestDateStatus should match ElectionDateStatus.
 
@@ -3010,6 +3040,7 @@ ELECTION_RULES = COMMON_RULES + (
     ElectionStartDates,
     ElectionEndDatesInThePast,
     ElectionEndDatesOccurAfterStartDates,
+    ElectionTypesAreCompatible,
     DateStatusMatches,
     ContestHasMultipleOffices,
     GpUnitsHaveSingleRoot,
