@@ -2972,6 +2972,121 @@ class MultipleInternationalizedTextWithSameLanguageCode(base.BaseRule):
             (language, texts[0].strip()))
 
 
+class ContestContainsValidStartDate(base.DateRule):
+  """Contest elements should contain valid start dates.
+
+  A warning will be raised for start dates in the past. These dates are still
+  valid because the validator could be run during an ongoing election.
+  """
+
+  def elements(self):
+    return ["Contest"]
+
+  def check(self, element):
+    self.reset_instance_vars()
+    self.gather_dates(element)
+
+    if self.start_date:
+      self.check_for_date_not_in_past(self.start_date, self.start_elem)
+
+    if self.error_log:
+      raise loggers.ElectionWarning(self.error_log)
+
+
+class ContestContainsValidEndDate(base.DateRule):
+  """Contest elements should contain valid end dates.
+
+  A warning will be raised for end dates in the past. These dates are still
+  valid because the validator could be run during an ongoing election.
+  """
+
+  def elements(self):
+    return ["Contest"]
+
+  def check(self, element):
+    self.reset_instance_vars()
+    self.gather_dates(element)
+
+    if self.end_date:
+      self.check_for_date_not_in_past(self.end_date, self.end_elem)
+
+    if self.error_log:
+      raise loggers.ElectionWarning(self.error_log)
+
+
+class ContestEndDateOccursAfterStartDate(base.DateRule):
+  """Contest elements should have end dates that occur after the start dates."""
+
+  def elements(self):
+    return ["Contest"]
+
+  def check(self, element):
+    self.reset_instance_vars()
+    self.gather_dates(element)
+
+    if self.end_date and self.start_date:
+      self.check_end_after_start()
+      if self.error_log:
+        raise loggers.ElectionError(self.error_log)
+
+
+class ContestEndDateOccursBeforeSubsequentContestStartDate(base.DateRule):
+  """Contest end dates should occur before subsequent contest start dates.
+
+  This rule will trigger if a Contest has a valid Subsequent Contest and both
+  Contests have dates.
+  """
+
+  def elements(self):
+    return ["ElectionReport"]
+
+  def check(self, election_report_element):
+    contest_by_contest_id = {}
+    dates_by_contest_id = {}
+
+    for election in self.get_elements_by_class(
+        election_report_element, "Election"
+    ):
+      for contest in self.get_elements_by_class(election, "Contest"):
+        contest_id = contest.get("objectId")
+        self.reset_instance_vars()
+        self.gather_dates(contest)
+        contest_by_contest_id[contest_id] = contest
+        dates_by_contest_id[contest_id] = (self.start_date, self.end_date)
+
+    for contest_id, contest in contest_by_contest_id.items():
+      # ignore contests that don't have a subsequent contest
+      subsequent_element = contest.find("SubsequentContestId")
+      if not element_has_text(subsequent_element):
+        continue
+      # ignore invalid subsequent contest ids
+      subsequent_contest_id = subsequent_element.text.strip()
+      if subsequent_contest_id not in contest_by_contest_id:
+        continue
+      # compare contest end date with subsequent contest start date
+      _, contest_end = dates_by_contest_id[contest_id]
+      subsequent_contest_start, _ = dates_by_contest_id[
+          subsequent_contest_id
+      ]
+      if contest_end is not None and subsequent_contest_start is not None:
+        date_delta = contest_end.is_older_than(subsequent_contest_start)
+        if date_delta < 0:
+          self.error_log.append(
+              loggers.LogEntry(
+                  "Contest {} with end date {} does not occur before"
+                  " subsequent contest {} with start date {}".format(
+                      contest_id,
+                      contest_end,
+                      subsequent_contest_id,
+                      subsequent_contest_start,
+                  )
+              )
+          )
+
+    if self.error_log:
+      raise loggers.ElectionWarning(self.error_log)
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
@@ -3059,6 +3174,10 @@ ELECTION_RULES = COMMON_RULES + (
     MultipleInternationalizedTextWithSameLanguageCode,
     CorrectCandidateSelectionCount,
     MultipleCandidatesPointToTheSamePersonInTheSameContest,
+    ContestContainsValidStartDate,
+    ContestContainsValidEndDate,
+    ContestEndDateOccursAfterStartDate,
+    ContestEndDateOccursBeforeSubsequentContestStartDate,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (
