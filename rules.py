@@ -60,6 +60,29 @@ _INTERNATIONALIZED_TEXT_ELEMENTS = [
     # go/keep-sorted end
 ]
 
+_EXECUTIVE_OFFICE_ROLES = frozenset([
+    "head of state",
+    "head of government",
+    "president",
+    "vice president",
+    "state executive",
+    "deputy state executive",
+    "deputy head of government",
+])
+
+
+def _is_executive_office(office_roles):
+  return not _EXECUTIVE_OFFICE_ROLES.isdisjoint(office_roles)
+
+
+def _get_government_body(element):
+  governmental_body = get_entity_info_for_value_type(
+      element,
+      "governmental-body",
+  )
+  government_body = get_entity_info_for_value_type(element, "government-body")
+  return governmental_body or government_body
+
 
 def get_external_id_values(element, value_type, return_elements=False):
   """Helper to gather all Values of external ids for a given type."""
@@ -2687,54 +2710,39 @@ class PartySpanMultipleCountries(base.BaseRule):
            .format(gpunit_country_mapping)), [element])
 
 
-class OfficeMissingGovernmentBody(base.BaseRule):
+class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
   """Ensure non-executive Office elements have a government body defined."""
-
-  _EXEMPT_OFFICES = [
-      "head of state",
-      "head of government",
-      "president",
-      "vice president",
-      "state executive",
-      "deputy state executive",
-      "deputy head of government",
-  ]
 
   def elements(self):
     return ["Office"]
 
   def check(self, element):
     office_roles = get_entity_info_for_value_type(element, "office-role")
-    governmental_body = get_entity_info_for_value_type(
-        element, "governmental-body"
-    )
-    government_body = get_entity_info_for_value_type(element, "government-body")
+    government_body = _get_government_body(element)
+    if not _is_executive_office(office_roles) and not government_body:
+      raise loggers.ElectionInfo.from_message(
+          "Non-executive Office element is missing an ExternalIdentifier of "
+          "OtherType government(al)-body.",
+          [element],
+      )
 
-    if office_roles:
-      office_role = office_roles[0]
-      if (
-          office_role not in self._EXEMPT_OFFICES
-          and not governmental_body
-          and not government_body
-      ):
-        raise loggers.ElectionInfo.from_message(
-            (
-                "Office element is missing an external identifier of"
-                " other-type government-body."
-            ),
-            [element],
-        )
-      else:
-        if office_role in self._EXEMPT_OFFICES and (
-            governmental_body or government_body
-        ):
-          raise loggers.ElectionError.from_message(
-              (
-                  "Office element has an external identifier of other-type"
-                  " government-body and is expected not to."
-              ),
-              [element],
-          )
+
+class ExecutiveOfficeShouldNotHaveGovernmentBody(base.BaseRule):
+  """Ensure executive Office elements do not have a government body defined."""
+
+  def elements(self):
+    return ["Office"]
+
+  def check(self, element):
+    office_roles = get_entity_info_for_value_type(element, "office-role")
+    government_body = _get_government_body(element)
+    if _is_executive_office(office_roles) and government_body:
+      raise loggers.ElectionWarning.from_message(
+          f"Executive Office element (roles: {','.join(office_roles)}) has an "
+          "ExternalIdentifier of OtherType government(al)-body. Executive "
+          "offices should not have government bodies.",
+          [element],
+      )
 
 
 class MissingOfficeSelectionMethod(base.BaseRule):
@@ -3136,6 +3144,8 @@ COMMON_RULES = (
     MissingFieldsInfo,
     MissingOfficeSelectionMethod,
     UniqueStableID,
+    NonExecutiveOfficeShouldHaveGovernmentBody,
+    ExecutiveOfficeShouldNotHaveGovernmentBody,
 )
 
 ELECTION_RULES = COMMON_RULES + (
@@ -3186,7 +3196,6 @@ OFFICEHOLDER_RULES = COMMON_RULES + (
     OfficeTermDates,
     UniqueStartDatesForOfficeRoleAndJurisdiction,
     RemovePersonAndOfficeHolderId60DaysAfterEndDate,
-    OfficeMissingGovernmentBody,
 )
 
 ALL_RULES = frozenset(COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES)

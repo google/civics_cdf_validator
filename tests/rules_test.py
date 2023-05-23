@@ -8385,17 +8385,19 @@ class PartySpanMultipleCountriesTest(absltest.TestCase):
     self.assertIn("ru0003", ee.exception.log_entry[0].message)
 
 
-class OfficeMissingGovernmentBodyTest(absltest.TestCase):
+class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
 
   def setUp(self):
-    super(OfficeMissingGovernmentBodyTest, self).setUp()
-    self.gov_validator = rules.OfficeMissingGovernmentBody(None, None)
+    super(NonExecutiveOfficeShouldHaveGovernmentBodyTest, self).setUp()
+    self.gov_validator = rules.NonExecutiveOfficeShouldHaveGovernmentBody(
+        None,
+        None,
+    )
 
   def testChecksOfficeElements(self):
     self.assertEqual(["Office"], self.gov_validator.elements())
 
-  # non-exempt role doesn't have a government(al) body: should raise error
-  def testOfficeNonExemptWithoutGovernmentBody(self):
+  def testNonExecOfficeWithoutGovernmentBodyRaisesError(self):
     office_string = """
       <Office>
         <ExternalIdentifiers>
@@ -8411,15 +8413,12 @@ class OfficeMissingGovernmentBodyTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionInfo) as ei:
       self.gov_validator.check(etree.fromstring(office_string))
     self.assertEqual(
-        (
-            "Office element is missing an external identifier of "
-            "other-type government-body."
-        ),
+        "Non-executive Office element is missing an ExternalIdentifier of "
+        "OtherType government(al)-body.",
         str(ei.exception.log_entry[0].message),
     )
 
-  # non-exempt role that has a government(al) body: should NOT raise error
-  def testOfficeNonExemptWithGovernmentBody(self):
+  def testNonExecOfficeWithGovernmentBodyIsValid(self):
     office_string = """
       <Office>
         <ExternalIdentifiers>
@@ -8439,17 +8438,26 @@ class OfficeMissingGovernmentBodyTest(absltest.TestCase):
 
     self.gov_validator.check(etree.fromstring(office_string))
 
-  # exempt role that has a government(al) body: should raise error
-  def testOfficeExemptWithGovernmentBody(self):
-    for office in self.gov_validator._EXEMPT_OFFICES:
-      with self.subTest(office=office):
+
+class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ExecutiveOfficeShouldNotHaveGovernmentBodyTest, self).setUp()
+    self.gov_validator = rules.ExecutiveOfficeShouldNotHaveGovernmentBody(
+        None,
+        None,
+    )
+
+  def testExecOfficeWithGovernmentBodyRaisesError(self):
+    for office_role in rules._EXECUTIVE_OFFICE_ROLES:
+      with self.subTest(office_role=office_role):
         office_string = f"""
           <Office>
             <ExternalIdentifiers>
               <ExternalIdentifier>
                 <Type>other</Type>
                 <OtherType>office-role</OtherType>
-                <Value>{office}</Value>
+                <Value>{office_role}</Value>
               </ExternalIdentifier>
               <ExternalIdentifier>
                 <Type>other</Type>
@@ -8460,18 +8468,16 @@ class OfficeMissingGovernmentBodyTest(absltest.TestCase):
           </Office>
         """
 
-        with self.assertRaises(loggers.ElectionError) as ei:
+        with self.assertRaises(loggers.ElectionWarning) as ew:
           self.gov_validator.check(etree.fromstring(office_string))
         self.assertEqual(
-            (
-                "Office element has an external identifier of other-type "
-                "government-body and is expected not to."
-            ),
-            str(ei.exception.log_entry[0].message),
+            f"Executive Office element (roles: {office_role}) has an "
+            "ExternalIdentifier of OtherType government(al)-body. Executive "
+            "offices should not have government bodies.",
+            str(ew.exception.log_entry[0].message),
         )
 
-  # exempt role that does not have a government(al) body: should not raise error
-  def testOfficeExemptWithoutGovernmentBody(self):
+  def testExecOfficeWithoutGovernmentBodyIsValid(self):
     office_string = """
       <Office>
         <ExternalIdentifiers>
