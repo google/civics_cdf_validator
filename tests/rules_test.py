@@ -9212,15 +9212,88 @@ class ContestEndDateOccursBeforeSubsequentContestStartDateTest(
       </ElectionReport>
     """
 
-    with self.assertRaises(loggers.ElectionWarning) as warning:
+    with self.assertRaises(loggers.ElectionError) as ee:
       self.contest_validator.check(etree.fromstring(election_report_string))
 
-    self.assertLen(warning.exception.log_entry, 1)
+    self.assertLen(ee.exception.log_entry, 1)
     self.assertEqual(
         "Contest con1 with end date 2023-05-20 does not occur before subsequent"
         " contest con2 with start date 2023-05-19",
-        warning.exception.log_entry[0].message,
+        ee.exception.log_entry[0].message,
     )
+
+
+class ContestStartDateContainsCorrespondingEndDateTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ContestStartDateContainsCorrespondingEndDateTest, self).setUp()
+    self.contest_validator = rules.ContestStartDateContainsCorrespondingEndDate(
+        None, None
+    )
+
+  def testContestWithNoDates(self):
+    contest_string = """
+      <Contest objectId="con1" type="CandidateContest">
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>
+      </Contest>
+      """
+
+    self.contest_validator.check(etree.fromstring(contest_string))
+
+    self.assertEmpty(self.contest_validator.error_log)
+
+  def testContestWithOnlyStartDate(self):
+    contest_string = """
+      <Contest objectId="con1" type="CandidateContest">
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>
+        <StartDate>2023-05-26</StartDate>
+      </Contest>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.contest_validator.check(etree.fromstring(contest_string))
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "Contest has a StartDate but is missing an EndDate. Every StartDate"
+        " must have a corresponding EndDate.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testContestWithOnlyEndDate(self):
+    contest_string = """
+      <Contest objectId="con1" type="CandidateContest">
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>
+        <EndDate>2023-05-26</EndDate>
+      </Contest>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.contest_validator.check(etree.fromstring(contest_string))
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "Contest has an EndDate but is missing a StartDate. Every EndDate"
+        " must have a corresponding StartDate.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testContestWithStartAndEndDate(self):
+    contest_string = """
+      <Contest objectId="con1" type="CandidateContest">
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>
+        <StartDate>2023-05-26</StartDate>
+        <EndDate>2023-05-26</EndDate>
+      </Contest>
+      """
+
+    self.contest_validator.check(etree.fromstring(contest_string))
+
+    self.assertEmpty(self.contest_validator.error_log)
 
 
 class RulesTest(absltest.TestCase):

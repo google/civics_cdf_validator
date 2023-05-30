@@ -3092,7 +3092,36 @@ class ContestEndDateOccursBeforeSubsequentContestStartDate(base.DateRule):
           )
 
     if self.error_log:
-      raise loggers.ElectionWarning(self.error_log)
+      raise loggers.ElectionError(self.error_log)
+
+
+class ContestStartDateContainsCorrespondingEndDate(base.DateRule):
+  """Contest start dates must always have corresponding end dates.
+
+  A Contest can either have both StartDate and EndDate populated or neither at
+  all.
+  """
+
+  def elements(self):
+    return ["Contest"]
+
+  def check(self, element):
+    self.reset_instance_vars()
+    self.gather_dates(element)
+
+    if self.start_elem is None and self.end_elem is not None:
+      raise loggers.ElectionError.from_message(
+          "Contest has an EndDate but is missing a StartDate. Every EndDate"
+          " must have a corresponding StartDate.",
+          [element],
+      )
+
+    if self.start_elem is not None and self.end_elem is None:
+      raise loggers.ElectionError.from_message(
+          "Contest has a StartDate but is missing an EndDate. Every StartDate"
+          " must have a corresponding EndDate.",
+          [element],
+      )
 
 
 class RuleSet(enum.Enum):
@@ -3188,6 +3217,7 @@ ELECTION_RULES = COMMON_RULES + (
     ContestContainsValidEndDate,
     ContestEndDateOccursAfterStartDate,
     ContestEndDateOccursBeforeSubsequentContestStartDate,
+    ContestStartDateContainsCorrespondingEndDate,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (
