@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Election objectId="el_1">
+    <ContestCollection>
+      <Contest objectId="cc_1" xsi:type="CandidateContest">
+        <BallotTitle>
+          <Text language="en">2022 Mali National Assembly general election</Text>
+          <Text language="fr">2022 Mali Assemblée Nationale générales élections</Text>
+        </BallotTitle>
+        <ContestDateStatus>postponed</ContestDateStatus>
+        <ElectoralDistrictId>ru_ml_999</ElectoralDistrictId>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>cc_1</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>
+<![CDATA[2022 Mali National Assembly general election]]>
+        </Name>
+        <VoteVariation>1-of-m</VoteVariation>
+        <OfficeIds>off_ml_1</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+      <Contest objectId="cc_2" xsi:type="CandidateContest">
+        <BallotTitle>
+          <Text language="en">2022 Mali Presidential general election</Text>
+          <Text language="fr">2022 Mali Président générales élection</Text>
+        </BallotTitle>
+        <ContestDateStatus>postponed</ContestDateStatus>
+        <ElectoralDistrictId>ru_ml_999</ElectoralDistrictId>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>cc_2</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>
+<![CDATA[2022 Mali Presidential general election]]>
+        </Name>
+        <VoteVariation>1-of-m</VoteVariation>
+        <OfficeIds>off_ml_3</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+    </ContestCollection>
+    <ElectionDateStatus>postponed</ElectionDateStatus>
+    <ElectionDateType>bounded</ElectionDateType>
+    <ElectionScopeId>ru_ml_999</ElectionScopeId>
+    <ExternalIdentifiers>
+      <ExternalIdentifier>
+        <Type>other</Type>
+        <OtherType>stable</OtherType>
+        <Value>el_1</Value>
+      </ExternalIdentifier>
+    </ExternalIdentifiers>
+    <Name>
+      <Text language="en">
+<![CDATA[2022 Mali general election]]>
+      </Text>
+      <Text language="fr">
+<![CDATA[2022 Mali générales élection]]>
+      </Text>
+    </Name>
+    <StartDate>2022-02-27</StartDate>
+    <EndDate>2022-02-27</EndDate>
+    <Type>general</Type>
+  </Election>
+  <Format>summary-contest</Format>
+  <GeneratedDate>2022-04-11T15:42:48+01:00</GeneratedDate>
+  <GpUnitCollection>
+    <GpUnit objectId="ru_ml_999" xsi:type="ReportingUnit">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>ru_ml_999</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:ml</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>national-level</Type>
+          <Value>999</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>iso-code</OtherType>
+          <Value>ML</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <InternationalizedName>
+        <Text language="fr">
+<![CDATA[République du Mali]]>
+        </Text>
+        <Text language="en">
+<![CDATA[Republic of Mali]]>
+        </Text>
+      </InternationalizedName>
+      <Number>999</Number>
+      <Type>country</Type>
+    </GpUnit>
+  </GpUnitCollection>
+  <Issuer>Data Partner</Issuer>
+  <IssuerAbbreviation>DP</IssuerAbbreviation>
+  <OfficeCollection>
+    <Office objectId="off_ml_1">
+      <ElectoralDistrictId>ru_ml_999</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>off_ml_1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru_ml_999</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>governmental-body</OtherType>
+          <Value>National Assembly of the Republic of Mali</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Country</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>lower house</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>
+        <Text language="en">
+<![CDATA[Deputy of the National Assembly of Mali]]>
+        </Text>
+        <Text language="fr">
+<![CDATA[Député de l'Assemblée nationale du Mali]]>
+        </Text>
+      </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
+    </Office>
+    <Office objectId="off_ml_3">
+      <ElectoralDistrictId>ru_ml_999</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>off_ml_3</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru_ml_999</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>governmental-body</OtherType>
+          <Value>President of the Republic of Mali</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Country</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>president</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>
+        <Text language="en">
+<![CDATA[President of Mali]]>
+        </Text>
+        <Text language="fr">
+<![CDATA[Président de la République du Mali]]>
+        </Text>
+      </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
+    </Office>
+  </OfficeCollection>
+  <SequenceStart>1</SequenceStart>
+  <SequenceEnd>1</SequenceEnd>
+  <Status>pre-election</Status>
+  <VendorApplicationId>Hand-Generated v0<</VendorApplicationId>
+</ElectionReport>
