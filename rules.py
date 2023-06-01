@@ -2180,6 +2180,73 @@ class ElectionEndDatesOccurAfterStartDates(base.DateRule):
         raise loggers.ElectionError(self.error_log)
 
 
+class ElectionDatesSpanContestDates(base.DateRule):
+  """Election start/end dates should span the Contest start/end dates.
+
+  The start date of the Election should be on or before the start date of every
+  included Contest. The end date of the Election should be on or after the end
+  date of every included Contest. Only Contests that have the dates populated
+  will be considered.
+  """
+
+  def elements(self):
+    return ["ElectionReport"]
+
+  def _validate_contest_dates_within_election(self, election, contest):
+    self.reset_instance_vars()
+    self.gather_dates(election)
+    election_start_date = self.start_date
+    election_end_date = self.end_date
+    election_id = election.get("objectId")
+    self.reset_instance_vars()
+    self.gather_dates(contest)
+    contest_id = contest.get("objectId")
+    if (
+        election_end_date is not None
+        and self.end_date is not None
+        and election_end_date.is_older_than(self.end_date) > 0
+    ):
+      self.error_log.append(
+          loggers.LogEntry(
+              "Contest {} with end date {} occurs after Election {} with"
+              " end date {}. Election end date should be on or after any"
+              " Contest end date.".format(
+                  contest_id,
+                  self.end_date,
+                  election_id,
+                  election_end_date,
+              )
+          )
+      )
+    if (
+        election_start_date is not None
+        and self.start_date is not None
+        and self.start_date.is_older_than(election_start_date) > 0
+    ):
+      self.error_log.append(
+          loggers.LogEntry(
+              "Contest {} with start date {} occurs before Election {} with"
+              " start date {}. Election start date should be on or before"
+              " any Contest start date.".format(
+                  contest_id,
+                  self.start_date,
+                  election_id,
+                  election_start_date,
+              )
+          )
+      )
+
+  def check(self, election_report_element):
+    for election in self.get_elements_by_class(
+        election_report_element, "Election"
+    ):
+      for contest in self.get_elements_by_class(election, "Contest"):
+        self._validate_contest_dates_within_election(election, contest)
+
+    if self.error_log:
+      raise loggers.ElectionError(self.error_log)
+
+
 class ElectionTypesAreCompatible(base.BaseRule):
   """Election element Type values cannot be both a general and primary type."""
 
@@ -3194,6 +3261,7 @@ ELECTION_RULES = COMMON_RULES + (
     ElectionStartDates,
     ElectionEndDatesInThePast,
     ElectionEndDatesOccurAfterStartDates,
+    ElectionDatesSpanContestDates,
     ElectionTypesAreCompatible,
     DateStatusMatches,
     ContestHasMultipleOffices,
