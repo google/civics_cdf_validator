@@ -2116,6 +2116,38 @@ class ContestHasValidContestStage(base.BaseRule):
                 contest_stage_value), [element])
 
 
+class ElectionContainsStartAndEndDates(base.DateRule):
+  """Election elements should have start and end dates populated."""
+
+  def elements(self):
+    return ["Election"]
+
+  def check(self, element):
+    self.reset_instance_vars()
+    self.gather_dates(element)
+
+    if self.start_elem is None:
+      self.error_log.append(
+          loggers.LogEntry(
+              "Election {} is missing a start date.".format(
+                  element.get("objectId")
+              )
+          )
+      )
+
+    if self.end_elem is None:
+      self.error_log.append(
+          loggers.LogEntry(
+              "Election {} is missing an end date.".format(
+                  element.get("objectId")
+              )
+          )
+      )
+
+    if self.error_log:
+      raise loggers.ElectionError(self.error_log)
+
+
 class ElectionStartDates(base.DateRule):
   """Election elements should contain valid start dates.
 
@@ -3258,6 +3290,7 @@ ELECTION_RULES = COMMON_RULES + (
     SelfDeclaredCandidateMethod,
     PartiesHaveValidColors,
     ValidateDuplicateColors,
+    ElectionContainsStartAndEndDates,
     ElectionStartDates,
     ElectionEndDatesInThePast,
     ElectionEndDatesOccurAfterStartDates,

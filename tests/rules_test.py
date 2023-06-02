@@ -6418,6 +6418,78 @@ class GpUnitsCyclesRefsValidationTest(absltest.TestCase):
     self.gpunits_tree_validator.check()
 
 
+class ElectionContainsStartAndEndDatesTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ElectionContainsStartAndEndDatesTest, self).setUp()
+    self.date_validator = rules.ElectionContainsStartAndEndDates(None, None)
+
+  def testElectionWithMissingStartDate(self):
+    election_string = """
+      <Election objectId="election-1">
+        <EndDate>2023-05-30</EndDate>
+        <ContestCollection>
+          <Contest objectId="contest-1" type="CandidateContest">
+            <OfficeIds>office-1</OfficeIds>
+            <StartDate>2023-05-20</StartDate>
+            <EndDate>2023-05-30</EndDate>
+          </Contest>
+        </ContestCollection>
+      </Election>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.date_validator.check(etree.fromstring(election_string))
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "Election election-1 is missing a start date.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testElectionWithMissingEndDate(self):
+    election_string = """
+      <Election objectId="election-1">
+        <StartDate>2023-05-20</StartDate>
+        <ContestCollection>
+          <Contest objectId="contest-1" type="CandidateContest">
+            <OfficeIds>office-1</OfficeIds>
+            <StartDate>2023-05-20</StartDate>
+            <EndDate>2023-05-30</EndDate>
+          </Contest>
+        </ContestCollection>
+      </Election>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.date_validator.check(etree.fromstring(election_string))
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "Election election-1 is missing an end date.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testElectionWithStartAndEndDates(self):
+    election_string = """
+      <Election objectId="election-1">
+        <StartDate>2023-05-20</StartDate>
+        <EndDate>2023-05-30</EndDate>
+        <ContestCollection>
+          <Contest objectId="contest-1" type="CandidateContest">
+            <OfficeIds>office-1</OfficeIds>
+            <StartDate>2023-05-30</StartDate>
+            <EndDate>2023-05-30</EndDate>
+          </Contest>
+        </ContestCollection>
+      </Election>
+    """
+
+    self.date_validator.check(etree.fromstring(election_string))
+
+    self.assertEmpty(self.date_validator.error_log)
+
+
 class ElectionStartDatesTest(absltest.TestCase):
 
   def setUp(self):
