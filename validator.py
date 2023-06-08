@@ -35,6 +35,10 @@ from civics_cdf_validator import rules
 from civics_cdf_validator import version
 import pycountry
 
+_REGISTRY_KEY = "registry"
+_METADATA_KEY = "metadata"
+_FILE_NAME_KEY = "file_name"
+
 
 def _validate_path(parser, arg):
   """Check that the files provided exist."""
@@ -296,25 +300,45 @@ def feed_validation(options):
   rule_classes_to_check = filter_all_rules_using_user_arg(
       options.include, options.rule_set, options.exclude)
 
-  errors = 0
+  validation_results = []
   for election_file in options.election_files:
-    print("\n--------- Results after validating file: {0} ".format(
-        election_file.name))
-
-    for metadatum in get_metadata(election_file):
-      print(metadatum)
+    validation_context = dict()
+    metadata = get_metadata(election_file)
     registry = base.RulesRegistry(
         election_file=election_file,
         schema_file=options.xsd,
         rule_classes_to_check=rule_classes_to_check,
         rule_options=rule_options)
     registry.check_rules()
-    registry.print_exceptions(options.severity, options.verbose)
+    validation_context[_REGISTRY_KEY] = registry
+    validation_context[_METADATA_KEY] = metadata
+    validation_context[_FILE_NAME_KEY] = election_file.name
+    validation_results.append(validation_context)
+  return validation_results
+
+
+def _print_exceptions_from_validations(options, results_validations):
+  """Print errors to stdout."""
+  max_error_severity = 0
+  for result_validation in results_validations:
+    election_filename = result_validation[_FILE_NAME_KEY]
+    metadata = result_validation[_METADATA_KEY]
+    rule_registry = result_validation[_REGISTRY_KEY]
+    print(
+        "\n--------- Results after validating file: {} ".format(
+            election_filename
+        )
+    )
+    for metadatum in metadata:
+      print(metadatum)
+    rule_registry.print_exceptions(options.severity, options.verbose)
     if options.verbose:
-      registry.count_stats()
-    errors = max(errors,
-                 compute_max_found_severity(registry.exceptions_wrapper))
-  return errors
+      rule_registry.count_stats()
+    max_error_severity = max(
+        max_error_severity,
+        compute_max_found_severity(rule_registry.exceptions_wrapper),
+    )
+  return max_error_severity
 
 
 def main():
@@ -330,7 +354,10 @@ def main():
     options.xsd = open(options.xsd, "r")
     if options.ocdid_file:
       options.ocdid_file = open(options.ocdid_file, encoding="utf-8")
-    return_value = feed_validation(options)
+    validation_results = feed_validation(options)
+    return_value = _print_exceptions_from_validations(
+        options, validation_results
+    )
     for file in options.election_files:
       file.close()
     options.xsd.close()
