@@ -2292,8 +2292,8 @@ class ElectionTypesAreCompatible(base.BaseRule):
         election_types[i] = election_types[i].text
       if "general" in election_types and (
           "primary" in election_types
-          or "primary-partisan-open" in election_types
-          or "primary-partisan-closed" in election_types
+          or "partisan-primary-open" in election_types
+          or "partisan-primary-closed" in election_types
       ):
         raise loggers.ElectionError.from_message(
             "Election element has incompatible election-type values.", [element]

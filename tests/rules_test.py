@@ -6850,10 +6850,42 @@ class ElectionDatesSpanContestDatesTest(absltest.TestCase):
 
 class ElectionTypesTest(absltest.TestCase):
 
-  def testRaisesErrorIfElectionTypesIncompatible(self):
+  def testRaisesErrorIfElectionTypesIncompatiblePrimary(self):
     election_string = """
       <Election>
         <Type>primary</Type>
+        <Type>general</Type>
+      </Election>
+      """
+    with self.assertRaises(loggers.ElectionError) as ee:
+      rules.ElectionTypesAreCompatible(None, None).check(
+          etree.fromstring(election_string)
+      )
+    self.assertIn(
+        "Election element has incompatible election-type values.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testRaisesErrorIfElectionTypesIncompatiblePartisanPrimaryOpen(self):
+    election_string = """
+      <Election>
+        <Type>partisan-primary-open</Type>
+        <Type>general</Type>
+      </Election>
+      """
+    with self.assertRaises(loggers.ElectionError) as ee:
+      rules.ElectionTypesAreCompatible(None, None).check(
+          etree.fromstring(election_string)
+      )
+    self.assertIn(
+        "Election element has incompatible election-type values.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testRaisesErrorIfElectionTypesIncompatiblePartisanPrimaryClosed(self):
+    election_string = """
+      <Election>
+        <Type>partisan-primary-closed</Type>
         <Type>general</Type>
       </Election>
       """
