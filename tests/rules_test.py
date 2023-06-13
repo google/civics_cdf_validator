@@ -1512,6 +1512,20 @@ class OtherTypeTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError):
       self.other_type_validator.check(complex_element)
 
+  def testItRaisesErrorIfOtherTypeSetButTypeNotSetToOther(self):
+    complex_element_string = """
+      <Device>
+        <Manufacturer>Google</Manufacturer>
+        <Model>Pixel</Model>
+        <Type>phone</Type>
+        <OtherType>Best phone ever</OtherType>
+      </Device>
+    """
+
+    complex_element = etree.fromstring(complex_element_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.other_type_validator.check(complex_element)
+
 
 class PartisanPrimaryTest(absltest.TestCase):
 
@@ -2654,6 +2668,65 @@ class ProperBallotSelectionTest(absltest.TestCase):
       self.ballot_selection_validator.check(element.find("Contest"))
 
 
+class CorrectCandidateSelectionCountTest(absltest.TestCase):
+
+  def setUp(self):
+    super(CorrectCandidateSelectionCountTest, self).setUp()
+    self.candidate_selection_validator = rules.CorrectCandidateSelectionCount(
+        None, None
+    )
+
+  def testCandidateSelectionWithMissingCandidateIds(self):
+    contest_string = """
+      <Contest objectId="con-1" type="CandidateContest">
+        <BallotSelection objectId="bs-1" type="CandidateSelection"/>
+      </Contest>
+    """
+    element = etree.fromstring(contest_string)
+
+    with self.assertRaises(loggers.ElectionWarning):
+      self.candidate_selection_validator.check(element.find("BallotSelection"))
+
+  def testCandidateSelectionWithMultipleCandidateIds(self):
+    contest_string = """
+      <Contest objectId="con-1" type="CandidateContest">
+        <BallotSelection objectId="bs-1" type="CandidateSelection">
+          <CandidateIds>cand-1</CandidateIds>
+          <CandidateIds>cand-2</CandidateIds>
+        </BallotSelection>
+      </Contest>
+    """
+    element = etree.fromstring(contest_string)
+
+    with self.assertRaises(loggers.ElectionWarning):
+      self.candidate_selection_validator.check(element.find("BallotSelection"))
+
+  def testCandidateSelectionWithSingleCandidateIdsAndMultipleCandidates(self):
+    contest_string = """
+      <Contest objectId="con-1" type="CandidateContest">
+        <BallotSelection objectId="bs-1" type="CandidateSelection">
+          <CandidateIds>cand-1 cand-2 cand-3</CandidateIds>
+        </BallotSelection>
+      </Contest>
+    """
+    element = etree.fromstring(contest_string)
+
+    with self.assertRaises(loggers.ElectionWarning):
+      self.candidate_selection_validator.check(element.find("BallotSelection"))
+
+  def testCandidateSelectionWithCorrectCandidateIds(self):
+    contest_string = """
+      <Contest objectId="con-1" type="CandidateContest">
+        <BallotSelection objectId="bs-1" type="CandidateSelection">
+          <CandidateIds>cand-1</CandidateIds>
+        </BallotSelection>
+      </Contest>
+    """
+    element = etree.fromstring(contest_string)
+
+    self.candidate_selection_validator.check(element.find("BallotSelection"))
+
+
 class SingularPartySelectionTest(absltest.TestCase):
 
   def setUp(self):
@@ -2840,6 +2913,125 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
         self._color_str.format("008000"))
     element = etree.fromstring(root_string)
     self.color_validator.check(element)
+
+
+class MultipleCandidatesPointToTheSamePersonInTheSameContestTest(
+    absltest.TestCase):
+
+  base_string_multiple_contest = """
+    <Election xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <CandidateCollection>
+            <Candidate objectId="can1">
+              <PersonId>{personid1}</PersonId>
+            </Candidate>
+            <Candidate objectId="can2">
+              <PersonId>{personid2}</PersonId>
+            </Candidate>
+            <Candidate objectId="can3">
+              <PersonId>{personid3}</PersonId>
+            </Candidate>
+            <Candidate objectId="can4">
+              <PersonId>{personid4}</PersonId>
+            </Candidate>
+          </CandidateCollection>
+          <ContestCollection>
+            <Contest xsi:type="CandidateContest" objectId="contest1">
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs1">
+                <CandidateIds>can1</CandidateIds>
+              </BallotSelection>
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs2">
+                <CandidateIds>can2</CandidateIds>
+              </BallotSelection>
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs3">
+                <CandidateIds>can3</CandidateIds>
+              </BallotSelection>
+            </Contest>
+            <Contest xsi:type="CandidateContest" objectId="contest2">
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs2b">
+                <CandidateIds>can2</CandidateIds>
+              </BallotSelection>
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs3b">
+                <CandidateIds>can3</CandidateIds>
+              </BallotSelection>
+              <BallotSelection xsi:type="CandidateSelection" objectId="cs4b">
+                <CandidateIds>can4</CandidateIds>
+              </BallotSelection>
+            </Contest>
+          </ContestCollection>
+        </Election>
+    """
+
+  def testValidMultipleCandidatesNotPointToTheSamePersonInSameContest(self):
+    test_string = self.base_string_multiple_contest.format(
+        personid1="per1", personid2="per2", personid3="per3", personid4="per4"
+    )
+    election_tree = etree.fromstring(test_string)
+    multiple_candidate_validator = (
+        rules.MultipleCandidatesPointToTheSamePersonInTheSameContest(
+            election_tree, None
+        )
+    )
+    multiple_candidate_validator.check()
+
+  def testInvalidMultipleCandidatesPointToTheSamePersonInSameContest(self):
+    test_string = self.base_string_multiple_contest.format(
+        personid1="per1", personid2="per2", personid3="per3", personid4="per3"
+    )
+    election_tree = etree.fromstring(test_string)
+    multiple_candidate_validator = (
+        rules.MultipleCandidatesPointToTheSamePersonInTheSameContest(
+            election_tree, None
+        )
+    )
+    with self.assertRaises(loggers.ElectionError) as ee:
+      multiple_candidate_validator.check()
+    self.assertIn(
+        (
+            "Multiple candidates in Contest contest2 reference the same Person"
+            " per3. Candidates: ['can3', 'can4']"
+        ),
+        ee.exception.log_entry[0].message,
+    )
+
+  def testValidMultipleCandidatesDifferentPersonInDifferentContest(self):
+    test_string = self.base_string_multiple_contest.format(
+        personid1="per1", personid2="per2", personid3="per3", personid4="per1"
+    )
+    election_tree = etree.fromstring(test_string)
+    multiple_candidate_validator = (
+        rules.MultipleCandidatesPointToTheSamePersonInTheSameContest(
+            election_tree, None
+        )
+    )
+    multiple_candidate_validator.check()
+
+  def testInvalidMultipleCandidatesPointToTheSamePersonInSameContestWithTwoContests(
+      self):
+    test_string = self.base_string_multiple_contest.format(
+        personid1="per1", personid2="per2", personid3="per1", personid4="per1"
+    )
+    election_tree = etree.fromstring(test_string)
+    multiple_candidate_validator = (
+        rules.MultipleCandidatesPointToTheSamePersonInTheSameContest(
+            election_tree, None
+        )
+    )
+    with self.assertRaises(loggers.ElectionError) as ee:
+      multiple_candidate_validator.check()
+    self.assertIn(
+        (
+            "Multiple candidates in Contest contest1 reference the same Person"
+            " per1. Candidates: ['can1', 'can3']"
+        ),
+        ee.exception.log_entry[0].message,
+    )
+    self.assertIn(
+        (
+            "Multiple candidates in Contest contest2 reference the same Person"
+            " per1. Candidates: ['can3', 'can4']"
+        ),
+        ee.exception.log_entry[1].message,
+    )
 
 
 class SelfDeclaredCandidateMethodTest(absltest.TestCase):
@@ -6375,6 +6567,36 @@ class ElectionEndDatesOccurAfterStartDatesTest(absltest.TestCase):
     self.date_validator.check(etree.fromstring(election_string))
 
 
+class ElectionTypesTest(absltest.TestCase):
+
+  def testRaisesErrorIfElectionTypesIncompatible(self):
+    election_string = """
+      <Election>
+        <Type>primary</Type>
+        <Type>general</Type>
+      </Election>
+      """
+    with self.assertRaises(loggers.ElectionError) as ee:
+      rules.ElectionTypesAreCompatible(None, None).check(
+          etree.fromstring(election_string)
+      )
+    self.assertIn(
+        "Election element has incompatible election-type values.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testAllowsIfElectionTypesCompatible(self):
+    election_string = """
+      <Election>
+        <Type>general</Type>
+        <Type>runoff</Type>
+      </Election>
+      """
+    rules.ElectionTypesAreCompatible(None, None).check(
+        etree.fromstring(election_string)
+    )
+
+
 class DateStatusTest(absltest.TestCase):
 
   def setUp(self):
@@ -8172,19 +8394,6 @@ class OfficeMissingGovernmentBodyTest(absltest.TestCase):
   def testChecksOfficeElements(self):
     self.assertEqual(["Office"], self.gov_validator.elements())
 
-  # test exempt office list to ensure a double check if/when list is changed
-  def testExemptOfficesList(self):
-    expected_exempt_offices = [
-        "head of state",
-        "head of government",
-        "president",
-        "vice president",
-        "state executive",
-        "deputy state executive",
-    ]
-    self.assertEqual(expected_exempt_offices,
-                     self.gov_validator._EXEMPT_OFFICES)
-
   # non-exempt role doesn't have a government(al) body: should raise error
   def testOfficeNonExemptWithoutGovernmentBody(self):
     office_string = """
@@ -8232,32 +8441,34 @@ class OfficeMissingGovernmentBodyTest(absltest.TestCase):
 
   # exempt role that has a government(al) body: should raise error
   def testOfficeExemptWithGovernmentBody(self):
-    office_string = """
-      <Office>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>office-role</OtherType>
-            <Value>head of state</Value>
-          </ExternalIdentifier>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>government-body</OtherType>
-            <Value>United States Senate</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-      </Office>
-    """
+    for office in self.gov_validator._EXEMPT_OFFICES:
+      with self.subTest(office=office):
+        office_string = f"""
+          <Office>
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value>{office}</Value>
+              </ExternalIdentifier>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>government-body</OtherType>
+                <Value>United States Senate</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Office>
+        """
 
-    with self.assertRaises(loggers.ElectionError) as ei:
-      self.gov_validator.check(etree.fromstring(office_string))
-    self.assertEqual(
-        (
-            "Office element has an external identifier of other-type "
-            "government-body and is expected not to."
-        ),
-        str(ei.exception.log_entry[0].message),
-    )
+        with self.assertRaises(loggers.ElectionError) as ei:
+          self.gov_validator.check(etree.fromstring(office_string))
+        self.assertEqual(
+            (
+                "Office element has an external identifier of other-type "
+                "government-body and is expected not to."
+            ),
+            str(ei.exception.log_entry[0].message),
+        )
 
   # exempt role that does not have a government(al) body: should not raise error
   def testOfficeExemptWithoutGovernmentBody(self):

@@ -43,7 +43,7 @@ class SamplesTest(absltest.TestCase):
         'post_election_sample_feed_precincts.xml',
         self.election_rules,
         expected_errors=19,
-        expected_warnings=13,
+        expected_warnings=14,
     )
 
   def testPostRetentionContestSampleFeedSummary(self):
@@ -69,13 +69,14 @@ class SamplesTest(absltest.TestCase):
     self._TestFile(
         'post_election_sample_feed_summary.xml',
         self.election_rules,
-        expected_warnings=13,
+        expected_warnings=14,
     )
 
   def testPreElectionSampleFeed(self):
     self._TestFile(
         'pre_election_sample_feed.xml',
-        self.election_rules)
+        self.election_rules,
+        expected_warnings=1)
 
   def testBallotMeasureContestSampleFeed(self):
     self._TestFile('ballot_measure_contest_sample_feed.xml',

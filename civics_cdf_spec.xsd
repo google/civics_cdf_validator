@@ -365,6 +365,7 @@
             <xs:element minOccurs="0" name="ComposingContestIds" type="xs:IDREFS" />
             <xs:element maxOccurs="1" minOccurs="0" name="ContestDateStatus" type="DateStatus"/>
             <xs:element maxOccurs="unbounded" minOccurs="0" name="CountStatus" type="CountStatus" />
+            <xs:element maxOccurs="1" minOccurs="0" name="CountingDate" type="PartialDate"/>
             <xs:element name="ElectoralDistrictId" type="xs:IDREF" />
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
             <xs:element minOccurs="0" name="HasRotation" type="xs:boolean" />
@@ -435,7 +436,7 @@
             <xs:element name="Name" type="InternationalizedText" />
             <xs:element name="StartDate" type="PartialDate" />
             <xs:element name="EndDate" type="PartialDate" />
-            <xs:element name="Type" type="ElectionType" />
+            <xs:element maxOccurs="unbounded" name="Type" type="ElectionType" />
             <xs:element minOccurs="0" name="OtherType" type="xs:string" />
         </xs:sequence>
         <xs:attribute name="objectId" type="xs:ID" />

@@ -440,12 +440,92 @@
     <EndDate>2025-11-03</EndDate>
     <Type>general</Type>
   </Election>
+  <Election>
+    <CandidateCollection>
+      <Candidate objectId="candidate51">
+        <BallotName>
+          <Text language="en">Georgia Senate Candidate1</Text>
+        </BallotName>
+        <ContactInformation language="en">
+          <AddressLine>655 New York Ave, NW</AddressLine>
+          <AddressLine>Washington, DC 20005</AddressLine>
+          <Email>person@congress.gov</Email>
+          <Fax>888-7777</Fax>
+          <Name>Congressional Office</Name>
+          <Phone>999-8888</Phone>
+        </ContactInformation>
+        <ContactInformation language="es">
+          <AddressLine>655 Nueva York Ave, NW</AddressLine>
+          <AddressLine>Washington, DC 20005</AddressLine>
+          <Name>Oficina del Congreso</Name>
+        </ContactInformation>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>candidate51</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>party1</PartyId>
+        <PersonId>person11</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
+      </Candidate>
+      <Candidate objectId="candidate52">
+        <BallotName>
+          <Text language="en">Georgia Senate Candidate2</Text>
+        </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>candidate52</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>party1</PartyId>
+        <PersonId>person12</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
+      </Candidate>
+  </CandidateCollection>
+    <ContestCollection>
+      <Contest objectId="cc500" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs21_500" xsi:type="CandidateSelection">
+          <CandidateIds>candidate51</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs22_500" xsi:type="CandidateSelection">
+          <CandidateIds>candidate52</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Georgia Runoff Elections</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru-georgia</ElectoralDistrictId>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>contest500</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>United States General Elections Georgia Runoff</Name>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>office3</OfficeIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+    </ContestCollection>
+    <ElectionScopeId>ru-united-states</ElectionScopeId>
+    <Name>
+      <Text language="en">2022 Georgia Senate Runoff</Text>
+    </Name>
+    <StartDate>2022-12-06</StartDate>
+    <EndDate>2022-12-06</EndDate>
+    <Type>general</Type>
+    <Type>runoff</Type>
+  </Election>
   <Format>summary-contest</Format>
   <GeneratedDate>2020-05-18T14:25:28</GeneratedDate>
   <GpUnitCollection>
     <GpUnit objectId="ru-united-states" xsi:type="ReportingUnit">
       <ComposingGpUnitIds>
-        ru-california ru-florida ru-virginia
+        ru-california ru-florida ru-virginia ru-georgia
       </ComposingGpUnitIds>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -511,6 +591,23 @@
       </ExternalIdentifiers>
       <InternationalizedName>
         <Text language="en">Virigina</Text>
+      </InternationalizedName>
+      <Type>state</Type>
+    </GpUnit>
+    <GpUnit objectId="ru-georgia" xsi:type="ReportingUnit">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>ru-georgia</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:ga</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <InternationalizedName>
+        <Text language="en">Georgia</Text>
       </InternationalizedName>
       <Type>state</Type>
     </GpUnit>
@@ -593,6 +690,39 @@
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">Governor of Florida</Text>
+      </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+    <Office objectId="office3">
+      <ElectoralDistrictId>ru-georgia</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>office3</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>upper house</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Country</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru-georgia</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2013-01-01</FilingDeadline>
+      <Name>
+        <Text language="en">United States Senator</Text>
       </Name>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>

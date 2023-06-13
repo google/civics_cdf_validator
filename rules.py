@@ -673,11 +673,20 @@ class OtherType(base.BaseRule):
 
   def check(self, element):
     type_element = element.find("Type")
+    other_type_element = element.find("OtherType")
     if type_element is not None and type_element.text == "other":
-      other_type_element = element.find("OtherType")
       if other_type_element is None:
-        msg = ("Type on this element is set to 'other' but OtherType element "
-               "is not defined")
+        msg = (
+            "Type on this element is set to 'other' but OtherType element "
+            "is not defined"
+        )
+        raise loggers.ElectionError.from_message(msg, [element])
+    if type_element is not None and type_element.text != "other":
+      if other_type_element is not None:
+        msg = (
+            "Type on this element is not set to 'other' but OtherType "
+            "element is defined"
+        )
         raise loggers.ElectionError.from_message(msg, [element])
 
 
@@ -976,6 +985,37 @@ class ProperBallotSelection(base.BaseRule):
                "must have a %s but contains a %s, %s" %
                (tag, self.con_sel_mapping[tag], selection_tag, selection_id))
         raise loggers.ElectionError.from_message(msg, [element])
+
+
+class CorrectCandidateSelectionCount(base.BaseRule):
+  """CandidateSelections should only reference one candidate.
+
+  This rule will throw a warning if a CandidateSelection references multiple
+  candidates. We currently do not support tickets (i.e. CandidateSelections with
+  multiple candidates).
+  """
+
+  def elements(self):
+    return ["CandidateSelection"]
+
+  def check(self, element):
+    selection_id = element.get("objectId")
+    candidate_ids = element.findall("CandidateIds")
+    if len(candidate_ids) != 1:
+      msg = (
+          "The CandidateSelection {} is expected to have one CandidateIds "
+          "but {} were found.".format(selection_id, len(candidate_ids))
+      )
+      raise loggers.ElectionWarning.from_message(msg, [element])
+    candidates = candidate_ids[0].text.split()
+    if len(candidates) != 1:
+      msg = (
+          "CandidateIds for CandidateSelection {} is expected to reference "
+          "one candidate but {} candidates were found".format(
+              selection_id, len(candidates)
+          )
+      )
+      raise loggers.ElectionWarning.from_message(msg, [element])
 
 
 class SingularPartySelection(base.BaseRule):
@@ -1510,6 +1550,64 @@ class ValidEnumerations(base.BaseRule):
         raise loggers.ElectionError.from_message(
             ("Type is set to 'other' even though '%s' is a valid "
              "enumeration"% other_type_element.text), [element])
+
+
+class MultipleCandidatesPointToTheSamePersonInTheSameContest(base.TreeRule):
+  """Raise an error when multiple candidates point to the same person in the same contest."""
+
+  def check(self):
+    # Keep track of rule violations
+    error_log = []
+    rule_violations = []
+    # Get all Candidate objects in the feed
+    candidates = self.get_elements_by_class(self.election_tree, "Candidate")
+    # Store link between candidate_id and person_id for each Candidate object
+    person_id_by_candidate_id = {
+        candidate.get("objectId"): candidate.find("PersonId").text
+        for candidate in candidates
+    }
+    # Get all Contest objects in the feed
+    contests = self.get_elements_by_class(self.election_tree, "Contest")
+    for contest in contests:
+      rule_violations.extend(
+          self._check_for_bad_candidates(person_id_by_candidate_id, contest)
+      )
+    # Combine rule violations into one error message
+    if rule_violations:
+      for rule_violation in rule_violations:
+        contest_id = rule_violation[0]
+        person_id = rule_violation[1]
+        candidate_list = rule_violation[2]
+        error_message = (
+            "Multiple candidates in Contest {} reference the same Person "
+            "{}. Candidates: {}"
+        ).format(contest_id, person_id, candidate_list)
+        error_log.append(loggers.LogEntry((error_message), [contest_id]))
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+  def _check_for_bad_candidates(self, person_id_by_candidate_id, contest):
+    candidate_ids_by_person_id = dict()
+    rule_violating_person_ids = []
+    contest_id = contest.get("objectId")
+    for candidate_id in self._get_candidate_ids_for_contest(contest):
+      person_id = person_id_by_candidate_id[candidate_id]
+      if person_id not in candidate_ids_by_person_id:
+        candidate_ids_by_person_id[person_id] = [candidate_id]
+      else:
+        candidate_ids_by_person_id[person_id].append(candidate_id)
+        rule_violating_person_ids.append(person_id)
+    return [
+        (contest_id, person_id, str(candidate_ids_by_person_id[person_id]))
+        for person_id in rule_violating_person_ids
+    ]
+
+  def _get_candidate_ids_for_contest(self, contest):
+    candidate_id_elements = self.get_elements_by_class(contest, "CandidateIds")
+    candidate_ids = []
+    for candidate_id_element in candidate_id_elements:
+      candidate_ids.extend(candidate_id_element.text.split())
+    return candidate_ids
 
 
 class SelfDeclaredCandidateMethod(base.BaseRule):
@@ -2059,6 +2157,27 @@ class ElectionEndDatesOccurAfterStartDates(base.DateRule):
         raise loggers.ElectionError(self.error_log)
 
 
+class ElectionTypesAreCompatible(base.BaseRule):
+  """Election element Type values cannot be both a general and primary type."""
+
+  def elements(self):
+    return ["Election"]
+
+  def check(self, element):
+    election_types = element.findall("Type")
+    if election_types:
+      for i in range(len(election_types)):
+        election_types[i] = election_types[i].text
+      if "general" in election_types and (
+          "primary" in election_types
+          or "primary-partisan-open" in election_types
+          or "primary-partisan-closed" in election_types
+      ):
+        raise loggers.ElectionError.from_message(
+            "Election element has incompatible election-type values.", [element]
+        )
+
+
 class DateStatusMatches(base.DateRule):
   """In most cases, ContestDateStatus should match ElectionDateStatus.
 
@@ -2578,6 +2697,7 @@ class OfficeMissingGovernmentBody(base.BaseRule):
       "vice president",
       "state executive",
       "deputy state executive",
+      "deputy head of government",
   ]
 
   def elements(self):
@@ -2920,6 +3040,7 @@ ELECTION_RULES = COMMON_RULES + (
     ElectionStartDates,
     ElectionEndDatesInThePast,
     ElectionEndDatesOccurAfterStartDates,
+    ElectionTypesAreCompatible,
     DateStatusMatches,
     ContestHasMultipleOffices,
     GpUnitsHaveSingleRoot,
@@ -2936,6 +3057,8 @@ ELECTION_RULES = COMMON_RULES + (
     ComposingContestIdsAreValidRelatedContests,
     SingularPartySelection,
     MultipleInternationalizedTextWithSameLanguageCode,
+    CorrectCandidateSelectionCount,
+    MultipleCandidatesPointToTheSamePersonInTheSameContest,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (
