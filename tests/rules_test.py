@@ -6910,6 +6910,189 @@ class ElectionTypesTest(absltest.TestCase):
     )
 
 
+class ElectionTypesAndCandidateContestTypesAreCompatibleTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ElectionTypesAndCandidateContestTypesAreCompatibleTest, self).setUp()
+    self.contest_validator = (
+        rules.ElectionTypesAndCandidateContestTypesAreCompatible(None, None)
+    )
+
+  def testElectionIncludesContestWithNoTypes(self):
+    election_report_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <Type>primary</Type>
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <Name>Contest with Missing Type</Name>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    election = etree.fromstring(election_report_string).find("Election")
+
+    self.contest_validator.check(election)
+
+  def testGeneralElectionWithPrimaryContest(self):
+    election_report_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <Type>general</Type>
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <Name>Primary Contest</Name>
+              <Type>partisan-primary-closed</Type>
+              <Type>runoff</Type>
+            </Contest>
+            <Contest objectId="contest-2" xsi:type="CandidateContest">
+              <Name>Special General Contest</Name>
+              <Type>special</Type>
+              <Type>general</Type>
+            </Contest>
+            <Contest objectId="contest-3" xsi:type="BallotMeasureContest">
+              <Name>Ballot Measure Contest</Name>
+              <Type>ballot-measure</Type>
+            </Contest>
+            <Contest objectId="contest-4" xsi:type="PartyContest">
+              <Name>Party Contest</Name>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    election = etree.fromstring(election_report_string).find("Election")
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.contest_validator.check(election)
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "Election election-1 includes CandidateContest contest-1 with"
+        " incompatible type(s). General elections cannot include primary"
+        " contests.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testPrimaryElectionWithGeneralContest(self):
+    election_report_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <Type>special</Type>
+          <Type>primary</Type>
+          <Type>runoff</Type>
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <Name>General Runoff Contest</Name>
+              <Type>general</Type>
+              <Type>runoff</Type>
+            </Contest>
+            <Contest objectId="contest-2" xsi:type="CandidateContest">
+              <Name>Open Primary Contest</Name>
+              <Type>partisan-primary-open</Type>
+            </Contest>
+            <Contest objectId="contest-3" xsi:type="CandidateContest">
+              <Name>Closed Primary Contest</Name>
+              <Type>partisan-primary-closed</Type>
+            </Contest>
+            <Contest objectId="contest-4" xsi:type="CandidateContest">
+              <Name>Primary Contest</Name>
+              <Type>primary</Type>
+            </Contest>
+            <Contest objectId="contest-5" xsi:type="BallotMeasureContest">
+              <Name>Ballot Measure Contest</Name>
+              <Type>ballot-measure</Type>
+            </Contest>
+            <Contest objectId="contest-6" xsi:type="PartyContest">
+              <Name>Party Contest</Name>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    election = etree.fromstring(election_report_string).find("Election")
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.contest_validator.check(election)
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "Election election-1 includes CandidateContest contest-1 with"
+        " incompatible type(s). Primary elections cannot include general"
+        " contests.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testPrimaryElectionWithPrimaryContests(self):
+    election_report_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <Type>primary</Type>
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <Name>Open Primary Contest</Name>
+              <Type>partisan-primary-open</Type>
+            </Contest>
+            <Contest objectId="contest-2" xsi:type="CandidateContest">
+              <Name>Closed Primary Contest</Name>
+              <Type>partisan-primary-closed</Type>
+            </Contest>
+            <Contest objectId="contest-3" xsi:type="CandidateContest">
+              <Name>Primary Contest</Name>
+              <Type>primary</Type>
+            </Contest>
+            <Contest objectId="contest-4" xsi:type="BallotMeasureContest">
+              <Name>Ballot Measure Contest</Name>
+              <Type>ballot-measure</Type>
+            </Contest>
+            <Contest objectId="contest-5" xsi:type="PartyContest">
+              <Name>Party Contest</Name>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    election = etree.fromstring(election_report_string).find("Election")
+
+    self.contest_validator.check(election)
+
+  def testGeneralElectionWithGeneralContests(self):
+    election_report_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <Type>general</Type>
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <Name>General Contest</Name>
+              <Type>general</Type>
+            </Contest>
+            <Contest objectId="contest-2" xsi:type="CandidateContest">
+              <Name>General Runoff Contest</Name>
+              <Type>general</Type>
+              <Type>runoff</Type>
+            </Contest>
+            <Contest objectId="contest-3" xsi:type="CandidateContest">
+              <Name>Special Runoff Contest</Name>
+              <Type>special</Type>
+              <Type>runoff</Type>
+            </Contest>
+            <Contest objectId="contest-4" xsi:type="BallotMeasureContest">
+              <Name>Ballot Measure Contest</Name>
+              <Type>ballot-measure</Type>
+            </Contest>
+            <Contest objectId="contest-5" xsi:type="PartyContest">
+              <Name>Party Contest</Name>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    election = etree.fromstring(election_report_string).find("Election")
+
+    self.contest_validator.check(election)
+
+
 class DateStatusTest(absltest.TestCase):
 
   def setUp(self):
@@ -9607,6 +9790,120 @@ class ContestStartDateContainsCorrespondingEndDateTest(absltest.TestCase):
     self.contest_validator.check(etree.fromstring(contest_string))
 
     self.assertEmpty(self.contest_validator.error_log)
+
+
+class CandidateContestTypesAreCompatibleTest(absltest.TestCase):
+
+  def setUp(self):
+    super(CandidateContestTypesAreCompatibleTest, self).setUp()
+    self.contest_validator = rules.CandidateContestTypesAreCompatible(
+        None, None
+    )
+
+  def testContestWithGeneralAndPrimaryTypes(self):
+    election_report_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <Name>Fake Contest</Name>
+              <Type>GENERAL</Type>
+              <Type>PRIMARY</Type>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    contest_element = etree.fromstring(election_report_string).find(
+        ".//ContestCollection/Contest"
+    )
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.contest_validator.check(contest_element)
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "CandidateContest contest-1 has incompatible type values. A contest"
+        " cannot have both a general and primary type.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testContestWithGeneralAndPartisanPrimaryOpenTypes(self):
+    election_report_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <Name>Fake Contest</Name>
+              <Type>GENERAL</Type>
+              <Type>PARTISAN-PRIMARY-OPEN</Type>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    contest_element = etree.fromstring(election_report_string).find(
+        ".//ContestCollection/Contest"
+    )
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.contest_validator.check(contest_element)
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "CandidateContest contest-1 has incompatible type values. A contest"
+        " cannot have both a general and primary type.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testContestWithGeneralAndPartisanPrimaryClosedTypes(self):
+    election_report_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <Name>Fake Contest</Name>
+              <Type>GENERAL</Type>
+              <Type>PARTISAN-PRIMARY-CLOSED</Type>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    contest_element = etree.fromstring(election_report_string).find(
+        ".//ContestCollection/Contest"
+    )
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.contest_validator.check(contest_element)
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "CandidateContest contest-1 has incompatible type values. A contest"
+        " cannot have both a general and primary type.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testContestWithCompatibleTypes(self):
+    election_report_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <Name>Fake Contest</Name>
+              <Type>GENERAL</Type>
+              <Type>RUNOFF</Type>
+              <Type>SPECIAL</Type>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    contest_element = etree.fromstring(election_report_string).find(
+        ".//ContestCollection/Contest"
+    )
+
+    self.contest_validator.check(contest_element)
 
 
 class RulesTest(absltest.TestCase):

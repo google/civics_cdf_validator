@@ -2300,6 +2300,63 @@ class ElectionTypesAreCompatible(base.BaseRule):
         )
 
 
+class ElectionTypesAndCandidateContestTypesAreCompatible(base.BaseRule):
+  """Election elements should contain CandidateContests with compatible types.
+
+  Elections with the general type should not have any CandidateContests with the
+  primary types. Elections with the primary types should not have any
+  CandidateContests with the general type.
+  """
+
+  def _extract_text_from_elements(self, elements):
+    return {
+        element.text.strip().lower()
+        for element in elements
+        if element_has_text(element)
+    }
+
+  def elements(self):
+    return ["Election"]
+
+  def check(self, element):
+    errors = []
+    contests = self.get_elements_by_class(element, "CandidateContest")
+    election_types = self._extract_text_from_elements(element.findall("Type"))
+    primary_types = {
+        "primary",
+        "partisan-primary-open",
+        "partisan-primary-closed",
+    }
+    for contest in contests:
+      contest_types = self._extract_text_from_elements(contest.findall("Type"))
+      if "general" in election_types and primary_types.intersection(
+          contest_types
+      ):
+        errors.append(
+            loggers.LogEntry(
+                "Election %s includes CandidateContest %s with incompatible"
+                " type(s). General elections cannot include primary contests."
+                % (element.get("objectId"), contest.get("objectId")),
+                element,
+            )
+        )
+      elif (
+          primary_types.intersection(election_types)
+          and "general" in contest_types
+      ):
+        errors.append(
+            loggers.LogEntry(
+                "Election %s includes CandidateContest %s with incompatible"
+                " type(s). Primary elections cannot include general contests."
+                % (element.get("objectId"), contest.get("objectId")),
+                element,
+            )
+        )
+
+    if errors:
+      raise loggers.ElectionError(errors)
+
+
 class DateStatusMatches(base.DateRule):
   """In most cases, ContestDateStatus should match ElectionDateStatus.
 
@@ -3223,6 +3280,37 @@ class ContestStartDateContainsCorrespondingEndDate(base.DateRule):
       )
 
 
+class CandidateContestTypesAreCompatible(base.BaseRule):
+  """CandidateContest Type values cannot have both a general and primary type."""
+
+  def elements(self):
+    return ["CandidateContest"]
+
+  def check(self, element):
+    primary_types = {
+        "primary",
+        "partisan-primary-open",
+        "partisan-primary-closed",
+    }
+    contest_type_elements = element.findall("Type")
+    if contest_type_elements:
+      contest_types = {
+          type_element.text.strip().lower()
+          for type_element in contest_type_elements
+          if element_has_text(type_element)
+      }
+      if "general" in contest_types and primary_types.intersection(
+          contest_types
+      ):
+        raise loggers.ElectionError.from_message(
+            "CandidateContest {} has incompatible type values. A contest cannot"
+            " have both a general and primary type.".format(
+                element.get("objectId")
+            ),
+            [element],
+        )
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
@@ -3296,6 +3384,7 @@ ELECTION_RULES = COMMON_RULES + (
     ElectionEndDatesOccurAfterStartDates,
     ElectionDatesSpanContestDates,
     ElectionTypesAreCompatible,
+    ElectionTypesAndCandidateContestTypesAreCompatible,
     DateStatusMatches,
     ContestHasMultipleOffices,
     GpUnitsHaveSingleRoot,
@@ -3319,6 +3408,7 @@ ELECTION_RULES = COMMON_RULES + (
     ContestEndDateOccursAfterStartDate,
     ContestEndDateOccursBeforeSubsequentContestStartDate,
     ContestStartDateContainsCorrespondingEndDate,
+    CandidateContestTypesAreCompatible,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (
