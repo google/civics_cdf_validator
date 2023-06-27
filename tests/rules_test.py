@@ -3957,16 +3957,17 @@ class MissingStableIdsTest(absltest.TestCase):
 
   def testItShouldCheckAllElementsListedInReturnStatement(self):
     elements = self.missing_ids_validator.elements()
-    self.assertLen(elements, 10)
+    self.assertLen(elements, 11)
+    self.assertIn("BallotMeasureContest", elements)
+    self.assertIn("BallotMeasureSelection", elements)
     self.assertIn("Candidate", elements)
     self.assertIn("CandidateContest", elements)
-    self.assertIn("PartyContest", elements)
-    self.assertIn("BallotMeasureContest", elements)
-    self.assertIn("Party", elements)
-    self.assertIn("Person", elements)
     self.assertIn("Coalition", elements)
-    self.assertIn("BallotMeasureSelection", elements)
+    self.assertIn("Election", elements)
     self.assertIn("Office", elements)
+    self.assertIn("Party", elements)
+    self.assertIn("PartyContest", elements)
+    self.assertIn("Person", elements)
     self.assertIn("ReportingUnit", elements)
 
   def testStableIdPresentForOffice(self):

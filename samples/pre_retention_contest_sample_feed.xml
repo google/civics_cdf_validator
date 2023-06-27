@@ -92,6 +92,13 @@
       <Type>election-day</Type>
     </CountStatus>
     <ElectionScopeId>ru0002</ElectionScopeId>
+    <ExternalIdentifiers>
+      <ExternalIdentifier>
+        <Type>other</Type>
+        <OtherType>stable</OtherType>
+        <Value>va_retention_el</Value>
+      </ExternalIdentifier>
+    </ExternalIdentifiers>
     <Name>
       <Text language="en">2013 Virginia Retention of Supreme Court Justice</Text>
     </Name>

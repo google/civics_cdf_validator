@@ -1444,17 +1444,15 @@ class MissingStableIds(base.BaseRule):
     return [
         "Candidate", "CandidateContest", "PartyContest", "BallotMeasureContest",
         "Party", "Person", "Coalition", "BallotMeasureSelection", "Office",
-        "ReportingUnit"
+        "ReportingUnit", "Election"
     ]
 
   def check(self, element):
+    stable_ids = []
     external_identifiers = element.find("ExternalIdentifiers")
     if external_identifiers is not None:
       stable_ids = get_external_id_values(external_identifiers, "stable")
-      if not stable_ids:
-        raise loggers.ElectionError.from_message(
-            "The element is missing a stable id", [element])
-    else:
+    if not stable_ids:
       raise loggers.ElectionError.from_message(
           "The element is missing a stable id", [element])
 

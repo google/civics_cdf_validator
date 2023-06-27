@@ -1362,6 +1362,13 @@
       <Type>election-day</Type>
     </CountStatus>
     <ElectionScopeId>ru0002</ElectionScopeId>
+    <ExternalIdentifiers>
+      <ExternalIdentifier>
+        <Type>other</Type>
+        <OtherType>stable</OtherType>
+        <Value>va_gen_el</Value>
+      </ExternalIdentifier>
+    </ExternalIdentifiers>
     <Name>
       <Text language="en">2013 Virginia General Election</Text>
     </Name>

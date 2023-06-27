@@ -116,6 +116,13 @@
       </Contest>
     </ContestCollection>
     <ElectionScopeId>ru_ca_1</ElectionScopeId>
+    <ExternalIdentifiers>
+      <ExternalIdentifier>
+        <Type>other</Type>
+        <OtherType>stable</OtherType>
+        <Value>stable_el1</Value>
+      </ExternalIdentifier>
+    </ExternalIdentifiers>
     <Name>
       <Text language="en">GENERAL ELECTION</Text>
     </Name>
