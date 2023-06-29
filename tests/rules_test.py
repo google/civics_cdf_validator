@@ -2684,8 +2684,14 @@ class CorrectCandidateSelectionCountTest(absltest.TestCase):
     """
     element = etree.fromstring(contest_string)
 
-    with self.assertRaises(loggers.ElectionWarning):
+    with self.assertRaises(loggers.ElectionWarning) as ew:
       self.candidate_selection_validator.check(element.find("BallotSelection"))
+
+    self.assertLen(ew.exception.log_entry, 1)
+    self.assertEqual(
+        "The CandidateSelection bs-1 does not reference any candidates.",
+        ew.exception.log_entry[0].message,
+    )
 
   def testCandidateSelectionWithMultipleCandidateIds(self):
     contest_string = """
@@ -2698,8 +2704,15 @@ class CorrectCandidateSelectionCountTest(absltest.TestCase):
     """
     element = etree.fromstring(contest_string)
 
-    with self.assertRaises(loggers.ElectionWarning):
+    with self.assertRaises(loggers.ElectionWarning) as ew:
       self.candidate_selection_validator.check(element.find("BallotSelection"))
+
+    self.assertLen(ew.exception.log_entry, 1)
+    self.assertEqual(
+        "The CandidateSelection bs-1 is expected to have one CandidateIds but 2"
+        " were found.",
+        ew.exception.log_entry[0].message,
+    )
 
   def testCandidateSelectionWithSingleCandidateIdsAndMultipleCandidates(self):
     contest_string = """
@@ -2711,8 +2724,16 @@ class CorrectCandidateSelectionCountTest(absltest.TestCase):
     """
     element = etree.fromstring(contest_string)
 
-    with self.assertRaises(loggers.ElectionWarning):
+    with self.assertRaises(loggers.ElectionWarning) as ew:
       self.candidate_selection_validator.check(element.find("BallotSelection"))
+
+    self.assertLen(ew.exception.log_entry, 1)
+    self.assertEqual(
+        "CandidateIds for CandidateSelection bs-1 is expected to reference one"
+        " candidate but 3 candidates were found. This warning can be ignored"
+        " for party list elections.",
+        ew.exception.log_entry[0].message,
+    )
 
   def testCandidateSelectionWithCorrectCandidateIds(self):
     contest_string = """
