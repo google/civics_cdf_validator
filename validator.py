@@ -317,7 +317,7 @@ def feed_validation(options):
   return validation_results
 
 
-def _print_exceptions_from_validations(options, results_validations):
+def print_exceptions_from_validations(options, results_validations):
   """Print errors to stdout."""
   max_error_severity = 0
   for result_validation in results_validations:
@@ -355,7 +355,7 @@ def main():
     if options.ocdid_file:
       options.ocdid_file = open(options.ocdid_file, encoding="utf-8")
     validation_results = feed_validation(options)
-    return_value = _print_exceptions_from_validations(
+    return_value = print_exceptions_from_validations(
         options, validation_results
     )
     for file in options.election_files:
