@@ -6418,6 +6418,78 @@ class GpUnitsCyclesRefsValidationTest(absltest.TestCase):
     self.gpunits_tree_validator.check()
 
 
+class ElectionContainsStartAndEndDatesTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ElectionContainsStartAndEndDatesTest, self).setUp()
+    self.date_validator = rules.ElectionContainsStartAndEndDates(None, None)
+
+  def testElectionWithMissingStartDate(self):
+    election_string = """
+      <Election objectId="election-1">
+        <EndDate>2023-05-30</EndDate>
+        <ContestCollection>
+          <Contest objectId="contest-1" type="CandidateContest">
+            <OfficeIds>office-1</OfficeIds>
+            <StartDate>2023-05-20</StartDate>
+            <EndDate>2023-05-30</EndDate>
+          </Contest>
+        </ContestCollection>
+      </Election>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.date_validator.check(etree.fromstring(election_string))
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "Election election-1 is missing a start date.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testElectionWithMissingEndDate(self):
+    election_string = """
+      <Election objectId="election-1">
+        <StartDate>2023-05-20</StartDate>
+        <ContestCollection>
+          <Contest objectId="contest-1" type="CandidateContest">
+            <OfficeIds>office-1</OfficeIds>
+            <StartDate>2023-05-20</StartDate>
+            <EndDate>2023-05-30</EndDate>
+          </Contest>
+        </ContestCollection>
+      </Election>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.date_validator.check(etree.fromstring(election_string))
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "Election election-1 is missing an end date.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testElectionWithStartAndEndDates(self):
+    election_string = """
+      <Election objectId="election-1">
+        <StartDate>2023-05-20</StartDate>
+        <EndDate>2023-05-30</EndDate>
+        <ContestCollection>
+          <Contest objectId="contest-1" type="CandidateContest">
+            <OfficeIds>office-1</OfficeIds>
+            <StartDate>2023-05-30</StartDate>
+            <EndDate>2023-05-30</EndDate>
+          </Contest>
+        </ContestCollection>
+      </Election>
+    """
+
+    self.date_validator.check(etree.fromstring(election_string))
+
+    self.assertEmpty(self.date_validator.error_log)
+
+
 class ElectionStartDatesTest(absltest.TestCase):
 
   def setUp(self):
@@ -6567,12 +6639,253 @@ class ElectionEndDatesOccurAfterStartDatesTest(absltest.TestCase):
     self.date_validator.check(etree.fromstring(election_string))
 
 
+class ElectionDatesSpanContestDatesTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ElectionDatesSpanContestDatesTest, self).setUp()
+    self.date_validator = rules.ElectionDatesSpanContestDates(None, None)
+
+  def testElectionWithNoDates(self):
+    election_report_string = """
+      <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <OfficeIds>office-1</OfficeIds>
+              <PrimaryPartyIds>party-1</PrimaryPartyIds>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+
+    self.date_validator.check(etree.fromstring(election_report_string))
+
+    self.assertEmpty(self.date_validator.error_log)
+
+  def testElectionsWithMissingDates(self):
+    election_report_string = """
+      <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <StartDate>2023-05-30</StartDate>
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <OfficeIds>office-1</OfficeIds>
+              <PrimaryPartyIds>party-1</PrimaryPartyIds>
+            </Contest>
+          </ContestCollection>
+        </Election>
+        <Election objectId="election-2">
+          <EndDate>2023-05-20</EndDate>
+          <ContestCollection>
+            <Contest objectId="contest-2" xsi:type="CandidateContest">
+              <OfficeIds>office-2</OfficeIds>
+              <PrimaryPartyIds>party-1</PrimaryPartyIds>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+
+    self.date_validator.check(etree.fromstring(election_report_string))
+
+    self.assertEmpty(self.date_validator.error_log)
+
+  def testElectionWithNoContestDates(self):
+    election_report_string = """
+      <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <StartDate>2023-05-30</StartDate>
+          <EndDate>2023-05-30</EndDate>
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <OfficeIds>office-1</OfficeIds>
+              <PrimaryPartyIds>party-1</PrimaryPartyIds>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+
+    self.date_validator.check(etree.fromstring(election_report_string))
+
+    self.assertEmpty(self.date_validator.error_log)
+
+  def testElectionWithContestMissingEndDate(self):
+    election_report_string = """
+      <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <StartDate>2023-05-20</StartDate>
+          <EndDate>2023-05-30</EndDate>
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <OfficeIds>office-1</OfficeIds>
+              <PrimaryPartyIds>party-1</PrimaryPartyIds>
+              <StartDate>2023-05-19</StartDate>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.date_validator.check(etree.fromstring(election_report_string))
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "Contest contest-1 with start date 2023-05-19 occurs before Election"
+        " election-1 with start date 2023-05-20. Election start date should be"
+        " on or before any Contest start date.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testElectionWithContestMissingStartDate(self):
+    election_report_string = """
+      <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <StartDate>2023-05-20</StartDate>
+          <EndDate>2023-05-30</EndDate>
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <OfficeIds>office-1</OfficeIds>
+              <PrimaryPartyIds>party-1</PrimaryPartyIds>
+              <EndDate>2023-05-31</EndDate>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.date_validator.check(etree.fromstring(election_report_string))
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "Contest contest-1 with end date 2023-05-31 occurs after Election"
+        " election-1 with end date 2023-05-30. Election end date should be on"
+        " or after any Contest end date.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testElectionWithInvalidContestStartDate(self):
+    election_report_string = """
+      <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <StartDate>2023-05-20</StartDate>
+          <EndDate>2023-05-30</EndDate>
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <OfficeIds>office-1</OfficeIds>
+              <PrimaryPartyIds>party-1</PrimaryPartyIds>
+              <StartDate>2023-05-19</StartDate>
+              <EndDate>2023-05-30</EndDate>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.date_validator.check(etree.fromstring(election_report_string))
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "Contest contest-1 with start date 2023-05-19 occurs before Election"
+        " election-1 with start date 2023-05-20. Election start date should be"
+        " on or before any Contest start date.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testElectionWithInvalidContestEndDate(self):
+    election_report_string = """
+      <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <StartDate>2023-05-20</StartDate>
+          <EndDate>2023-05-30</EndDate>
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <OfficeIds>office-1</OfficeIds>
+              <PrimaryPartyIds>party-1</PrimaryPartyIds>
+              <StartDate>2023-05-20</StartDate>
+              <EndDate>2023-05-31</EndDate>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.date_validator.check(etree.fromstring(election_report_string))
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "Contest contest-1 with end date 2023-05-31 occurs after Election"
+        " election-1 with end date 2023-05-30. Election end date should be on"
+        " or after any Contest end date.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testElectionWithValidContestDates(self):
+    election_report_string = """
+      <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <StartDate>2023-05-20</StartDate>
+          <EndDate>2023-05-30</EndDate>
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <OfficeIds>office-1</OfficeIds>
+              <PrimaryPartyIds>party-1</PrimaryPartyIds>
+              <StartDate>2023-05-21</StartDate>
+              <EndDate>2023-05-30</EndDate>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+
+    self.date_validator.check(etree.fromstring(election_report_string))
+
+    self.assertEmpty(self.date_validator.error_log)
+
+
 class ElectionTypesTest(absltest.TestCase):
 
-  def testRaisesErrorIfElectionTypesIncompatible(self):
+  def testRaisesErrorIfElectionTypesIncompatiblePrimary(self):
     election_string = """
       <Election>
         <Type>primary</Type>
+        <Type>general</Type>
+      </Election>
+      """
+    with self.assertRaises(loggers.ElectionError) as ee:
+      rules.ElectionTypesAreCompatible(None, None).check(
+          etree.fromstring(election_string)
+      )
+    self.assertIn(
+        "Election element has incompatible election-type values.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testRaisesErrorIfElectionTypesIncompatiblePartisanPrimaryOpen(self):
+    election_string = """
+      <Election>
+        <Type>partisan-primary-open</Type>
+        <Type>general</Type>
+      </Election>
+      """
+    with self.assertRaises(loggers.ElectionError) as ee:
+      rules.ElectionTypesAreCompatible(None, None).check(
+          etree.fromstring(election_string)
+      )
+    self.assertIn(
+        "Election element has incompatible election-type values.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testRaisesErrorIfElectionTypesIncompatiblePartisanPrimaryClosed(self):
+    election_string = """
+      <Election>
+        <Type>partisan-primary-closed</Type>
         <Type>general</Type>
       </Election>
       """
@@ -6595,6 +6908,189 @@ class ElectionTypesTest(absltest.TestCase):
     rules.ElectionTypesAreCompatible(None, None).check(
         etree.fromstring(election_string)
     )
+
+
+class ElectionTypesAndCandidateContestTypesAreCompatibleTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ElectionTypesAndCandidateContestTypesAreCompatibleTest, self).setUp()
+    self.contest_validator = (
+        rules.ElectionTypesAndCandidateContestTypesAreCompatible(None, None)
+    )
+
+  def testElectionIncludesContestWithNoTypes(self):
+    election_report_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <Type>primary</Type>
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <Name>Contest with Missing Type</Name>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    election = etree.fromstring(election_report_string).find("Election")
+
+    self.contest_validator.check(election)
+
+  def testGeneralElectionWithPrimaryContest(self):
+    election_report_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <Type>general</Type>
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <Name>Primary Contest</Name>
+              <Type>partisan-primary-closed</Type>
+              <Type>runoff</Type>
+            </Contest>
+            <Contest objectId="contest-2" xsi:type="CandidateContest">
+              <Name>Special General Contest</Name>
+              <Type>special</Type>
+              <Type>general</Type>
+            </Contest>
+            <Contest objectId="contest-3" xsi:type="BallotMeasureContest">
+              <Name>Ballot Measure Contest</Name>
+              <Type>ballot-measure</Type>
+            </Contest>
+            <Contest objectId="contest-4" xsi:type="PartyContest">
+              <Name>Party Contest</Name>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    election = etree.fromstring(election_report_string).find("Election")
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.contest_validator.check(election)
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "Election election-1 includes CandidateContest contest-1 with"
+        " incompatible type(s). General elections cannot include primary"
+        " contests.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testPrimaryElectionWithGeneralContest(self):
+    election_report_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <Type>special</Type>
+          <Type>primary</Type>
+          <Type>runoff</Type>
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <Name>General Runoff Contest</Name>
+              <Type>general</Type>
+              <Type>runoff</Type>
+            </Contest>
+            <Contest objectId="contest-2" xsi:type="CandidateContest">
+              <Name>Open Primary Contest</Name>
+              <Type>partisan-primary-open</Type>
+            </Contest>
+            <Contest objectId="contest-3" xsi:type="CandidateContest">
+              <Name>Closed Primary Contest</Name>
+              <Type>partisan-primary-closed</Type>
+            </Contest>
+            <Contest objectId="contest-4" xsi:type="CandidateContest">
+              <Name>Primary Contest</Name>
+              <Type>primary</Type>
+            </Contest>
+            <Contest objectId="contest-5" xsi:type="BallotMeasureContest">
+              <Name>Ballot Measure Contest</Name>
+              <Type>ballot-measure</Type>
+            </Contest>
+            <Contest objectId="contest-6" xsi:type="PartyContest">
+              <Name>Party Contest</Name>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    election = etree.fromstring(election_report_string).find("Election")
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.contest_validator.check(election)
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "Election election-1 includes CandidateContest contest-1 with"
+        " incompatible type(s). Primary elections cannot include general"
+        " contests.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testPrimaryElectionWithPrimaryContests(self):
+    election_report_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <Type>primary</Type>
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <Name>Open Primary Contest</Name>
+              <Type>partisan-primary-open</Type>
+            </Contest>
+            <Contest objectId="contest-2" xsi:type="CandidateContest">
+              <Name>Closed Primary Contest</Name>
+              <Type>partisan-primary-closed</Type>
+            </Contest>
+            <Contest objectId="contest-3" xsi:type="CandidateContest">
+              <Name>Primary Contest</Name>
+              <Type>primary</Type>
+            </Contest>
+            <Contest objectId="contest-4" xsi:type="BallotMeasureContest">
+              <Name>Ballot Measure Contest</Name>
+              <Type>ballot-measure</Type>
+            </Contest>
+            <Contest objectId="contest-5" xsi:type="PartyContest">
+              <Name>Party Contest</Name>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    election = etree.fromstring(election_report_string).find("Election")
+
+    self.contest_validator.check(election)
+
+  def testGeneralElectionWithGeneralContests(self):
+    election_report_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <Type>general</Type>
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <Name>General Contest</Name>
+              <Type>general</Type>
+            </Contest>
+            <Contest objectId="contest-2" xsi:type="CandidateContest">
+              <Name>General Runoff Contest</Name>
+              <Type>general</Type>
+              <Type>runoff</Type>
+            </Contest>
+            <Contest objectId="contest-3" xsi:type="CandidateContest">
+              <Name>Special Runoff Contest</Name>
+              <Type>special</Type>
+              <Type>runoff</Type>
+            </Contest>
+            <Contest objectId="contest-4" xsi:type="BallotMeasureContest">
+              <Name>Ballot Measure Contest</Name>
+              <Type>ballot-measure</Type>
+            </Contest>
+            <Contest objectId="contest-5" xsi:type="PartyContest">
+              <Name>Party Contest</Name>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    election = etree.fromstring(election_report_string).find("Election")
+
+    self.contest_validator.check(election)
 
 
 class DateStatusTest(absltest.TestCase):
@@ -8385,17 +8881,19 @@ class PartySpanMultipleCountriesTest(absltest.TestCase):
     self.assertIn("ru0003", ee.exception.log_entry[0].message)
 
 
-class OfficeMissingGovernmentBodyTest(absltest.TestCase):
+class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
 
   def setUp(self):
-    super(OfficeMissingGovernmentBodyTest, self).setUp()
-    self.gov_validator = rules.OfficeMissingGovernmentBody(None, None)
+    super(NonExecutiveOfficeShouldHaveGovernmentBodyTest, self).setUp()
+    self.gov_validator = rules.NonExecutiveOfficeShouldHaveGovernmentBody(
+        None,
+        None,
+    )
 
   def testChecksOfficeElements(self):
     self.assertEqual(["Office"], self.gov_validator.elements())
 
-  # non-exempt role doesn't have a government(al) body: should raise error
-  def testOfficeNonExemptWithoutGovernmentBody(self):
+  def testNonExecOfficeWithoutGovernmentBodyRaisesError(self):
     office_string = """
       <Office>
         <ExternalIdentifiers>
@@ -8411,15 +8909,12 @@ class OfficeMissingGovernmentBodyTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionInfo) as ei:
       self.gov_validator.check(etree.fromstring(office_string))
     self.assertEqual(
-        (
-            "Office element is missing an external identifier of "
-            "other-type government-body."
-        ),
+        "Non-executive Office element is missing an ExternalIdentifier of "
+        "OtherType government(al)-body.",
         str(ei.exception.log_entry[0].message),
     )
 
-  # non-exempt role that has a government(al) body: should NOT raise error
-  def testOfficeNonExemptWithGovernmentBody(self):
+  def testNonExecOfficeWithGovernmentBodyIsValid(self):
     office_string = """
       <Office>
         <ExternalIdentifiers>
@@ -8439,17 +8934,26 @@ class OfficeMissingGovernmentBodyTest(absltest.TestCase):
 
     self.gov_validator.check(etree.fromstring(office_string))
 
-  # exempt role that has a government(al) body: should raise error
-  def testOfficeExemptWithGovernmentBody(self):
-    for office in self.gov_validator._EXEMPT_OFFICES:
-      with self.subTest(office=office):
+
+class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ExecutiveOfficeShouldNotHaveGovernmentBodyTest, self).setUp()
+    self.gov_validator = rules.ExecutiveOfficeShouldNotHaveGovernmentBody(
+        None,
+        None,
+    )
+
+  def testExecOfficeWithGovernmentBodyRaisesError(self):
+    for office_role in rules._EXECUTIVE_OFFICE_ROLES:
+      with self.subTest(office_role=office_role):
         office_string = f"""
           <Office>
             <ExternalIdentifiers>
               <ExternalIdentifier>
                 <Type>other</Type>
                 <OtherType>office-role</OtherType>
-                <Value>{office}</Value>
+                <Value>{office_role}</Value>
               </ExternalIdentifier>
               <ExternalIdentifier>
                 <Type>other</Type>
@@ -8460,18 +8964,16 @@ class OfficeMissingGovernmentBodyTest(absltest.TestCase):
           </Office>
         """
 
-        with self.assertRaises(loggers.ElectionError) as ei:
+        with self.assertRaises(loggers.ElectionWarning) as ew:
           self.gov_validator.check(etree.fromstring(office_string))
         self.assertEqual(
-            (
-                "Office element has an external identifier of other-type "
-                "government-body and is expected not to."
-            ),
-            str(ei.exception.log_entry[0].message),
+            f"Executive Office element (roles: {office_role}) has an "
+            "ExternalIdentifier of OtherType government(al)-body. Executive "
+            "offices should not have government bodies.",
+            str(ew.exception.log_entry[0].message),
         )
 
-  # exempt role that does not have a government(al) body: should not raise error
-  def testOfficeExemptWithoutGovernmentBody(self):
+  def testExecOfficeWithoutGovernmentBodyIsValid(self):
     office_string = """
       <Office>
         <ExternalIdentifiers>
@@ -8816,6 +9318,592 @@ class MultipleInternationalizedTextWithSameLanguageCodeTest(absltest.TestCase):
     """
 
     self.election_validator.check(etree.fromstring(election_string))
+
+
+class ContestContainsValidStartDateTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ContestContainsValidStartDateTest, self).setUp()
+    self.contest_validator = rules.ContestContainsValidStartDate(None, None)
+    self.today_date = datetime.datetime.now()
+
+  def testContestWithNoStartDate(self):
+    contest_string = """
+      <Contest objectId="con1" type="CandidateContest">
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>
+      </Contest>
+      """
+
+    self.contest_validator.check(etree.fromstring(contest_string))
+
+    self.assertEmpty(self.contest_validator.error_log)
+    self.assertIsNone(self.contest_validator.end_date)
+    self.assertIsNone(self.contest_validator.start_date)
+
+  def testContestWithStartDateInThePast(self):
+    yesterday_date = self.today_date - datetime.timedelta(days=1)
+    start_date = yesterday_date.strftime("%Y-%m-%d")
+    contest_string = """
+      <Contest objectId="con1" type="CandidateContest">
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>
+        <StartDate>{}</StartDate>
+      </Contest>
+      """.format(start_date)
+
+    with self.assertRaises(loggers.ElectionWarning) as warning:
+      self.contest_validator.check(etree.fromstring(contest_string))
+
+    self.assertLen(warning.exception.log_entry, 1)
+    self.assertEqual(
+        "The date {} is in the past.".format(start_date),
+        warning.exception.log_entry[0].message,
+    )
+
+  def testContestWithStartDateInTheFuture(self):
+    tomorrow_date = self.today_date + datetime.timedelta(days=1)
+    start_date = tomorrow_date.strftime("%Y-%m-%d")
+    contest_string = """
+      <Contest objectId="con1" type="CandidateContest">
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>
+        <StartDate>{}</StartDate>
+      </Contest>
+      """.format(start_date)
+
+    self.contest_validator.check(etree.fromstring(contest_string))
+
+    self.assertEmpty(self.contest_validator.error_log)
+
+  def testContestWithBadFormattedStartDate(self):
+    contest_string = """
+      <Contest objectId="con1" type="CandidateContest">
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>
+        <StartDate>blah</StartDate>
+      </Contest>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.contest_validator.check(etree.fromstring(contest_string))
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "The StartDate text should be of the formats: yyyy-mm-dd, or yyyy, or"
+        " yyyy-mm",
+        ee.exception.log_entry[0].message,
+    )
+
+
+class ContestContainsValidEndDateTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ContestContainsValidEndDateTest, self).setUp()
+    self.contest_validator = rules.ContestContainsValidEndDate(None, None)
+    self.today_date = datetime.datetime.now()
+
+  def testContestWithNoEndDate(self):
+    contest_string = """
+      <Contest objectId="con1" type="CandidateContest">
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>
+      </Contest>
+      """
+
+    self.contest_validator.check(etree.fromstring(contest_string))
+
+    self.assertEmpty(self.contest_validator.error_log)
+    self.assertIsNone(self.contest_validator.end_date)
+    self.assertIsNone(self.contest_validator.start_date)
+
+  def testContestWithEndDateInThePast(self):
+    yesterday_date = self.today_date - datetime.timedelta(days=1)
+    end_date = yesterday_date.strftime("%Y-%m-%d")
+    contest_string = """
+      <Contest objectId="con1" type="CandidateContest">
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>
+        <EndDate>{}</EndDate>
+      </Contest>
+      """.format(end_date)
+
+    with self.assertRaises(loggers.ElectionWarning) as warning:
+      self.contest_validator.check(etree.fromstring(contest_string))
+
+    self.assertLen(warning.exception.log_entry, 1)
+    self.assertEqual(
+        "The date {} is in the past.".format(end_date),
+        warning.exception.log_entry[0].message,
+    )
+
+  def testContestWithEndDateInTheFuture(self):
+    tomorrow_date = self.today_date + datetime.timedelta(days=1)
+    end_date = tomorrow_date.strftime("%Y-%m-%d")
+    contest_string = """
+      <Contest objectId="con1" type="CandidateContest">
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>
+        <EndDate>{}</EndDate>
+      </Contest>
+      """.format(end_date)
+
+    self.contest_validator.check(etree.fromstring(contest_string))
+
+    self.assertEmpty(self.contest_validator.error_log)
+
+  def testContestWithBadFormattedEndDate(self):
+    contest_string = """
+      <Contest objectId="con1" type="CandidateContest">
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>
+        <EndDate>blah</EndDate>
+      </Contest>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.contest_validator.check(etree.fromstring(contest_string))
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "The EndDate text should be of the formats: yyyy-mm-dd, or yyyy, or"
+        " yyyy-mm",
+        ee.exception.log_entry[0].message,
+    )
+
+
+class ContestEndDateOccursAfterStartDateTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ContestEndDateOccursAfterStartDateTest, self).setUp()
+    self.contest_validator = rules.ContestEndDateOccursAfterStartDate(
+        None, None
+    )
+    self.today_date = datetime.datetime.now()
+
+  def testContestWithNoDates(self):
+    contest_string = """
+      <Contest objectId="con1" type="CandidateContest">
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>
+      </Contest>
+      """
+
+    self.contest_validator.check(etree.fromstring(contest_string))
+
+    self.assertEmpty(self.contest_validator.error_log)
+    self.assertIsNone(self.contest_validator.end_date)
+    self.assertIsNone(self.contest_validator.start_date)
+
+  def testContestWithEndDateBeforeStartDate(self):
+    yesterday_date = self.today_date - datetime.timedelta(days=1)
+    start_date = self.today_date.strftime("%Y-%m-%d")
+    end_date = yesterday_date.strftime("%Y-%m-%d")
+    contest_string = """
+      <Contest objectId="con1" type="CandidateContest">
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>
+        <StartDate>{}</StartDate>
+        <EndDate>{}</EndDate>
+      </Contest>
+      """.format(start_date, end_date)
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.contest_validator.check(etree.fromstring(contest_string))
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        """The dates (start: {}, end: {}) are invalid.
+      The end date must be the same or after the start date.""".format(
+            start_date, end_date
+        ),
+        ee.exception.log_entry[0].message,
+    )
+
+  def testContestWithSameStartAndEndDate(self):
+    start_date = self.today_date.strftime("%Y-%m-%d")
+    end_date = self.today_date.strftime("%Y-%m-%d")
+    contest_string = """
+      <Contest objectId="con1" type="CandidateContest">
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>
+        <StartDate>{}</StartDate>
+        <EndDate>{}</EndDate>
+      </Contest>
+      """.format(start_date, end_date)
+
+    self.contest_validator.check(etree.fromstring(contest_string))
+
+    self.assertEmpty(self.contest_validator.error_log)
+
+  def testContestWithEndDateAfterStartDate(self):
+    tomorrow_date = self.today_date + datetime.timedelta(days=1)
+    start_date = self.today_date.strftime("%Y-%m-%d")
+    end_date = tomorrow_date.strftime("%Y-%m-%d")
+    contest_string = """
+      <Contest objectId="con1" type="CandidateContest">
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>
+        <StartDate>{}</StartDate>
+        <EndDate>{}</EndDate>
+      </Contest>
+      """.format(start_date, end_date)
+
+    self.contest_validator.check(etree.fromstring(contest_string))
+
+    self.assertEmpty(self.contest_validator.error_log)
+
+
+class ContestEndDateOccursBeforeSubsequentContestStartDateTest(
+    absltest.TestCase
+):
+
+  def setUp(self):
+    super(
+        ContestEndDateOccursBeforeSubsequentContestStartDateTest, self
+    ).setUp()
+    self.contest_validator = (
+        rules.ContestEndDateOccursBeforeSubsequentContestStartDate(None, None)
+    )
+
+  def testContestWithNoSubsequentContest(self):
+    election_report_string = """
+      <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest objectId="con1" xsi:type="CandidateContest">
+              <OfficeIds>office1</OfficeIds>
+              <PrimaryPartyIds>party1</PrimaryPartyIds>
+              <StartDate>2023-05-19</StartDate>
+              <EndDate>2023-05-19</EndDate>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+
+    self.contest_validator.check(etree.fromstring(election_report_string))
+
+    self.assertEmpty(self.contest_validator.error_log)
+
+  def testContestWithNonExistentSubsequentContest(self):
+    election_report_string = """
+      <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest objectId="con1" xsi:type="CandidateContest">
+              <OfficeIds>office1</OfficeIds>
+              <PrimaryPartyIds>party1</PrimaryPartyIds>
+              <SubsequentContestId>FakeContest</SubsequentContestId>
+              <StartDate>2023-05-19</StartDate>
+              <EndDate>2023-05-19</EndDate>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+
+    self.contest_validator.check(etree.fromstring(election_report_string))
+
+    self.assertEmpty(self.contest_validator.error_log)
+
+  def testSubsequentContestWithNoDates(self):
+    election_report_string = """
+      <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest objectId="con1" xsi:type="CandidateContest">
+              <OfficeIds>office1</OfficeIds>
+              <PrimaryPartyIds>party1</PrimaryPartyIds>
+              <SubsequentContestId>con2</SubsequentContestId>
+              <StartDate>2023-05-19</StartDate>
+              <EndDate>2023-05-19</EndDate>
+            </Contest>
+            <Contest objectId="con2" xsi:type="CandidateContest">
+              <OfficeIds>office2</OfficeIds>
+              <PrimaryPartyIds>party1</PrimaryPartyIds>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+
+    self.contest_validator.check(etree.fromstring(election_report_string))
+
+    self.assertEmpty(self.contest_validator.error_log)
+
+  def testContestWithEndDateSameAsSubsequentContestStartDate(self):
+    election_report_string = """
+      <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest objectId="con1" xsi:type="CandidateContest">
+              <OfficeIds>office1</OfficeIds>
+              <PrimaryPartyIds>party1</PrimaryPartyIds>
+              <SubsequentContestId>con2</SubsequentContestId>
+              <StartDate>2023-05-19</StartDate>
+              <EndDate>2023-05-19</EndDate>
+            </Contest>
+            <Contest objectId="con2" xsi:type="CandidateContest">
+              <OfficeIds>office2</OfficeIds>
+              <PrimaryPartyIds>party1</PrimaryPartyIds>
+              <StartDate>2023-05-19</StartDate>
+              <EndDate>2023-05-19</EndDate>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    self.contest_validator.check(etree.fromstring(election_report_string))
+
+    self.assertEmpty(self.contest_validator.error_log)
+
+  def testContestWithEndDateBeforeSubsequentContestStartDate(self):
+    election_report_string = """
+      <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest objectId="con1" xsi:type="CandidateContest">
+              <OfficeIds>office1</OfficeIds>
+              <PrimaryPartyIds>party1</PrimaryPartyIds>
+              <SubsequentContestId>con2</SubsequentContestId>
+              <StartDate>2023-05-19</StartDate>
+              <EndDate>2023-05-19</EndDate>
+            </Contest>
+            <Contest objectId="con2" xsi:type="CandidateContest">
+              <OfficeIds>office2</OfficeIds>
+              <PrimaryPartyIds>party1</PrimaryPartyIds>
+              <StartDate>2023-05-20</StartDate>
+              <EndDate>2023-05-20</EndDate>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+
+    self.contest_validator.check(etree.fromstring(election_report_string))
+
+    self.assertEmpty(self.contest_validator.error_log)
+
+  def testContestWithEndDateAfterSubsequentContestStartDate(self):
+    election_report_string = """
+      <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest objectId="con1" xsi:type="CandidateContest">
+              <OfficeIds>office1</OfficeIds>
+              <PrimaryPartyIds>party1</PrimaryPartyIds>
+              <SubsequentContestId>con2</SubsequentContestId>
+              <StartDate>2023-05-20</StartDate>
+              <EndDate>2023-05-20</EndDate>
+            </Contest>
+            <Contest objectId="con2" xsi:type="CandidateContest">
+              <OfficeIds>office2</OfficeIds>
+              <PrimaryPartyIds>party1</PrimaryPartyIds>
+              <StartDate>2023-05-19</StartDate>
+              <EndDate>2023-05-19</EndDate>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.contest_validator.check(etree.fromstring(election_report_string))
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "Contest con1 with end date 2023-05-20 does not occur before subsequent"
+        " contest con2 with start date 2023-05-19",
+        ee.exception.log_entry[0].message,
+    )
+
+
+class ContestStartDateContainsCorrespondingEndDateTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ContestStartDateContainsCorrespondingEndDateTest, self).setUp()
+    self.contest_validator = rules.ContestStartDateContainsCorrespondingEndDate(
+        None, None
+    )
+
+  def testContestWithNoDates(self):
+    contest_string = """
+      <Contest objectId="con1" type="CandidateContest">
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>
+      </Contest>
+      """
+
+    self.contest_validator.check(etree.fromstring(contest_string))
+
+    self.assertEmpty(self.contest_validator.error_log)
+
+  def testContestWithOnlyStartDate(self):
+    contest_string = """
+      <Contest objectId="con1" type="CandidateContest">
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>
+        <StartDate>2023-05-26</StartDate>
+      </Contest>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.contest_validator.check(etree.fromstring(contest_string))
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "Contest has a StartDate but is missing an EndDate. Every StartDate"
+        " must have a corresponding EndDate.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testContestWithOnlyEndDate(self):
+    contest_string = """
+      <Contest objectId="con1" type="CandidateContest">
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>
+        <EndDate>2023-05-26</EndDate>
+      </Contest>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.contest_validator.check(etree.fromstring(contest_string))
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "Contest has an EndDate but is missing a StartDate. Every EndDate"
+        " must have a corresponding StartDate.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testContestWithStartAndEndDate(self):
+    contest_string = """
+      <Contest objectId="con1" type="CandidateContest">
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party1</PrimaryPartyIds>
+        <StartDate>2023-05-26</StartDate>
+        <EndDate>2023-05-26</EndDate>
+      </Contest>
+      """
+
+    self.contest_validator.check(etree.fromstring(contest_string))
+
+    self.assertEmpty(self.contest_validator.error_log)
+
+
+class CandidateContestTypesAreCompatibleTest(absltest.TestCase):
+
+  def setUp(self):
+    super(CandidateContestTypesAreCompatibleTest, self).setUp()
+    self.contest_validator = rules.CandidateContestTypesAreCompatible(
+        None, None
+    )
+
+  def testContestWithGeneralAndPrimaryTypes(self):
+    election_report_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <Name>Fake Contest</Name>
+              <Type>GENERAL</Type>
+              <Type>PRIMARY</Type>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    contest_element = etree.fromstring(election_report_string).find(
+        ".//ContestCollection/Contest"
+    )
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.contest_validator.check(contest_element)
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "CandidateContest contest-1 has incompatible type values. A contest"
+        " cannot have both a general and primary type.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testContestWithGeneralAndPartisanPrimaryOpenTypes(self):
+    election_report_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <Name>Fake Contest</Name>
+              <Type>GENERAL</Type>
+              <Type>PARTISAN-PRIMARY-OPEN</Type>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    contest_element = etree.fromstring(election_report_string).find(
+        ".//ContestCollection/Contest"
+    )
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.contest_validator.check(contest_element)
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "CandidateContest contest-1 has incompatible type values. A contest"
+        " cannot have both a general and primary type.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testContestWithGeneralAndPartisanPrimaryClosedTypes(self):
+    election_report_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <Name>Fake Contest</Name>
+              <Type>GENERAL</Type>
+              <Type>PARTISAN-PRIMARY-CLOSED</Type>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    contest_element = etree.fromstring(election_report_string).find(
+        ".//ContestCollection/Contest"
+    )
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.contest_validator.check(contest_element)
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "CandidateContest contest-1 has incompatible type values. A contest"
+        " cannot have both a general and primary type.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testContestWithCompatibleTypes(self):
+    election_report_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <Name>Fake Contest</Name>
+              <Type>GENERAL</Type>
+              <Type>RUNOFF</Type>
+              <Type>SPECIAL</Type>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    contest_element = etree.fromstring(election_report_string).find(
+        ".//ContestCollection/Contest"
+    )
+
+    self.contest_validator.check(contest_element)
 
 
 class RulesTest(absltest.TestCase):

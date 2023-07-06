@@ -34,6 +34,7 @@
           <NumberElected>1</NumberElected>
           <OfficeIds>office1</OfficeIds>
           <PrimaryPartyIds>party2</PrimaryPartyIds>
+          <Type>partisan-primary-open</Type>
           <VotesAllowed>1</VotesAllowed>
         </Contest>
         <Contest objectId="cc103" xsi:type="CandidateContest">
@@ -59,6 +60,7 @@
           <NumberElected>1</NumberElected>
           <OfficeIds>office1</OfficeIds>
           <PrimaryPartyIds>party2</PrimaryPartyIds>
+          <Type>partisan-primary-open</Type>
           <VotesAllowed>1</VotesAllowed>
         </Contest>
       </ContestCollection>
@@ -95,6 +97,7 @@
         <NumberElected>1</NumberElected>
         <OfficeIds>office1</OfficeIds>
         <PrimaryPartyIds>party2</PrimaryPartyIds>
+        <Type>partisan-primary-closed</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc301" xsi:type="CandidateContest">
@@ -120,6 +123,7 @@
         <NumberElected>1</NumberElected>
         <OfficeIds>office2</OfficeIds>
         <PrimaryPartyIds>party1</PrimaryPartyIds>
+        <Type>partisan-primary-closed</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc302" xsi:type="CandidateContest">
@@ -145,6 +149,7 @@
         <NumberElected>1</NumberElected>
         <OfficeIds>office2</OfficeIds>
         <PrimaryPartyIds>party2</PrimaryPartyIds>
+        <Type>partisan-primary-closed</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
     </ContestCollection>
@@ -182,6 +187,7 @@
         <NumberElected>1</NumberElected>
         <OfficeIds>office1</OfficeIds>
         <PrimaryPartyIds>party2</PrimaryPartyIds>
+        <Type>partisan-primary-open</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
     </ContestCollection>
@@ -337,6 +343,7 @@
         <Name>United States Presidential Election</Name>
         <NumberElected>1</NumberElected>
         <OfficeIds>office1</OfficeIds>
+        <Type>general</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc201" xsi:type="CandidateContest">
@@ -360,6 +367,7 @@
         <Name>United States Presidential Election - California</Name>
         <NumberElected>1</NumberElected>
         <OfficeIds>office1</OfficeIds>
+        <Type>general</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc202" xsi:type="CandidateContest">
@@ -383,6 +391,7 @@
         <Name>United States Presidential Election - Florida</Name>
         <NumberElected>1</NumberElected>
         <OfficeIds>office1</OfficeIds>
+        <Type>general</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc203" xsi:type="CandidateContest">
@@ -406,6 +415,7 @@
         <Name>United States Presidential Election - Virginia</Name>
         <NumberElected>1</NumberElected>
         <OfficeIds>office1</OfficeIds>
+        <Type>general</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc300" xsi:type="CandidateContest">
@@ -429,6 +439,7 @@
         <Name>Governor of Florida</Name>
         <NumberElected>1</NumberElected>
         <OfficeIds>office2</OfficeIds>
+        <Type>general</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
     </ContestCollection>
@@ -508,6 +519,8 @@
         <Name>United States General Elections Georgia Runoff</Name>
         <NumberElected>1</NumberElected>
         <OfficeIds>office3</OfficeIds>
+        <Type>general</Type>
+        <Type>runoff</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
     </ContestCollection>

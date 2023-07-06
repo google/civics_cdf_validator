@@ -60,6 +60,29 @@ _INTERNATIONALIZED_TEXT_ELEMENTS = [
     # go/keep-sorted end
 ]
 
+_EXECUTIVE_OFFICE_ROLES = frozenset([
+    "head of state",
+    "head of government",
+    "president",
+    "vice president",
+    "state executive",
+    "deputy state executive",
+    "deputy head of government",
+])
+
+
+def _is_executive_office(office_roles):
+  return not _EXECUTIVE_OFFICE_ROLES.isdisjoint(office_roles)
+
+
+def _get_government_body(element):
+  governmental_body = get_entity_info_for_value_type(
+      element,
+      "governmental-body",
+  )
+  government_body = get_entity_info_for_value_type(element, "government-body")
+  return governmental_body or government_body
+
 
 def get_external_id_values(element, value_type, return_elements=False):
   """Helper to gather all Values of external ids for a given type."""
@@ -2093,6 +2116,38 @@ class ContestHasValidContestStage(base.BaseRule):
                 contest_stage_value), [element])
 
 
+class ElectionContainsStartAndEndDates(base.DateRule):
+  """Election elements should have start and end dates populated."""
+
+  def elements(self):
+    return ["Election"]
+
+  def check(self, element):
+    self.reset_instance_vars()
+    self.gather_dates(element)
+
+    if self.start_elem is None:
+      self.error_log.append(
+          loggers.LogEntry(
+              "Election {} is missing a start date.".format(
+                  element.get("objectId")
+              )
+          )
+      )
+
+    if self.end_elem is None:
+      self.error_log.append(
+          loggers.LogEntry(
+              "Election {} is missing an end date.".format(
+                  element.get("objectId")
+              )
+          )
+      )
+
+    if self.error_log:
+      raise loggers.ElectionError(self.error_log)
+
+
 class ElectionStartDates(base.DateRule):
   """Election elements should contain valid start dates.
 
@@ -2157,6 +2212,73 @@ class ElectionEndDatesOccurAfterStartDates(base.DateRule):
         raise loggers.ElectionError(self.error_log)
 
 
+class ElectionDatesSpanContestDates(base.DateRule):
+  """Election start/end dates should span the Contest start/end dates.
+
+  The start date of the Election should be on or before the start date of every
+  included Contest. The end date of the Election should be on or after the end
+  date of every included Contest. Only Contests that have the dates populated
+  will be considered.
+  """
+
+  def elements(self):
+    return ["ElectionReport"]
+
+  def _validate_contest_dates_within_election(self, election, contest):
+    self.reset_instance_vars()
+    self.gather_dates(election)
+    election_start_date = self.start_date
+    election_end_date = self.end_date
+    election_id = election.get("objectId")
+    self.reset_instance_vars()
+    self.gather_dates(contest)
+    contest_id = contest.get("objectId")
+    if (
+        election_end_date is not None
+        and self.end_date is not None
+        and election_end_date.is_older_than(self.end_date) > 0
+    ):
+      self.error_log.append(
+          loggers.LogEntry(
+              "Contest {} with end date {} occurs after Election {} with"
+              " end date {}. Election end date should be on or after any"
+              " Contest end date.".format(
+                  contest_id,
+                  self.end_date,
+                  election_id,
+                  election_end_date,
+              )
+          )
+      )
+    if (
+        election_start_date is not None
+        and self.start_date is not None
+        and self.start_date.is_older_than(election_start_date) > 0
+    ):
+      self.error_log.append(
+          loggers.LogEntry(
+              "Contest {} with start date {} occurs before Election {} with"
+              " start date {}. Election start date should be on or before"
+              " any Contest start date.".format(
+                  contest_id,
+                  self.start_date,
+                  election_id,
+                  election_start_date,
+              )
+          )
+      )
+
+  def check(self, election_report_element):
+    for election in self.get_elements_by_class(
+        election_report_element, "Election"
+    ):
+      for contest in self.get_elements_by_class(election, "Contest"):
+        self._validate_contest_dates_within_election(election, contest)
+
+    if self.error_log:
+      raise loggers.ElectionError(self.error_log)
+
+
 class ElectionTypesAreCompatible(base.BaseRule):
   """Election element Type values cannot be both a general and primary type."""
 
@@ -2170,12 +2292,69 @@ class ElectionTypesAreCompatible(base.BaseRule):
         election_types[i] = election_types[i].text
       if "general" in election_types and (
           "primary" in election_types
-          or "primary-partisan-open" in election_types
-          or "primary-partisan-closed" in election_types
+          or "partisan-primary-open" in election_types
+          or "partisan-primary-closed" in election_types
       ):
         raise loggers.ElectionError.from_message(
             "Election element has incompatible election-type values.", [element]
         )
+
+
+class ElectionTypesAndCandidateContestTypesAreCompatible(base.BaseRule):
+  """Election elements should contain CandidateContests with compatible types.
+
+  Elections with the general type should not have any CandidateContests with the
+  primary types. Elections with the primary types should not have any
+  CandidateContests with the general type.
+  """
+
+  def _extract_text_from_elements(self, elements):
+    return {
+        element.text.strip().lower()
+        for element in elements
+        if element_has_text(element)
+    }
+
+  def elements(self):
+    return ["Election"]
+
+  def check(self, element):
+    errors = []
+    contests = self.get_elements_by_class(element, "CandidateContest")
+    election_types = self._extract_text_from_elements(element.findall("Type"))
+    primary_types = {
+        "primary",
+        "partisan-primary-open",
+        "partisan-primary-closed",
+    }
+    for contest in contests:
+      contest_types = self._extract_text_from_elements(contest.findall("Type"))
+      if "general" in election_types and primary_types.intersection(
+          contest_types
+      ):
+        errors.append(
+            loggers.LogEntry(
+                "Election %s includes CandidateContest %s with incompatible"
+                " type(s). General elections cannot include primary contests."
+                % (element.get("objectId"), contest.get("objectId")),
+                element,
+            )
+        )
+      elif (
+          primary_types.intersection(election_types)
+          and "general" in contest_types
+      ):
+        errors.append(
+            loggers.LogEntry(
+                "Election %s includes CandidateContest %s with incompatible"
+                " type(s). Primary elections cannot include general contests."
+                % (element.get("objectId"), contest.get("objectId")),
+                element,
+            )
+        )
+
+    if errors:
+      raise loggers.ElectionError(errors)
 
 
 class DateStatusMatches(base.DateRule):
@@ -2687,54 +2866,39 @@ class PartySpanMultipleCountries(base.BaseRule):
            .format(gpunit_country_mapping)), [element])
 
 
-class OfficeMissingGovernmentBody(base.BaseRule):
+class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
   """Ensure non-executive Office elements have a government body defined."""
-
-  _EXEMPT_OFFICES = [
-      "head of state",
-      "head of government",
-      "president",
-      "vice president",
-      "state executive",
-      "deputy state executive",
-      "deputy head of government",
-  ]
 
   def elements(self):
     return ["Office"]
 
   def check(self, element):
     office_roles = get_entity_info_for_value_type(element, "office-role")
-    governmental_body = get_entity_info_for_value_type(
-        element, "governmental-body"
-    )
-    government_body = get_entity_info_for_value_type(element, "government-body")
+    government_body = _get_government_body(element)
+    if not _is_executive_office(office_roles) and not government_body:
+      raise loggers.ElectionInfo.from_message(
+          "Non-executive Office element is missing an ExternalIdentifier of "
+          "OtherType government(al)-body.",
+          [element],
+      )
 
-    if office_roles:
-      office_role = office_roles[0]
-      if (
-          office_role not in self._EXEMPT_OFFICES
-          and not governmental_body
-          and not government_body
-      ):
-        raise loggers.ElectionInfo.from_message(
-            (
-                "Office element is missing an external identifier of"
-                " other-type government-body."
-            ),
-            [element],
-        )
-      else:
-        if office_role in self._EXEMPT_OFFICES and (
-            governmental_body or government_body
-        ):
-          raise loggers.ElectionError.from_message(
-              (
-                  "Office element has an external identifier of other-type"
-                  " government-body and is expected not to."
-              ),
-              [element],
-          )
+
+class ExecutiveOfficeShouldNotHaveGovernmentBody(base.BaseRule):
+  """Ensure executive Office elements do not have a government body defined."""
+
+  def elements(self):
+    return ["Office"]
+
+  def check(self, element):
+    office_roles = get_entity_info_for_value_type(element, "office-role")
+    government_body = _get_government_body(element)
+    if _is_executive_office(office_roles) and government_body:
+      raise loggers.ElectionWarning.from_message(
+          f"Executive Office element (roles: {','.join(office_roles)}) has an "
+          "ExternalIdentifier of OtherType government(al)-body. Executive "
+          "offices should not have government bodies.",
+          [element],
+      )
 
 
 class MissingOfficeSelectionMethod(base.BaseRule):
@@ -2972,6 +3136,181 @@ class MultipleInternationalizedTextWithSameLanguageCode(base.BaseRule):
             (language, texts[0].strip()))
 
 
+class ContestContainsValidStartDate(base.DateRule):
+  """Contest elements should contain valid start dates.
+
+  A warning will be raised for start dates in the past. These dates are still
+  valid because the validator could be run during an ongoing election.
+  """
+
+  def elements(self):
+    return ["Contest"]
+
+  def check(self, element):
+    self.reset_instance_vars()
+    self.gather_dates(element)
+
+    if self.start_date:
+      self.check_for_date_not_in_past(self.start_date, self.start_elem)
+
+    if self.error_log:
+      raise loggers.ElectionWarning(self.error_log)
+
+
+class ContestContainsValidEndDate(base.DateRule):
+  """Contest elements should contain valid end dates.
+
+  A warning will be raised for end dates in the past. These dates are still
+  valid because the validator could be run during an ongoing election.
+  """
+
+  def elements(self):
+    return ["Contest"]
+
+  def check(self, element):
+    self.reset_instance_vars()
+    self.gather_dates(element)
+
+    if self.end_date:
+      self.check_for_date_not_in_past(self.end_date, self.end_elem)
+
+    if self.error_log:
+      raise loggers.ElectionWarning(self.error_log)
+
+
+class ContestEndDateOccursAfterStartDate(base.DateRule):
+  """Contest elements should have end dates that occur after the start dates."""
+
+  def elements(self):
+    return ["Contest"]
+
+  def check(self, element):
+    self.reset_instance_vars()
+    self.gather_dates(element)
+
+    if self.end_date and self.start_date:
+      self.check_end_after_start()
+      if self.error_log:
+        raise loggers.ElectionError(self.error_log)
+
+
+class ContestEndDateOccursBeforeSubsequentContestStartDate(base.DateRule):
+  """Contest end dates should occur before subsequent contest start dates.
+
+  This rule will trigger if a Contest has a valid Subsequent Contest and both
+  Contests have dates.
+  """
+
+  def elements(self):
+    return ["ElectionReport"]
+
+  def check(self, election_report_element):
+    contest_by_contest_id = {}
+    dates_by_contest_id = {}
+
+    for election in self.get_elements_by_class(
+        election_report_element, "Election"
+    ):
+      for contest in self.get_elements_by_class(election, "Contest"):
+        contest_id = contest.get("objectId")
+        self.reset_instance_vars()
+        self.gather_dates(contest)
+        contest_by_contest_id[contest_id] = contest
+        dates_by_contest_id[contest_id] = (self.start_date, self.end_date)
+
+    for contest_id, contest in contest_by_contest_id.items():
+      # ignore contests that don't have a subsequent contest
+      subsequent_element = contest.find("SubsequentContestId")
+      if not element_has_text(subsequent_element):
+        continue
+      # ignore invalid subsequent contest ids
+      subsequent_contest_id = subsequent_element.text.strip()
+      if subsequent_contest_id not in contest_by_contest_id:
+        continue
+      # compare contest end date with subsequent contest start date
+      _, contest_end = dates_by_contest_id[contest_id]
+      subsequent_contest_start, _ = dates_by_contest_id[
+          subsequent_contest_id
+      ]
+      if contest_end is not None and subsequent_contest_start is not None:
+        date_delta = contest_end.is_older_than(subsequent_contest_start)
+        if date_delta < 0:
+          self.error_log.append(
+              loggers.LogEntry(
+                  "Contest {} with end date {} does not occur before"
+                  " subsequent contest {} with start date {}".format(
+                      contest_id,
+                      contest_end,
+                      subsequent_contest_id,
+                      subsequent_contest_start,
+                  )
+              )
+          )
+
+    if self.error_log:
+      raise loggers.ElectionError(self.error_log)
+
+
+class ContestStartDateContainsCorrespondingEndDate(base.DateRule):
+  """Contest start dates must always have corresponding end dates.
+
+  A Contest can either have both StartDate and EndDate populated or neither at
+  all.
+  """
+
+  def elements(self):
+    return ["Contest"]
+
+  def check(self, element):
+    self.reset_instance_vars()
+    self.gather_dates(element)
+
+    if self.start_elem is None and self.end_elem is not None:
+      raise loggers.ElectionError.from_message(
+          "Contest has an EndDate but is missing a StartDate. Every EndDate"
+          " must have a corresponding StartDate.",
+          [element],
+      )
+
+    if self.start_elem is not None and self.end_elem is None:
+      raise loggers.ElectionError.from_message(
+          "Contest has a StartDate but is missing an EndDate. Every StartDate"
+          " must have a corresponding EndDate.",
+          [element],
+      )
+
+
+class CandidateContestTypesAreCompatible(base.BaseRule):
+  """CandidateContest Type values cannot have both a general and primary type."""
+
+  def elements(self):
+    return ["CandidateContest"]
+
+  def check(self, element):
+    primary_types = {
+        "primary",
+        "partisan-primary-open",
+        "partisan-primary-closed",
+    }
+    contest_type_elements = element.findall("Type")
+    if contest_type_elements:
+      contest_types = {
+          type_element.text.strip().lower()
+          for type_element in contest_type_elements
+          if element_has_text(type_element)
+      }
+      if "general" in contest_types and primary_types.intersection(
+          contest_types
+      ):
+        raise loggers.ElectionError.from_message(
+            "CandidateContest {} has incompatible type values. A contest cannot"
+            " have both a general and primary type.".format(
+                element.get("objectId")
+            ),
+            [element],
+        )
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
@@ -3021,6 +3360,8 @@ COMMON_RULES = (
     MissingFieldsInfo,
     MissingOfficeSelectionMethod,
     UniqueStableID,
+    NonExecutiveOfficeShouldHaveGovernmentBody,
+    ExecutiveOfficeShouldNotHaveGovernmentBody,
 )
 
 ELECTION_RULES = COMMON_RULES + (
@@ -3037,10 +3378,13 @@ ELECTION_RULES = COMMON_RULES + (
     SelfDeclaredCandidateMethod,
     PartiesHaveValidColors,
     ValidateDuplicateColors,
+    ElectionContainsStartAndEndDates,
     ElectionStartDates,
     ElectionEndDatesInThePast,
     ElectionEndDatesOccurAfterStartDates,
+    ElectionDatesSpanContestDates,
     ElectionTypesAreCompatible,
+    ElectionTypesAndCandidateContestTypesAreCompatible,
     DateStatusMatches,
     ContestHasMultipleOffices,
     GpUnitsHaveSingleRoot,
@@ -3059,6 +3403,12 @@ ELECTION_RULES = COMMON_RULES + (
     MultipleInternationalizedTextWithSameLanguageCode,
     CorrectCandidateSelectionCount,
     MultipleCandidatesPointToTheSamePersonInTheSameContest,
+    ContestContainsValidStartDate,
+    ContestContainsValidEndDate,
+    ContestEndDateOccursAfterStartDate,
+    ContestEndDateOccursBeforeSubsequentContestStartDate,
+    ContestStartDateContainsCorrespondingEndDate,
+    CandidateContestTypesAreCompatible,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (
@@ -3067,7 +3417,6 @@ OFFICEHOLDER_RULES = COMMON_RULES + (
     OfficeTermDates,
     UniqueStartDatesForOfficeRoleAndJurisdiction,
     RemovePersonAndOfficeHolderId60DaysAfterEndDate,
-    OfficeMissingGovernmentBody,
 )
 
 ALL_RULES = frozenset(COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES)
