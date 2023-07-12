@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Validation gpunit rules for the civics CDF validator."""
+"""Classes used to validate GpUnit OCD IDs in CDF feeds."""
 
 from __future__ import print_function
 
@@ -32,8 +32,8 @@ import requests
 class GpUnitOcdIdValidator(object):
   """Validates GpUnit OCD-IDs.
 
-  This class fetches existing ocd-ids and store them for ocd-id's validaty
-  checks. It should be initialized with the user input.
+  This class fetches and stores existing OCD IDs to be used for validity checks.
+  It should be initialized with the user input.
   """
 
   ocd_ids = set()
@@ -43,9 +43,9 @@ class GpUnitOcdIdValidator(object):
   ocd_matcher_root = re.compile(OCD_PATTERN_ROOT, flags=re.U)
 
   @classmethod
-  def is_valid_country_code(cls, ocdid):
-    """Check whether country code is valid or not."""
-    match_object = re.match(cls.OCD_PATTERN, ocdid)
+  def is_valid_country_code(cls, ocd_id):
+    """Check whether country code in the given OCD ID is valid."""
+    match_object = re.match(cls.OCD_PATTERN, ocd_id)
     if match_object is None:
       return False
     country_code = match_object.groupdict().get("country_code")
@@ -58,36 +58,66 @@ class GpUnitOcdIdValidator(object):
     return False
 
   @classmethod
-  def init_ocd_id_list(cls, country_code, local_file, check_github):
-    ocd_id_extractor = OcdIdsExtractor(country_code, local_file, check_github)
-    cls.ocd_ids = ocd_id_extractor.extract()
+  def initialize_ocd_ids(
+      cls, country_code, local_file, check_github, ocd_id_list=None
+  ):
+    """Initialize the set of existing OCD IDs.
 
-  @classmethod
-  def _encode_ocdid_value(cls, ocdid):
-    if isinstance(ocdid, str):
-      return ocdid
+    If a list is provided, that list will be used to initialize the set of OCD
+    IDs. If a file is provided, the OCD IDs will be pulled from the local file.
+    Otherwise, the OCD IDs will be fetched from Github.
+
+    Args:
+      country_code: the code for the country to fetch OCD IDs for
+      local_file: the file containing the OCD IDs
+      check_github: boolean that indicates if OCD IDs should be fetched from
+        Github
+      ocd_id_list: a list of OCD IDs
+    """
+    if ocd_id_list:
+      cls.ocd_ids = set(ocd_id_list)
     else:
-      return ""
+      extractor = OcdIdsExtractor(country_code, local_file, check_github)
+      cls.ocd_ids = extractor.extract()
 
   @classmethod
-  def is_valid_ocd(cls, ocdid_val):
-    ocd_id = cls._encode_ocdid_value(ocdid_val)
-    return ocd_id in cls.ocd_ids and cls.ocd_matcher.match(
-        ocd_id) and cls.is_valid_country_code(ocd_id)
+  def is_valid_ocd_id(cls, ocd_id):
+    """Check whether the given OCD ID is valid.
+
+    An OCD ID is valid if:
+    - it is in the list of existing OCD IDs
+    - it is properly formatted
+    - it has a valid country code
+
+    Args:
+      ocd_id: the OCD ID of interest
+
+    Returns:
+      True if the OCD ID is valid. False otherwise.
+    """
+    ocd_id = str(ocd_id)
+    return (
+        ocd_id in cls.ocd_ids
+        and cls.ocd_matcher.match(ocd_id)
+        and cls.is_valid_country_code(ocd_id)
+    )
 
   @classmethod
-  def is_country_or_region_ocd_id(cls, ocdid_val):
-    ocd_id = cls._encode_ocdid_value(ocdid_val)
-    return cls.ocd_matcher_root.match(ocd_id)
+  def is_country_or_region_ocd_id(cls, ocd_id):
+    """Check whether the given OCD ID represents a country or region."""
+    return cls.ocd_matcher_root.match(str(ocd_id))
 
 
 class OcdIdsExtractor(object):
-  """Extract OCD IDs from github or from a local file if defined."""
+  """Extract OCD IDs from github or from a local file if defined.
+
+  The complete OCD ID definition can be found at
+  https://open-civic-data.readthedocs.io/en/latest/proposals/0002.html
+  """
 
   CACHE_DIR = "~/.cache"
   GITHUB_REPO = "opencivicdata/ocd-division-ids"
   GITHUB_DIR = "identifiers"
-  # Reference http://docs.opencivicdata.org/en/latest/proposals/0002.html
 
   def __init__(self, country_code=None, local_file=None, check_github=True):
     self.check_github = check_github
@@ -153,7 +183,6 @@ class OcdIdsExtractor(object):
 
   def _get_latest_commit_date(self):
     """Returns the latest commit date to country-*.csv."""
-    latest_commit_date = None
     latest_commit = self.github_repo.get_commits(
         path="{0}/{1}".format(self.GITHUB_DIR, self.github_file))[0]
     latest_commit_date = latest_commit.commit.committer.date
@@ -197,5 +226,3 @@ class OcdIdsExtractor(object):
         blob_sha = content_file.sha
         break
     return blob_sha
-
-

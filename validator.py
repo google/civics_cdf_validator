@@ -287,12 +287,12 @@ def exec_profiling(func):
 
 
 @exec_profiling
-def feed_validation(options):
+def feed_validation(options, ocd_id_list=None):
   """Validate the input feed depending on the user parameters."""
+  gpunit_rules.GpUnitOcdIdValidator.initialize_ocd_ids(
+      options.c, options.ocdid_file, not options.g, ocd_id_list
+  )
   rule_options = {}
-  gpunit_rules.GpUnitOcdIdValidator.init_ocd_id_list(options.c,
-                                                     options.ocdid_file,
-                                                     not options.g)
   if options.required_languages:
     rule_options.setdefault("AllLanguages", []).append(
         base.RuleOption("required_languages",

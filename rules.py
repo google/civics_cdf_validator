@@ -492,7 +492,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
                              [element], [referenced_gpunit.sourceline]))
       else:
         for ocd_id in ocd_ids:
-          if not gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd(ocd_id):
+          if not gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(ocd_id):
             error_log.append(
                 loggers.LogEntry("The ElectoralDistrictId refers to GpUnit %s "
                                  "that does not have a valid OCD ID (%s)"
@@ -520,7 +520,9 @@ class GpUnitOcdId(base.BaseRule):
       external_id_elements = get_external_id_values(
           element, "ocd-id", return_elements=True)
       for extern_id in external_id_elements:
-        if not gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd(extern_id.text):
+        if not gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(
+            extern_id.text
+        ):
           msg = "The OCD ID %s is not valid" % extern_id.text
           raise loggers.ElectionWarning.from_message(
               msg, [element], [extern_id.sourceline])

@@ -1027,7 +1027,7 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
     ocdid_validator.setup()
     mock = MagicMock(return_value=True)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
+    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
 
     ocdid_validator.check(element)
 
@@ -1050,7 +1050,7 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     ocdid_validator.setup()
 
     mock = MagicMock(return_value=True)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
+    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
 
     with self.assertRaises(loggers.ElectionError) as ee:
       ocdid_validator.check(element)
@@ -1078,7 +1078,7 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     ocdid_validator.setup()
 
     mock = MagicMock(return_value=True)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
+    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
 
     with self.assertRaises(loggers.ElectionError) as ee:
       ocdid_validator.check(element)
@@ -1103,7 +1103,7 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     ocdid_validator.setup()
 
     mock = MagicMock(return_value=True)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
+    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
 
     with self.assertRaises(loggers.ElectionError) as ee:
       ocdid_validator.check(element)
@@ -1131,7 +1131,7 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     ocdid_validator.setup()
 
     mock = MagicMock(return_value=False)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
+    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
 
     with self.assertRaises(loggers.ElectionError) as ee:
       ocdid_validator.check(element)
@@ -1185,7 +1185,7 @@ class GpUnitOcdIdTest(absltest.TestCase):
     report = etree.fromstring(reporting_unit)
 
     mock = MagicMock(return_value=True)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
+    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
     self.gp_unit_validator.check(report.find("GpUnit"))
 
   def testItIgnoresElementsWithNoObjectId(self):
@@ -1206,7 +1206,7 @@ class GpUnitOcdIdTest(absltest.TestCase):
     report = etree.fromstring(reporting_unit)
 
     mock = MagicMock(return_value=True)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
+    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
     self.gp_unit_validator.check(report.find("GpUnit"))
 
   def testItIgnoresElementsWithNoOcdIdValue(self):
@@ -1214,7 +1214,7 @@ class GpUnitOcdIdTest(absltest.TestCase):
     report = etree.fromstring(reporting_unit)
 
     mock = MagicMock(return_value=True)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
+    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
     self.gp_unit_validator.check(report.find("GpUnit"))
 
   def testItRaisesAWarningIfOcdIdNotInListOfValidIds(self):
@@ -1225,7 +1225,7 @@ class GpUnitOcdIdTest(absltest.TestCase):
     report = etree.fromstring(reporting_unit)
 
     mock = MagicMock(return_value=False)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd = mock
+    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
     with self.assertRaises(loggers.ElectionWarning):
       self.gp_unit_validator.check(report.find("GpUnit"))
 
