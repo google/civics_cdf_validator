@@ -2944,77 +2944,98 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
 
   def check(self, election_report_element):
     error_log = []
-    contest_ids = {}
-    contest_end_dates = {}
+    contest_by_id = {}
+    contest_end_date_by_id = {}
 
-    for election in self.get_elements_by_class(election_report_element,
-                                               "Election"):
+    for election in self.get_elements_by_class(
+        election_report_element, "Election"
+    ):
       self.gather_dates(election)
+      election_end_date = self.end_date
       for contest in self.get_elements_by_class(election, "Contest"):
-        contest_ids[contest.get("objectId")] = contest
-        contest_end_dates[contest.get("objectId")] = self.end_date
+        self.reset_instance_vars()
+        self.gather_dates(contest)
+        contest_by_id[contest.get("objectId")] = contest
+        contest_end_date_by_id[contest.get("objectId")] = (
+            self.end_date or election_end_date
+        )
 
-    for contest_id, contest in contest_ids.items():
+    for contest_id, contest in contest_by_id.items():
       element = contest.find("SubsequentContestId")
       if not element_has_text(element):
         continue
       subsequent_contest_id = element.text.strip()
 
       # Check that subsequent contest exists
-      if subsequent_contest_id not in contest_ids:
+      if subsequent_contest_id not in contest_by_id:
         error_log.append(
             loggers.LogEntry(
-                "Could not find SubsequentContest %s referenced by Contest %s."
-                % (subsequent_contest_id, contest_id)))
+                "Could not find SubsequentContest"
+                f" {subsequent_contest_id} referenced by Contest {contest_id}."
+            )
+        )
         continue
 
-      subsequent_contest = contest_ids[subsequent_contest_id]
-
+      subsequent_contest = contest_by_id[subsequent_contest_id]
       # Check that the subsequent contest has a later end date
-      if (contest_end_dates[subsequent_contest_id] is not None and
-          contest_end_dates[contest_id] is not None):
-        end_delta = base.PartialDate.is_older_than(contest_end_dates[
-            subsequent_contest_id], contest_end_dates[contest_id])
+      if subsequent_contest is not None and contest is not None:
+        end_delta = base.PartialDate.is_older_than(
+            contest_end_date_by_id[subsequent_contest_id],
+            contest_end_date_by_id[contest_id],
+        )
         if end_delta > 0:
           error_log.append(
               loggers.LogEntry(
-                  "Contest %s references a subsequent contest with an earlier "
-                  "end date." % contest_id, [contest], [contest.sourceline]))
+                  f"Contest {contest_id} references a subsequent contest with"
+                  " an earlier end date.",
+                  [contest],
+                  [contest.sourceline],
+              )
+          )
 
       # Check that office ids match
-      c_office_id = None
-      sc_office_id = None
+      contest_office_id = None
+      subsequent_contest_office_id = None
       element = contest.find("OfficeIds")
       if element_has_text(element):
-        c_office_id = element.text
+        contest_office_id = element.text
       element = subsequent_contest.find("OfficeIds")
       if element_has_text(element):
-        sc_office_id = element.text
+        subsequent_contest_office_id = element.text
 
-      if c_office_id != sc_office_id:
+      if contest_office_id != subsequent_contest_office_id:
         error_log.append(
             loggers.LogEntry(
-                "Contest %s references a subsequent contest with a different "
-                "office id." % contest_id, [contest], [contest.sourceline]))
+                f"Contest {contest_id} references a subsequent contest with a"
+                " different office id.",
+                [contest],
+                [contest.sourceline],
+            )
+        )
 
       # Check that primary party ids match or that the subsequent contest does
       # not have a primary party (e.g. primary -> general election)
-      c_primary_party_ids = None
-      sc_primary_party_ids = None
+      contest_primary_party_ids = None
+      subsequent_contest_primary_party_ids = None
       element = contest.find("PrimaryPartyIds")
       if element_has_text(element):
-        c_primary_party_ids = set(element.text.split())
+        contest_primary_party_ids = set(element.text.split())
       element = subsequent_contest.find("PrimaryPartyIds")
       if element_has_text(element):
-        sc_primary_party_ids = set(element.text.split())
+        subsequent_contest_primary_party_ids = set(element.text.split())
 
-      if (sc_primary_party_ids is not None and
-          c_primary_party_ids != sc_primary_party_ids):
+      if (
+          subsequent_contest_primary_party_ids is not None
+          and contest_primary_party_ids != subsequent_contest_primary_party_ids
+      ):
         error_log.append(
             loggers.LogEntry(
                 "Contest %s references a subsequent contest with different "
-                "primary party ids." % contest_id, [contest],
-                [contest.sourceline]))
+                "primary party ids." % contest_id,
+                [contest],
+                [contest.sourceline],
+            )
+        )
 
       # Check that there is not a subsequent contest <-> composing contest loop
       element = subsequent_contest.find("ComposingContestIds")
@@ -3023,10 +3044,13 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
         if contest_id in subsequent_composing_ids:
           error_log.append(
               loggers.LogEntry(
-                  "Contest %s is listed as a composing contest for its "
-                  "subsequent contest.  Two contests can be linked by "
-                  "SubsequentContestId or ComposingContestId, but not both." %
-                  contest_id, [contest], [contest.sourceline]))
+                  f"Contest {contest_id} is listed as a composing contest for"
+                  " its subsequent contest. Two contests can be linked by"
+                  " SubsequentContestId or ComposingContestId, but not both.",
+                  [contest],
+                  [contest.sourceline],
+              )
+          )
 
     if error_log:
       raise loggers.ElectionError(error_log)

@@ -9037,7 +9037,7 @@ class OfficeSelectionMethodTest(absltest.TestCase):
         str(ew.exception.log_entry[0].message))
 
 
-class SubsequentContestIdTest(absltest.TestCase):
+class SubsequentContestIdIsValidRelatedContestTest(absltest.TestCase):
 
   _base_election_report = """
     <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -9080,10 +9080,10 @@ class SubsequentContestIdTest(absltest.TestCase):
           </Contest>
           """
     root_string = self._base_election_report.format("cc_456", contest_string)
-
     election_tree = etree.fromstring(root_string)
     subsequent_validator = rules.SubsequentContestIdIsValidRelatedContest(
-        election_tree, None)
+        election_tree, None
+    )
 
     subsequent_validator.check(election_tree)
 
@@ -9094,16 +9094,20 @@ class SubsequentContestIdTest(absltest.TestCase):
           </Contest>
           """
     root_string = self._base_election_report.format("cc_456", contest_string)
-
     election_tree = etree.fromstring(root_string)
     subsequent_validator = rules.SubsequentContestIdIsValidRelatedContest(
-        election_tree, None)
+        election_tree, None
+    )
 
     with self.assertRaises(loggers.ElectionError) as ee:
       subsequent_validator.check(election_tree)
+
+    self.assertLen(ee.exception.log_entry, 1)
     self.assertIn(
         "Contest cc_123 references a subsequent contest with a different "
-        "office id", str(ee.exception.log_entry[0].message))
+        "office id",
+        ee.exception.log_entry[0].message,
+    )
 
   def testSubsequentContestWithMismatchedPrimaryPartyIds(self):
     contest_string = """
@@ -9113,16 +9117,20 @@ class SubsequentContestIdTest(absltest.TestCase):
           </Contest>
           """
     root_string = self._base_election_report.format("cc_456", contest_string)
-
     election_tree = etree.fromstring(root_string)
     subsequent_validator = rules.SubsequentContestIdIsValidRelatedContest(
-        election_tree, None)
+        election_tree, None
+    )
 
     with self.assertRaises(loggers.ElectionError) as ee:
       subsequent_validator.check(election_tree)
+
+    self.assertLen(ee.exception.log_entry, 1)
     self.assertIn(
         "Contest cc_123 references a subsequent contest with different primary "
-        "party ids", str(ee.exception.log_entry[0].message))
+        "party ids",
+        ee.exception.log_entry[0].message,
+    )
 
   def testSubsequentContestWithNoPrimaryPartyIds(self):
     contest_string = """
@@ -9131,25 +9139,54 @@ class SubsequentContestIdTest(absltest.TestCase):
           </Contest>
           """
     root_string = self._base_election_report.format("cc_456", contest_string)
-
     election_tree = etree.fromstring(root_string)
     subsequent_validator = rules.SubsequentContestIdIsValidRelatedContest(
-        election_tree, None)
+        election_tree, None
+    )
 
     subsequent_validator.check(election_tree)
 
-  def testSubsequentContestWithEarlierEndDate(self):
+  def testSubsequentContestWithEarlierEndDateFromElection(self):
     root_string = self._base_election_report.format("cc_001", "")
-
     election_tree = etree.fromstring(root_string)
     subsequent_validator = rules.SubsequentContestIdIsValidRelatedContest(
-        election_tree, None)
+        election_tree, None
+    )
 
     with self.assertRaises(loggers.ElectionError) as ee:
       subsequent_validator.check(election_tree)
+
+    self.assertLen(ee.exception.log_entry, 1)
     self.assertIn(
         "Contest cc_123 references a subsequent contest with an earlier end "
-        "date.", str(ee.exception.log_entry[0].message))
+        "date.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testSubsequentContestWithEarlierEndDateFromContest(self):
+    contest_string = """
+          <Contest objectId="cc_002" xsi:type="CandidateContest">
+            <OfficeIds>office1</OfficeIds>
+            <PrimaryPartyIds>party1</PrimaryPartyIds>
+            <StartDate>2020-02-03</StartDate>
+            <EndDate>2020-02-03</EndDate>
+          </Contest>
+          """
+    root_string = self._base_election_report.format("cc_002", contest_string)
+    election_tree = etree.fromstring(root_string)
+    subsequent_validator = rules.SubsequentContestIdIsValidRelatedContest(
+        election_tree, None
+    )
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      subsequent_validator.check(election_tree)
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertIn(
+        "Contest cc_123 references a subsequent contest with an earlier end "
+        "date.",
+        ee.exception.log_entry[0].message,
+    )
 
   def testSubsequentContestContainsOriginalInComposingContestIds(self):
     contest_string = """
@@ -9160,18 +9197,21 @@ class SubsequentContestIdTest(absltest.TestCase):
           </Contest>
           """
     root_string = self._base_election_report.format("cc_456", contest_string)
-
     election_tree = etree.fromstring(root_string)
     subsequent_validator = rules.SubsequentContestIdIsValidRelatedContest(
-        election_tree, None)
+        election_tree, None
+    )
 
     with self.assertRaises(loggers.ElectionError) as ee:
       subsequent_validator.check(election_tree)
+
+    self.assertLen(ee.exception.log_entry, 1)
     self.assertIn(
         "Contest cc_123 is listed as a composing contest for its subsequent "
-        "contest.  Two contests can be linked by SubsequentContestId or "
+        "contest. Two contests can be linked by SubsequentContestId or "
         "ComposingContestId, but not both.",
-        str(ee.exception.log_entry[0].message))
+        ee.exception.log_entry[0].message,
+    )
 
 
 class ComposingContestIdsTest(absltest.TestCase):
