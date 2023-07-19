@@ -245,6 +245,8 @@ def filter_all_rules_using_user_arg(rules_allowlist, rule_set, rules_blocklist):
       rule_names = [x.__name__ for x in rules.ELECTION_RULES]
     elif rule_set == rules.RuleSet.OFFICEHOLDER:
       rule_names = [x.__name__ for x in rules.OFFICEHOLDER_RULES]
+    elif rule_set == rules.RuleSet.COMMITTEE:
+      rule_names = [x.__name__ for x in rules.COMMITTEE_RULES]
     else:
       raise AssertionError("Invalid rule_set: " + rule_set)
     if rules_blocklist:

@@ -366,8 +366,9 @@ class ValidIDREF(base.BaseRule):
   _REFERENCE_TYPE_OVERRIDES = {
       "ElectoralDistrictId": "GpUnit",
       "ElectionScopeId": "GpUnit",
+      "ScopeLevel": "GpUnit",
       "AuthorityId": "Person",
-      "AuthorityIds": "Person"
+      "AuthorityIds": "Person",
   }
 
   def setup(self):
@@ -1450,9 +1451,18 @@ class MissingStableIds(base.BaseRule):
 
   def elements(self):
     return [
-        "Candidate", "CandidateContest", "PartyContest", "BallotMeasureContest",
-        "Party", "Person", "Coalition", "BallotMeasureSelection", "Office",
-        "ReportingUnit", "Election"
+        "BallotMeasureContest",
+        "BallotMeasureSelection",
+        "Candidate",
+        "CandidateContest",
+        "Coalition",
+        "Committee",
+        "Election",
+        "Office",
+        "Party",
+        "PartyContest",
+        "Person",
+        "ReportingUnit",
     ]
 
   def check(self, element):
@@ -1785,8 +1795,10 @@ class PersonsHaveValidGender(base.BaseRule):
   def check(self, element):
     if (element.text is not None and
         element.text.lower() not in self._VALID_GENDERS):
-      raise loggers.ElectionError("Person object has invalid gender value: %s" %
-                                  element.text)
+      raise loggers.ElectionError.from_message(
+          "Person object has invalid gender value: {0}".format(element.text),
+          [element],
+      )
 
 
 class VoteCountTypesCoherency(base.BaseRule):
@@ -3341,10 +3353,84 @@ class CandidateContestTypesAreCompatible(base.BaseRule):
         )
 
 
+class CommitteeClassificationEndDateOccursAfterStartDate(base.DateRule):
+  """CommitteeClassification elements should have end dates that occur after the start dates."""
+
+  def elements(self):
+    return ["CommitteeClassification"]
+
+  def check(self, element):
+    self.reset_instance_vars()
+    self.gather_dates(element)
+
+    if self.end_date and self.start_date:
+      self.check_end_after_start()
+      if self.error_log:
+        raise loggers.ElectionError(self.error_log)
+
+
+class AffiliationEndDateOccursAfterStartDate(base.DateRule):
+  """Affiliation elements should have end dates that occur after the start dates."""
+
+  def elements(self):
+    return ["Affiliation"]
+
+  def check(self, element):
+    self.reset_instance_vars()
+    self.gather_dates(element)
+
+    if self.end_date and self.start_date:
+      self.check_end_after_start()
+      if self.error_log:
+        raise loggers.ElectionError(self.error_log)
+
+
+class EinMatchesFormat(base.BaseRule):
+  """EIN id should be in the following format: XX-XXXXXXX."""
+
+  def __init__(self, election_tree, schema_tree):
+    super(EinMatchesFormat, self).__init__(election_tree, schema_tree)
+    regex = r"\d{2}(-\d{7})?"
+    self.ein_id_matcher = re.compile(regex, flags=re.U)
+
+  def elements(self):
+    return ["Committee"]
+
+  def check(self, element):
+    external_identifiers = element.find("ExternalIdentifiers")
+    if external_identifiers is not None:
+      ein_ids = get_external_id_values(external_identifiers, "ein")
+      if ein_ids:
+        e_id = ein_ids.pop()
+        if not self.ein_id_matcher.match(e_id):
+          raise loggers.ElectionError.from_message(
+              "EIN id '{}' is not in the correct format.".format(e_id),
+              [element],
+          )
+
+
+class AffiliationHasEitherPartyOrPerson(base.BaseRule):
+  """Affiliation should contain either a Party or a Person objectId."""
+
+  def elements(self):
+    return ["Affiliation"]
+
+  def check(self, element):
+    party_id = element.find("PartyId")
+    person_id = element.find("PersonId")
+    if not ((party_id is None) ^ (person_id is None)):
+      raise loggers.ElectionError.from_message(
+          "Affiliation must have one of: PartyId, PersonId. Cannot include"
+          " both.",
+          [element],
+      )
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
   OFFICEHOLDER = 2
+  COMMITTEE = 3
 
 
 # To add new rules, create a new class, inherit the base rule,
@@ -3449,4 +3535,14 @@ OFFICEHOLDER_RULES = COMMON_RULES + (
     RemovePersonAndOfficeHolderId60DaysAfterEndDate,
 )
 
-ALL_RULES = frozenset(COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES)
+COMMITTEE_RULES = COMMON_RULES + (
+    ProhibitElectionData,
+    CommitteeClassificationEndDateOccursAfterStartDate,
+    AffiliationEndDateOccursAfterStartDate,
+    EinMatchesFormat,
+    AffiliationHasEitherPartyOrPerson,
+)
+
+ALL_RULES = frozenset(
+    COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES + COMMITTEE_RULES
+)

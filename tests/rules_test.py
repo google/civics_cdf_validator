@@ -3978,7 +3978,7 @@ class MissingStableIdsTest(absltest.TestCase):
 
   def testItShouldCheckAllElementsListedInReturnStatement(self):
     elements = self.missing_ids_validator.elements()
-    self.assertLen(elements, 11)
+    self.assertLen(elements, 12)
     self.assertIn("BallotMeasureContest", elements)
     self.assertIn("BallotMeasureSelection", elements)
     self.assertIn("Candidate", elements)
@@ -3990,6 +3990,7 @@ class MissingStableIdsTest(absltest.TestCase):
     self.assertIn("PartyContest", elements)
     self.assertIn("Person", elements)
     self.assertIn("ReportingUnit", elements)
+    self.assertIn("Committee", elements)
 
   def testStableIdPresentForOffice(self):
     test_string = self.root_string.format("<Office objectId='off1'>", "stable",
@@ -9966,6 +9967,184 @@ class CandidateContestTypesAreCompatibleTest(absltest.TestCase):
     )
 
     self.contest_validator.check(contest_element)
+
+
+class CommitteeClassificationEndDateOccursAfterStartDateTest(absltest.TestCase):
+
+  def setUp(self):
+    super(CommitteeClassificationEndDateOccursAfterStartDateTest, self).setUp()
+    self.validator = rules.CommitteeClassificationEndDateOccursAfterStartDate(
+        None, None
+    )
+    self.today_date = datetime.datetime.now()
+
+  def testCommitteeClassificationWithNoDates(self):
+    committee_string = """
+      <CommitteeClassification objectId="com1">
+        <ScopeLevel>ru-123</ScopeLevel>
+      </CommitteeClassification>
+      """
+
+    self.validator.check(etree.fromstring(committee_string))
+
+    self.assertEmpty(self.validator.error_log)
+    self.assertIsNone(self.validator.end_date)
+    self.assertIsNone(self.validator.start_date)
+
+  def testCommitteeClassificationWithEndDateBeforeStartDate(self):
+    yesterday_date = self.today_date - datetime.timedelta(days=1)
+    start_date = self.today_date.strftime("%Y-%m-%d")
+    end_date = yesterday_date.strftime("%Y-%m-%d")
+    committee_string = """
+      <CommitteeClassification objectId="com1">
+        <ScopeLevel>ru-123</ScopeLevel>
+        <StartDate>{}</StartDate>
+        <EndDate>{}</EndDate>
+      </CommitteeClassification>
+      """.format(start_date, end_date)
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.validator.check(etree.fromstring(committee_string))
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        """The dates (start: {}, end: {}) are invalid.
+      The end date must be the same or after the start date.""".format(
+            start_date, end_date
+        ),
+        ee.exception.log_entry[0].message,
+    )
+
+  def testCommitteeClassificationWithSameStartAndEndDate(self):
+    start_date = self.today_date.strftime("%Y-%m-%d")
+    end_date = self.today_date.strftime("%Y-%m-%d")
+    committee_string = """
+      <CommitteeClassification objectId="com1">
+        <ScopeLevel>ru-123</ScopeLevel>
+        <StartDate>{}</StartDate>
+        <EndDate>{}</EndDate>
+      </CommitteeClassification>
+      """.format(start_date, end_date)
+
+    self.validator.check(etree.fromstring(committee_string))
+
+    self.assertEmpty(self.validator.error_log)
+
+  def testCommitteeClassificationWithEndDateAfterStartDate(self):
+    tomorrow_date = self.today_date + datetime.timedelta(days=1)
+    start_date = self.today_date.strftime("%Y-%m-%d")
+    end_date = tomorrow_date.strftime("%Y-%m-%d")
+    committee_string = """
+      <CommitteeClassification objectId="com1">
+        <ScopeLevel>ru-123</ScopeLevel>
+        <StartDate>{}</StartDate>
+        <EndDate>{}</EndDate>
+      </CommitteeClassification>
+      """.format(start_date, end_date)
+
+    self.validator.check(etree.fromstring(committee_string))
+
+    self.assertEmpty(self.validator.error_log)
+
+
+class EinMatchesFormatTest(absltest.TestCase):
+
+  def setUp(self):
+    super(EinMatchesFormatTest, self).setUp()
+    self.root_string = """
+      <Committee>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>{}</Type>
+            {}
+            <Value>{}</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Committee>
+    """
+    self.ein_string = "<OtherType>ein</OtherType>"
+    self.ein_id_validator = rules.EinMatchesFormat(None, None)
+
+  def testValidEinID(self):
+    test_string = self.root_string.format(
+        "other", self.ein_string, "12-3456789"
+    )
+    self.ein_id_validator.check(etree.fromstring(test_string))
+
+  def testInvalidEinID(self):
+    test_string = self.root_string.format(
+        "other", self.ein_string, "cand-2013-va-obama!"
+    )
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.ein_id_validator.check(etree.fromstring(test_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "EIN id 'cand-2013-va-obama!' is not in the correct format.",
+    )
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Committee")
+
+  def testEmptyEinIDFails(self):
+    test_string = self.root_string.format("other", self.ein_string, "   ")
+
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.ein_id_validator.check(etree.fromstring(test_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "EIN id '   ' is not in the correct format.",
+    )
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Committee")
+
+
+class AffiliationHasEitherPartyOrPersonTest(absltest.TestCase):
+
+  def setUp(self):
+    super(AffiliationHasEitherPartyOrPersonTest, self).setUp()
+    self.affiliation_validator = rules.AffiliationHasEitherPartyOrPerson(
+        None, None
+    )
+
+  def testValidAffiliation(self):
+    test_string = """
+      <Affiliation>
+        <PersonId>per-123</PersonId>
+        <StartDate>2023-05-20</StartDate>
+        <EndDate>2023-05-30</EndDate>
+      </Affiliation>
+    """
+    self.affiliation_validator.check(etree.fromstring(test_string))
+
+  def testAffiliationWithPartyAndPerson(self):
+    test_string = """
+      <Affiliation>
+        <PartyId>par-123</PartyId>
+        <PersonId>per-123</PersonId>
+        <StartDate>2023-05-20</StartDate>
+        <EndDate>2023-05-30</EndDate>
+      </Affiliation>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.affiliation_validator.check(etree.fromstring(test_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Affiliation must have one of: PartyId, PersonId. Cannot include both.",
+    )
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Affiliation")
+
+  def testEmptyAffiliation(self):
+    test_string = """
+      <Affiliation>
+        <StartDate>2023-05-20</StartDate>
+        <EndDate>2023-05-30</EndDate>
+      </Affiliation>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.affiliation_validator.check(etree.fromstring(test_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Affiliation must have one of: PartyId, PersonId. Cannot include both.",
+    )
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Affiliation")
 
 
 class RulesTest(absltest.TestCase):

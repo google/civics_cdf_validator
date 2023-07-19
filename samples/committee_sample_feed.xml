@@ -1,0 +1,187 @@
+<?xml version="1.0"?>
+<ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <CommitteeCollection>
+    <Committee objectId="com001">
+      <AffiliationCollection>
+        <Affiliation>
+          <EndDate>2023-02-22</EndDate>
+          <PartyId>par0001</PartyId>
+          <StartDate>2023-01-01</StartDate>
+        </Affiliation>
+        <Affiliation>
+          <EndDate>2023-02-22</EndDate>
+          <PersonId>per10861a</PersonId>
+          <StartDate>2023-01-01</StartDate>
+        </Affiliation>
+      </AffiliationCollection>
+      <CommitteeClassificationCollection>
+        <CommitteeClassification>
+          <EndDate>2023-02-22</EndDate>
+          <NormalizedDesignation>authorized</NormalizedDesignation>
+          <NormalizedType>candidate</NormalizedType>
+          <RawDesignation>C</RawDesignation>
+          <RawType>A</RawType>
+          <ScopeLevel>ru000us</ScopeLevel>
+          <StartDate>2023-01-01</StartDate>
+        </CommitteeClassification>
+        <CommitteeClassification>
+          <EndDate>2023-02-22</EndDate>
+          <NormalizedDesignation>authorized</NormalizedDesignation>
+          <NormalizedType>candidate</NormalizedType>
+          <RawDesignation>va_specific_type_as_string</RawDesignation>
+          <RawType>va_specific_type_as_string</RawType>
+          <ScopeLevel>ru0002</ScopeLevel>
+          <StartDate>2023-01-01</StartDate>   
+        </CommitteeClassification>
+      </CommitteeClassificationCollection>
+      <CommitteeScopeGpUnitIds>ru000us ru0002</CommitteeScopeGpUnitIds>
+      <ContactInformation>
+        <Uri Annotation="official-website">http://www.fake.url</Uri>
+      </ContactInformation>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-committee-id-001</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>national-level</Type>
+          <Value>fec-committee-id-123</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>state-level</Type>
+          <Value>va-committee-id-123</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>ein</OtherType>
+          <Value>12-3456789</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>
+        <Text language="en">Example Committee</Text>
+      </Name>
+    </Committee>
+  </CommitteeCollection>
+  <Format>precinct-level</Format>
+  <GeneratedDate>2018-11-05T14:25:28</GeneratedDate>
+  <GpUnitCollection>
+    <GpUnit objectId="ru000us" xsi:type="ReportingUnit">
+      <ComposingGpUnitIds>ru0002</ComposingGpUnitIds>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru000us</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <InternationalizedName>
+        <Text language="en">United States</Text>
+      </InternationalizedName>
+      <Type>country</Type>
+    </GpUnit>
+    <GpUnit objectId="ru0002" xsi:type="ReportingUnit">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru0002</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <InternationalizedName>
+        <Text language="en">Virginia</Text>
+      </InternationalizedName>
+      <Type>state</Type>
+    </GpUnit>
+  </GpUnitCollection>
+  <Issuer>Data Partner X</Issuer>
+  <IssuerAbbreviation>DPX</IssuerAbbreviation>
+  <PartyCollection>
+    <Party objectId="par0001">
+      <InternationalizedAbbreviation>
+        <Text language="en">REP</Text>
+      </InternationalizedAbbreviation>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>vageneral-pty-2013-republican</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>
+        <Text language="en">Republican</Text>
+      </Name>
+      <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
+    </Party>
+    <Party objectId="par0002">
+      <InternationalizedAbbreviation>
+        <Text language="en">DEM</Text>
+      </InternationalizedAbbreviation>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>vageneral-pty-2013-democratic</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>
+        <Text language="en">Democratic</Text>
+      </Name>
+      <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
+    </Party>
+  </PartyCollection>
+  <PersonCollection>
+    <Person objectId="per10966">
+      <ContactInformation>
+        <Uri Annotation="campaign-website">http://www.northamforlg.com</Uri>
+      </ContactInformation>
+      <DateOfBirth>1959-09-13</DateOfBirth>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>person-per10966</Value>
+        </ExternalIdentifier></ExternalIdentifiers>
+      <FirstName>Ralph</FirstName>
+      <FullName>
+        <Text language="en">Ralph Northam</Text>
+      </FullName>
+      <LastName>Northam</LastName>
+      <MiddleName>S.</MiddleName>
+      <PartyId>par0001</PartyId>
+    </Person>
+    <Person objectId="per10861a">
+      <ContactInformation>
+        <Uri Annotation="wikipedia">https://en.wikipedia.org/wiki/Barack_Obama</Uri>
+        <Uri Annotation="website">https://www.opensecrets.org/pres12/candidate.php?id=n00009638</Uri>
+      </ContactInformation>
+      <DateOfBirth>1961-08-04</DateOfBirth>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>person-per10861a</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FirstName>Barack</FirstName>
+      <FullName>
+        <Text language="en">Barack Obama</Text>
+      </FullName>
+      <LastName>Obama</LastName>
+      <MiddleName>H.</MiddleName>
+      <PartyId>par0002</PartyId>
+    </Person>
+  </PersonCollection>
+  <SequenceStart>1</SequenceStart>
+  <SequenceEnd>1</SequenceEnd>
+  <Status>unofficial-partial</Status>
+  <VendorApplicationId>Hand-Generated v0.1</VendorApplicationId>
+</ElectionReport>

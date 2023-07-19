@@ -224,6 +224,25 @@
             <xs:enumeration value="succession" />
         </xs:restriction>
     </xs:simpleType>
+    <xs:simpleType name="CommitteeDesignationEnum">
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="authorized"/>
+        <xs:enumeration value="candidate-campaign"/>
+        <xs:enumeration value="joint-fundraiser"/>
+        <xs:enumeration value="pac-leadership"/>
+        <xs:enumeration value="pac-registrant"/>
+        <xs:enumeration value="unauthorized"/>
+      </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="CommitteeTypeEnum">
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="ballot-measure-committee"/>
+        <xs:enumeration value="candidate"/>
+        <xs:enumeration value="independent-spender"/>
+        <xs:enumeration value="pacs"/>
+        <xs:enumeration value="party"/>
+      </xs:restriction>
+    </xs:simpleType>
     <!-- ========== Elements ========== -->
     <xs:complexType name="AnnotatedString">
         <xs:simpleContent>
@@ -453,6 +472,13 @@
     </xs:complexType>
     <xs:complexType name="ElectionReport">
         <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="0" name="CommitteeCollection">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element maxOccurs="unbounded" minOccurs="0" name="Committee" type="Committee"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
             <xs:element maxOccurs="unbounded" minOccurs="0" name="Election" type="Election" />
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
             <xs:element name="Format" type="ReportDetailLevel" />
@@ -741,5 +767,47 @@
                 <xs:attribute name="Annotation" type="ShortString" />
             </xs:extension>
         </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="Committee">
+      <xs:sequence>
+        <xs:element maxOccurs="1" minOccurs="1" name="AffiliationCollection">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" minOccurs="0" name="Affiliation" type="Affiliation"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element maxOccurs="1" minOccurs="1" name="CommitteeClassificationCollection">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" minOccurs="0" name="CommitteeClassification" type="CommitteeClassification"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element maxOccurs="1" minOccurs="1" name="CommitteeScopeGpUnitIds" type="xs:IDREFS"/>
+        <xs:element maxOccurs="unbounded" minOccurs="0" name="ContactInformation" type="ContactInformation"/>
+        <xs:element maxOccurs="1" minOccurs="1" name="ExternalIdentifiers" type="ExternalIdentifiers"/>
+        <xs:element maxOccurs="1" minOccurs="1" name="Name" type="InternationalizedText"/>
+      </xs:sequence>
+      <xs:attribute name="objectId" type="xs:ID" use="required"/>
+    </xs:complexType>
+    <xs:complexType name="CommitteeClassification">
+      <xs:sequence>
+        <xs:element maxOccurs="1" minOccurs="0" name="EndDate" type="PartialDate"/>
+        <xs:element maxOccurs="unbounded" minOccurs="0" name="NormalizedDesignation" type="CommitteeDesignationEnum"/>
+        <xs:element maxOccurs="unbounded" minOccurs="0" name="NormalizedType" type="CommitteeTypeEnum"/>
+        <xs:element maxOccurs="unbounded" minOccurs="0" name="RawDesignation" type="xs:string"/>
+        <xs:element maxOccurs="unbounded" minOccurs="0" name="RawType" type="xs:string"/>
+        <xs:element maxOccurs="1" minOccurs="1" name="ScopeLevel" type="xs:IDREFS"/>
+        <xs:element maxOccurs="1" minOccurs="0" name="StartDate" type="PartialDate"/>
+      </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="Affiliation">
+      <xs:sequence>
+        <xs:element maxOccurs="1" minOccurs="0" name="EndDate" type="PartialDate"/>
+        <xs:element maxOccurs="1" minOccurs="0" name="PartyId" type="xs:IDREF"/>
+        <xs:element maxOccurs="1" minOccurs="0" name="PersonId" type="xs:IDREF"/>
+        <xs:element maxOccurs="1" minOccurs="0" name="StartDate" type="PartialDate"/>
+      </xs:sequence>
     </xs:complexType>
 </xs:schema>
