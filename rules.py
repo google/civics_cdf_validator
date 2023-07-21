@@ -1161,6 +1161,7 @@ class BadCharactersInPersonFullName(base.BaseRule):
                        " Aliases should be included in Nickname field.")
     fullname = extract_person_fullname(element)
     person_fullname = re.compile(self.regex, flags=re.U)
+    bad_characters_match = None
     for name in fullname:
       bad_characters_match = re.search(person_fullname, name.lower())
     if bad_characters_match:
