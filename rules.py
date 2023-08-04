@@ -1014,8 +1014,9 @@ class CorrectCandidateSelectionCount(base.BaseRule):
   """CandidateSelections should only reference one candidate.
 
   This rule will throw a warning if a CandidateSelection references multiple
-  candidates. We currently do not support tickets (i.e. CandidateSelections with
-  multiple candidates).
+  candidates or does not reference any candidates at all. We currently do not
+  support tickets (i.e. CandidateSelections with multiple candidates) except for
+  party list elections.
   """
 
   def elements(self):
@@ -1024,19 +1025,24 @@ class CorrectCandidateSelectionCount(base.BaseRule):
   def check(self, element):
     selection_id = element.get("objectId")
     candidate_ids = element.findall("CandidateIds")
-    if len(candidate_ids) != 1:
+    if not candidate_ids:
       msg = (
-          "The CandidateSelection {} is expected to have one CandidateIds "
-          "but {} were found.".format(selection_id, len(candidate_ids))
+          f"The CandidateSelection {selection_id} does not reference any"
+          " candidates."
+      )
+      raise loggers.ElectionWarning.from_message(msg, [element])
+    if len(candidate_ids) > 1:
+      msg = (
+          f"The CandidateSelection {selection_id} is expected to have one"
+          f" CandidateIds but {len(candidate_ids)} were found."
       )
       raise loggers.ElectionWarning.from_message(msg, [element])
     candidates = candidate_ids[0].text.split()
     if len(candidates) != 1:
       msg = (
-          "CandidateIds for CandidateSelection {} is expected to reference "
-          "one candidate but {} candidates were found".format(
-              selection_id, len(candidates)
-          )
+          f"CandidateIds for CandidateSelection {selection_id} is expected to"
+          f" reference one candidate but {len(candidates)} candidates were"
+          " found. This warning can be ignored for party list elections."
       )
       raise loggers.ElectionWarning.from_message(msg, [element])
 
@@ -1444,17 +1450,15 @@ class MissingStableIds(base.BaseRule):
     return [
         "Candidate", "CandidateContest", "PartyContest", "BallotMeasureContest",
         "Party", "Person", "Coalition", "BallotMeasureSelection", "Office",
-        "ReportingUnit"
+        "ReportingUnit", "Election"
     ]
 
   def check(self, element):
+    stable_ids = []
     external_identifiers = element.find("ExternalIdentifiers")
     if external_identifiers is not None:
       stable_ids = get_external_id_values(external_identifiers, "stable")
-      if not stable_ids:
-        raise loggers.ElectionError.from_message(
-            "The element is missing a stable id", [element])
-    else:
+    if not stable_ids:
       raise loggers.ElectionError.from_message(
           "The element is missing a stable id", [element])
 

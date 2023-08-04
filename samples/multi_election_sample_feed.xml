@@ -65,6 +65,13 @@
         </Contest>
       </ContestCollection>
       <ElectionScopeId>ru-united-states</ElectionScopeId>
+    <ExternalIdentifiers>
+      <ExternalIdentifier>
+        <Type>other</Type>
+        <OtherType>stable</OtherType>
+        <Value>dem_super_tuesday_el</Value>
+      </ExternalIdentifier>
+    </ExternalIdentifiers>
       <Name>
         <Text language="en">2020 Democratic Party Primary - Super Tuesday</Text>
       </Name>
@@ -154,6 +161,13 @@
       </Contest>
     </ContestCollection>
     <ElectionScopeId>ru-united-states</ElectionScopeId>
+    <ExternalIdentifiers>
+      <ExternalIdentifier>
+        <Type>other</Type>
+        <OtherType>stable</OtherType>
+        <Value>florida_primaries_el</Value>
+      </ExternalIdentifier>
+    </ExternalIdentifiers>
     <Name>
       <Text language="en">2020 Florida Primaries</Text>
     </Name>
@@ -192,6 +206,13 @@
       </Contest>
     </ContestCollection>
     <ElectionScopeId>ru-united-states</ElectionScopeId>
+    <ExternalIdentifiers>
+      <ExternalIdentifier>
+        <Type>other</Type>
+        <OtherType>stable</OtherType>
+        <Value>dem_pres_praimry_el</Value>
+      </ExternalIdentifier>
+    </ExternalIdentifiers>
     <Name>
       <Text language="en">2020 Democratic Party Presidential Primary</Text>
     </Name>
@@ -444,6 +465,13 @@
       </Contest>
     </ContestCollection>
     <ElectionScopeId>ru-united-states</ElectionScopeId>
+    <ExternalIdentifiers>
+      <ExternalIdentifier>
+        <Type>other</Type>
+        <OtherType>stable</OtherType>
+        <Value>pres_gen_el</Value>
+      </ExternalIdentifier>
+    </ExternalIdentifiers>
     <Name>
       <Text language="en">2020 United States Presidential General Election</Text>
     </Name>
@@ -496,7 +524,7 @@
         <PersonId>person12</PersonId>
         <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
-  </CandidateCollection>
+    </CandidateCollection>
     <ContestCollection>
       <Contest objectId="cc500" xsi:type="CandidateContest">
         <BallotSelection objectId="cs21_500" xsi:type="CandidateSelection">
@@ -525,6 +553,13 @@
       </Contest>
     </ContestCollection>
     <ElectionScopeId>ru-united-states</ElectionScopeId>
+    <ExternalIdentifiers>
+      <ExternalIdentifier>
+        <Type>other</Type>
+        <OtherType>stable</OtherType>
+        <Value>ga_sen_runoff_el</Value>
+      </ExternalIdentifier>
+    </ExternalIdentifiers>
     <Name>
       <Text language="en">2022 Georgia Senate Runoff</Text>
     </Name>

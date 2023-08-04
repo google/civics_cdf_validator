@@ -52,6 +52,13 @@
       <ExternalIdentifier>
         <Type>other</Type>
         <OtherType>stable</OtherType>
+        <Value>stable_el1</Value>
+      </ExternalIdentifier>
+    </ExternalIdentifiers>
+    <ExternalIdentifiers>
+      <ExternalIdentifier>
+        <Type>other</Type>
+        <OtherType>stable</OtherType>
         <Value>el_1</Value>
       </ExternalIdentifier>
     </ExternalIdentifiers>
