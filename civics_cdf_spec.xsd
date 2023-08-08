@@ -243,6 +243,14 @@
         <xs:enumeration value="party"/>
       </xs:restriction>
     </xs:simpleType>
+    <xs:simpleType name="SeatStatus">
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="active"/>
+        <xs:enumeration value="disputed"/>
+        <xs:enumeration value="on-leave"/>
+        <xs:enumeration value="temporary-appointment"/>
+      </xs:restriction>
+    </xs:simpleType>
     <!-- ========== Elements ========== -->
     <xs:complexType name="AnnotatedString">
         <xs:simpleContent>
@@ -580,6 +588,7 @@
             <xs:element minOccurs="0" name="IsPartisan" type="xs:boolean" />
             <xs:element name="Name" type="InternationalizedText" />
             <xs:element minOccurs="0" name="OfficeHolderPersonIds" type="xs:IDREFS" />
+            <xs:element maxOccurs="1" minOccurs="0" name="SeatStatus" type="SeatStatus"/>
             <xs:element minOccurs="0" name="SelectionMethod" type="OfficeSelectionMethod" />
             <xs:element minOccurs="0" name="Term">
                 <xs:complexType>
