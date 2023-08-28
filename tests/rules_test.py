@@ -6444,6 +6444,46 @@ class GpUnitsCyclesRefsValidationTest(absltest.TestCase):
     self.gpunits_tree_validator.check()
 
 
+class DateOfBirthIsInPastTest(absltest.TestCase):
+
+  def setUp(self):
+    super(DateOfBirthIsInPastTest, self).setUp()
+    self.date_of_birth_string = """
+      <PersonCollection>
+        <Person objectId="per_gb_6456562">
+          <FirstName>Jamie</FirstName>
+          <FullName>
+            <Text language="en">Jamie David Adams</Text>
+          </FullName>
+          <Gender>M</Gender>
+          <LastName>Adams</LastName>
+          <MiddleName>David</MiddleName>
+          <DateOfBirth>{}</DateOfBirth>
+        </Person>
+      </PersonCollection>
+    """
+    self.date_of_birth_validator = rules.DateOfBirthIsInPast(None, None)
+
+  @freezegun.freeze_time("2023-01-01")
+  def testValidDateOfBirth(self):
+    date_of_birth_string = self.date_of_birth_string.format("1975-01-15")
+    element = etree.fromstring(date_of_birth_string)
+
+    self.date_of_birth_validator.check(element)
+    self.assertEmpty(self.date_of_birth_validator.error_log)
+
+  @freezegun.freeze_time("2023-01-01")
+  def testInvalidDateOfBirth(self):
+    date_of_birth_string = self.date_of_birth_string.format("2100-11-11")
+    element = etree.fromstring(date_of_birth_string)
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.date_of_birth_validator.check(element)
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertIn("The date 2100-11-11 is not in the past.",
+                  ee.exception.log_entry[0].message)
+
+
 class ElectionContainsStartAndEndDatesTest(absltest.TestCase):
 
   def setUp(self):

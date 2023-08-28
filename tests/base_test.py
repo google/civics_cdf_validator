@@ -7,6 +7,7 @@ import sys
 from absl.testing import absltest
 from civics_cdf_validator import base
 from civics_cdf_validator import loggers
+import freezegun
 from lxml import etree
 from mock import MagicMock
 from mock import patch
@@ -152,8 +153,31 @@ class DateRuleTest(absltest.TestCase):
     date_elem = etree.fromstring("<StartDate>2012-01</StartDate>")
     self.date_validator.check_for_date_not_in_past(past_date, date_elem)
     self.assertLen(self.date_validator.error_log, 1)
-    self.assertEqual("The date 2012-01 is in the past.",
-                     self.date_validator.error_log[0].message)
+    self.assertEqual(
+        "The date 2012-01 is in the past.",
+        self.date_validator.error_log[0].message,
+    )
+
+  # check_for_date_in_past tests
+  @freezegun.freeze_time("2023-01-01")
+  def testProvidedDateIsInThePast(self):
+    date_elem = etree.fromstring("<DateOfBirth>1975-01-01</DateOfBirth>")
+    date = base.PartialDate.init_partial_date(date_elem.text)
+
+    self.date_validator.check_for_date_in_past(date, date_elem)
+    self.assertEmpty(self.date_validator.error_log)
+
+  @freezegun.freeze_time("2023-01-01")
+  def testAddsToErrorLogIfDateNotInPast(self):
+    date_elem = etree.fromstring("<DateOfBirth>2100-01-01</DateOfBirth>")
+    date = base.PartialDate.init_partial_date(date_elem.text)
+
+    self.date_validator.check_for_date_in_past(date, date_elem)
+    self.assertLen(self.date_validator.error_log, 1)
+    self.assertEqual(
+        "The date 2100-01-01 is not in the past.",
+        self.date_validator.error_log[0].message,
+    )
 
   # check_end_after_start tests
   def testEndDateComesAfterStartDate(self):
