@@ -366,8 +366,9 @@ class ValidIDREF(base.BaseRule):
   _REFERENCE_TYPE_OVERRIDES = {
       "ElectoralDistrictId": "GpUnit",
       "ElectionScopeId": "GpUnit",
+      "ScopeLevel": "GpUnit",
       "AuthorityId": "Person",
-      "AuthorityIds": "Person"
+      "AuthorityIds": "Person",
   }
 
   def setup(self):
@@ -492,7 +493,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
                              [element], [referenced_gpunit.sourceline]))
       else:
         for ocd_id in ocd_ids:
-          if not gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd(ocd_id):
+          if not gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(ocd_id):
             error_log.append(
                 loggers.LogEntry("The ElectoralDistrictId refers to GpUnit %s "
                                  "that does not have a valid OCD ID (%s)"
@@ -520,7 +521,9 @@ class GpUnitOcdId(base.BaseRule):
       external_id_elements = get_external_id_values(
           element, "ocd-id", return_elements=True)
       for extern_id in external_id_elements:
-        if not gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd(extern_id.text):
+        if not gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(
+            extern_id.text
+        ):
           msg = "The OCD ID %s is not valid" % extern_id.text
           raise loggers.ElectionWarning.from_message(
               msg, [element], [extern_id.sourceline])
@@ -1158,6 +1161,7 @@ class BadCharactersInPersonFullName(base.BaseRule):
                        " Aliases should be included in Nickname field.")
     fullname = extract_person_fullname(element)
     person_fullname = re.compile(self.regex, flags=re.U)
+    bad_characters_match = None
     for name in fullname:
       bad_characters_match = re.search(person_fullname, name.lower())
     if bad_characters_match:
@@ -1448,9 +1452,18 @@ class MissingStableIds(base.BaseRule):
 
   def elements(self):
     return [
-        "Candidate", "CandidateContest", "PartyContest", "BallotMeasureContest",
-        "Party", "Person", "Coalition", "BallotMeasureSelection", "Office",
-        "ReportingUnit", "Election"
+        "BallotMeasureContest",
+        "BallotMeasureSelection",
+        "Candidate",
+        "CandidateContest",
+        "Coalition",
+        "Committee",
+        "Election",
+        "Office",
+        "Party",
+        "PartyContest",
+        "Person",
+        "ReportingUnit",
     ]
 
   def check(self, element):
@@ -1783,8 +1796,10 @@ class PersonsHaveValidGender(base.BaseRule):
   def check(self, element):
     if (element.text is not None and
         element.text.lower() not in self._VALID_GENDERS):
-      raise loggers.ElectionError("Person object has invalid gender value: %s" %
-                                  element.text)
+      raise loggers.ElectionError.from_message(
+          "Person object has invalid gender value: {0}".format(element.text),
+          [element],
+      )
 
 
 class VoteCountTypesCoherency(base.BaseRule):
@@ -2942,77 +2957,98 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
 
   def check(self, election_report_element):
     error_log = []
-    contest_ids = {}
-    contest_end_dates = {}
+    contest_by_id = {}
+    contest_end_date_by_id = {}
 
-    for election in self.get_elements_by_class(election_report_element,
-                                               "Election"):
+    for election in self.get_elements_by_class(
+        election_report_element, "Election"
+    ):
       self.gather_dates(election)
+      election_end_date = self.end_date
       for contest in self.get_elements_by_class(election, "Contest"):
-        contest_ids[contest.get("objectId")] = contest
-        contest_end_dates[contest.get("objectId")] = self.end_date
+        self.reset_instance_vars()
+        self.gather_dates(contest)
+        contest_by_id[contest.get("objectId")] = contest
+        contest_end_date_by_id[contest.get("objectId")] = (
+            self.end_date or election_end_date
+        )
 
-    for contest_id, contest in contest_ids.items():
+    for contest_id, contest in contest_by_id.items():
       element = contest.find("SubsequentContestId")
       if not element_has_text(element):
         continue
       subsequent_contest_id = element.text.strip()
 
       # Check that subsequent contest exists
-      if subsequent_contest_id not in contest_ids:
+      if subsequent_contest_id not in contest_by_id:
         error_log.append(
             loggers.LogEntry(
-                "Could not find SubsequentContest %s referenced by Contest %s."
-                % (subsequent_contest_id, contest_id)))
+                "Could not find SubsequentContest"
+                f" {subsequent_contest_id} referenced by Contest {contest_id}."
+            )
+        )
         continue
 
-      subsequent_contest = contest_ids[subsequent_contest_id]
-
+      subsequent_contest = contest_by_id[subsequent_contest_id]
       # Check that the subsequent contest has a later end date
-      if (contest_end_dates[subsequent_contest_id] is not None and
-          contest_end_dates[contest_id] is not None):
-        end_delta = base.PartialDate.is_older_than(contest_end_dates[
-            subsequent_contest_id], contest_end_dates[contest_id])
+      if subsequent_contest is not None and contest is not None:
+        end_delta = base.PartialDate.is_older_than(
+            contest_end_date_by_id[subsequent_contest_id],
+            contest_end_date_by_id[contest_id],
+        )
         if end_delta > 0:
           error_log.append(
               loggers.LogEntry(
-                  "Contest %s references a subsequent contest with an earlier "
-                  "end date." % contest_id, [contest], [contest.sourceline]))
+                  f"Contest {contest_id} references a subsequent contest with"
+                  " an earlier end date.",
+                  [contest],
+                  [contest.sourceline],
+              )
+          )
 
       # Check that office ids match
-      c_office_id = None
-      sc_office_id = None
+      contest_office_id = None
+      subsequent_contest_office_id = None
       element = contest.find("OfficeIds")
       if element_has_text(element):
-        c_office_id = element.text
+        contest_office_id = element.text
       element = subsequent_contest.find("OfficeIds")
       if element_has_text(element):
-        sc_office_id = element.text
+        subsequent_contest_office_id = element.text
 
-      if c_office_id != sc_office_id:
+      if contest_office_id != subsequent_contest_office_id:
         error_log.append(
             loggers.LogEntry(
-                "Contest %s references a subsequent contest with a different "
-                "office id." % contest_id, [contest], [contest.sourceline]))
+                f"Contest {contest_id} references a subsequent contest with a"
+                " different office id.",
+                [contest],
+                [contest.sourceline],
+            )
+        )
 
       # Check that primary party ids match or that the subsequent contest does
       # not have a primary party (e.g. primary -> general election)
-      c_primary_party_ids = None
-      sc_primary_party_ids = None
+      contest_primary_party_ids = None
+      subsequent_contest_primary_party_ids = None
       element = contest.find("PrimaryPartyIds")
       if element_has_text(element):
-        c_primary_party_ids = set(element.text.split())
+        contest_primary_party_ids = set(element.text.split())
       element = subsequent_contest.find("PrimaryPartyIds")
       if element_has_text(element):
-        sc_primary_party_ids = set(element.text.split())
+        subsequent_contest_primary_party_ids = set(element.text.split())
 
-      if (sc_primary_party_ids is not None and
-          c_primary_party_ids != sc_primary_party_ids):
+      if (
+          subsequent_contest_primary_party_ids is not None
+          and contest_primary_party_ids != subsequent_contest_primary_party_ids
+      ):
         error_log.append(
             loggers.LogEntry(
                 "Contest %s references a subsequent contest with different "
-                "primary party ids." % contest_id, [contest],
-                [contest.sourceline]))
+                "primary party ids." % contest_id,
+                [contest],
+                [contest.sourceline],
+            )
+        )
 
       # Check that there is not a subsequent contest <-> composing contest loop
       element = subsequent_contest.find("ComposingContestIds")
@@ -3021,10 +3057,13 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
         if contest_id in subsequent_composing_ids:
           error_log.append(
               loggers.LogEntry(
-                  "Contest %s is listed as a composing contest for its "
-                  "subsequent contest.  Two contests can be linked by "
-                  "SubsequentContestId or ComposingContestId, but not both." %
-                  contest_id, [contest], [contest.sourceline]))
+                  f"Contest {contest_id} is listed as a composing contest for"
+                  " its subsequent contest. Two contests can be linked by"
+                  " SubsequentContestId or ComposingContestId, but not both.",
+                  [contest],
+                  [contest.sourceline],
+              )
+          )
 
     if error_log:
       raise loggers.ElectionError(error_log)
@@ -3315,10 +3354,84 @@ class CandidateContestTypesAreCompatible(base.BaseRule):
         )
 
 
+class CommitteeClassificationEndDateOccursAfterStartDate(base.DateRule):
+  """CommitteeClassification elements should have end dates that occur after the start dates."""
+
+  def elements(self):
+    return ["CommitteeClassification"]
+
+  def check(self, element):
+    self.reset_instance_vars()
+    self.gather_dates(element)
+
+    if self.end_date and self.start_date:
+      self.check_end_after_start()
+      if self.error_log:
+        raise loggers.ElectionError(self.error_log)
+
+
+class AffiliationEndDateOccursAfterStartDate(base.DateRule):
+  """Affiliation elements should have end dates that occur after the start dates."""
+
+  def elements(self):
+    return ["Affiliation"]
+
+  def check(self, element):
+    self.reset_instance_vars()
+    self.gather_dates(element)
+
+    if self.end_date and self.start_date:
+      self.check_end_after_start()
+      if self.error_log:
+        raise loggers.ElectionError(self.error_log)
+
+
+class EinMatchesFormat(base.BaseRule):
+  """EIN id should be in the following format: XX-XXXXXXX."""
+
+  def __init__(self, election_tree, schema_tree):
+    super(EinMatchesFormat, self).__init__(election_tree, schema_tree)
+    regex = r"\d{2}(-\d{7})?"
+    self.ein_id_matcher = re.compile(regex, flags=re.U)
+
+  def elements(self):
+    return ["Committee"]
+
+  def check(self, element):
+    external_identifiers = element.find("ExternalIdentifiers")
+    if external_identifiers is not None:
+      ein_ids = get_external_id_values(external_identifiers, "ein")
+      if ein_ids:
+        e_id = ein_ids.pop()
+        if not self.ein_id_matcher.match(e_id):
+          raise loggers.ElectionError.from_message(
+              "EIN id '{}' is not in the correct format.".format(e_id),
+              [element],
+          )
+
+
+class AffiliationHasEitherPartyOrPerson(base.BaseRule):
+  """Affiliation should contain either a Party or a Person objectId."""
+
+  def elements(self):
+    return ["Affiliation"]
+
+  def check(self, element):
+    party_id = element.find("PartyId")
+    person_id = element.find("PersonId")
+    if not ((party_id is None) ^ (person_id is None)):
+      raise loggers.ElectionError.from_message(
+          "Affiliation must have one of: PartyId, PersonId. Cannot include"
+          " both.",
+          [element],
+      )
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
   OFFICEHOLDER = 2
+  COMMITTEE = 3
 
 
 # To add new rules, create a new class, inherit the base rule,
@@ -3423,4 +3536,14 @@ OFFICEHOLDER_RULES = COMMON_RULES + (
     RemovePersonAndOfficeHolderId60DaysAfterEndDate,
 )
 
-ALL_RULES = frozenset(COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES)
+COMMITTEE_RULES = COMMON_RULES + (
+    ProhibitElectionData,
+    CommitteeClassificationEndDateOccursAfterStartDate,
+    AffiliationEndDateOccursAfterStartDate,
+    EinMatchesFormat,
+    AffiliationHasEitherPartyOrPerson,
+)
+
+ALL_RULES = frozenset(
+    COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES + COMMITTEE_RULES
+)
