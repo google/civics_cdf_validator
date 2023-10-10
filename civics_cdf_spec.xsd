@@ -637,7 +637,11 @@
     </xs:complexType>
     <xs:complexType name="PartyContest">
         <xs:complexContent>
-            <xs:extension base="Contest" />
+            <xs:extension base="Contest" >
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="OfficeIds" type="xs:IDREFS" />
+                </xs:sequence>
+            </xs:extension>
         </xs:complexContent>
     </xs:complexType>
     <xs:complexType name="PartyRegistration">
