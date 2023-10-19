@@ -5459,6 +5459,12 @@ class ValidURIAnnotationTest(absltest.TestCase):
         <Uri Annotation="opensecrets">
           <![CDATA[https://www.opensecrets.org/pres12]]>
         </Uri>
+        <Uri Annotation="fec">
+          <![CDATA[https://www.fec.gov/data/committee/C00813436/]]>
+        </Uri>
+        <Uri Annotation="followthemoney">
+          <![CDATA[https://www.followthemoney.org]]>
+        </Uri>
         <Uri Annotation="candidate-image">
           <![CDATA[https://www.parlament.gv.at/test.jpg]]>
         </Uri>

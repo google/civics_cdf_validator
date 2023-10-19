@@ -1967,7 +1967,7 @@ class ValidURIAnnotation(base.BaseRule):
   ])
   USAGE_TYPES = frozenset(["personal", "official", "campaign"])
   PLATFORM_ONLY_ANNOTATIONS = frozenset(
-      ["wikipedia", "ballotpedia", "opensecrets"]
+      ["wikipedia", "ballotpedia", "opensecrets", "fec", "followthemoney"]
   )
 
   def elements(self):
