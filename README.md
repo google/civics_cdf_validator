@@ -29,18 +29,19 @@ You can use `civics_cdf_validator` to check different types of feed:
 
 * Officeholder
 * Candidate / results
+* Committee
 
 ## List rules
 
-You can list the default validation rules attached with a brief desciption of
+You can list the default validation rules attached with a brief description of
 each by using the "list" command:
 
 ```
 civics_cdf_validator list
 ```
 
-You can also customize the displayed list by specifing your set of rules or at
-least you can filter the default list using paramters as the feed type / ignore
+You can also customize the displayed list by specifying your set of rules or at
+least you can filter the default list using parameters as the feed type / ignore
 rules flag.
 
 For more details, you can use the command help :

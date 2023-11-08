@@ -196,15 +196,24 @@ class DateRule(BaseRule):
     if error_log:
       raise loggers.ElectionError(error_log)
 
+  def is_date_in_past(self, date):
+    """Check if a date is in the past."""
+    today = datetime.datetime.utcnow()
+    today_partial_date = PartialDate(today.year, today.month, today.day)
+    delta = date.is_older_than(today_partial_date)
+    return delta > 0
+
   def check_for_date_not_in_past(self, date, date_elem):
     """Check if given date is not in past and add an error message to the error log if the date is in past."""
-    if date is not None:
-      today = datetime.datetime.now()
-      today_partial_date = PartialDate(today.year, today.month, today.day)
-      delta = date.is_older_than(today_partial_date)
-      if delta > 0:
-        error_message = """The date {} is in the past.""".format(date)
-        self.error_log.append(loggers.LogEntry(error_message, [date_elem]))
+    if date is not None and self.is_date_in_past(date):
+      error_message = """The date {} is in the past.""".format(date)
+      self.error_log.append(loggers.LogEntry(error_message, [date_elem]))
+
+  def check_for_date_in_past(self, date, date_elem):
+    """Check if given date is in past and add an error message to the error log if the date is not in past."""
+    if date is not None and not self.is_date_in_past(date):
+      error_message = """The date {} is not in the past.""".format(date)
+      self.error_log.append(loggers.LogEntry(error_message, [date_elem]))
 
   def check_end_after_start(self):
     """Checks if EndDate is after StartDate and add an error message to the error log if the EndDate is before StartDate."""

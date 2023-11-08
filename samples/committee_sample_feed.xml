@@ -31,7 +31,7 @@
           <RawDesignation>va_specific_type_as_string</RawDesignation>
           <RawType>va_specific_type_as_string</RawType>
           <ScopeLevel>ru0002</ScopeLevel>
-          <StartDate>2023-01-01</StartDate>   
+          <StartDate>2023-01-01</StartDate>
         </CommitteeClassification>
       </CommitteeClassificationCollection>
       <CommitteeScopeGpUnitIds>ru000us ru0002</CommitteeScopeGpUnitIds>
@@ -161,7 +161,7 @@
     <Person objectId="per10861a">
       <ContactInformation>
         <Uri Annotation="wikipedia">https://en.wikipedia.org/wiki/Barack_Obama</Uri>
-        <Uri Annotation="website">https://www.opensecrets.org/pres12/candidate.php?id=n00009638</Uri>
+        <Uri Annotation="opensecrets">https://www.opensecrets.org/pres12/candidate.php?id=n00009638</Uri>
       </ContactInformation>
       <DateOfBirth>1961-08-04</DateOfBirth>
       <ExternalIdentifiers>

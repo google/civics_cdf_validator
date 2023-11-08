@@ -1966,7 +1966,9 @@ class ValidURIAnnotation(base.BaseRule):
       "linkedin"
   ])
   USAGE_TYPES = frozenset(["personal", "official", "campaign"])
-  PLATFORM_ONLY_ANNOTATIONS = frozenset(["wikipedia", "ballotpedia"])
+  PLATFORM_ONLY_ANNOTATIONS = frozenset(
+      ["wikipedia", "ballotpedia", "opensecrets"]
+  )
 
   def elements(self):
     return ["ContactInformation"]
@@ -2133,6 +2135,23 @@ class ContestHasValidContestStage(base.BaseRule):
         raise loggers.ElectionError.from_message(
             "The contest has invalid contest-stage '{}'.".format(
                 contest_stage_value), [element])
+
+
+class DateOfBirthIsInPast(base.DateRule):
+  """Date of Birth should not be in the future."""
+
+  def elements(self):
+    return ["PersonCollection"]
+
+  def check(self, element):
+    for person_element in element:
+      date_of_birthday = person_element.find("DateOfBirth")
+      if date_of_birthday is not None and date_of_birthday.text:
+        date_of_birthday = base.PartialDate.init_partial_date(
+            date_of_birthday.text)
+        self.check_for_date_in_past(date_of_birthday, person_element)
+        if self.error_log:
+          raise loggers.ElectionError(self.error_log)
 
 
 class ElectionContainsStartAndEndDates(base.DateRule):
@@ -3529,6 +3548,7 @@ ELECTION_RULES = COMMON_RULES + (
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (
+    DateOfBirthIsInPast,
     PersonHasOffice,
     ProhibitElectionData,
     OfficeTermDates,
