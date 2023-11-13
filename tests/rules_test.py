@@ -2859,6 +2859,17 @@ class PartiesHaveValidColorsTest(absltest.TestCase):
                      "green is not a valid hex color.")
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Color")
 
+  def testPartiesHaveTooLargeHex(self):
+    root_string = self._base_string.format(self._color_str.format("c295757"))
+    element = etree.fromstring(root_string)
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.color_validator.check(element)
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "c295757 should be a hexadecimal less than 16^6.",
+    )
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Color")
+
   def testPartyHasMoreThanOneColor(self):
     root_string = """
         <Party objectId="par0001">
