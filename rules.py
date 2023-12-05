@@ -2323,6 +2323,46 @@ class ElectionDatesSpanContestDates(base.DateRule):
       raise loggers.ElectionError(self.error_log)
 
 
+class ElectionDatesNotSetIfDateTypeBounded(base.DateRule):
+  """If the ElectionDateType is bounded, then the election is expected on or before a certain date, so there should not be a start date."""
+
+  def elements(self):
+    return ["Election"]
+
+  def check(self, element):
+    date_type = element.find("ElectionDateType")
+    self.gather_dates(element)
+    if (
+        date_type is not None
+        and date_type.text == "bounded"
+        and self.start_date is not None
+    ):
+      raise loggers.ElectionError.from_message(
+          "ElectionDateType should not be bounded when a start date is set"
+      )
+
+
+class ElectionNotConfirmedAndBounded(base.BaseRule):
+  """If the ElectionDateType is bounded, that means it is expected on or before a certain date, that means the ElectionDateStatus should not be confirmed."""
+
+  def elements(self):
+    return ["Election"]
+
+  def check(self, element):
+    date_type = element.find("ElectionDateType")
+    date_status = element.find("ElectionDateStatus")
+    if (
+        date_type is not None
+        and date_type.text == "bounded"
+        and date_status is not None
+        and date_status.text == "confirmed"
+    ):
+      raise loggers.ElectionError.from_message(
+          "ElectionDateType should not be bounded when ElectionDateStatus is"
+          " confirmed"
+      )
+
+
 class ElectionTypesAreCompatible(base.BaseRule):
   """Election element Type values cannot be both a general and primary type."""
 
@@ -3551,6 +3591,8 @@ ELECTION_RULES = COMMON_RULES + (
     ContestEndDateOccursBeforeSubsequentContestStartDate,
     ContestStartDateContainsCorrespondingEndDate,
     CandidateContestTypesAreCompatible,
+    ElectionDatesNotSetIfDateTypeBounded,
+    ElectionNotConfirmedAndBounded,
 )
 
 OFFICEHOLDER_RULES = COMMON_RULES + (

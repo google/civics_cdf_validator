@@ -6931,6 +6931,56 @@ class ElectionDatesSpanContestDatesTest(absltest.TestCase):
     self.assertEmpty(self.date_validator.error_log)
 
 
+class ElectionDatesNotSetIfDateTypeBoundedTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ElectionDatesNotSetIfDateTypeBoundedTest, self).setUp()
+    self.validator = rules.ElectionDatesNotSetIfDateTypeBounded(None, None)
+
+  def testElectionDatesNotSetIfDateTypeBounded(self):
+    election_report_string = """
+      <Election objectId="election-1">
+        <StartDate>2023-05-20</StartDate>
+        <EndDate>2023-05-30</EndDate>
+        <ElectionDateType>bounded</ElectionDateType>
+      </Election>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.validator.check(etree.fromstring(election_report_string))
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "ElectionDateType should not be bounded when a start date is set",
+        ee.exception.log_entry[0].message,
+    )
+
+
+class ElectionNotConfirmedAndBoundedTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ElectionNotConfirmedAndBoundedTest, self).setUp()
+    self.validator = rules.ElectionNotConfirmedAndBounded(None, None)
+
+  def testElectionDatesNotSetIfDateTypeBounded(self):
+    election_report_string = """
+      <Election objectId="election-1">
+        <ElectionDateStatus>confirmed</ElectionDateStatus>
+        <ElectionDateType>bounded</ElectionDateType>
+      </Election>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.validator.check(etree.fromstring(election_report_string))
+
+    self.assertLen(ee.exception.log_entry, 1)
+    self.assertEqual(
+        "ElectionDateType should not be bounded when ElectionDateStatus is"
+        " confirmed",
+        ee.exception.log_entry[0].message,
+    )
+
+
 class ElectionTypesTest(absltest.TestCase):
 
   def testRaisesErrorIfElectionTypesIncompatiblePrimary(self):
