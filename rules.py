@@ -1268,6 +1268,24 @@ class DuplicatedPartyAbbreviation(ValidatePartyCollection):
     return info_log
 
 
+class EmptyPartyAbbreviation(base.BaseRule):
+  """Party abbreviations should not be empty."""
+
+  def elements(self):
+    return ["Party"]
+
+  def check(self, party):
+    abbrevs = party.find("InternationalizedAbbreviation")
+    if abbrevs is None:
+      return
+    text_elements = abbrevs.findall("Text")
+    for text_element in text_elements:
+      if text_element.text is None:
+        raise loggers.ElectionError.from_message(
+            "Empty party abbreviation found", [party]
+        )
+
+
 class DuplicatedPartyName(ValidatePartyCollection):
   """Party name should be used once in a given language.
 
@@ -3468,6 +3486,7 @@ COMMON_RULES = (
     DuplicateGpUnits,
     DuplicateID,
     EmptyText,
+    EmptyPartyAbbreviation,
     Encoding,
     GpUnitOcdId,
     HungarianStyleNotation,

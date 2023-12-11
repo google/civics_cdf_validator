@@ -10207,6 +10207,62 @@ class AffiliationHasEitherPartyOrPersonTest(absltest.TestCase):
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Affiliation")
 
 
+class EmptyAbbreviationTest(absltest.TestCase):
+
+  def setUp(self):
+    super(EmptyAbbreviationTest, self).setUp()
+    self.validator = rules.EmptyPartyAbbreviation(None, None)
+
+  def testEmptyPartyAbbreviation(self):
+    test_string = """
+    <Party>
+      <InternationalizedAbbreviation>
+        <Text language="en"/>
+      </InternationalizedAbbreviation>
+    </Party>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(test_string))
+
+    self.assertEqual(
+        cm.exception.log_entry[0].message, "Empty party abbreviation found"
+    )
+
+  def testEmptyStringPartyAbbreviation(self):
+    test_string = """
+    <Party>
+      <InternationalizedAbbreviation>
+        <Text language="en"></Text>
+      </InternationalizedAbbreviation>
+    </Party>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(test_string))
+
+    self.assertEqual(
+        cm.exception.log_entry[0].message, "Empty party abbreviation found"
+    )
+
+  def testGoodAbbreviation(self):
+    test_string = """
+    <Party>
+      <InternationalizedAbbreviation>
+        <Text language="en">alias</Text>
+      </InternationalizedAbbreviation>
+    </Party>
+    """
+
+    self.validator.check(etree.fromstring(test_string))
+
+  def testNoAbbreviation(self):
+    test_string = """
+    <Party>
+    </Party>
+    """
+
+    self.validator.check(etree.fromstring(test_string))
+
+
 class RulesTest(absltest.TestCase):
 
   def testAllRulesIncluded(self):
