@@ -170,7 +170,8 @@ class OcdIdsExtractorTest(absltest.TestCase):
     # mock open function call to read provided csv data
     downloaded_ocdid_file = "id,name\nocd-division/country:ar,Argentina"
     self.mock_open_func = MagicMock(
-        return_value=io.StringIO(downloaded_ocdid_file))
+        return_value=io.StringIO(downloaded_ocdid_file)
+    )
 
   def testSetsDefaultValuesUponCreation(self):
     self.assertTrue(self.ocdid_extractor.check_github)
@@ -206,21 +207,27 @@ class OcdIdsExtractorTest(absltest.TestCase):
   def testReturnsTheLatestCommitDateForTheCountryCSV(self):
     self.ocdid_extractor.github_file = "country-ar.csv"
     self.ocdid_extractor.github_repo = github.Repository.Repository(
-        None, [], [], None)
-
+        None, [], [], None
+    )
     now = datetime.datetime.now()
     formatted_commit_date = now.strftime("%Y-%m-%dT%H:%M:%SZ")
     commit = github.Commit.Commit(
-        None, {},
+        None,
+        {},
         dict({
             "commit": dict({"committer": dict({"date": formatted_commit_date})})
-        }), None)
+        }),
+        None,
+    )
 
     mock_get_commits = MagicMock(return_value=[commit])
     self.ocdid_extractor.github_repo.get_commits = mock_get_commits
 
     latest_commit_date = self.ocdid_extractor._get_latest_commit_date()
-    self.assertEqual(now.replace(microsecond=0), latest_commit_date)
+    self.assertEqual(
+        now.replace(microsecond=0).replace(tzinfo=datetime.timezone.utc),
+        latest_commit_date.replace(tzinfo=datetime.timezone.utc),
+    )
     mock_get_commits.assert_called_with(path="identifiers/country-ar.csv")
 
   # _download_data tests
@@ -232,13 +239,14 @@ class OcdIdsExtractorTest(absltest.TestCase):
     mock_copy = MagicMock()
 
     # pylint: disable=g-backslash-continuation
-    with patch("requests.get", mock_request), \
-         patch("io.open", mock_io_open), \
-         patch("shutil.copy", mock_copy):
+    with patch("requests.get", mock_request), patch(
+        "io.open", mock_io_open
+    ), patch("shutil.copy", mock_copy):
       self.ocdid_extractor._download_data("/usr/cache")
 
     request_url = "https://raw.github.com/{0}/master/{1}/country-ar.csv".format(
-        self.ocdid_extractor.GITHUB_REPO, self.ocdid_extractor.GITHUB_DIR)
+        self.ocdid_extractor.GITHUB_REPO, self.ocdid_extractor.GITHUB_DIR
+    )
     mock_request.assert_called_with(request_url)
     mock_io_open.assert_called_with("/usr/cache.tmp", "wb")
     mock_copy.assert_called_with("/usr/cache.tmp", "/usr/cache")
@@ -249,10 +257,11 @@ class OcdIdsExtractorTest(absltest.TestCase):
     mock_copy = MagicMock()
 
     # pylint: disable=g-backslash-continuation
-    with patch("requests.get", MagicMock()), \
-         patch("io.open", MagicMock()), \
-         patch("shutil.copy", mock_copy), \
-         self.assertRaises(loggers.ElectionError):
+    with patch("requests.get", MagicMock()), patch(
+        "io.open", MagicMock()
+    ), patch("shutil.copy", mock_copy), self.assertRaises(
+        loggers.ElectionError
+    ):
       self.ocdid_extractor._download_data("/usr/cache")
 
     self.assertEqual(0, mock_copy.call_count)
@@ -285,19 +294,23 @@ class OcdIdsExtractorTest(absltest.TestCase):
     self.ocdid_extractor._download_data = MagicMock()
 
     # pylint: disable=g-backslash-continuation
-    with patch("os.path.expanduser", mock_expanduser), \
-         patch("os.path.exists", mock_exists), \
-         patch("github.Github", mock_github), \
-         patch("{}.open".format(self.builtins_name), self.mock_open_func):
+    with patch("os.path.expanduser", mock_expanduser), patch(
+        "os.path.exists", mock_exists
+    ), patch("github.Github", mock_github), patch(
+        "{}.open".format(self.builtins_name), self.mock_open_func
+    ):
       codes = self.ocdid_extractor._get_ocd_data()
 
     expected_codes = set(["ocd-division/country:ar"])
 
     self.assertTrue(
-        mock_github.get_repo.called_with(self.ocdid_extractor.GITHUB_REPO))
+        mock_github.get_repo.called_with(self.ocdid_extractor.GITHUB_REPO)
+    )
     self.assertTrue(
         self.ocdid_extractor._download_data.called_with(
-            "/usr/cache/country-ar.csv"))
+            "/usr/cache/country-ar.csv"
+        )
+    )
     self.assertEqual(expected_codes, codes)
 
   def testDownloadsDataIfCachedFileIsStale(self):
@@ -321,26 +334,33 @@ class OcdIdsExtractorTest(absltest.TestCase):
     self.ocdid_extractor.github_file = "country-ar.csv"
     self.ocdid_extractor._download_data = MagicMock()
     self.ocdid_extractor._get_latest_commit_date = MagicMock(
-        return_value=datetime.datetime.now())
+        return_value=datetime.datetime.now()
+    )
 
     # pylint: disable=g-backslash-continuation
-    with patch("os.path.expanduser", mock_expanduser), \
-         patch("os.path.exists", mock_exists), \
-         patch("github.Github", mock_github), \
-         patch("{}.open".format(self.builtins_name), self.mock_open_func), \
-         patch("os.path.getmtime", mock_getmtime), \
-         patch("os.utime", MagicMock()):
+    with patch("os.path.expanduser", mock_expanduser), patch(
+        "os.path.exists", mock_exists
+    ), patch("github.Github", mock_github), patch(
+        "{}.open".format(self.builtins_name), self.mock_open_func
+    ), patch(
+        "os.path.getmtime", mock_getmtime
+    ), patch(
+        "os.utime", MagicMock()
+    ):
       codes = self.ocdid_extractor._get_ocd_data()
 
     expected_codes = set(["ocd-division/country:ar"])
 
     self.assertTrue(
-        mock_github.get_repo.called_with(self.ocdid_extractor.GITHUB_REPO))
+        mock_github.get_repo.called_with(self.ocdid_extractor.GITHUB_REPO)
+    )
     self.assertTrue(self.ocdid_extractor._get_latest_commit_date.called_once)
     self.assertTrue(mock_utime.called_once)
     self.assertTrue(
         self.ocdid_extractor._download_data.called_with(
-            "/usr/cache/country-ar.csv"))
+            "/usr/cache/country-ar.csv"
+        )
+    )
     self.assertEqual(expected_codes, codes)
 
   # _verify_data tests
@@ -351,11 +371,12 @@ class OcdIdsExtractorTest(absltest.TestCase):
 
     mock_stat = MagicMock()
     self.ocdid_extractor._get_latest_file_blob_sha = MagicMock(
-        return_value="abc123")
+        return_value="abc123"
+    )
     # pylint: disable=g-backslash-continuation
-    with patch("os.stat", mock_stat), \
-         patch("hashlib.sha1", mock_sha1), \
-         patch("io.open", self.mock_open_func):
+    with patch("os.stat", mock_stat), patch("hashlib.sha1", mock_sha1), patch(
+        "io.open", self.mock_open_func
+    ):
       valid = self.ocdid_extractor._verify_data("/usr/cache/country-ar.tmp")
 
     self.assertTrue(valid)
@@ -368,12 +389,13 @@ class OcdIdsExtractorTest(absltest.TestCase):
 
     mock_stat = MagicMock()
     self.ocdid_extractor._get_latest_file_blob_sha = MagicMock(
-        return_value="abc456")
+        return_value="abc456"
+    )
 
     # pylint: disable=g-backslash-continuation
-    with patch("os.stat", mock_stat), \
-         patch("hashlib.sha1", mock_sha1), \
-         patch("io.open", self.mock_open_func):
+    with patch("os.stat", mock_stat), patch("hashlib.sha1", mock_sha1), patch(
+        "io.open", self.mock_open_func
+    ):
       valid = self.ocdid_extractor._verify_data("/usr/cache/country-ar.tmp")
 
     self.assertFalse(valid)
@@ -382,10 +404,8 @@ class OcdIdsExtractorTest(absltest.TestCase):
   # _get_latest_file_blob_sha tests
   def testItReturnsTheBlobShaOfTheGithubFileWhenFound(self):
     content_file = github.ContentFile.ContentFile(
-        None, {}, dict({
-            "name": "country-ar.csv",
-            "sha": "abc123"
-        }), None)
+        None, {}, dict({"name": "country-ar.csv", "sha": "abc123"}), None
+    )
     repo = github.Repository.Repository(None, {}, {}, None)
     repo.get_contents = MagicMock(return_value=[content_file])
     self.ocdid_extractor.github_repo = repo
@@ -396,10 +416,8 @@ class OcdIdsExtractorTest(absltest.TestCase):
 
   def testItReturnsNoneIfTheFileCantBeFound(self):
     content_file = github.ContentFile.ContentFile(
-        None, {}, dict({
-            "name": "country-ar.csv",
-            "sha": "abc123"
-        }), None)
+        None, {}, dict({"name": "country-ar.csv", "sha": "abc123"}), None
+    )
     repo = github.Repository.Repository(None, {}, {}, None)
     repo.get_contents = MagicMock(return_value=[content_file])
     self.ocdid_extractor.github_repo = repo
@@ -407,6 +425,7 @@ class OcdIdsExtractorTest(absltest.TestCase):
 
     blob_sha = self.ocdid_extractor._get_latest_file_blob_sha()
     self.assertIsNone(blob_sha)
+
 
 if __name__ == "__main__":
   absltest.main()
