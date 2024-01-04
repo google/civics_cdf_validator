@@ -82,6 +82,10 @@ def _validate_country_codes(parser, arg):
   """
   country_code = arg.strip().lower()
 
+  # EU is part of ISO 3166/MA
+  if country_code == "eu":
+    return country_code
+
   for country in pycountry.countries:
     if country_code == country.alpha_2.lower():
       return country_code
