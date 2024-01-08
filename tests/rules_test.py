@@ -5055,6 +5055,10 @@ class URIValidatorTest(absltest.TestCase):
     valid_url = self.uri_element.format("https://www.youtube.com")
     self.uri_validator.check(etree.fromstring(valid_url))
 
+  def testChecksForValidUriHttpsTiktok(self):
+    valid_url = self.uri_element.format("https://www.tiktok.com")
+    self.uri_validator.check(etree.fromstring(valid_url))
+
   def testChecksForValidUriHttpsWeb(self):
     valid_url = self.uri_element.format("https://www.website.com")
     self.uri_validator.check(etree.fromstring(valid_url))
@@ -5449,6 +5453,60 @@ class ValidYoutubeURLTest(absltest.TestCase):
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
 
 
+class ValidTikTokURLTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ValidTikTokURLTest, self).setUp()
+    self.validator = rules.ValidTiktokURL(None, None)
+
+  def testTiktokURLReturnNoError(self):
+    root_string = """
+        <Uri Annotation="personal-tiktok">
+          <![CDATA[https://www.tiktok.com/@haxyehhshz]]>
+        </Uri>
+    """
+    self.validator.check(etree.fromstring(root_string))
+
+  def testTiktokUrlReturnErrorUC1(self):
+    root_string = """
+        <Uri Annotation="official-youtube">
+          <![CDATA[https://www.tiktok.com/@haxyehhshz/other]]>
+        </Uri>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(root_string))
+    self.assertEqual(cm.exception.log_entry[0].message,
+                     ("'https://www.tiktok.com/@haxyehhshz/other' is not "
+                      "an expected value for a tiktok account."))
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
+
+  def testTiktokUrlReturnErrorUC2(self):
+    root_string = """
+        <Uri Annotation="official-youtube">
+          <![CDATA[https://www.tiktok.com/haxyehhshz]]>
+        </Uri>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(root_string))
+    self.assertEqual(cm.exception.log_entry[0].message, (
+        "'https://www.tiktok.com/haxyehhshz' is not an expected value for a "
+        "tiktok account."))
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
+
+  def testBasicTiktokUrlReturnError(self):
+    root_string = """
+        <Uri Annotation="official-youtube">
+          <![CDATA[https://www.tiktok.com/]]>
+        </Uri>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(root_string))
+    self.assertEqual(cm.exception.log_entry[0].message,
+                     ("'https://www.tiktok.com/' is not an expected value for "
+                      "a tiktok account."))
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
+
+
 class ValidURIAnnotationTest(absltest.TestCase):
 
   def setUp(self):
@@ -5516,6 +5574,9 @@ class ValidURIAnnotationTest(absltest.TestCase):
         </Uri>
         <Uri Annotation="personal-linkedin">
           <![CDATA[https://www.linkedin.com/michael]]>
+        </Uri>
+        <Uri Annotation="campaign-tiktok">
+          <![CDATA[https://www.tiktok.com/@ksncndjs]]>
         </Uri>
       </ContactInformation>
     """
