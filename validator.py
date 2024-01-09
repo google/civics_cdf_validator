@@ -310,20 +310,16 @@ def feed_validation(options, ocd_id_list=None):
   for election_file in options.election_files:
     validation_context = dict()
     metadata = get_metadata(election_file)
-    # A new xsd file object is necessary for each feed that is validated.
-    xsd = open(options.xsd, "r")
     registry = base.RulesRegistry(
         election_file=election_file,
-        schema_file=xsd,
+        schema_file=options.xsd,
         rule_classes_to_check=rule_classes_to_check,
-        rule_options=rule_options,
-    )
+        rule_options=rule_options)
     registry.check_rules()
     validation_context[_REGISTRY_KEY] = registry
     validation_context[_METADATA_KEY] = metadata
     validation_context[_FILE_NAME_KEY] = election_file.name
     validation_results.append(validation_context)
-    xsd.close()
   return validation_results
 
 
@@ -361,6 +357,7 @@ def main():
     options.election_files = [
         open(file, "rb") for file in options.election_files
     ]
+    options.xsd = open(options.xsd, "r")
     if options.ocdid_file:
       options.ocdid_file = open(options.ocdid_file, encoding="utf-8")
     validation_results = feed_validation(options)
@@ -369,6 +366,7 @@ def main():
     )
     for file in options.election_files:
       file.close()
+    options.xsd.close()
     if options.ocdid_file:
       options.ocdid_file.close()
     return return_value
