@@ -1071,7 +1071,7 @@ class SingularPartySelection(base.BaseRule):
 
 
 class PartiesHaveValidColors(base.BaseRule):
-  """Each Party should have a valid hex Color without a leading '#'.
+  """Each Party should have a valid hex integer less than 16^6, without a leading '#'.
 
   A Party object that has no Color or an invalid Color should be picked up
   within this class and returned to the user as a warning.
@@ -1090,13 +1090,19 @@ class PartiesHaveValidColors(base.BaseRule):
     color_val = colors[0].text
     if not color_val:
       raise loggers.ElectionWarning.from_message(
-          "Color tag is missing a value.", [colors[0]])
-    else:
-      try:
-        int(color_val, 16)
-      except ValueError:
-        raise loggers.ElectionWarning.from_message(
-            "%s is not a valid hex color." % color_val, [colors[0]])
+          "Color tag is missing a value.", [colors[0]]
+      )
+    try:
+      int(color_val, 16)
+    except ValueError:
+      raise loggers.ElectionWarning.from_message(
+          "%s is not a valid hex color." % color_val,
+          [colors[0]],
+      )
+    if not re.match("^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", color_val):
+      raise loggers.ElectionWarning.from_message(
+          "%s should be a hexadecimal less than 16^6." % color_val, [colors[0]]
+      )
 
 
 class PersonHasUniqueFullName(base.BaseRule):
@@ -1260,6 +1266,24 @@ class DuplicatedPartyAbbreviation(ValidatePartyCollection):
           info_message = "Parties have the same abbreviation in %s." % language
           info_log.append(loggers.LogEntry(info_message, parties))
     return info_log
+
+
+class EmptyPartyAbbreviation(base.BaseRule):
+  """Party abbreviations should not be empty."""
+
+  def elements(self):
+    return ["Party"]
+
+  def check(self, party):
+    abbrevs = party.find("InternationalizedAbbreviation")
+    if abbrevs is None:
+      return
+    text_elements = abbrevs.findall("Text")
+    for text_element in text_elements:
+      if text_element.text is None:
+        raise loggers.ElectionError.from_message(
+            "Empty party abbreviation found", [party]
+        )
 
 
 class DuplicatedPartyName(ValidatePartyCollection):
@@ -1856,7 +1880,7 @@ class URIValidator(base.BaseRule):
     discrepencies = []
     social_media_platform = ["facebook", "twitter", "wikipedia", "instagram",
                              "youtube", "website", "linkedin", "line",
-                             "ballotpedia"]
+                             "ballotpedia", "tiktok"]
 
     try:
       url.encode("ascii")
@@ -1868,15 +1892,21 @@ class URIValidator(base.BaseRule):
     if not parsed_url.netloc:
       discrepencies.append("domain - missing")
     if discrepencies:
-      msg = "The provided URI, {}, is invalid for the following reasons: {}.".format(
-          url.encode("ascii", "ignore"), ", ".join(discrepencies))
+      msg = (
+          "The provided URI, {}, is invalid for the following reasons: {}."
+          .format(url.encode("ascii", "ignore"), ", ".join(discrepencies))
+      )
       raise loggers.ElectionError.from_message(msg, [element])
 
     for platform in social_media_platform:
-      if re.search(platform,
-                   parsed_url.netloc) and parsed_url.scheme != "https":
-        msg = ("It is recommended to use https instead of http. The provided "
-               "URI, '{}'.").format(url)
+      if (
+          re.search(platform, parsed_url.netloc)
+          and parsed_url.scheme != "https"
+      ):
+        msg = (
+            "It is recommended to use https instead of http. The provided "
+            "URI, '{}'."
+        ).format(url)
         raise loggers.ElectionInfo.from_message(msg, [element])
 
 
@@ -1954,6 +1984,26 @@ class ValidYoutubeURL(base.BaseRule):
           [element])
 
 
+class ValidTiktokURL(base.BaseRule):
+  """Validate Tiktok URL.
+
+  Ensure the provided URL is a valid Tiktok URL types.
+  """
+
+  def elements(self):
+    return ["Uri"]
+
+  def check(self, element):
+    url = element.text.strip()
+    parsed_url = urlparse(url)
+    if "tiktok" in parsed_url.netloc and not re.match(r"^\/@[.\w]*\w$",
+                                                      parsed_url.path):
+      raise loggers.ElectionError.from_message(
+          "'{}' is not an expected value for a tiktok account.".format(url),
+          [element],
+      )
+
+
 class ValidURIAnnotation(base.BaseRule):
   """Validate annotations on candidate/officeholder URLs.
 
@@ -1963,7 +2013,7 @@ class ValidURIAnnotation(base.BaseRule):
 
   TYPE_PLATFORMS = frozenset([
       "facebook", "twitter", "instagram", "youtube", "website", "line",
-      "linkedin"
+      "linkedin", "tiktok"
   ])
   USAGE_TYPES = frozenset(["personal", "official", "campaign"])
   PLATFORM_ONLY_ANNOTATIONS = frozenset(
@@ -1997,38 +2047,40 @@ class ValidURIAnnotation(base.BaseRule):
             "URI {} is missing annotation.".format(ascii_url), [uri])
 
       # Only do platform checks if the annotation is not an image.
-      if not re.search(r"candidate-image", annotation):
-        ann_elements = annotation.split("-")
-        if len(ann_elements) == 1:
-          platform = ann_elements[0]
-          # One element would imply the annotation could be a platform
-          # without a usage type, which is checked here.
-          if platform in self.TYPE_PLATFORMS:
-            raise loggers.ElectionWarning.from_message(
-                "Annotation '{}' missing usage type.".format(annotation), [uri])
-          elif platform in self.USAGE_TYPES:
-            raise loggers.ElectionError.from_message(
-                "Annotation '{}' has usage type, missing platform.".format(
-                    annotation), [uri])
-          elif platform not in self.PLATFORM_ONLY_ANNOTATIONS:
-            raise loggers.ElectionError.from_message(
-                "Annotation '{}' is not a valid annotation for URI {}.".format(
-                    annotation, ascii_url), [uri])
-        elif len(ann_elements) == 2:
-          # Two elements at this stage would mean the annotation
-          # must be a platform with a usage type.
-          usage_type, platform = ann_elements
-          if (usage_type not in self.USAGE_TYPES or
-              platform not in self.TYPE_PLATFORMS):
-            raise loggers.ElectionWarning.from_message(
-                "'{}' is not a valid annotation.".format(annotation), [uri])
-        else:
-          # More than two implies an invalid annotation.
+      if re.search(r"candidate-image", annotation):
+        continue
+
+      ann_elements = annotation.split("-")
+      if len(ann_elements) == 1:
+        platform = ann_elements[0]
+        # One element would imply the annotation could be a platform
+        # without a usage type, which is checked here.
+        if platform in self.TYPE_PLATFORMS:
+          raise loggers.ElectionWarning.from_message(
+              "Annotation '{}' missing usage type.".format(annotation), [uri])
+        elif platform in self.USAGE_TYPES:
           raise loggers.ElectionError.from_message(
-              "Annotation '{}' is invalid for URI {}.".format(
+              "Annotation '{}' has usage type, missing platform.".format(
+                  annotation), [uri])
+        elif platform not in self.PLATFORM_ONLY_ANNOTATIONS:
+          raise loggers.ElectionError.from_message(
+              "Annotation '{}' is not a valid annotation for URI {}.".format(
                   annotation, ascii_url), [uri])
-        # Finally, check platform is in the URL.
-        self.check_url(uri, annotation, platform)
+      elif len(ann_elements) == 2:
+        # Two elements at this stage would mean the annotation
+        # must be a platform with a usage type.
+        usage_type, platform = ann_elements
+        if (usage_type not in self.USAGE_TYPES or
+            platform not in self.TYPE_PLATFORMS):
+          raise loggers.ElectionWarning.from_message(
+              "'{}' is not a valid annotation.".format(annotation), [uri])
+      else:
+        # More than two implies an invalid annotation.
+        raise loggers.ElectionError.from_message(
+            "Annotation '{}' is invalid for URI {}.".format(
+                annotation, ascii_url), [uri])
+      # Finally, check platform is in the URL.
+      self.check_url(uri, annotation, platform)
 
 
 class OfficesHaveJurisdictionID(base.BaseRule):
@@ -3462,6 +3514,7 @@ COMMON_RULES = (
     DuplicateGpUnits,
     DuplicateID,
     EmptyText,
+    EmptyPartyAbbreviation,
     Encoding,
     GpUnitOcdId,
     HungarianStyleNotation,
@@ -3478,6 +3531,7 @@ COMMON_RULES = (
     PersonsHaveValidGender,
     PartyLeadershipMustExist,
     ValidYoutubeURL,
+    ValidTiktokURL,
     URIValidator,
     UniqueURIPerAnnotationCategory,
     ValidURIAnnotation,

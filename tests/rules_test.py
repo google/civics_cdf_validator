@@ -2859,6 +2859,17 @@ class PartiesHaveValidColorsTest(absltest.TestCase):
                      "green is not a valid hex color.")
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Color")
 
+  def testPartiesHaveTooLargeHex(self):
+    root_string = self._base_string.format(self._color_str.format("c295757"))
+    element = etree.fromstring(root_string)
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.color_validator.check(element)
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "c295757 should be a hexadecimal less than 16^6.",
+    )
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Color")
+
   def testPartyHasMoreThanOneColor(self):
     root_string = """
         <Party objectId="par0001">
@@ -5044,6 +5055,10 @@ class URIValidatorTest(absltest.TestCase):
     valid_url = self.uri_element.format("https://www.youtube.com")
     self.uri_validator.check(etree.fromstring(valid_url))
 
+  def testChecksForValidUriHttpsTiktok(self):
+    valid_url = self.uri_element.format("https://www.tiktok.com")
+    self.uri_validator.check(etree.fromstring(valid_url))
+
   def testChecksForValidUriHttpsWeb(self):
     valid_url = self.uri_element.format("https://www.website.com")
     self.uri_validator.check(etree.fromstring(valid_url))
@@ -5438,6 +5453,60 @@ class ValidYoutubeURLTest(absltest.TestCase):
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
 
 
+class ValidTikTokURLTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ValidTikTokURLTest, self).setUp()
+    self.validator = rules.ValidTiktokURL(None, None)
+
+  def testTiktokURLReturnNoError(self):
+    root_string = """
+        <Uri Annotation="personal-tiktok">
+          <![CDATA[https://www.tiktok.com/@haxyehhshz]]>
+        </Uri>
+    """
+    self.validator.check(etree.fromstring(root_string))
+
+  def testTiktokUrlReturnErrorUC1(self):
+    root_string = """
+        <Uri Annotation="official-youtube">
+          <![CDATA[https://www.tiktok.com/@haxyehhshz/other]]>
+        </Uri>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(root_string))
+    self.assertEqual(cm.exception.log_entry[0].message,
+                     ("'https://www.tiktok.com/@haxyehhshz/other' is not "
+                      "an expected value for a tiktok account."))
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
+
+  def testTiktokUrlReturnErrorUC2(self):
+    root_string = """
+        <Uri Annotation="official-youtube">
+          <![CDATA[https://www.tiktok.com/haxyehhshz]]>
+        </Uri>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(root_string))
+    self.assertEqual(cm.exception.log_entry[0].message, (
+        "'https://www.tiktok.com/haxyehhshz' is not an expected value for a "
+        "tiktok account."))
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
+
+  def testBasicTiktokUrlReturnError(self):
+    root_string = """
+        <Uri Annotation="official-youtube">
+          <![CDATA[https://www.tiktok.com/]]>
+        </Uri>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(root_string))
+    self.assertEqual(cm.exception.log_entry[0].message,
+                     ("'https://www.tiktok.com/' is not an expected value for "
+                      "a tiktok account."))
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
+
+
 class ValidURIAnnotationTest(absltest.TestCase):
 
   def setUp(self):
@@ -5505,6 +5574,9 @@ class ValidURIAnnotationTest(absltest.TestCase):
         </Uri>
         <Uri Annotation="personal-linkedin">
           <![CDATA[https://www.linkedin.com/michael]]>
+        </Uri>
+        <Uri Annotation="campaign-tiktok">
+          <![CDATA[https://www.tiktok.com/@ksncndjs]]>
         </Uri>
       </ContactInformation>
     """
@@ -10194,6 +10266,62 @@ class AffiliationHasEitherPartyOrPersonTest(absltest.TestCase):
         "Affiliation must have one of: PartyId, PersonId. Cannot include both.",
     )
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Affiliation")
+
+
+class EmptyAbbreviationTest(absltest.TestCase):
+
+  def setUp(self):
+    super(EmptyAbbreviationTest, self).setUp()
+    self.validator = rules.EmptyPartyAbbreviation(None, None)
+
+  def testEmptyPartyAbbreviation(self):
+    test_string = """
+    <Party>
+      <InternationalizedAbbreviation>
+        <Text language="en"/>
+      </InternationalizedAbbreviation>
+    </Party>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(test_string))
+
+    self.assertEqual(
+        cm.exception.log_entry[0].message, "Empty party abbreviation found"
+    )
+
+  def testEmptyStringPartyAbbreviation(self):
+    test_string = """
+    <Party>
+      <InternationalizedAbbreviation>
+        <Text language="en"></Text>
+      </InternationalizedAbbreviation>
+    </Party>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(test_string))
+
+    self.assertEqual(
+        cm.exception.log_entry[0].message, "Empty party abbreviation found"
+    )
+
+  def testGoodAbbreviation(self):
+    test_string = """
+    <Party>
+      <InternationalizedAbbreviation>
+        <Text language="en">alias</Text>
+      </InternationalizedAbbreviation>
+    </Party>
+    """
+
+    self.validator.check(etree.fromstring(test_string))
+
+  def testNoAbbreviation(self):
+    test_string = """
+    <Party>
+    </Party>
+    """
+
+    self.validator.check(etree.fromstring(test_string))
 
 
 class RulesTest(absltest.TestCase):
