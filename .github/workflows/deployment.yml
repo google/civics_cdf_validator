@@ -35,6 +35,9 @@ jobs:
     needs: build-n-test
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
@@ -47,8 +50,7 @@ jobs:
         pip install setuptools wheel twine
     - name: Build and publish
       env:
-        TWINE_USERNAME: civics-partner-data
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        TWINE_NON_INTERACTIVE: 'true'
       run: |
         python setup.py sdist bdist_wheel
         twine upload dist/*
