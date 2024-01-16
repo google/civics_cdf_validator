@@ -1996,8 +1996,11 @@ class ValidTiktokURL(base.BaseRule):
   def check(self, element):
     url = element.text.strip()
     parsed_url = urlparse(url)
-    if "tiktok" in parsed_url.netloc and not re.match(r"^\/@[.\w]*\w$",
-                                                      parsed_url.path):
+    if "tiktok" in parsed_url.netloc and (
+        not re.match(r"^\/@[^\/@]+$", parsed_url.path)
+        or parsed_url.query
+        or parsed_url.fragment
+    ):
       raise loggers.ElectionError.from_message(
           "'{}' is not an expected value for a tiktok account.".format(url),
           [element],
