@@ -10309,6 +10309,150 @@ class EmptyAbbreviationTest(absltest.TestCase):
     self.validator.check(etree.fromstring(test_string))
 
 
+class UnreferencedEntitiesElectionDatesTest(absltest.TestCase):
+  _base_schema = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8"?>
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    </xs:schema>
+  """)
+
+  def testUnreferencedTopLevelGpUnitAddsInfo(self):
+    test_string = """
+    <GpUnit objectId="gpunit-id">
+      <ComposingGpUnitIds>child-gpunit child-gpunit-2</ComposingGpUnitIds>
+    </GpUnit>
+    """
+
+    schema_string = """
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element minOccurs="0" name="ComposingGpUnitIds" type="xs:IDREFS" />
+    </xs:schema>
+  """
+
+    with self.assertRaises(loggers.ElectionInfo) as cm:
+      rules.UnreferencedEntitiesElectionDates(
+          etree.fromstring(test_string), etree.fromstring(schema_string)
+      ).check()
+
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "GpUnit with object id gpunit-id is not referenced by anything"
+        " else in the feed. This is ok for top-level GpUnits that"
+        " contain others; please ensure this GpUnit is still required in"
+        " the feed.",
+    )
+
+  def testUnreferencedChildGpUnitFails(self):
+    test_string = """
+    <GpUnit objectId="gpunit-id">
+    </GpUnit>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      rules.UnreferencedEntitiesElectionDates(
+          etree.fromstring(test_string), self._base_schema
+      ).check()
+
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Element of type GpUnit with object id gpunit-id is not referenced by"
+        " anything else in the feed.",
+    )
+
+  def testUnreferencedOfficeFails(self):
+    test_string = """
+    <Office objectId="office-id">
+    </Office>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      rules.UnreferencedEntitiesElectionDates(
+          etree.fromstring(test_string), self._base_schema
+      ).check()
+
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Element of type Office with object id office-id is not referenced by"
+        " anything else in the feed.",
+    )
+
+  def testUnreferencedTopLevelElectionAndContestOk(self):
+    test_string = """
+    <Election objectId="election-id">
+      <ContestCollection>
+        <Contest objectId="ballot-measure-contest-id">
+        </Contest>
+      </ContestCollection>
+    </Election>
+    """
+
+    rules.UnreferencedEntitiesElectionDates(
+        etree.fromstring(test_string), self._base_schema
+    ).check()
+
+  def testReferencedOfficeOk(self):
+    test_string = """
+    <ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <Election objectId="election-id">
+        <ContestCollection>
+          <Contest objectId="ballot-measure-contest-id" xsi:type="BallotMeasureContest">
+            <OfficeIds>office-id</OfficeIds>
+          </Contest>
+        </ContestCollection>
+      </Election>
+      <OfficeCollection>
+        <Office objectId="office-id">
+        </Office>
+      </OfficeCollection>
+    </ElectionReport>
+    """
+
+    schema_string = """
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element minOccurs="0" name="OfficeIds" type="xs:IDREFS" />
+    </xs:schema>
+  """
+
+    rules.UnreferencedEntitiesElectionDates(
+        etree.fromstring(test_string), etree.fromstring(schema_string)
+    ).check()
+
+  def testExternalIdReferencedGpUnitOk(self):
+    test_string = """
+    <ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <Election objectId="election-id">
+        <ContestCollection>
+          <Contest objectId="ballot-measure-contest-id" xsi:type="BallotMeasureContest">
+            <OfficeIds>office-id</OfficeIds>
+          </Contest>
+        </ContestCollection>
+      </Election>
+      <GpUnitCollection>
+        <GpUnit objectId="gpunit-1">
+        </GpUnit>
+      </GpUnitCollection>
+      <OfficeCollection>
+        <Office objectId="office-id">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>jurisdiction-id</OtherType>
+              <Value>gpunit-1</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Office>
+      </OfficeCollection>
+    </ElectionReport>
+    """
+
+    schema_string = """
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element minOccurs="0" name="OfficeIds" type="xs:IDREFS" />
+    </xs:schema>
+  """
+
+    rules.UnreferencedEntitiesElectionDates(
+        etree.fromstring(test_string), etree.fromstring(schema_string)
+    ).check()
+
+
 class RulesTest(absltest.TestCase):
 
   def testAllRulesIncluded(self):
@@ -10319,6 +10463,7 @@ class RulesTest(absltest.TestCase):
     possible_rules.remove(rules.ValidatePartyCollection)
     possible_rules.remove(base.DateRule)
     possible_rules.remove(base.MissingFieldRule)
+    possible_rules.remove(rules.UnreferencedEntitiesBase)
     self.assertSetEqual(all_rules, possible_rules)
 
   def _subclasses(self, cls):

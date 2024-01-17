@@ -31,6 +31,10 @@ import networkx
 from six.moves.urllib.parse import urlparse
 
 _PARTY_LEADERSHIP_TYPES = ["party-leader-id", "party-chair-id"]
+# The set of external identifiers that contain references to other entities.
+_IDREF_EXTERNAL_IDENTIFIERS = frozenset(
+    ["jurisdiction-id"] + _PARTY_LEADERSHIP_TYPES
+)
 _IDENTIFIER_TYPES = frozenset(
     ["local-level", "national-level", "ocd-id", "state-level"])
 _CONTEST_STAGE_TYPES = frozenset([
@@ -3501,11 +3505,111 @@ class AffiliationHasEitherPartyOrPerson(base.BaseRule):
       )
 
 
+class UnreferencedEntitiesBase(base.TreeRule):
+  """All non-top-level entities in a feed should be referenced by at least one other entity.
+
+  This base class allows derived rules to specify the set of top-level and
+  warning-level entities since these differ by feed type. The rule is an info
+  for gpunits (as long as they have ComposingGpunitIds) since top-level gpunits
+  may exist solely to contain others.
+  """
+
+  def __init__(
+      self,
+      election_tree,
+      schema_tree,
+      top_level_entity_types,
+      warned_entity_types,
+  ):
+    super(UnreferencedEntitiesBase, self).__init__(election_tree, schema_tree)
+    self.referenced_entities = self._gather_referenced_entities()
+    self.top_level_entity_types = top_level_entity_types
+    self.warned_entity_types = warned_entity_types
+
+  def _get_idref_elements(self):
+    """Returns the names of all XML elements in the schema of type IDREF or IDREFS."""
+
+    idref_elements = set()
+    for _, element in etree.iterwalk(self.schema_tree):
+      tag = self.strip_schema_ns(element)
+      if (
+          tag
+          and tag == "element"
+          and element.get("type") in ("xs:IDREF", "xs:IDREFS")
+      ):
+        idref_elements.add(element.get("name"))
+    return idref_elements
+
+  def _gather_referenced_entities(self):
+    """Create a set of all entities referenced by either IDREF(S) elements or external identifiers."""
+
+    idref_elements = self._get_idref_elements()
+    referenced_entities = set()
+    for external_id_type in _IDREF_EXTERNAL_IDENTIFIERS:
+      referenced_entities.update(
+          get_external_id_values(self.election_tree, external_id_type)
+      )
+    for _, element in etree.iterwalk(self.election_tree):
+      tag = self.strip_schema_ns(element)
+      if tag and tag in idref_elements:
+        referenced_entities.update(element.text.split())
+    return referenced_entities
+
+  def check(self):
+    for _, element in etree.iterwalk(self.election_tree):
+      element_name = element.tag
+      # Skip anything without an object id.
+      if "objectId" not in element.attrib:
+        continue
+      obj_id = element.get("objectId")
+      if (
+          obj_id not in self.referenced_entities
+          and element_name not in self.top_level_entity_types
+      ):
+        if element_name in self.warned_entity_types:
+          raise loggers.ElectionWarning.from_message(
+              f"Element of type {element_name} with object id {obj_id} is not"
+              " referenced by anything else in the feed. This is only ok if"
+              " there are explicit instructions to include this entity anyways."
+          )
+        elif (
+            element_name == "GpUnit"
+            and element.find("ComposingGpUnitIds") is not None
+        ):
+          raise loggers.ElectionInfo.from_message(
+              f"GpUnit with object id {obj_id} is not referenced by anything"
+              " else in the feed. This is ok for top-level GpUnits that"
+              " contain others; please ensure this GpUnit is still required in"
+              " the feed."
+          )
+        else:
+          raise loggers.ElectionError.from_message(
+              f"Element of type {element_name} with object id {obj_id} is not"
+              " referenced by anything else in the feed."
+          )
+
+
+class UnreferencedEntitiesElectionDates(UnreferencedEntitiesBase):
+  """CDF elections and contests are top-level in election dates feeds.
+
+  All other entity types must be referenced.
+  """
+
+  def __init__(self, election_tree, schema_tree):
+    super(UnreferencedEntitiesElectionDates, self).__init__(
+        election_tree,
+        schema_tree,
+        frozenset(["Election", "Contest"]),
+        frozenset([]),
+    )
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
   OFFICEHOLDER = 2
   COMMITTEE = 3
+  ELECTION_DATES = 4
 
 
 # To add new rules, create a new class, inherit the base rule,
@@ -3621,6 +3725,14 @@ COMMITTEE_RULES = COMMON_RULES + (
     AffiliationHasEitherPartyOrPerson,
 )
 
+ELECTION_DATES_RULES = (
+    COMMON_RULES + ELECTION_RULES + (UnreferencedEntitiesElectionDates,)
+)
+
 ALL_RULES = frozenset(
-    COMMON_RULES + ELECTION_RULES + OFFICEHOLDER_RULES + COMMITTEE_RULES
+    COMMON_RULES
+    + ELECTION_RULES
+    + OFFICEHOLDER_RULES
+    + COMMITTEE_RULES
+    + ELECTION_DATES_RULES
 )
