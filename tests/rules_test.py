@@ -10453,6 +10453,138 @@ class UnreferencedEntitiesElectionDatesTest(absltest.TestCase):
     ).check()
 
 
+class UnreferencedEntitiesOfficeholdersTest(absltest.TestCase):
+  _base_schema = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8"?>
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    </xs:schema>
+  """)
+
+  def testUnreferencedTopLevelGpUnitAddsInfo(self):
+    test_string = """
+    <GpUnit objectId="gpunit-id">
+      <ComposingGpUnitIds>child-gpunit child-gpunit-2</ComposingGpUnitIds>
+    </GpUnit>
+    """
+
+    schema_string = """
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element minOccurs="0" name="ComposingGpUnitIds" type="xs:IDREFS" />
+    </xs:schema>
+  """
+
+    with self.assertRaises(loggers.ElectionInfo) as cm:
+      rules.UnreferencedEntitiesOfficeholders(
+          etree.fromstring(test_string), etree.fromstring(schema_string)
+      ).check()
+
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "GpUnit with object id gpunit-id is not referenced by anything"
+        " else in the feed. This is ok for top-level GpUnits that"
+        " contain others; please ensure this GpUnit is still required in"
+        " the feed.",
+    )
+
+  def testUnreferencedChildGpUnitFails(self):
+    test_string = """
+    <GpUnit objectId="gpunit-id">
+    </GpUnit>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      rules.UnreferencedEntitiesOfficeholders(
+          etree.fromstring(test_string), self._base_schema
+      ).check()
+
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Element of type GpUnit with object id gpunit-id is not referenced by"
+        " anything else in the feed.",
+    )
+
+  def testUnreferencedPersonFails(self):
+    test_string = """
+    <Person objectId="person-id">
+    </Person>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      rules.UnreferencedEntitiesOfficeholders(
+          etree.fromstring(test_string), self._base_schema
+      ).check()
+
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Element of type Person with object id person-id is not referenced by"
+        " anything else in the feed.",
+    )
+
+  def testUnreferencedPartyAddsWarning(self):
+    test_string = """
+    <Party objectId="party-id">
+    </Party>
+    """
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      rules.UnreferencedEntitiesOfficeholders(
+          etree.fromstring(test_string), self._base_schema
+      ).check()
+
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Element of type Party with object id party-id is not"
+        " referenced by anything else in the feed. This is only ok if"
+        " there are explicit instructions to include this entity anyways.",
+    )
+
+  def testUnreferencedTopLevelOfficeOk(self):
+    test_string = """
+    <Office objectId="office-id">
+    </Office>
+    """
+
+    rules.UnreferencedEntitiesOfficeholders(
+        etree.fromstring(test_string), self._base_schema
+    ).check()
+
+  def testExternalIdReferencedPersonOk(self):
+    test_string = """
+    <ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <PersonCollection>
+        <Person objectId="per-1">
+          <PartyId>party-1</PartyId>
+        </Person>
+        <Person objectId="party-chair">
+        </Person>
+      </PersonCollection>
+      <OfficeCollection>
+        <Office objectId="office-holder-office">
+          <OfficeHolderPersonIds>per-1</OfficeHolderPersonIds>
+        </Office>
+      </OfficeCollection>
+      <PartyCollection>
+        <Party objectId="party-1">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>party-chair-id</OtherType>
+              <Value>party-chair</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Party>
+      </PartyCollection>
+    </ElectionReport>
+    """
+
+    schema_string = """
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element minOccurs="0" name="PartyId" type="xs:IDREF" />
+      <xs:element minOccurs="0" name="OfficeHolderPersonIds" type="xs:IDREFS" />
+    </xs:schema>
+  """
+
+    rules.UnreferencedEntitiesOfficeholders(
+        etree.fromstring(test_string), etree.fromstring(schema_string)
+    ).check()
+
+
 class RulesTest(absltest.TestCase):
 
   def testAllRulesIncluded(self):

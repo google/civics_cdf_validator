@@ -3604,6 +3604,19 @@ class UnreferencedEntitiesElectionDates(UnreferencedEntitiesBase):
     )
 
 
+class UnreferencedEntitiesOfficeholders(UnreferencedEntitiesBase):
+  """CDF offices are top-level in officeholders feeds.
+
+  This rule is a warning for CDF parties since we ask for all parties for some
+  LatAm feeds due to ads enforcement requirements.
+  """
+
+  def __init__(self, election_tree, schema_tree):
+    super(UnreferencedEntitiesOfficeholders, self).__init__(
+        election_tree, schema_tree, frozenset(["Office"]), frozenset(["Party"])
+    )
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
@@ -3715,6 +3728,7 @@ OFFICEHOLDER_RULES = COMMON_RULES + (
     OfficeTermDates,
     UniqueStartDatesForOfficeRoleAndJurisdiction,
     RemovePersonAndOfficeHolderId60DaysAfterEndDate,
+    UnreferencedEntitiesOfficeholders,
 )
 
 COMMITTEE_RULES = COMMON_RULES + (
