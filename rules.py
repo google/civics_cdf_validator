@@ -2271,6 +2271,9 @@ class ElectionEndDatesInThePast(base.DateRule):
 
   Using a past end date needs to be notified. The warning is useful to prevent
   using a wrong date.
+
+  A bounded election with a past end date is an error since the date should be
+  confirmed.
   """
 
   def elements(self):
@@ -2279,6 +2282,14 @@ class ElectionEndDatesInThePast(base.DateRule):
   def check(self, element):
     self.reset_instance_vars()
     self.gather_dates(element)
+    date_type = element.find("ElectionDateType")
+    if date_type is not None and date_type.text.lower() == "bounded":
+      if self.end_date:
+        self.check_for_date_not_in_past(self.end_date, self.end_elem)
+      if self.error_log:
+        raise loggers.ElectionError.from_message(
+            "A bounded election should not have an end date in the past."
+        )
     for contest in self.get_elements_by_class(element, "Contest"):
       subsequent_contest_id_element = contest.find("SubsequentContestId")
       if subsequent_contest_id_element is not None:

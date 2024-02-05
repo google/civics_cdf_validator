@@ -6727,6 +6727,28 @@ class ElectionEndDatesInThePastTest(absltest.TestCase):
     """
     self.date_validator.check(etree.fromstring(election_string))
 
+  @freezegun.freeze_time("2022-01-01")
+  def testBoundedElectionEndDateNotInPast(self):
+    election_string = """
+      <Election>
+        <ElectionDateType>bounded</ElectionDateType>
+        <StartDate>2012-01-01</StartDate>
+        <EndDate>2023-01-01</EndDate>
+      </Election>
+    """
+    self.date_validator.check(etree.fromstring(election_string))
+
+  def testBoundedElectionEndDateInPast(self):
+    election_string = """
+      <Election>
+        <ElectionDateType>bounded</ElectionDateType>
+        <StartDate>2012-01-01</StartDate>
+        <EndDate>2018-01-01</EndDate>
+      </Election>
+    """
+    with self.assertRaises(loggers.ElectionError):
+      self.date_validator.check(etree.fromstring(election_string))
+
 
 class ElectionEndDatesOccurAfterStartDatesTest(absltest.TestCase):
 
