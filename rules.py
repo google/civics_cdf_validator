@@ -2273,7 +2273,8 @@ class ElectionEndDatesInThePast(base.DateRule):
   using a wrong date.
 
   A bounded election with a past end date is an error since the date should be
-  confirmed.
+  confirmed. The only exception to this is elections that are postponed or
+  canceled.
   """
 
   def elements(self):
@@ -2287,9 +2288,15 @@ class ElectionEndDatesInThePast(base.DateRule):
       if self.end_date:
         self.check_for_date_not_in_past(self.end_date, self.end_elem)
       if self.error_log:
-        raise loggers.ElectionError.from_message(
-            "A bounded election should not have an end date in the past."
-        )
+        date_status = element.find("ElectionDateStatus")
+        if date_status is None or date_status.text.lower() not in [
+            "postponed",
+            "canceled",
+        ]:
+          raise loggers.ElectionError.from_message(
+              "A bounded election should not have an end date in the past."
+          )
+        self.reset_instance_vars()
     for contest in self.get_elements_by_class(element, "Contest"):
       subsequent_contest_id_element = contest.find("SubsequentContestId")
       if subsequent_contest_id_element is not None:

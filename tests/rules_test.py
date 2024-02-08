@@ -6749,6 +6749,28 @@ class ElectionEndDatesInThePastTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError):
       self.date_validator.check(etree.fromstring(election_string))
 
+  def testBoundedElectionEndDateInPastCanceledElection(self):
+    election_string = """
+      <Election>
+        <ElectionDateType>bounded</ElectionDateType>
+        <ElectionDateStatus>canceled</ElectionDateStatus>
+        <StartDate>2012-01-01</StartDate>
+        <EndDate>2023-01-01</EndDate>
+      </Election>
+    """
+    self.date_validator.check(etree.fromstring(election_string))
+
+  def testBoundedElectionEndDateInPastPostponedElection(self):
+    election_string = """
+      <Election>
+        <ElectionDateType>bounded</ElectionDateType>
+        <ElectionDateStatus>postponed</ElectionDateStatus>
+        <StartDate>2012-01-01</StartDate>
+        <EndDate>2023-01-01</EndDate>
+      </Election>
+    """
+    self.date_validator.check(etree.fromstring(election_string))
+
 
 class ElectionEndDatesOccurAfterStartDatesTest(absltest.TestCase):
 
