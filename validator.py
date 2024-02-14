@@ -278,12 +278,12 @@ def compute_max_found_severity(exceptions_wrapper):
 
 def exec_profiling(func):
   """This is a decorator to add profiling to the feed validation."""
-  def add_profiling_if_needed(args):
-    if args is None or not args.profile_report:
-      return func(args)
+  def add_profiling_if_needed(options, *args, **kwargs):
+    if options is None or not options.profile_report:
+      return func(options, *args, **kwargs)
     pr = cProfile.Profile(builtins=False)
     pr.enable()
-    result = func(args)
+    result = func(options, *args, **kwargs)
     pr.disable()
     s = io.StringIO()
     ps = pstats.Stats(pr, stream=s).strip_dirs().sort_stats("cumulative")
