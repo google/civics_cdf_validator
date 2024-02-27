@@ -7,6 +7,7 @@ import inspect
 import io
 
 from absl.testing import absltest
+from absl.testing import parameterized
 from civics_cdf_validator import base
 from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
@@ -5453,57 +5454,41 @@ class ValidYoutubeURLTest(absltest.TestCase):
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
 
 
-class ValidTikTokURLTest(absltest.TestCase):
+class ValidTikTokURLTest(parameterized.TestCase):
 
   def setUp(self):
     super(ValidTikTokURLTest, self).setUp()
     self.validator = rules.ValidTiktokURL(None, None)
 
-  def testTiktokURLReturnNoError(self):
+  def testValidTiktokUrlReturnsNoError(self):
     root_string = """
         <Uri Annotation="personal-tiktok">
-          <![CDATA[https://www.tiktok.com/@haxyehhshz]]>
+          <![CDATA[https://www.tiktok.com/@haxyehhshz-123_456.789]]>
         </Uri>
     """
     self.validator.check(etree.fromstring(root_string))
 
-  def testTiktokUrlReturnErrorUC1(self):
-    root_string = """
-        <Uri Annotation="official-youtube">
-          <![CDATA[https://www.tiktok.com/@haxyehhshz/other]]>
+  @parameterized.parameters(
+      "https://www.tiktok.com/",
+      "https://www.tiktok.com/@",
+      "https://www.tiktok.com/haxyehhshz",
+      "https://www.tiktok.com/@haxye@hhshz",
+      "https://www.tiktok.com/@haxyehhshz/other",
+      "https://www.tiktok.com/@haxyehhshz?other",
+      "https://www.tiktok.com/@haxyehhshz#other",
+  )
+  def testInvalidTiktokUrlReturnsError(self, url):
+    root_string = f"""
+        <Uri Annotation="official-tiktok">
+          <![CDATA[{url}]]>
         </Uri>
     """
     with self.assertRaises(loggers.ElectionError) as cm:
       self.validator.check(etree.fromstring(root_string))
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     ("'https://www.tiktok.com/@haxyehhshz/other' is not "
-                      "an expected value for a tiktok account."))
-    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
-
-  def testTiktokUrlReturnErrorUC2(self):
-    root_string = """
-        <Uri Annotation="official-youtube">
-          <![CDATA[https://www.tiktok.com/haxyehhshz]]>
-        </Uri>
-    """
-    with self.assertRaises(loggers.ElectionError) as cm:
-      self.validator.check(etree.fromstring(root_string))
-    self.assertEqual(cm.exception.log_entry[0].message, (
-        "'https://www.tiktok.com/haxyehhshz' is not an expected value for a "
-        "tiktok account."))
-    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
-
-  def testBasicTiktokUrlReturnError(self):
-    root_string = """
-        <Uri Annotation="official-youtube">
-          <![CDATA[https://www.tiktok.com/]]>
-        </Uri>
-    """
-    with self.assertRaises(loggers.ElectionError) as cm:
-      self.validator.check(etree.fromstring(root_string))
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     ("'https://www.tiktok.com/' is not an expected value for "
-                      "a tiktok account."))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        f"'{url}' is not an expected value for a tiktok account.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
 
 
@@ -6739,6 +6724,50 @@ class ElectionEndDatesInThePastTest(absltest.TestCase):
           <StartDate>2012-01-01</StartDate>
           <EndDate>2023-03-01</EndDate>
         </Election>
+    """
+    self.date_validator.check(etree.fromstring(election_string))
+
+  @freezegun.freeze_time("2022-01-01")
+  def testBoundedElectionEndDateNotInPast(self):
+    election_string = """
+      <Election>
+        <ElectionDateType>bounded</ElectionDateType>
+        <StartDate>2012-01-01</StartDate>
+        <EndDate>2023-01-01</EndDate>
+      </Election>
+    """
+    self.date_validator.check(etree.fromstring(election_string))
+
+  def testBoundedElectionEndDateInPast(self):
+    election_string = """
+      <Election>
+        <ElectionDateType>bounded</ElectionDateType>
+        <StartDate>2012-01-01</StartDate>
+        <EndDate>2018-01-01</EndDate>
+      </Election>
+    """
+    with self.assertRaises(loggers.ElectionError):
+      self.date_validator.check(etree.fromstring(election_string))
+
+  def testBoundedElectionEndDateInPastCanceledElection(self):
+    election_string = """
+      <Election>
+        <ElectionDateType>bounded</ElectionDateType>
+        <ElectionDateStatus>canceled</ElectionDateStatus>
+        <StartDate>2012-01-01</StartDate>
+        <EndDate>2023-01-01</EndDate>
+      </Election>
+    """
+    self.date_validator.check(etree.fromstring(election_string))
+
+  def testBoundedElectionEndDateInPastPostponedElection(self):
+    election_string = """
+      <Election>
+        <ElectionDateType>bounded</ElectionDateType>
+        <ElectionDateStatus>postponed</ElectionDateStatus>
+        <StartDate>2012-01-01</StartDate>
+        <EndDate>2023-01-01</EndDate>
+      </Election>
     """
     self.date_validator.check(etree.fromstring(election_string))
 
@@ -10324,6 +10353,282 @@ class EmptyAbbreviationTest(absltest.TestCase):
     self.validator.check(etree.fromstring(test_string))
 
 
+class UnreferencedEntitiesElectionDatesTest(absltest.TestCase):
+  _base_schema = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8"?>
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    </xs:schema>
+  """)
+
+  def testUnreferencedTopLevelGpUnitAddsInfo(self):
+    test_string = """
+    <GpUnit objectId="gpunit-id">
+      <ComposingGpUnitIds>child-gpunit child-gpunit-2</ComposingGpUnitIds>
+    </GpUnit>
+    """
+
+    schema_string = """
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element minOccurs="0" name="ComposingGpUnitIds" type="xs:IDREFS" />
+    </xs:schema>
+  """
+
+    with self.assertRaises(loggers.ElectionInfo) as cm:
+      rules.UnreferencedEntitiesElectionDates(
+          etree.fromstring(test_string), etree.fromstring(schema_string)
+      ).check()
+
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "GpUnit with object id gpunit-id is not referenced by anything"
+        " else in the feed. This is ok for top-level GpUnits that"
+        " contain others; please ensure this GpUnit is still required in"
+        " the feed.",
+    )
+
+  def testUnreferencedChildGpUnitFails(self):
+    test_string = """
+    <GpUnit objectId="gpunit-id">
+    </GpUnit>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      rules.UnreferencedEntitiesElectionDates(
+          etree.fromstring(test_string), self._base_schema
+      ).check()
+
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Element of type GpUnit with object id gpunit-id is not referenced by"
+        " anything else in the feed.",
+    )
+
+  def testUnreferencedOfficeFails(self):
+    test_string = """
+    <Office objectId="office-id">
+    </Office>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      rules.UnreferencedEntitiesElectionDates(
+          etree.fromstring(test_string), self._base_schema
+      ).check()
+
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Element of type Office with object id office-id is not referenced by"
+        " anything else in the feed.",
+    )
+
+  def testUnreferencedTopLevelElectionAndContestOk(self):
+    test_string = """
+    <Election objectId="election-id">
+      <ContestCollection>
+        <Contest objectId="ballot-measure-contest-id">
+        </Contest>
+      </ContestCollection>
+    </Election>
+    """
+
+    rules.UnreferencedEntitiesElectionDates(
+        etree.fromstring(test_string), self._base_schema
+    ).check()
+
+  def testReferencedOfficeOk(self):
+    test_string = """
+    <ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <Election objectId="election-id">
+        <ContestCollection>
+          <Contest objectId="ballot-measure-contest-id" xsi:type="BallotMeasureContest">
+            <OfficeIds>office-id</OfficeIds>
+          </Contest>
+        </ContestCollection>
+      </Election>
+      <OfficeCollection>
+        <Office objectId="office-id">
+        </Office>
+      </OfficeCollection>
+    </ElectionReport>
+    """
+
+    schema_string = """
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element minOccurs="0" name="OfficeIds" type="xs:IDREFS" />
+    </xs:schema>
+  """
+
+    rules.UnreferencedEntitiesElectionDates(
+        etree.fromstring(test_string), etree.fromstring(schema_string)
+    ).check()
+
+  def testExternalIdReferencedGpUnitOk(self):
+    test_string = """
+    <ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <Election objectId="election-id">
+        <ContestCollection>
+          <Contest objectId="ballot-measure-contest-id" xsi:type="BallotMeasureContest">
+            <OfficeIds>office-id</OfficeIds>
+          </Contest>
+        </ContestCollection>
+      </Election>
+      <GpUnitCollection>
+        <GpUnit objectId="gpunit-1">
+        </GpUnit>
+      </GpUnitCollection>
+      <OfficeCollection>
+        <Office objectId="office-id">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>jurisdiction-id</OtherType>
+              <Value>gpunit-1</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Office>
+      </OfficeCollection>
+    </ElectionReport>
+    """
+
+    schema_string = """
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element minOccurs="0" name="OfficeIds" type="xs:IDREFS" />
+    </xs:schema>
+  """
+
+    rules.UnreferencedEntitiesElectionDates(
+        etree.fromstring(test_string), etree.fromstring(schema_string)
+    ).check()
+
+
+class UnreferencedEntitiesOfficeholdersTest(absltest.TestCase):
+  _base_schema = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8"?>
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    </xs:schema>
+  """)
+
+  def testUnreferencedTopLevelGpUnitAddsInfo(self):
+    test_string = """
+    <GpUnit objectId="gpunit-id">
+      <ComposingGpUnitIds>child-gpunit child-gpunit-2</ComposingGpUnitIds>
+    </GpUnit>
+    """
+
+    schema_string = """
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element minOccurs="0" name="ComposingGpUnitIds" type="xs:IDREFS" />
+    </xs:schema>
+  """
+
+    with self.assertRaises(loggers.ElectionInfo) as cm:
+      rules.UnreferencedEntitiesOfficeholders(
+          etree.fromstring(test_string), etree.fromstring(schema_string)
+      ).check()
+
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "GpUnit with object id gpunit-id is not referenced by anything"
+        " else in the feed. This is ok for top-level GpUnits that"
+        " contain others; please ensure this GpUnit is still required in"
+        " the feed.",
+    )
+
+  def testUnreferencedChildGpUnitFails(self):
+    test_string = """
+    <GpUnit objectId="gpunit-id">
+    </GpUnit>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      rules.UnreferencedEntitiesOfficeholders(
+          etree.fromstring(test_string), self._base_schema
+      ).check()
+
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Element of type GpUnit with object id gpunit-id is not referenced by"
+        " anything else in the feed.",
+    )
+
+  def testUnreferencedPersonFails(self):
+    test_string = """
+    <Person objectId="person-id">
+    </Person>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      rules.UnreferencedEntitiesOfficeholders(
+          etree.fromstring(test_string), self._base_schema
+      ).check()
+
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Element of type Person with object id person-id is not referenced by"
+        " anything else in the feed.",
+    )
+
+  def testUnreferencedPartyAddsWarning(self):
+    test_string = """
+    <Party objectId="party-id">
+    </Party>
+    """
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      rules.UnreferencedEntitiesOfficeholders(
+          etree.fromstring(test_string), self._base_schema
+      ).check()
+
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Element of type Party with object id party-id is not"
+        " referenced by anything else in the feed. This is only ok if"
+        " there are explicit instructions to include this entity anyways.",
+    )
+
+  def testUnreferencedTopLevelOfficeOk(self):
+    test_string = """
+    <Office objectId="office-id">
+    </Office>
+    """
+
+    rules.UnreferencedEntitiesOfficeholders(
+        etree.fromstring(test_string), self._base_schema
+    ).check()
+
+  def testExternalIdReferencedPersonOk(self):
+    test_string = """
+    <ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <PersonCollection>
+        <Person objectId="per-1">
+          <PartyId>party-1</PartyId>
+        </Person>
+        <Person objectId="party-chair">
+        </Person>
+      </PersonCollection>
+      <OfficeCollection>
+        <Office objectId="office-holder-office">
+          <OfficeHolderPersonIds>per-1</OfficeHolderPersonIds>
+        </Office>
+      </OfficeCollection>
+      <PartyCollection>
+        <Party objectId="party-1">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>party-chair-id</OtherType>
+              <Value>party-chair</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Party>
+      </PartyCollection>
+    </ElectionReport>
+    """
+
+    schema_string = """
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element minOccurs="0" name="PartyId" type="xs:IDREF" />
+      <xs:element minOccurs="0" name="OfficeHolderPersonIds" type="xs:IDREFS" />
+    </xs:schema>
+  """
+
+    rules.UnreferencedEntitiesOfficeholders(
+        etree.fromstring(test_string), etree.fromstring(schema_string)
+    ).check()
+
+
 class RulesTest(absltest.TestCase):
 
   def testAllRulesIncluded(self):
@@ -10334,6 +10639,7 @@ class RulesTest(absltest.TestCase):
     possible_rules.remove(rules.ValidatePartyCollection)
     possible_rules.remove(base.DateRule)
     possible_rules.remove(base.MissingFieldRule)
+    possible_rules.remove(rules.UnreferencedEntitiesBase)
     self.assertSetEqual(all_rules, possible_rules)
 
   def _subclasses(self, cls):
