@@ -1719,7 +1719,7 @@ class ContestHasMultipleOffices(base.BaseRule):
   """Ensure that each contest has exactly one Office."""
 
   def elements(self):
-    return ["CandidateContest"]
+    return ["CandidateContest", "PartyContest"]
 
   def check(self, element):
     # for each contest, get the <officeids> entity
