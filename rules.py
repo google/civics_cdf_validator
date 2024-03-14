@@ -3641,6 +3641,7 @@ class RuleSet(enum.Enum):
   OFFICEHOLDER = 2
   COMMITTEE = 3
   ELECTION_DATES = 4
+  ELECTION_RESULTS = 5
 
 
 # To add new rules, create a new class, inherit the base rule,
@@ -3698,14 +3699,10 @@ ELECTION_RULES = COMMON_RULES + (
     ElectoralDistrictOcdId,
     PartisanPrimary,
     PartisanPrimaryHeuristic,
-    PercentSum,
     ProperBallotSelection,
     CandidatesReferencedInRelatedContests,
     ContestHasValidContestStage,
-    VoteCountTypesCoherency,
     SelfDeclaredCandidateMethod,
-    PartiesHaveValidColors,
-    ValidateDuplicateColors,
     ElectionContainsStartAndEndDates,
     ElectionStartDates,
     ElectionEndDatesInThePast,
@@ -3739,6 +3736,14 @@ ELECTION_RULES = COMMON_RULES + (
     CandidateContestTypesAreCompatible,
 )
 
+ELECTION_RESULTS_RULES = ELECTION_RULES + (
+    PercentSum,
+    VoteCountTypesCoherency,
+    PartiesHaveValidColors,
+    ValidateDuplicateColors,
+)
+
+
 OFFICEHOLDER_RULES = COMMON_RULES + (
     DateOfBirthIsInPast,
     PersonHasOffice,
@@ -3764,6 +3769,7 @@ ELECTION_DATES_RULES = (
 ALL_RULES = frozenset(
     COMMON_RULES
     + ELECTION_RULES
+    + ELECTION_RESULTS_RULES
     + OFFICEHOLDER_RULES
     + COMMITTEE_RULES
     + ELECTION_DATES_RULES
