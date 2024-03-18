@@ -457,6 +457,9 @@
         <NumberElected>1</NumberElected>
         <OfficeIds>off9999a</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
+        <StartDate>2024-04-12</StartDate>
+        <EndDate>2024-04-18</EndDate>
+        <CountingDate>2024-04-20</CountingDate>
       </Contest>
       <Contest objectId="cc20001" xsi:type="CandidateContest">
         <!-- This contest is for office: Vice President.
