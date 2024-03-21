@@ -96,11 +96,16 @@ class GpUnitOcdIdValidator(object):
       True if the OCD ID is valid. False otherwise.
     """
     ocd_id = str(ocd_id)
-    return (
-        ocd_id in cls.ocd_ids
-        and cls.ocd_matcher.match(ocd_id)
-        and cls.is_valid_country_code(ocd_id)
-    )
+    in_list = ocd_id in cls.ocd_ids
+    formatted = bool(cls.ocd_matcher.match(ocd_id))
+    valid_country_code = cls.is_valid_country_code(ocd_id)
+
+    return {
+        "in_list": in_list,
+        "formatted": formatted,
+        "valid_country_code": valid_country_code,
+        "result": in_list and formatted and valid_country_code,
+    }
 
   @classmethod
   def is_country_or_region_ocd_id(cls, ocd_id):

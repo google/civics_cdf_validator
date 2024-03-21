@@ -45,14 +45,14 @@ class GpUnitOcdIdValidatorTest(absltest.TestCase):
     ocd_value = "regionalwahlkreis:burgenland_sued"
     gpunit_rules.GpUnitOcdIdValidator.ocd_ids = set([ocd_value])
     self.assertFalse(
-        gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(ocd_value)
+        gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(ocd_value)["result"]
     )
 
   def testIsValidOcdIdWithInvalidCharacter_returnsFalse(self):
     ocd_value = "ocd-division/country:la/regionalwahlkreis:burgenland*d"
     gpunit_rules.GpUnitOcdIdValidator.ocd_ids = set([ocd_value])
     self.assertFalse(
-        gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(ocd_value)
+        gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(ocd_value)["result"]
     )
 
   def testIsValidOcdIdWIthMissingOcdId_returnsFalse(self):
@@ -61,42 +61,42 @@ class GpUnitOcdIdValidatorTest(absltest.TestCase):
         ["ocd-division/country:la/regionalwahlkreis:burgenland_süd"]
     )
     self.assertFalse(
-        gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(ocd_value)
+        gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(ocd_value)["result"]
     )
 
   def testIsValidOcdIdWithValidId_returnsTrue(self):
     ocd_value = "ocd-division/country:la/regionalwahlkreis:burgenland_süd"
     gpunit_rules.GpUnitOcdIdValidator.ocd_ids = set([ocd_value])
     self.assertTrue(
-        gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(ocd_value)
+        gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(ocd_value)["result"]
     )
 
   def testIsValidOcdIdWithValidCountryId_returnsTrue(self):
     ocd_value = "ocd-division/country:la"
     gpunit_rules.GpUnitOcdIdValidator.ocd_ids = set([ocd_value])
     self.assertTrue(
-        gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(ocd_value)
+        gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(ocd_value)["result"]
     )
 
   def testIsValidOcdIdWithInvalidCountryId_returnsFalse(self):
     ocd_value = "ocd-division/country:lan"
     gpunit_rules.GpUnitOcdIdValidator.ocd_ids = set([ocd_value])
     self.assertFalse(
-        gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(ocd_value)
+        gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(ocd_value)["result"]
     )
 
   def testIsValidOcdIdWithRegionId_returnsTrue(self):
     ocd_value = "ocd-division/region:la"
     gpunit_rules.GpUnitOcdIdValidator.ocd_ids = set([ocd_value])
     self.assertTrue(
-        gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(ocd_value)
+        gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(ocd_value)["result"]
     )
 
   def testIsValidOcdIdWithStateId_returnsTrue(self):
     ocd_value = "ocd-division/country:us/state:la"
     gpunit_rules.GpUnitOcdIdValidator.ocd_ids = set([ocd_value])
     self.assertTrue(
-        gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(ocd_value)
+        gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(ocd_value)["result"]
     )
 
   def testIsCountryOrRegionOcdIdWithNonString_returnsFalse(self):
