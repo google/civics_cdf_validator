@@ -1027,29 +1027,10 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
     ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
     ocdid_validator.setup()
-    mock = MagicMock(
-        return_value={
-            "in_list": True,
-            "formatted": True,
-            "valid_country_code": True,
-            "result": True,
-        }
-    )
+    mock = MagicMock(return_value=True)
     gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
 
-    with self.assertRaises(loggers.ElectionInfo) as ee:
-      ocdid_validator.check(element)
-    self.assertEqual(
-        ee.exception.log_entry[0].message,
-        (
-            "The ElectoralDistrictId refers to GpUnit ru0002 with OCD ID "
-            "(ocd-division/country:us/state:va) | {in_list: True, formatted: "
-            "True, valid_country_code: True}"
-        ),
-    )
-    self.assertEqual(
-        ee.exception.log_entry[0].elements[0].tag, "ElectoralDistrictId"
-    )
+    ocdid_validator.check(element)
 
   def testItRaisesAnErrorIfTheOcdidLabelIsNotAllLowerCase(self):
     element = etree.fromstring(
@@ -1069,10 +1050,10 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
     ocdid_validator.setup()
 
-    mock = MagicMock(return_value={"result": True})
+    mock = MagicMock(return_value=True)
     gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
 
-    with self.assertRaises(loggers.ElectionInfo) as ee:
+    with self.assertRaises(loggers.ElectionError) as ee:
       ocdid_validator.check(element)
     self.assertEqual(ee.exception.log_entry[0].message,
                      "The referenced GpUnit ru0002 does not have an ocd-id")
@@ -1097,10 +1078,10 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
     ocdid_validator.setup()
 
-    mock = MagicMock(return_value={"result": True})
+    mock = MagicMock(return_value=True)
     gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
 
-    with self.assertRaises(loggers.ElectionInfo) as ee:
+    with self.assertRaises(loggers.ElectionError) as ee:
       ocdid_validator.check(element)
     self.assertEqual(ee.exception.log_entry[0].message,
                      ("The ElectoralDistrictId element not refer to a GpUnit. "
@@ -1122,10 +1103,10 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
     ocdid_validator.setup()
 
-    mock = MagicMock(return_value={"result": True})
+    mock = MagicMock(return_value=True)
     gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
 
-    with self.assertRaises(loggers.ElectionInfo) as ee:
+    with self.assertRaises(loggers.ElectionError) as ee:
       ocdid_validator.check(element)
     self.assertEqual(ee.exception.log_entry[0].message,
                      "The referenced GpUnit ru0002 does not have an ocd-id")
@@ -1150,26 +1131,15 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
     ocdid_validator.setup()
 
-    mock = MagicMock(
-        return_value={
-            "in_list": False,
-            "formatted": True,
-            "valid_country_code": True,
-            "result": False,
-        }
-    )
+    mock = MagicMock(return_value=False)
     gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
 
-    with self.assertRaises(loggers.ElectionInfo) as ee:
+    with self.assertRaises(loggers.ElectionError) as ee:
       ocdid_validator.check(element)
-    self.assertEqual(
-        ee.exception.log_entry[0].message,
-        (
-            "The ElectoralDistrictId refers to GpUnit ru0002 with OCD ID "
-            "(ocd-division/country:us/state:ma) | {in_list: False, formatted: "
-            "True, valid_country_code: True}"
-        ),
-    )
+    self.assertEqual(ee.exception.log_entry[0].message,
+                     ("The ElectoralDistrictId refers to GpUnit ru0002 that"
+                      " does not have a valid OCD ID "
+                      "(ocd-division/country:us/state:ma)"))
     self.assertEqual(ee.exception.log_entry[0].elements[0].tag,
                      "ElectoralDistrictId")
 
@@ -1214,26 +1184,10 @@ class GpUnitOcdIdTest(absltest.TestCase):
         "<Value>ocd-division/country:us/state:ma/county:middlesex</Value>",
         "county")
     report = etree.fromstring(reporting_unit)
-    mock = MagicMock(
-        return_value={
-            "in_list": True,
-            "formatted": True,
-            "valid_country_code": True,
-            "result": False,
-        }
-    )
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
 
-    with self.assertRaises(loggers.ElectionInfo) as ee:
-      self.gp_unit_validator.check(report.find("GpUnit"))
-    self.assertEqual(
-        ee.exception.log_entry[0].message,
-        (
-            "The OCD ID is ocd-division/country:us/state:ma/county:middlesex |"
-            " {in_list: True, formatted: True, valid_country_code: True}"
-        ),
-    )
-    self.assertEqual(ee.exception.log_entry[0].elements[0].tag, "GpUnit")
+    mock = MagicMock(return_value=True)
+    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
+    self.gp_unit_validator.check(report.find("GpUnit"))
 
   def testItIgnoresElementsWithNoObjectId(self):
     reporting_unit = """
@@ -1252,7 +1206,7 @@ class GpUnitOcdIdTest(absltest.TestCase):
     )
     report = etree.fromstring(reporting_unit)
 
-    mock = MagicMock(return_value={"result": True})
+    mock = MagicMock(return_value=True)
     gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
     self.gp_unit_validator.check(report.find("GpUnit"))
 
@@ -1260,7 +1214,7 @@ class GpUnitOcdIdTest(absltest.TestCase):
     reporting_unit = self.base_reporting_unit.format("", "county")
     report = etree.fromstring(reporting_unit)
 
-    mock = MagicMock(return_value={"result": True})
+    mock = MagicMock(return_value=True)
     gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
     self.gp_unit_validator.check(report.find("GpUnit"))
 
@@ -1271,16 +1225,9 @@ class GpUnitOcdIdTest(absltest.TestCase):
     )
     report = etree.fromstring(reporting_unit)
 
-    mock = MagicMock(
-        return_value={
-            "in_list": False,
-            "formatted": True,
-            "valid_country_code": True,
-            "result": False,
-        }
-    )
+    mock = MagicMock(return_value=False)
     gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
-    with self.assertRaises(loggers.ElectionInfo):
+    with self.assertRaises(loggers.ElectionWarning):
       self.gp_unit_validator.check(report.find("GpUnit"))
 
 
