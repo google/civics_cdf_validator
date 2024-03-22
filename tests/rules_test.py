@@ -1011,9 +1011,9 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
 
   # check tests
   def testThatGivenElectoralDistrictIdReferencesGpUnitWithValidOCDID(self):
+    ocd_id = "ocd-division/country:us/state:va"
     element = etree.fromstring(
         "<ElectoralDistrictId>ru0002</ElectoralDistrictId>")
-
     gp_unit = """
       <GpUnit objectId="ru0002">
         <ExternalIdentifiers>
@@ -1025,7 +1025,12 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
       </GpUnit>
     """
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
-    ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
+        "us", None, False, [ocd_id]
+    )
+    ocdid_validator = rules.ElectoralDistrictOcdId(
+        election_tree, None, ocd_id_validator=gpunit_ocdid_validator
+    )
     ocdid_validator.setup()
     mock = MagicMock(return_value=True)
     gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
@@ -1033,9 +1038,9 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     ocdid_validator.check(element)
 
   def testItRaisesAnErrorIfTheOcdidLabelIsNotAllLowerCase(self):
+    ocd_id = "ocd-division/country:us/state:va"
     element = etree.fromstring(
         "<ElectoralDistrictId>ru0002</ElectoralDistrictId>")
-
     gp_unit = """
       <GpUnit objectId="ru0002">
         <ExternalIdentifiers>
@@ -1047,11 +1052,13 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
       </GpUnit>
     """
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
-    ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
+        "us", None, False, [ocd_id]
+    )
+    ocdid_validator = rules.ElectoralDistrictOcdId(
+        election_tree, None, ocd_id_validator=gpunit_ocdid_validator
+    )
     ocdid_validator.setup()
-
-    mock = MagicMock(return_value=True)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
 
     with self.assertRaises(loggers.ElectionError) as ee:
       ocdid_validator.check(element)
@@ -1061,9 +1068,9 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
                      "ElectoralDistrictId")
 
   def testItRaisesAnErrorIfTheReferencedGpUnitDoesNotExist(self):
+    ocd_id = "ocd-division/country:us/state:va"
     element = etree.fromstring(
         "<ElectoralDistrictId>ru9999</ElectoralDistrictId>")
-
     gp_unit = """
       <GpUnit objectId="ru0002">
         <ExternalIdentifiers>
@@ -1075,11 +1082,13 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
       </GpUnit>
     """
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
-    ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
+        "us", None, False, [ocd_id]
+    )
+    ocdid_validator = rules.ElectoralDistrictOcdId(
+        election_tree, None, ocd_id_validator=gpunit_ocdid_validator
+    )
     ocdid_validator.setup()
-
-    mock = MagicMock(return_value=True)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
 
     with self.assertRaises(loggers.ElectionError) as ee:
       ocdid_validator.check(element)
@@ -1090,6 +1099,7 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
                      "ElectoralDistrictId")
 
   def testItRaisesAnErrorIfTheReferencedGpUnitHasNoOCDID(self):
+    other_ocdid = "ocd-division/country:us/state:va"
     element = etree.fromstring(
         "<ElectoralDistrictId>ru0002</ElectoralDistrictId>")
 
@@ -1100,11 +1110,13 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
       </GpUnit>
     """
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
-    ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
+        "us", None, False, [other_ocdid]
+    )
+    ocdid_validator = rules.ElectoralDistrictOcdId(
+        election_tree, None, ocd_id_validator=gpunit_ocdid_validator
+    )
     ocdid_validator.setup()
-
-    mock = MagicMock(return_value=True)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
 
     with self.assertRaises(loggers.ElectionError) as ee:
       ocdid_validator.check(element)
@@ -1114,9 +1126,9 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
                      "ElectoralDistrictId")
 
   def testItRaisesAnErrorIfTheReferencedOcdidIsNotValid(self):
+    ocd_id = "ocd-division/country:us/state:ma"
     element = etree.fromstring(
         "<ElectoralDistrictId>ru0002</ElectoralDistrictId>")
-
     gp_unit = """
       <GpUnit objectId="ru0002">
         <ExternalIdentifiers>
@@ -1128,7 +1140,12 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
       </GpUnit>
     """
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
-    ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
+        "us", None, False, [ocd_id]
+    )
+    ocdid_validator = rules.ElectoralDistrictOcdId(
+        election_tree, None, ocd_id_validator=gpunit_ocdid_validator
+    )
     ocdid_validator.setup()
 
     mock = MagicMock(return_value=False)
@@ -1158,7 +1175,12 @@ class GpUnitOcdIdTest(absltest.TestCase):
       </ElectionReport>
     """
     election_tree = etree.fromstring(root_string)
-    self.gp_unit_validator = rules.GpUnitOcdId(election_tree, None)
+    gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
+        "us", None, False, ["ocd-division/country:us/state:ma/county:middlesex"]
+    )
+    self.gp_unit_validator = rules.GpUnitOcdId(
+        election_tree, None, ocd_id_validator=gpunit_ocdid_validator
+    )
 
     self.base_reporting_unit = """
       <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -7546,14 +7568,14 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
     today = datetime.datetime.now().date()
     tomorrow = today + datetime.timedelta(days=1)
     yesterday = today - datetime.timedelta(days=1)
-
     office_one = etree.fromstring(office_string.format(today))
     office_two = etree.fromstring(office_string.format(tomorrow))
     office_three = etree.fromstring(office_string.format(yesterday))
-
     offices = [office_one, office_two, office_three]
     expected_valid = [office_one, office_two]
+
     actual_valid = self.date_validator._filter_out_past_end_dates(offices)
+
     self.assertEqual(expected_valid, actual_valid)
 
   def testOfficesWithNoTermAreInvalid(self):

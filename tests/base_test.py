@@ -6,11 +6,17 @@ import io
 import sys
 from absl.testing import absltest
 from civics_cdf_validator import base
+from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 import freezegun
 from lxml import etree
 from mock import MagicMock
 from mock import patch
+
+_TEST_US_OCD_ID_1 = "ocd-division/country:us"
+_TEST_US_OCD_ID_2 = "ocd-division/country:us/state:ny"
+_TEST_CA_OCD_ID_1 = "ocd-division/country:ca"
+_TEST_CA_OCD_ID_2 = "ocd-division/country:ca/cd:1207/district:0"
 
 
 class ValidReferenceRuleTest(absltest.TestCase):
@@ -476,7 +482,12 @@ class RulesRegistryTest(absltest.TestCase):
 
   def setUp(self):
     super(RulesRegistryTest, self).setUp()
-    self.registry = base.RulesRegistry("test.xml", "schema.xsd", [], [])
+    ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
+        "us", None, False, [_TEST_US_OCD_ID_1]
+    )
+    self.registry = base.RulesRegistry(
+        "test.xml", "schema.xsd", [], [], ocd_id_validator
+    )
     root_string = """
       <ElectionReport>
         <PartyCollection>
@@ -581,6 +592,19 @@ class RulesRegistryTest(absltest.TestCase):
       self.assertIn(
           "{:<30s}{:^8s}{:>15s}".format(attr, str(count), str(missing_in)),
           output)
+
+  def testMultipleInstancesValidateTheCorrectOcdIds(self):
+    us_ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
+        "us", None, False, [_TEST_US_OCD_ID_1, _TEST_US_OCD_ID_2]
+    )
+    ca_ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
+        "us", None, False, [_TEST_CA_OCD_ID_1, _TEST_CA_OCD_ID_2]
+    )
+
+    self.assertFalse(us_ocd_id_validator.is_valid_ocd_id(_TEST_CA_OCD_ID_1))
+    self.assertFalse(ca_ocd_id_validator.is_valid_ocd_id(_TEST_US_OCD_ID_1))
+    self.assertTrue(us_ocd_id_validator.is_valid_ocd_id(_TEST_US_OCD_ID_2))
+    self.assertTrue(ca_ocd_id_validator.is_valid_ocd_id(_TEST_CA_OCD_ID_2))
 
 
 if __name__ == "__main__":

@@ -36,11 +36,51 @@ class GpUnitOcdIdValidator(object):
   It should be initialized with the user input.
   """
 
-  ocd_ids = set()
   OCD_PATTERN = r"^ocd-division\/(?P<country_code>(country|region):[a-z]{2})(\/(\w|-)+:(\w|-|\.|~)+)*$"
-  ocd_matcher = re.compile(OCD_PATTERN, flags=re.U)
+  OCD_MATCHER = re.compile(OCD_PATTERN, flags=re.U)
   OCD_PATTERN_ROOT = r"^ocd-division\/(country:[a-z]{2}|region:eu)$"
-  ocd_matcher_root = re.compile(OCD_PATTERN_ROOT, flags=re.U)
+  OCD_MATCHER_ROOT = re.compile(OCD_PATTERN_ROOT, flags=re.U)
+
+  def __init__(self, country_code, local_file, check_github, ocd_id_list=None):
+    """Initialize the class.
+
+    If a list is provided, that list will be used to initialize the set of OCD
+    IDs. If a file is provided, the OCD IDs will be pulled from the local file.
+    Otherwise, the OCD IDs will be fetched from Github.
+
+    Args:
+      country_code: the code for the country to fetch OCD IDs for
+      local_file: the file containing the OCD IDs
+      check_github: boolean that indicates if OCD IDs should be fetched from
+        Github
+      ocd_id_list: a list of OCD IDs
+    """
+    if ocd_id_list:
+      self.ocd_ids = frozenset(ocd_id_list)
+    else:
+      extractor = OcdIdsExtractor(country_code, local_file, check_github)
+      self.ocd_ids = extractor.extract()
+
+  def is_valid_ocd_id(self, ocd_id):
+    """Check whether the given OCD ID is valid.
+
+    An OCD ID is valid if:
+    - it is in the list of existing OCD IDs
+    - it is properly formatted
+    - it has a valid country code
+
+    Args:
+      ocd_id: the OCD ID of interest
+
+    Returns:
+      True if the OCD ID is valid. False otherwise.
+    """
+    ocd_id = str(ocd_id)
+    return (
+        ocd_id in self.ocd_ids
+        and self.OCD_MATCHER.match(ocd_id)
+        and self.is_valid_country_code(ocd_id)
+    )
 
   @classmethod
   def is_valid_country_code(cls, ocd_id):
@@ -58,54 +98,9 @@ class GpUnitOcdIdValidator(object):
     return False
 
   @classmethod
-  def initialize_ocd_ids(
-      cls, country_code, local_file, check_github, ocd_id_list=None
-  ):
-    """Initialize the set of existing OCD IDs.
-
-    If a list is provided, that list will be used to initialize the set of OCD
-    IDs. If a file is provided, the OCD IDs will be pulled from the local file.
-    Otherwise, the OCD IDs will be fetched from Github.
-
-    Args:
-      country_code: the code for the country to fetch OCD IDs for
-      local_file: the file containing the OCD IDs
-      check_github: boolean that indicates if OCD IDs should be fetched from
-        Github
-      ocd_id_list: a list of OCD IDs
-    """
-    if ocd_id_list:
-      cls.ocd_ids = set(ocd_id_list)
-    else:
-      extractor = OcdIdsExtractor(country_code, local_file, check_github)
-      cls.ocd_ids = extractor.extract()
-
-  @classmethod
-  def is_valid_ocd_id(cls, ocd_id):
-    """Check whether the given OCD ID is valid.
-
-    An OCD ID is valid if:
-    - it is in the list of existing OCD IDs
-    - it is properly formatted
-    - it has a valid country code
-
-    Args:
-      ocd_id: the OCD ID of interest
-
-    Returns:
-      True if the OCD ID is valid. False otherwise.
-    """
-    ocd_id = str(ocd_id)
-    return (
-        ocd_id in cls.ocd_ids
-        and cls.ocd_matcher.match(ocd_id)
-        and cls.is_valid_country_code(ocd_id)
-    )
-
-  @classmethod
   def is_country_or_region_ocd_id(cls, ocd_id):
     """Check whether the given OCD ID represents a country or region."""
-    return cls.ocd_matcher_root.match(str(ocd_id))
+    return cls.OCD_MATCHER_ROOT.match(str(ocd_id))
 
 
 class OcdIdsExtractor(object):
