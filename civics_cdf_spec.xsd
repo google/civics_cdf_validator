@@ -628,6 +628,7 @@
             <xs:element minOccurs="0" name="Color" type="HtmlColorString" />
             <xs:element minOccurs="0" name="ContactInformation" type="ContactInformation" />
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
+            <xs:element minOccurs="0" name="IsIndependent" type="xs:boolean"/>
             <xs:element minOccurs="0" name="LogoUri" type="AnnotatedUri" />
             <xs:element name="Name" type="InternationalizedText" />
             <xs:element minOccurs="0" name="PartyScopeGpUnitIds" type="xs:IDREFS" />
