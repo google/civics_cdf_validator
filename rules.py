@@ -206,8 +206,8 @@ class Schema(base.TreeRule):
 class OptionalAndEmpty(base.BaseRule):
   """Checks for optional and empty fields."""
 
-  def __init__(self, election_tree, schema_tree):
-    super(OptionalAndEmpty, self).__init__(election_tree, schema_tree)
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    super(OptionalAndEmpty, self).__init__(election_tree, schema_tree, **kwargs)
     self.previous = None
 
   def elements(self):
@@ -362,8 +362,8 @@ class ValidIDREF(base.BaseRule):
   of the proper reference type for the given field.
   """
 
-  def __init__(self, election_tree, schema_tree):
-    super(ValidIDREF, self).__init__(election_tree, schema_tree)
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    super(ValidIDREF, self).__init__(election_tree, schema_tree, **kwargs)
     self.object_id_mapping = {}
     self.element_reference_mapping = {}
 
@@ -444,8 +444,8 @@ class ValidIDREF(base.BaseRule):
 class ValidStableID(base.BaseRule):
   """Ensure stable-ids are in the correct format."""
 
-  def __init__(self, election_tree, schema_tree):
-    super(ValidStableID, self).__init__(election_tree, schema_tree)
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    super(ValidStableID, self).__init__(election_tree, schema_tree, **kwargs)
     regex = r"^[a-zA-Z0-9_-]+$"
     self.stable_id_matcher = re.compile(regex, flags=re.U)
 
@@ -467,8 +467,10 @@ class ValidStableID(base.BaseRule):
 class ElectoralDistrictOcdId(base.BaseRule):
   """GpUnit referred to by ElectoralDistrictId MUST have a valid OCD-ID."""
 
-  def __init__(self, election_tree, schema_tree):
-    super(ElectoralDistrictOcdId, self).__init__(election_tree, schema_tree)
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    super(ElectoralDistrictOcdId, self).__init__(
+        election_tree, schema_tree, **kwargs
+    )
     self._all_gpunits = {}
 
   def setup(self):
@@ -497,7 +499,7 @@ class ElectoralDistrictOcdId(base.BaseRule):
                              [element], [referenced_gpunit.sourceline]))
       else:
         for ocd_id in ocd_ids:
-          if not gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(ocd_id):
+          if not self.ocd_id_validator.is_valid_ocd_id(ocd_id):
             error_log.append(
                 loggers.LogEntry("The ElectoralDistrictId refers to GpUnit %s "
                                  "that does not have a valid OCD ID (%s)"
@@ -525,9 +527,7 @@ class GpUnitOcdId(base.BaseRule):
       external_id_elements = get_external_id_values(
           element, "ocd-id", return_elements=True)
       for extern_id in external_id_elements:
-        if not gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id(
-            extern_id.text
-        ):
+        if not self.ocd_id_validator.is_valid_ocd_id(extern_id.text):
           msg = "The OCD ID %s is not valid" % extern_id.text
           raise loggers.ElectionWarning.from_message(
               msg, [element], [extern_id.sourceline])
@@ -592,8 +592,10 @@ class DuplicateGpUnits(base.BaseRule):
 class GpUnitsHaveSingleRoot(base.TreeRule):
   """Ensure that GpUnits form a single-rooted tree."""
 
-  def __init__(self, election_tree, schema_tree):
-    super(GpUnitsHaveSingleRoot, self).__init__(election_tree, schema_tree)
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    super(GpUnitsHaveSingleRoot, self).__init__(
+        election_tree, schema_tree, **kwargs
+    )
     self.error_log = []
 
   def check(self):
@@ -635,9 +637,10 @@ class GpUnitsHaveSingleRoot(base.TreeRule):
 class GpUnitsCyclesRefsValidation(base.TreeRule):
   """Ensure that GpUnits form a valid tree and no cycles are present."""
 
-  def __init__(self, election_tree, schema_tree):
-    super(GpUnitsCyclesRefsValidation, self).__init__(election_tree,
-                                                      schema_tree)
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    super(GpUnitsCyclesRefsValidation, self).__init__(
+        election_tree, schema_tree, **kwargs
+    )
     self.edges = dict()  # Used to maintain the record of connected edges
     self.visited = {}  # Used to store status of the nodes as visited or not.
     self.error_log = []
@@ -729,8 +732,8 @@ class PartisanPrimary(base.BaseRule):
   """
   election_type = None
 
-  def __init__(self, election_tree, schema_tree):
-    super(PartisanPrimary, self).__init__(election_tree, schema_tree)
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    super(PartisanPrimary, self).__init__(election_tree, schema_tree, **kwargs)
     # There can only be one election element in a file.
     election_elem = self.election_tree.find("Election")
     if election_elem is not None:
@@ -809,8 +812,8 @@ class CoalitionParties(base.BaseRule):
 class UniqueLabel(base.BaseRule):
   """Labels should be unique within a file."""
 
-  def __init__(self, election_tree, schema_tree):
-    super(UniqueLabel, self).__init__(election_tree, schema_tree)
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    super(UniqueLabel, self).__init__(election_tree, schema_tree, **kwargs)
     self.labels = set()
 
   def elements(self):
@@ -844,9 +847,10 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
   span unrelated contests.
   """
 
-  def __init__(self, election_tree, schema_tree):
-    super(CandidatesReferencedInRelatedContests,
-          self).__init__(election_tree, schema_tree)
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    super(CandidatesReferencedInRelatedContests, self).__init__(
+        election_tree, schema_tree, **kwargs
+    )
     self.error_log = []
     self.contest_graph = networkx.Graph()
 
@@ -1207,33 +1211,45 @@ class ValidatePartyCollection(base.BaseRule):
       raise loggers.ElectionInfo(info_log)
 
 
-class ValidateDuplicateColors(ValidatePartyCollection):
-  """Each Party should have unique hex color.
+class ValidateDuplicateColors(base.TreeRule):
+  """Parties under the same contest should have unique color.
 
-  A Party object that has duplicate color should be picked up
-  within this class and returned to the user as an Info message.
+  A Party object that has duplicate color and referenced under the same contest
+  should be picked up within this class and returned to the user as a warning
+  message.
   """
 
-  def check_specific(self, parties):
-    party_colors = {}
-    info_log = []
-    for party in parties:
+  def check(self):
+    party_color_mapping = {}
+    for party in self.get_elements_by_class(self.election_tree, "Party"):
       color_element = party.find("Color")
-      if color_element is None:
+      if color_element is None or not color_element.text:
         continue
-      color = color_element.text
-      if color is None:
-        continue
-      if color in party_colors:
-        party_colors[color].append(party)
-      else:
-        party_colors[color] = [party]
+      party_color_mapping[party.get("objectId")] = (color_element.text, party)
 
-    for color, parties in party_colors.items():
-      if len(parties) > 1:
-        info_log.append(loggers.LogEntry(
-            "Parties has the same color %s." % color, parties))
-    return info_log
+    warning_log = []
+    for party_contest in self.get_elements_by_class(
+        element=self.election_tree, element_name="PartyContest"
+    ):
+      contest_colors = {}
+      for party_ids_element in self.get_elements_by_class(
+          element=party_contest, element_name="PartyIds"
+      ):
+        for party_id in party_ids_element.text.split():
+          party_color = party_color_mapping[party_id][0]
+          if party_color in contest_colors:
+            contest_colors[party_color].append(party_color_mapping[party_id][1])
+          else:
+            contest_colors[party_color] = [party_color_mapping[party_id][1]]
+      for color, parties in contest_colors.items():
+        if len(parties) > 1:
+          warning_log.append(
+              loggers.LogEntry(
+                  "Parties have the same color %s." % color, parties
+              )
+          )
+    if warning_log:
+      raise loggers.ElectionWarning(warning_log)
 
 
 class DuplicatedPartyAbbreviation(ValidatePartyCollection):
@@ -1719,7 +1735,7 @@ class ContestHasMultipleOffices(base.BaseRule):
   """Ensure that each contest has exactly one Office."""
 
   def elements(self):
-    return ["CandidateContest"]
+    return ["CandidateContest", "PartyContest"]
 
   def check(self, element):
     # for each contest, get the <officeids> entity
@@ -1773,9 +1789,10 @@ class PersonHasOffice(base.ValidReferenceRule):
 class PartyLeadershipMustExist(base.ValidReferenceRule):
   """Each party leader or party chair should refer to a person in the feed."""
 
-  def __init__(self, election_tree, schema_tree):
-    super(PartyLeadershipMustExist, self).__init__(election_tree, schema_tree,
-                                                   "Person")
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    super(PartyLeadershipMustExist, self).__init__(
+        election_tree, schema_tree, "Person", **kwargs
+    )
 
   def _gather_reference_values(self):
     root = self.election_tree.getroot()
@@ -2113,9 +2130,10 @@ class OfficesHaveJurisdictionID(base.BaseRule):
 class ValidJurisdictionID(base.ValidReferenceRule):
   """Each jurisdiction id should refer to a valid GpUnit."""
 
-  def __init__(self, election_tree, schema_tree):
-    super(ValidJurisdictionID, self).__init__(election_tree, schema_tree,
-                                              "GpUnit")
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    super(ValidJurisdictionID, self).__init__(
+        election_tree, schema_tree, "GpUnit", **kwargs
+    )
 
   def _gather_reference_values(self):
     root = self.election_tree.getroot()
@@ -2616,7 +2634,7 @@ class UniqueStartDatesForOfficeRoleAndJurisdiction(base.BaseRule):
     for office in offices:
       term = office.find(".//Term")
       if term is not None:
-        date_validator = base.DateRule(None, None)
+        date_validator = base.DateRule(None, None, ocd_id_validator=None)
         try:
           date_validator.gather_dates(term)
           if date_validator.end_date is not None:
@@ -2944,8 +2962,10 @@ class PartySpanMultipleCountries(base.BaseRule):
   sometimes correct, but we should flag it to double check.
   """
 
-  def __init__(self, election_tree, schema_tree):
-    super(PartySpanMultipleCountries, self).__init__(election_tree, schema_tree)
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    super(PartySpanMultipleCountries, self).__init__(
+        election_tree, schema_tree, **kwargs
+    )
     self.existing_gpunits = dict()
     country_pattern = re.compile(r"^ocd-division\/country:[a-z]{2}")
     for gpunit in self.get_elements_by_class(election_tree, "GpUnit"):
@@ -3485,8 +3505,8 @@ class AffiliationEndDateOccursAfterStartDate(base.DateRule):
 class EinMatchesFormat(base.BaseRule):
   """EIN id should be in the following format: XX-XXXXXXX."""
 
-  def __init__(self, election_tree, schema_tree):
-    super(EinMatchesFormat, self).__init__(election_tree, schema_tree)
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    super(EinMatchesFormat, self).__init__(election_tree, schema_tree, **kwargs)
     regex = r"\d{2}(-\d{7})?"
     self.ein_id_matcher = re.compile(regex, flags=re.U)
 
@@ -3538,8 +3558,11 @@ class UnreferencedEntitiesBase(base.TreeRule):
       schema_tree,
       top_level_entity_types,
       warned_entity_types,
+      **kwargs,
   ):
-    super(UnreferencedEntitiesBase, self).__init__(election_tree, schema_tree)
+    super(UnreferencedEntitiesBase, self).__init__(
+        election_tree, schema_tree, **kwargs
+    )
     self.referenced_entities = self._gather_referenced_entities()
     self.top_level_entity_types = top_level_entity_types
     self.warned_entity_types = warned_entity_types
@@ -3613,12 +3636,13 @@ class UnreferencedEntitiesElectionDates(UnreferencedEntitiesBase):
   All other entity types must be referenced.
   """
 
-  def __init__(self, election_tree, schema_tree):
+  def __init__(self, election_tree, schema_tree, **kwargs):
     super(UnreferencedEntitiesElectionDates, self).__init__(
         election_tree,
         schema_tree,
         frozenset(["Election", "Contest"]),
         frozenset([]),
+        **kwargs,
     )
 
 
@@ -3629,9 +3653,13 @@ class UnreferencedEntitiesOfficeholders(UnreferencedEntitiesBase):
   LatAm feeds due to ads enforcement requirements.
   """
 
-  def __init__(self, election_tree, schema_tree):
+  def __init__(self, election_tree, schema_tree, **kwargs):
     super(UnreferencedEntitiesOfficeholders, self).__init__(
-        election_tree, schema_tree, frozenset(["Office"]), frozenset(["Party"])
+        election_tree,
+        schema_tree,
+        frozenset(["Office"]),
+        frozenset(["Party"]),
+        **kwargs,
     )
 
 
@@ -3641,6 +3669,7 @@ class RuleSet(enum.Enum):
   OFFICEHOLDER = 2
   COMMITTEE = 3
   ELECTION_DATES = 4
+  ELECTION_RESULTS = 5
 
 
 # To add new rules, create a new class, inherit the base rule,
@@ -3698,14 +3727,10 @@ ELECTION_RULES = COMMON_RULES + (
     ElectoralDistrictOcdId,
     PartisanPrimary,
     PartisanPrimaryHeuristic,
-    PercentSum,
     ProperBallotSelection,
     CandidatesReferencedInRelatedContests,
     ContestHasValidContestStage,
-    VoteCountTypesCoherency,
     SelfDeclaredCandidateMethod,
-    PartiesHaveValidColors,
-    ValidateDuplicateColors,
     ElectionContainsStartAndEndDates,
     ElectionStartDates,
     ElectionEndDatesInThePast,
@@ -3739,6 +3764,14 @@ ELECTION_RULES = COMMON_RULES + (
     CandidateContestTypesAreCompatible,
 )
 
+ELECTION_RESULTS_RULES = ELECTION_RULES + (
+    PercentSum,
+    VoteCountTypesCoherency,
+    PartiesHaveValidColors,
+    ValidateDuplicateColors,
+)
+
+
 OFFICEHOLDER_RULES = COMMON_RULES + (
     DateOfBirthIsInPast,
     PersonHasOffice,
@@ -3764,6 +3797,7 @@ ELECTION_DATES_RULES = (
 ALL_RULES = frozenset(
     COMMON_RULES
     + ELECTION_RULES
+    + ELECTION_RESULTS_RULES
     + OFFICEHOLDER_RULES
     + COMMITTEE_RULES
     + ELECTION_DATES_RULES

@@ -28,7 +28,8 @@ in order to build lxml.
 You can use `civics_cdf_validator` to check different types of feed:
 
 * Officeholder
-* Candidate / results
+* Candidate
+* Results
 * Committee
 * Election Dates
 
@@ -66,11 +67,19 @@ civics_cdf_validator validate election_file.xml --xsd civics_cdf_spec.xsd
 
 The validator is capable of validating either election or officeholder data
 feeds, depending on the value of the `--rule_set` flag (`election` is the
-default). To validate an officeholder feed:
+default). Examples:
 
-```
-civics_cdf_validator validate election_file.xml --xsd civics_cdf_spec.xsd --rule_set officeholder
-```
+  * Validate an officeholder feed:
+
+  ```
+  civics_cdf_validator validate officeholder_file.xml --xsd civics_cdf_spec.xsd --rule_set officeholder
+  ```
+
+  * Validate a results feed:
+
+  ```
+  civics_cdf_validator validate results_file.xml --xsd civics_cdf_spec.xsd --rule_set election_results
+  ```
 
 One can choose to only validate one or more comma separated rules by using the `-i` flag
 

@@ -1011,9 +1011,9 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
 
   # check tests
   def testThatGivenElectoralDistrictIdReferencesGpUnitWithValidOCDID(self):
+    ocd_id = "ocd-division/country:us/state:va"
     element = etree.fromstring(
         "<ElectoralDistrictId>ru0002</ElectoralDistrictId>")
-
     gp_unit = """
       <GpUnit objectId="ru0002">
         <ExternalIdentifiers>
@@ -1025,7 +1025,12 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
       </GpUnit>
     """
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
-    ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
+        "us", None, False, [ocd_id]
+    )
+    ocdid_validator = rules.ElectoralDistrictOcdId(
+        election_tree, None, ocd_id_validator=gpunit_ocdid_validator
+    )
     ocdid_validator.setup()
     mock = MagicMock(return_value=True)
     gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
@@ -1033,9 +1038,9 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     ocdid_validator.check(element)
 
   def testItRaisesAnErrorIfTheOcdidLabelIsNotAllLowerCase(self):
+    ocd_id = "ocd-division/country:us/state:va"
     element = etree.fromstring(
         "<ElectoralDistrictId>ru0002</ElectoralDistrictId>")
-
     gp_unit = """
       <GpUnit objectId="ru0002">
         <ExternalIdentifiers>
@@ -1047,11 +1052,13 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
       </GpUnit>
     """
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
-    ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
+        "us", None, False, [ocd_id]
+    )
+    ocdid_validator = rules.ElectoralDistrictOcdId(
+        election_tree, None, ocd_id_validator=gpunit_ocdid_validator
+    )
     ocdid_validator.setup()
-
-    mock = MagicMock(return_value=True)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
 
     with self.assertRaises(loggers.ElectionError) as ee:
       ocdid_validator.check(element)
@@ -1061,9 +1068,9 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
                      "ElectoralDistrictId")
 
   def testItRaisesAnErrorIfTheReferencedGpUnitDoesNotExist(self):
+    ocd_id = "ocd-division/country:us/state:va"
     element = etree.fromstring(
         "<ElectoralDistrictId>ru9999</ElectoralDistrictId>")
-
     gp_unit = """
       <GpUnit objectId="ru0002">
         <ExternalIdentifiers>
@@ -1075,11 +1082,13 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
       </GpUnit>
     """
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
-    ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
+        "us", None, False, [ocd_id]
+    )
+    ocdid_validator = rules.ElectoralDistrictOcdId(
+        election_tree, None, ocd_id_validator=gpunit_ocdid_validator
+    )
     ocdid_validator.setup()
-
-    mock = MagicMock(return_value=True)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
 
     with self.assertRaises(loggers.ElectionError) as ee:
       ocdid_validator.check(element)
@@ -1090,6 +1099,7 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
                      "ElectoralDistrictId")
 
   def testItRaisesAnErrorIfTheReferencedGpUnitHasNoOCDID(self):
+    other_ocdid = "ocd-division/country:us/state:va"
     element = etree.fromstring(
         "<ElectoralDistrictId>ru0002</ElectoralDistrictId>")
 
@@ -1100,11 +1110,13 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
       </GpUnit>
     """
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
-    ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
+        "us", None, False, [other_ocdid]
+    )
+    ocdid_validator = rules.ElectoralDistrictOcdId(
+        election_tree, None, ocd_id_validator=gpunit_ocdid_validator
+    )
     ocdid_validator.setup()
-
-    mock = MagicMock(return_value=True)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
 
     with self.assertRaises(loggers.ElectionError) as ee:
       ocdid_validator.check(element)
@@ -1114,9 +1126,9 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
                      "ElectoralDistrictId")
 
   def testItRaisesAnErrorIfTheReferencedOcdidIsNotValid(self):
+    ocd_id = "ocd-division/country:us/state:ma"
     element = etree.fromstring(
         "<ElectoralDistrictId>ru0002</ElectoralDistrictId>")
-
     gp_unit = """
       <GpUnit objectId="ru0002">
         <ExternalIdentifiers>
@@ -1128,7 +1140,12 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
       </GpUnit>
     """
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
-    ocdid_validator = rules.ElectoralDistrictOcdId(election_tree, None)
+    gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
+        "us", None, False, [ocd_id]
+    )
+    ocdid_validator = rules.ElectoralDistrictOcdId(
+        election_tree, None, ocd_id_validator=gpunit_ocdid_validator
+    )
     ocdid_validator.setup()
 
     mock = MagicMock(return_value=False)
@@ -1158,7 +1175,12 @@ class GpUnitOcdIdTest(absltest.TestCase):
       </ElectionReport>
     """
     election_tree = etree.fromstring(root_string)
-    self.gp_unit_validator = rules.GpUnitOcdId(election_tree, None)
+    gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
+        "us", None, False, ["ocd-division/country:us/state:ma/county:middlesex"]
+    )
+    self.gp_unit_validator = rules.GpUnitOcdId(
+        election_tree, None, ocd_id_validator=gpunit_ocdid_validator
+    )
 
     self.base_reporting_unit = """
       <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -2894,58 +2916,77 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
 
   def setUp(self):
     super(ValidateDuplicateColorsTest, self).setUp()
-    self._base_string = """
-      <PartyCollection>
-        <Party objectId="par0001">
-          <Name>
-            <Text language="en">Republican</Text>
-          </Name>
-          {0}
-        </Party>
-        <Party objectId="par0002">
-          <Name>
-            <Text language="en">Democratic</Text>
-          </Name>
-          {1}
-        </Party>
-        <Party objectId="par0003">
-          <Name>
-            <Text language="en">Green</Text>
-          </Name>
-          {2}
-        </Party>
-      </PartyCollection>
+    self.root_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest objectId="con1" xsi:type="PartyContest">
+              <BallotSelection objectId="ps1" xsi:type="PartySelection">
+                <PartyIds>par0001</PartyIds>
+              </BallotSelection>
+              <BallotSelection objectId="ps2" xsi:type="PartySelection">
+                <PartyIds>par0002</PartyIds>
+              </BallotSelection>
+            </Contest>
+            <Contest objectId="con2" xsi:type="PartyContest">
+              <BallotSelection objectId="ps3" xsi:type="PartySelection">
+                <PartyIds>par0003</PartyIds>
+              </BallotSelection>
+            </Contest>
+          </ContestCollection>
+        </Election>
+        <PartyCollection>
+          <Party objectId="par0001">
+            <Name>
+              <Text language="en">Republican</Text>
+            </Name>
+            {0}
+          </Party>
+          <Party objectId="par0002">
+            <Name>
+              <Text language="en">Democratic</Text>
+            </Name>
+            {1}
+          </Party>
+          <Party objectId="par0003">
+            <Name>
+              <Text language="en">Green</Text>
+            </Name>
+            {2}
+          </Party>
+        </PartyCollection>
+      </ElectionReport>
     """
     self._color_str = "<Color>{}</Color>"
-    self.color_validator = rules.ValidateDuplicateColors(None, None)
 
-  def testPartiesHaveDuplicateColors(self):
-    root_string = self._base_string.format(
+  def testContestWithPartiesHaveDuplicateColors(self):
+    test_string = self.root_string.format(
         self._color_str.format("ff0000"),
         self._color_str.format("ff0000"),
         self._color_str.format("ff0000"),
     )
-    element = etree.fromstring(root_string)
-    with self.assertRaises(loggers.ElectionInfo) as cm:
-      self.color_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Parties has the same color ff0000.")
-    self.assertLen(cm.exception.log_entry[0].elements, 3)
+    election_tree = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      rules.ValidateDuplicateColors(election_tree, None).check()
+    self.assertEqual(
+        cm.exception.log_entry[0].message, "Parties have the same color ff0000."
+    )
+    self.assertLen(cm.exception.log_entry[0].elements, 2)
     duplicated_parties = [
         cm.exception.log_entry[0].elements[0].get("objectId"),
         cm.exception.log_entry[0].elements[1].get("objectId"),
-        cm.exception.log_entry[0].elements[2].get("objectId")
     ]
     self.assertIn("par0001", duplicated_parties)
     self.assertIn("par0002", duplicated_parties)
-    self.assertIn("par0003", duplicated_parties)
 
-  def testPartiesHaveUniqueColors(self):
-    root_string = self._base_string.format(
-        self._color_str.format("ff0000"), self._color_str.format("0000ff"),
-        self._color_str.format("008000"))
-    element = etree.fromstring(root_string)
-    self.color_validator.check(element)
+  def testPartiesHaveUniqueColorsPerContest(self):
+    test_string = self.root_string.format(
+        self._color_str.format("ff0000"),
+        self._color_str.format("0000ff"),
+        self._color_str.format("ff0000"),
+    )
+    election_tree = etree.fromstring(test_string)
+    rules.ValidateDuplicateColors(election_tree, None).check()
 
 
 class MultipleCandidatesPointToTheSamePersonInTheSameContestTest(
@@ -7546,14 +7587,14 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
     today = datetime.datetime.now().date()
     tomorrow = today + datetime.timedelta(days=1)
     yesterday = today - datetime.timedelta(days=1)
-
     office_one = etree.fromstring(office_string.format(today))
     office_two = etree.fromstring(office_string.format(tomorrow))
     office_three = etree.fromstring(office_string.format(yesterday))
-
     offices = [office_one, office_two, office_three]
     expected_valid = [office_one, office_two]
+
     actual_valid = self.date_validator._filter_out_past_end_dates(offices)
+
     self.assertEqual(expected_valid, actual_valid)
 
   def testOfficesWithNoTermAreInvalid(self):

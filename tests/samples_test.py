@@ -9,6 +9,7 @@ import os
 from absl import flags
 from absl.testing import absltest
 from civics_cdf_validator import base
+from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator import rules
 import pytest
@@ -20,6 +21,16 @@ FLAGS = flags.FLAGS
 @pytest.mark.skip(reason='skip samples test during local development')
 class SamplesTest(absltest.TestCase):
   """Test that all sample files pass validation."""
+
+  ocd_ids = [
+      'ocd-division/country:us',
+      'ocd-division/country:us/state:tx',
+      'ocd-division/country:us/state:vt',
+      'ocd-division/country:us/state:va',
+      'ocd-division/country:us/state:ca',
+      'ocd-division/country:us/state:fl',
+      'ocd-division/country:us/state:va/county:albemarle',
+  ]
 
   def setUp(self):
     super(SamplesTest, self).setUp()
@@ -104,11 +115,16 @@ class SamplesTest(absltest.TestCase):
         FLAGS.test_srcdir,
         'google3/third_party/py/civics_cdf_validator/'
         'civics_cdf_spec.xsd')
+    gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
+        'us', None, False, self.ocd_ids
+    )
     registry = base.RulesRegistry(
         election_file=sample_file,
         schema_file=schema_file,
         rule_options={},
-        rule_classes_to_check=rules_to_check)
+        rule_classes_to_check=rules_to_check,
+        ocd_id_validator=gpunit_ocdid_validator,
+    )
 
     registry.check_rules()
     registry.print_exceptions(0, True)

@@ -253,6 +253,8 @@ def filter_all_rules_using_user_arg(rules_allowlist, rule_set, rules_blocklist):
       rule_names = [x.__name__ for x in rules.COMMITTEE_RULES]
     elif rule_set == rules.RuleSet.ELECTION_DATES:
       rule_names = [x.__name__ for x in rules.ELECTION_DATES_RULES]
+    elif rule_set == rules.RuleSet.ELECTION_RESULTS:
+      rule_names = [x.__name__ for x in rules.ELECTION_RESULTS_RULES]
     else:
       raise AssertionError("Invalid rule_set: " + rule_set)
     if rules_blocklist:
@@ -297,7 +299,7 @@ def exec_profiling(func):
 @exec_profiling
 def feed_validation(options, ocd_id_list=None):
   """Validate the input feed depending on the user parameters."""
-  gpunit_rules.GpUnitOcdIdValidator.initialize_ocd_ids(
+  ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
       options.c, options.ocdid_file, not options.g, ocd_id_list
   )
   rule_options = {}
@@ -316,7 +318,9 @@ def feed_validation(options, ocd_id_list=None):
         election_file=election_file,
         schema_file=options.xsd,
         rule_classes_to_check=rule_classes_to_check,
-        rule_options=rule_options)
+        rule_options=rule_options,
+        ocd_id_validator=ocd_id_validator,
+    )
     registry.check_rules()
     validation_context[_REGISTRY_KEY] = registry
     validation_context[_METADATA_KEY] = metadata

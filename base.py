@@ -61,10 +61,11 @@ class SchemaHandler(object):
 class BaseRule(SchemaHandler):
   """Base class for rules."""
 
-  def __init__(self, election_tree, schema_tree):
+  def __init__(self, election_tree, schema_tree, ocd_id_validator=None):
     super(BaseRule, self).__init__()
     self.election_tree = election_tree
     self.schema_tree = schema_tree
+    self.ocd_id_validator = ocd_id_validator
 
   def elements(self):
     """Return a list of all the elements this rule checks."""
@@ -104,8 +105,16 @@ class TreeRule(BaseRule):
 class ValidReferenceRule(TreeRule):
   """Rule that makes sure reference values are properly defined."""
 
-  def __init__(self, election_tree, schema_tree, missing_element="data"):
-    super(ValidReferenceRule, self).__init__(election_tree, schema_tree)
+  def __init__(
+      self,
+      election_tree,
+      schema_tree,
+      missing_element="data",
+      **kwargs,
+  ):
+    super(ValidReferenceRule, self).__init__(
+        election_tree, schema_tree, **kwargs
+    )
     self.missing_element = missing_element
 
   def _gather_reference_values(self):
@@ -142,8 +151,8 @@ class DateRule(BaseRule):
   end date values.
   """
 
-  def __init__(self, election_tree, schema_file):
-    super(DateRule, self).__init__(election_tree, schema_file)
+  def __init__(self, election_tree, schema_file, **kwargs):
+    super(DateRule, self).__init__(election_tree, schema_file, **kwargs)
     self.start_elem = None
     self.start_date = None
     self.end_elem = None
@@ -310,7 +319,11 @@ class PartialDate():
     return self.year is not None and self.month is not None and self.day is None
 
   def is_complete_date(self):
-    return self.year is not None and self.month is not None and self.day is not None
+    return (
+        self.year is not None
+        and self.month is not None
+        and self.day is not None
+    )
 
 
 class MissingFieldRule(BaseRule):
@@ -368,12 +381,19 @@ class RulesRegistry(SchemaHandler):
   _TOP_LEVEL_ENTITIES = set(
       ["Party", "GpUnit", "Office", "Person", "Candidate", "Contest"])
 
-  def __init__(self, election_file, schema_file, rule_classes_to_check,
-               rule_options):
+  def __init__(
+      self,
+      election_file,
+      schema_file,
+      rule_classes_to_check,
+      rule_options,
+      ocd_id_validator,
+  ):
     self.election_file = election_file
     self.schema_file = schema_file
     self.rule_classes_to_check = rule_classes_to_check
     self.rule_options = rule_options
+    self.ocd_id_validator = ocd_id_validator
     self.registry = {}
     self.exceptions_wrapper = loggers.ExceptionListWrapper()
     self.election_tree = None
@@ -385,7 +405,11 @@ class RulesRegistry(SchemaHandler):
       A dictionary of elements and rules that check each element
     """
     for rule in self.rule_classes_to_check:
-      rule_instance = rule(self.election_tree, self.schema_tree)
+      rule_instance = rule(
+          self.election_tree,
+          self.schema_tree,
+          ocd_id_validator=self.ocd_id_validator,
+      )
       if rule.__name__ in self.rule_options.keys():
         for option in self.rule_options[rule.__name__]:
           rule_instance.set_option(option)
