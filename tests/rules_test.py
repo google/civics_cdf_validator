@@ -2916,58 +2916,77 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
 
   def setUp(self):
     super(ValidateDuplicateColorsTest, self).setUp()
-    self._base_string = """
-      <PartyCollection>
-        <Party objectId="par0001">
-          <Name>
-            <Text language="en">Republican</Text>
-          </Name>
-          {0}
-        </Party>
-        <Party objectId="par0002">
-          <Name>
-            <Text language="en">Democratic</Text>
-          </Name>
-          {1}
-        </Party>
-        <Party objectId="par0003">
-          <Name>
-            <Text language="en">Green</Text>
-          </Name>
-          {2}
-        </Party>
-      </PartyCollection>
+    self.root_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest objectId="con1" xsi:type="PartyContest">
+              <BallotSelection objectId="ps1" xsi:type="PartySelection">
+                <PartyIds>par0001</PartyIds>
+              </BallotSelection>
+              <BallotSelection objectId="ps2" xsi:type="PartySelection">
+                <PartyIds>par0002</PartyIds>
+              </BallotSelection>
+            </Contest>
+            <Contest objectId="con2" xsi:type="PartyContest">
+              <BallotSelection objectId="ps3" xsi:type="PartySelection">
+                <PartyIds>par0003</PartyIds>
+              </BallotSelection>
+            </Contest>
+          </ContestCollection>
+        </Election>
+        <PartyCollection>
+          <Party objectId="par0001">
+            <Name>
+              <Text language="en">Republican</Text>
+            </Name>
+            {0}
+          </Party>
+          <Party objectId="par0002">
+            <Name>
+              <Text language="en">Democratic</Text>
+            </Name>
+            {1}
+          </Party>
+          <Party objectId="par0003">
+            <Name>
+              <Text language="en">Green</Text>
+            </Name>
+            {2}
+          </Party>
+        </PartyCollection>
+      </ElectionReport>
     """
     self._color_str = "<Color>{}</Color>"
-    self.color_validator = rules.ValidateDuplicateColors(None, None)
 
-  def testPartiesHaveDuplicateColors(self):
-    root_string = self._base_string.format(
+  def testContestWithPartiesHaveDuplicateColors(self):
+    test_string = self.root_string.format(
         self._color_str.format("ff0000"),
         self._color_str.format("ff0000"),
         self._color_str.format("ff0000"),
     )
-    element = etree.fromstring(root_string)
-    with self.assertRaises(loggers.ElectionInfo) as cm:
-      self.color_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Parties has the same color ff0000.")
-    self.assertLen(cm.exception.log_entry[0].elements, 3)
+    election_tree = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      rules.ValidateDuplicateColors(election_tree, None).check()
+    self.assertEqual(
+        cm.exception.log_entry[0].message, "Parties have the same color ff0000."
+    )
+    self.assertLen(cm.exception.log_entry[0].elements, 2)
     duplicated_parties = [
         cm.exception.log_entry[0].elements[0].get("objectId"),
         cm.exception.log_entry[0].elements[1].get("objectId"),
-        cm.exception.log_entry[0].elements[2].get("objectId")
     ]
     self.assertIn("par0001", duplicated_parties)
     self.assertIn("par0002", duplicated_parties)
-    self.assertIn("par0003", duplicated_parties)
 
-  def testPartiesHaveUniqueColors(self):
-    root_string = self._base_string.format(
-        self._color_str.format("ff0000"), self._color_str.format("0000ff"),
-        self._color_str.format("008000"))
-    element = etree.fromstring(root_string)
-    self.color_validator.check(element)
+  def testPartiesHaveUniqueColorsPerContest(self):
+    test_string = self.root_string.format(
+        self._color_str.format("ff0000"),
+        self._color_str.format("0000ff"),
+        self._color_str.format("ff0000"),
+    )
+    election_tree = etree.fromstring(test_string)
+    rules.ValidateDuplicateColors(election_tree, None).check()
 
 
 class MultipleCandidatesPointToTheSamePersonInTheSameContestTest(

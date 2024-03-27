@@ -1211,33 +1211,45 @@ class ValidatePartyCollection(base.BaseRule):
       raise loggers.ElectionInfo(info_log)
 
 
-class ValidateDuplicateColors(ValidatePartyCollection):
-  """Each Party should have unique hex color.
+class ValidateDuplicateColors(base.TreeRule):
+  """Parties under the same contest should have unique color.
 
-  A Party object that has duplicate color should be picked up
-  within this class and returned to the user as an Info message.
+  A Party object that has duplicate color and referenced under the same contest
+  should be picked up within this class and returned to the user as a warning
+  message.
   """
 
-  def check_specific(self, parties):
-    party_colors = {}
-    info_log = []
-    for party in parties:
+  def check(self):
+    party_color_mapping = {}
+    for party in self.get_elements_by_class(self.election_tree, "Party"):
       color_element = party.find("Color")
-      if color_element is None:
+      if color_element is None or not color_element.text:
         continue
-      color = color_element.text
-      if color is None:
-        continue
-      if color in party_colors:
-        party_colors[color].append(party)
-      else:
-        party_colors[color] = [party]
+      party_color_mapping[party.get("objectId")] = (color_element.text, party)
 
-    for color, parties in party_colors.items():
-      if len(parties) > 1:
-        info_log.append(loggers.LogEntry(
-            "Parties has the same color %s." % color, parties))
-    return info_log
+    warning_log = []
+    for party_contest in self.get_elements_by_class(
+        element=self.election_tree, element_name="PartyContest"
+    ):
+      contest_colors = {}
+      for party_ids_element in self.get_elements_by_class(
+          element=party_contest, element_name="PartyIds"
+      ):
+        for party_id in party_ids_element.text.split():
+          party_color = party_color_mapping[party_id][0]
+          if party_color in contest_colors:
+            contest_colors[party_color].append(party_color_mapping[party_id][1])
+          else:
+            contest_colors[party_color] = [party_color_mapping[party_id][1]]
+      for color, parties in contest_colors.items():
+        if len(parties) > 1:
+          warning_log.append(
+              loggers.LogEntry(
+                  "Parties have the same color %s." % color, parties
+              )
+          )
+    if warning_log:
+      raise loggers.ElectionWarning(warning_log)
 
 
 class DuplicatedPartyAbbreviation(ValidatePartyCollection):
