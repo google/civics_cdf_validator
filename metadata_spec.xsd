@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="unqualified" version="1.0">
+    <xs:include schemaLocation="base_spec.xsd"/>
+    <!-- ========== Enumerations ========== -->
+    <xs:simpleType name="FeedType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="pre-election" />
+            <xs:enumeration value="election-dates" />
+            <xs:enumeration value="officeholder" />
+            <xs:enumeration value="committee" />
+            <xs:enumeration value="election-results" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="FeedLongevity">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="limited" />
+            <xs:enumeration value="yearly" />
+            <xs:enumeration value="evergreen" />
+        </xs:restriction>
+    </xs:simpleType>
+    <!-- ========== Roots ========== -->
+    <xs:element name="FeedDeliveryReport" type="FeedDeliveryReport" />
+    <!-- ========== Elements ========== -->
+    <xs:complexType name="FeedDeliveryReport">
+        <xs:sequence>
+            <xs:element name="FeedCollection">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element maxOccurs="unbounded" minOccurs="0" name="Feed" type="Feed"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="PartnerTag" type="xs:string" />
+            <xs:element name="GeneratedDate" type="xs:dateTime" />
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="Feed">
+        <xs:sequence>
+            <xs:element name="FeedId" type="xs:ID" />
+            <xs:element name="FeedName" type="xs:string" />
+            <xs:element name="FeedType" type="FeedType"/>
+            <xs:element name="FeedLongevity" type="FeedLongevity"/>
+            <xs:element minOccurs="0" name="SourceDirPath" type="xs:anyURI"/>
+            <xs:element name="CountryCode" type="xs:string"/>
+            <xs:element name="FeedInactiveDate" type="xs:date"/>
+            <xs:element minOccurs="0" name="ElectionEventCollection">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element maxOccurs="unbounded" minOccurs="0" name="ElectionEvent" type="ElectionEvent"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element minOccurs="0" name="OfficeholderSubFeed" type="OfficeholderSubFeed"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ElectionEvent">
+        <xs:sequence>
+            <xs:element minOccurs="0" name="DebugName" type="xs:string" />
+            <xs:element minOccurs="0" name="OfficeScopeCollection">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element maxOccurs="unbounded" minOccurs="0" name="OfficeScope" type="OfficeScope"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element minOccurs="0" name="BallotMeasureScopeCollection">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element maxOccurs="unbounded" minOccurs="0" name="BallotMeasureScope" type="BallotMeasureScope"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" name="ElectionType" type="ElectionType"/>
+            <xs:element minOccurs="0" name="ElectionDateType" type="ElectionDateType"/>
+            <xs:element minOccurs="0" name="ElectionDateStatus" type="DateStatus"/>
+            <xs:element minOccurs="0" name="ExpectedCandidates" type="xs:integer"/>
+            <xs:element name="InitialDeliveryDate" type="PartialDate"/>
+            <xs:element minOccurs="0" name="FullDeliveryDate" type="PartialDate"/>
+            <xs:element minOccurs="0" name="PublicationDate" type="PartialDate"/>
+            <xs:element minOccurs="0" name="RegistrationStartDate" type="PartialDate"/>
+            <xs:element minOccurs="0" name="RegistrationDeadlineDate" type="PartialDate"/>
+            <xs:element minOccurs="0" name="WithdrawalDeadlineDate" type="PartialDate"/>
+            <xs:element name="StartDate" type="PartialDate"/>
+            <xs:element name="EndDate" type="PartialDate"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="OfficeholderSubFeed">
+        <xs:sequence>
+            <xs:element minOccurs="0" name="DebugName" type="xs:string" />
+            <xs:element name="OfficeScopeCollection">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element maxOccurs="unbounded" name="OfficeScope" type="OfficeScope"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="InitialDeliveryDate" type="PartialDate"/>
+            <xs:element minOccurs="0" name="FullDeliveryDate" type="PartialDate"/>
+            <xs:element minOccurs="0" name="ExpectedOfficeholders" type="xs:integer"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="OfficeScope">
+        <xs:sequence>
+            <xs:element minOccurs="0" name="DebugName" type="xs:string" />
+            <xs:element name="OfficeLevel" type="OfficeLevel"/>
+            <xs:element minOccurs="0" name="JurisdictionOcdId" type="xs:string" />
+            <xs:element maxOccurs="unbounded" name="OfficeRoles" type="OfficeRole"/>
+            <xs:element minOccurs="0" name="ElectoralDistrictCollection">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element maxOccurs="unbounded" minOccurs="0" name="OcdId" type="xs:string"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="BallotMeasureScope">
+        <xs:sequence>
+            <xs:element minOccurs="0" name="DebugName" type="xs:string" />
+            <xs:element name="LocationLevel" type="OfficeLevel"/>
+            <xs:element minOccurs="0" name="LocationOcdId" type="xs:string"/>
+            <xs:element name="TitleOrTopic" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

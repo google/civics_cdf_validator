@@ -3670,6 +3670,7 @@ class RuleSet(enum.Enum):
   COMMITTEE = 3
   ELECTION_DATES = 4
   ELECTION_RESULTS = 5
+  METADATA = 6
 
 
 # To add new rules, create a new class, inherit the base rule,
@@ -3794,6 +3795,10 @@ ELECTION_DATES_RULES = (
     COMMON_RULES + ELECTION_RULES + (UnreferencedEntitiesElectionDates,)
 )
 
+METADATA_RULES = (
+    Schema,
+)
+
 ALL_RULES = frozenset(
     COMMON_RULES
     + ELECTION_RULES
@@ -3801,4 +3806,5 @@ ALL_RULES = frozenset(
     + OFFICEHOLDER_RULES
     + COMMITTEE_RULES
     + ELECTION_DATES_RULES
+    + METADATA_RULES
 )
