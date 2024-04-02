@@ -31,6 +31,7 @@ import networkx
 from six.moves.urllib.parse import urlparse
 
 _PARTY_LEADERSHIP_TYPES = ["party-leader-id", "party-chair-id"]
+_INDEPENDENT_PARTY_NAMES = frozenset(["independent", "nonpartisan"])
 # The set of external identifiers that contain references to other entities.
 _IDREF_EXTERNAL_IDENTIFIERS = frozenset(
     ["jurisdiction-id"] + _PARTY_LEADERSHIP_TYPES
@@ -1419,6 +1420,32 @@ class MissingPartyAbbreviationTranslation(ValidatePartyCollection):
             (feed_languages, party_languages))
         info_log.append(loggers.LogEntry(info_message, [party]))
     return info_log
+
+
+class IndependentPartyName(base.BaseRule):
+  """Warns on parties that contain common names indicating they are an indpendent party.
+
+  These should instead supply the IsIndependent attribute.
+  """
+
+  def elements(self):
+    return ["Party"]
+
+  def check(self, party):
+    is_independent_element = party.find("IsIndependent")
+    if is_independent_element is not None:
+      return
+    name_element = party.find("Name")
+    if name_element is None:
+      return
+    party_names = name_element.findall("Text")
+    for party_name in party_names:
+      if party_name.text.lower() in _INDEPENDENT_PARTY_NAMES:
+        raise loggers.ElectionWarning.from_message(
+            f"Party name '{party_name.text}' indicates an independent party."
+            " Please use the IsIndependent attribute on the party element to"
+            " specify this."
+        )
 
 
 class DuplicateContestNames(base.BaseRule):
@@ -3697,6 +3724,7 @@ COMMON_RULES = (
     ValidateOcdidLowerCase,
     PersonsHaveValidGender,
     PartyLeadershipMustExist,
+    IndependentPartyName,
     ValidYoutubeURL,
     ValidTiktokURL,
     URIValidator,

@@ -2083,6 +2083,7 @@
           <Value>vageneral-pty-2013-independent</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
+      <IsIndependent>true</IsIndependent>
       <Name>
         <Text language="en">Independent</Text>
       </Name>

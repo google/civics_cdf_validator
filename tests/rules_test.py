@@ -3797,6 +3797,52 @@ class MissingPartyAbbreviationTranslationTest(absltest.TestCase):
     self.parties_validator.check(element)
 
 
+class IndependentPartyNameTest(absltest.TestCase):
+
+  def setUp(self):
+    super(IndependentPartyNameTest, self).setUp()
+    self.parties_validator = rules.IndependentPartyName(None, None)
+
+  def testWarnOnIndependentParty(self):
+    party = """
+        <Party objectId="par0001">
+          <Name>
+            <Text language="en">Independent</Text>
+          </Name>
+        </Party>
+        """
+    party_elem = etree.fromstring(party)
+
+    with self.assertRaises(loggers.ElectionWarning):
+      self.parties_validator.check(party_elem)
+
+  def testWarnOnNonpartisanParty(self):
+    party = """
+        <Party objectId="par0001">
+          <Name>
+            <Text language="en">nonpartisan</Text>
+          </Name>
+        </Party>
+        """
+    party_elem = etree.fromstring(party)
+
+    with self.assertRaises(loggers.ElectionWarning):
+      self.parties_validator.check(party_elem)
+
+  def testNoWarnOnPartyWithIsIndependent(self):
+    party = """
+        <Party objectId="par0001">
+          <Name>
+            <Text language="en">Independent</Text>
+          </Name>
+          <IsIndependent>true</IsIndependent>
+        </Party>
+        """
+    party_elem = etree.fromstring(party)
+
+    self.parties_validator.check(party_elem)
+
+
 class DuplicateContestNamesTest(absltest.TestCase):
 
   def setUp(self):
