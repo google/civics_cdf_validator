@@ -2024,11 +2024,14 @@ class ValidYoutubeURL(base.BaseRule):
   def check(self, element):
     url = element.text.strip()
     parsed_url = urlparse(url)
-    if "youtube" in parsed_url.netloc and (parsed_url.path in ["", "/"]
-                                           or "watch" in parsed_url.path
-                                           or "playlist" in parsed_url.path):
+    if "youtube" in parsed_url.netloc and (
+        parsed_url.path in ["", "/"]
+        or "watch" in parsed_url.path
+        or "playlist" in parsed_url.path
+        or "hashtag" in parsed_url.path
+    ):
       raise loggers.ElectionError.from_message(
-          "'{}' is not a expected value for a youtube channel.".format(url),
+          "'{}' is not an expected value for a youtube channel.".format(url),
           [element])
 
 
