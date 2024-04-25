@@ -3797,6 +3797,52 @@ class MissingPartyAbbreviationTranslationTest(absltest.TestCase):
     self.parties_validator.check(element)
 
 
+class IndependentPartyNameTest(absltest.TestCase):
+
+  def setUp(self):
+    super(IndependentPartyNameTest, self).setUp()
+    self.parties_validator = rules.IndependentPartyName(None, None)
+
+  def testWarnOnIndependentParty(self):
+    party = """
+        <Party objectId="par0001">
+          <Name>
+            <Text language="en">Independent</Text>
+          </Name>
+        </Party>
+        """
+    party_elem = etree.fromstring(party)
+
+    with self.assertRaises(loggers.ElectionWarning):
+      self.parties_validator.check(party_elem)
+
+  def testWarnOnNonpartisanParty(self):
+    party = """
+        <Party objectId="par0001">
+          <Name>
+            <Text language="en">nonpartisan</Text>
+          </Name>
+        </Party>
+        """
+    party_elem = etree.fromstring(party)
+
+    with self.assertRaises(loggers.ElectionWarning):
+      self.parties_validator.check(party_elem)
+
+  def testNoWarnOnPartyWithIsIndependent(self):
+    party = """
+        <Party objectId="par0001">
+          <Name>
+            <Text language="en">Independent</Text>
+          </Name>
+          <IsIndependent>true</IsIndependent>
+        </Party>
+        """
+    party_elem = etree.fromstring(party)
+
+    self.parties_validator.check(party_elem)
+
+
 class DuplicateContestNamesTest(absltest.TestCase):
 
   def setUp(self):
@@ -5463,9 +5509,11 @@ class ValidYoutubeURLTest(absltest.TestCase):
     """
     with self.assertRaises(loggers.ElectionError) as cm:
       self.valid_yt_url.check(etree.fromstring(root_string))
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     ("'https://www.youtube.com/watch?v=k-F_qYKkqaVxbA' is not "
-                      "a expected value for a youtube channel."))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "'https://www.youtube.com/watch?v=k-F_qYKkqaVxbA' is not an expected"
+        " value for a youtube channel.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
 
   def testYTPlaylistUrlReturnError(self):
@@ -5476,9 +5524,26 @@ class ValidYoutubeURLTest(absltest.TestCase):
     """
     with self.assertRaises(loggers.ElectionError) as cm:
       self.valid_yt_url.check(etree.fromstring(root_string))
-    self.assertEqual(cm.exception.log_entry[0].message, (
-        "'https://www.youtube.com/playlist?list=PLCvVBOK6lIHsfkBVt0oCFMSRz_grSwC4N' is not "
-        "a expected value for a youtube channel."))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "'https://www.youtube.com/playlist?list=PLCvVBOK6lIHsfkBVt0oCFMSRz_grSwC4N'"
+        " is not an expected value for a youtube channel.",
+    )
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
+
+  def testYTHashtagUrlReturnError(self):
+    root_string = """
+        <Uri Annotation="official-youtube">
+          <![CDATA[https://www.youtube.com/hashtag/xyz]]>
+        </Uri>
+    """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.valid_yt_url.check(etree.fromstring(root_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "'https://www.youtube.com/hashtag/xyz' is not an expected value for a"
+        " youtube channel.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
 
   def testBasicYTUrlReturnError(self):
@@ -5489,9 +5554,11 @@ class ValidYoutubeURLTest(absltest.TestCase):
     """
     with self.assertRaises(loggers.ElectionError) as cm:
       self.valid_yt_url.check(etree.fromstring(root_string))
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     ("'https://www.youtube.com/' is not a expected value for "
-                      "a youtube channel."))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "'https://www.youtube.com/' is not an expected value for a youtube"
+        " channel.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
 
 
