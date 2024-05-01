@@ -42,7 +42,7 @@
             <xs:element name="FeedLongevity" type="FeedLongevity"/>
             <xs:element minOccurs="0" name="SourceDirPath" type="xs:anyURI"/>
             <xs:element name="CountryCode" type="xs:string"/>
-            <xs:element name="FeedInactiveDate" type="xs:date"/>
+            <xs:element minOccurs="0" name="FeedInactiveDate" type="xs:date"/>
             <xs:element minOccurs="0" name="ElectionEventCollection">
               <xs:complexType>
                 <xs:sequence>
