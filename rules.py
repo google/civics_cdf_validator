@@ -1423,7 +1423,7 @@ class MissingPartyAbbreviationTranslation(ValidatePartyCollection):
 
 
 class IndependentPartyName(base.BaseRule):
-  """Warns on parties that contain common names indicating they are an indpendent party.
+  """Warns on parties that contain common names indicating they are an independent party.
 
   These should instead supply the IsIndependent attribute.
   """
@@ -1925,7 +1925,7 @@ class URIValidator(base.BaseRule):
       raise loggers.ElectionError.from_message("Missing URI value.", [element])
 
     parsed_url = urlparse(url)
-    discrepencies = []
+    discrepancies = []
     social_media_platform = ["facebook", "twitter", "wikipedia", "instagram",
                              "youtube", "website", "linkedin", "line",
                              "ballotpedia", "tiktok"]
@@ -1933,16 +1933,16 @@ class URIValidator(base.BaseRule):
     try:
       url.encode("ascii")
     except UnicodeEncodeError:
-      discrepencies.append("not ascii encoded")
+      discrepancies.append("not ascii encoded")
 
     if parsed_url.scheme not in {"http", "https"}:
-      discrepencies.append("protocol - invalid")
+      discrepancies.append("protocol - invalid")
     if not parsed_url.netloc:
-      discrepencies.append("domain - missing")
-    if discrepencies:
+      discrepancies.append("domain - missing")
+    if discrepancies:
       msg = (
           "The provided URI, {}, is invalid for the following reasons: {}."
-          .format(url.encode("ascii", "ignore"), ", ".join(discrepencies))
+          .format(url.encode("ascii", "ignore"), ", ".join(discrepancies))
       )
       raise loggers.ElectionError.from_message(msg, [element])
 
@@ -2024,11 +2024,14 @@ class ValidYoutubeURL(base.BaseRule):
   def check(self, element):
     url = element.text.strip()
     parsed_url = urlparse(url)
-    if "youtube" in parsed_url.netloc and (parsed_url.path in ["", "/"]
-                                           or "watch" in parsed_url.path
-                                           or "playlist" in parsed_url.path):
+    if "youtube" in parsed_url.netloc and (
+        parsed_url.path in ["", "/"]
+        or "watch" in parsed_url.path
+        or "playlist" in parsed_url.path
+        or "hashtag" in parsed_url.path
+    ):
       raise loggers.ElectionError.from_message(
-          "'{}' is not a expected value for a youtube channel.".format(url),
+          "'{}' is not an expected value for a youtube channel.".format(url),
           [element])
 
 
@@ -3307,7 +3310,7 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
 
 
 class MultipleInternationalizedTextWithSameLanguageCode(base.BaseRule):
-  """Checks for muliple InternationalizedText with the same language code."""
+  """Checks for multiple InternationalizedText with the same language code."""
 
   def elements(self):
     return _INTERNATIONALIZED_TEXT_ELEMENTS
@@ -3697,6 +3700,7 @@ class RuleSet(enum.Enum):
   COMMITTEE = 3
   ELECTION_DATES = 4
   ELECTION_RESULTS = 5
+  METADATA = 6
 
 
 # To add new rules, create a new class, inherit the base rule,
@@ -3822,6 +3826,13 @@ ELECTION_DATES_RULES = (
     COMMON_RULES + ELECTION_RULES + (UnreferencedEntitiesElectionDates,)
 )
 
+METADATA_RULES = (
+    Schema,
+    Encoding,
+    OptionalAndEmpty,
+    UniqueLabel,
+)
+
 ALL_RULES = frozenset(
     COMMON_RULES
     + ELECTION_RULES
@@ -3829,4 +3840,5 @@ ALL_RULES = frozenset(
     + OFFICEHOLDER_RULES
     + COMMITTEE_RULES
     + ELECTION_DATES_RULES
+    + METADATA_RULES
 )
