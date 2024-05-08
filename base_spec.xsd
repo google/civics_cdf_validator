@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="unqualified" version="1.0">
+    <!-- ========== Primitives ========== -->
+    <xs:simpleType name="PartialDate">
+        <xs:union memberTypes="xs:date xs:gYearMonth xs:gYear"/>
+    </xs:simpleType>
+    <xs:simpleType name="HtmlColorString">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9a-f]{6}" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="ShortString">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="32" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="TimeWithZone">
+        <xs:restriction base="xs:time">
+            <xs:pattern value="(([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]|(24:00:00))(Z|[+-]((0[0-9]|1[0-3]):[0-5][0-9]|14:00))" />
+        </xs:restriction>
+    </xs:simpleType>
+    <!-- ========== Enumerations ========== -->
+    <xs:simpleType name="ElectionType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="general" />
+            <xs:enumeration value="partisan-primary-closed" />
+            <xs:enumeration value="partisan-primary-open" />
+            <xs:enumeration value="primary" />
+            <xs:enumeration value="runoff" />
+            <xs:enumeration value="special" />
+            <xs:enumeration value="other" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="ElectionDateType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="scheduled" />
+            <xs:enumeration value="snap" />
+            <xs:enumeration value="bounded" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="DateStatus">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="confirmed" />
+            <xs:enumeration value="canceled" />
+            <xs:enumeration value="postponed" />
+            <xs:enumeration value="changing" />
+            <xs:enumeration value="tentative" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="OfficeRole">
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="auditor" />
+        <xs:enumeration value="attorney general" />
+        <xs:enumeration value="bailiff" />
+        <xs:enumeration value="board of regents" />
+        <xs:enumeration value="chief of police" />
+        <xs:enumeration value="circuit clerk" />
+        <xs:enumeration value="circuit court" />
+        <xs:enumeration value="city clerk" />
+        <xs:enumeration value="city council" />
+        <xs:enumeration value="civil court at law" />
+        <xs:enumeration value="constable" />
+        <xs:enumeration value="coroner" />
+        <xs:enumeration value="county assessor" />
+        <xs:enumeration value="county attorney" />
+        <xs:enumeration value="county clerk" />
+        <xs:enumeration value="county commissioner" />
+        <xs:enumeration value="county council" />
+        <xs:enumeration value="county court" />
+        <xs:enumeration value="county recorder" />
+        <xs:enumeration value="county surveyor" />
+        <xs:enumeration value="court at law" />
+        <xs:enumeration value="court at law clerk" />
+        <xs:enumeration value="court of last resort" />
+        <xs:enumeration value="criminal appeals court" />
+        <xs:enumeration value="criminal court at law" />
+        <xs:enumeration value="deputy state executive" />
+        <xs:enumeration value="deputy head of government" />
+        <xs:enumeration value="district attorney" />
+        <xs:enumeration value="district clerk" />
+        <xs:enumeration value="district court" />
+        <xs:enumeration value="fire" />
+        <xs:enumeration value="governors council" />
+        <xs:enumeration value="head of government" />
+        <xs:enumeration value="head of state" />
+        <xs:enumeration value="health care" />
+        <xs:enumeration value="intermediate appellate court" />
+        <xs:enumeration value="jailer" />
+        <xs:enumeration value="justice of the peace" />
+        <xs:enumeration value="lower house" />
+        <xs:enumeration value="mayor" />
+        <xs:enumeration value="parks" />
+        <xs:enumeration value="president" />
+        <xs:enumeration value="probate court at law" />
+        <xs:enumeration value="prosecutor" />
+        <xs:enumeration value="public administrator" />
+        <xs:enumeration value="public defender" />
+        <xs:enumeration value="register deeds" />
+        <xs:enumeration value="registrar of voters" />
+        <xs:enumeration value="sanitation" />
+        <xs:enumeration value="secretary agriculture" />
+        <xs:enumeration value="secretary education" />
+        <xs:enumeration value="secretary insurance" />
+        <xs:enumeration value="secretary labor" />
+        <xs:enumeration value="secretary land" />
+        <xs:enumeration value="secretary state" />
+        <xs:enumeration value="school board" />
+        <xs:enumeration value="sheriff" />
+        <xs:enumeration value="solicitor general" />
+        <xs:enumeration value="state board education" />
+        <xs:enumeration value="state executive" />
+        <xs:enumeration value="state lower house" />
+        <xs:enumeration value="state tribal relations" />
+        <xs:enumeration value="state upper house" />
+        <xs:enumeration value="subcounty executive" />
+        <xs:enumeration value="superior clerk" />
+        <xs:enumeration value="superior court" />
+        <xs:enumeration value="tax court" />
+        <xs:enumeration value="taxes" />
+        <xs:enumeration value="treasurer" />
+        <xs:enumeration value="upper house" />
+        <xs:enumeration value="utilities" />
+        <xs:enumeration value="vice president" />
+        <xs:enumeration value="water" />
+        <xs:enumeration value="workers compensation court" />
+      </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="OfficeLevel">
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="Administrative Area 1" />
+        <xs:enumeration value="Administrative Area 2" />
+        <xs:enumeration value="Country" />
+        <xs:enumeration value="District" />
+        <xs:enumeration value="International" />
+        <xs:enumeration value="Municipality" />
+        <xs:enumeration value="Neighbourhood" />
+        <xs:enumeration value="Region" />
+        <xs:enumeration value="Ward" />
+      </xs:restriction>
+    </xs:simpleType>
+</xs:schema>
