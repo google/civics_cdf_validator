@@ -89,6 +89,7 @@
         <xs:enumeration value="justice of the peace" />
         <xs:enumeration value="lower house" />
         <xs:enumeration value="mayor" />
+        <xs:enumeration value="other" />
         <xs:enumeration value="parks" />
         <xs:enumeration value="president" />
         <xs:enumeration value="probate court at law" />
