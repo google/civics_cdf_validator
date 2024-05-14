@@ -598,7 +598,7 @@
                     <xs:element minOccurs="0" name="NumberElected" type="xs:integer" />
                     <xs:element minOccurs="0" name="OfficeIds" type="xs:IDREFS" />
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="Type" type="ElectionType"/>
-                    <xs:element name="VotesAllowed" type="xs:integer" />
+                    <xs:element minOccurs="0" name="VotesAllowed" type="xs:integer" />
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
