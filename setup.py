@@ -58,6 +58,7 @@ setup(
         'pygithub>=1.28',
         'networkx>=2.6.3',
         'pycountry==22.1.10',
+        'frozendict>=2.4.4',
         'six',
     ],
     setup_requires=['pytest-runner'],
