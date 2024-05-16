@@ -902,6 +902,7 @@
         <BallotTitle>
           <Text language="en">Retention of Supreme Court Justice</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>

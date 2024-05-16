@@ -6375,6 +6375,48 @@ class ContestHasValidContestStageTest(absltest.TestCase):
                      "con-2")
 
 
+class ContestHasValidDateStatusTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ContestHasValidDateStatusTest, self).setUp()
+    self.contest_validator = rules.ContestHasValidDateStatus(None, None)
+
+  def testContestHasValidDateStatus(self):
+    root_string = """
+     <Contest objectId="con-1">
+       <ContestDateStatus>confirmed</ContestDateStatus>
+      </Contest>
+      """
+    self.contest_validator.check(etree.fromstring(root_string))
+
+  def testContestHasNoDateStatus(self):
+    root_string = """
+     <Contest objectId="con-1">
+      </Contest>
+      """
+
+    with self.assertRaises(loggers.ElectionWarning) as ee:
+      self.contest_validator.check(etree.fromstring(root_string))
+    self.assertEqual(
+        ee.exception.log_entry[0].message,
+        "The contest 'con-1' is missing a date-status.",
+    )
+
+  def testContestHasInvalidDateStatus(self):
+    root_string = """
+     <Contest objectId="con-1">
+       <ContestDateStatus>someinvalidstatus</ContestDateStatus>
+      </Contest>
+      """
+
+    with self.assertRaises(loggers.ElectionWarning) as ee:
+      self.contest_validator.check(etree.fromstring(root_string))
+    self.assertEqual(
+        ee.exception.log_entry[0].message,
+        "The contest 'con-1' has invalid date-status 'someinvalidstatus'.",
+    )
+
+
 class GpUnitsHaveSingleRootTest(absltest.TestCase):
 
   def setUp(self):

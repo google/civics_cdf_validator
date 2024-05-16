@@ -78,6 +78,7 @@
             California Proposition 12, Farm Animal Confinement Initiative (2018)
           </Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru_ca_1</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>

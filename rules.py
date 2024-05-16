@@ -44,6 +44,9 @@ _CONTEST_STAGE_TYPES = frozenset([
     "exit-polls", "estimates", "projections", "preliminary", "official",
     "unnamed"
 ])
+_DATE_STATUS_TYPES = frozenset(
+    ["tentative", "changing", "canceled", "postponed", "confirmed"]
+)
 _INTERNATIONALIZED_TEXT_ELEMENTS = [
     # go/keep-sorted start
     "BallotName",
@@ -2262,6 +2265,32 @@ class ContestHasValidContestStage(base.BaseRule):
                 contest_stage_value), [element])
 
 
+class ContestHasValidDateStatus(base.BaseRule):
+  """Each Contest must have a valid ContestDateStatus."""
+
+  def elements(self):
+    return ["CandidateContest", "PartyContest", "BallotMeasureContest"]
+
+  def check(self, element):
+    contest_date_status_elem = element.find("ContestDateStatus")
+    if contest_date_status_elem is None:
+      raise loggers.ElectionWarning.from_message(
+          "The contest '{}' is missing a date-status.".format(
+              element.get("objectId")
+          ),
+          [element],
+      )
+    else:
+      contest_date_status = contest_date_status_elem.text
+      if contest_date_status not in _DATE_STATUS_TYPES:
+        raise loggers.ElectionWarning.from_message(
+            "The contest '{}' has invalid date-status '{}'.".format(
+                element.get("objectId"), contest_date_status
+            ),
+            [element],
+        )
+
+
 class DateOfBirthIsInPast(base.DateRule):
   """Date of Birth should not be in the future."""
 
@@ -3973,6 +4002,7 @@ ELECTION_RULES = COMMON_RULES + (
     ProperBallotSelection,
     CandidatesReferencedInRelatedContests,
     ContestHasValidContestStage,
+    ContestHasValidDateStatus,
     SelfDeclaredCandidateMethod,
     ElectionContainsStartAndEndDates,
     ElectionStartDates,

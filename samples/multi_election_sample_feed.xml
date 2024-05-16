@@ -21,6 +21,7 @@
           <BallotTitle>
             <Text language="en">President of the United States</Text>
           </BallotTitle>
+          <ContestDateStatus>confirmed</ContestDateStatus>
           <ElectoralDistrictId>ru-california</ElectoralDistrictId>
           <ExternalIdentifiers>
             <ExternalIdentifier>
@@ -47,6 +48,7 @@
           <BallotTitle>
             <Text language="en">President of the United States</Text>
           </BallotTitle>
+          <ContestDateStatus>confirmed</ContestDateStatus>
           <ElectoralDistrictId>ru-virginia</ElectoralDistrictId>
           <ExternalIdentifiers>
             <ExternalIdentifier>
@@ -91,6 +93,7 @@
         <BallotTitle>
           <Text language="en">President of the United States</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru-florida</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -117,6 +120,7 @@
         <BallotTitle>
           <Text language="en">Governor of Florida - Republican Primary</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru-florida</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -143,6 +147,7 @@
         <BallotTitle>
           <Text language="en">Governor of Florida - Democratic Primary</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru-florida</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -188,6 +193,7 @@
           <Text language="en">President of the United States</Text>
         </BallotTitle>
         <ComposingContestIds>cc101 cc102 cc103</ComposingContestIds>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru-united-states</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -353,6 +359,7 @@
           <Text language="en">President of the United States</Text>
         </BallotTitle>
         <ComposingContestIds>cc201 cc202 cc203</ComposingContestIds>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru-united-states</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -377,6 +384,7 @@
         <BallotTitle>
           <Text language="en">President of the United States</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru-california</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -401,6 +409,7 @@
         <BallotTitle>
           <Text language="en">President of the United States</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru-florida</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -425,6 +434,7 @@
         <BallotTitle>
           <Text language="en">President of the United States</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru-virginia</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -449,6 +459,7 @@
         <BallotTitle>
           <Text language="en">Governor of Florida</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru-florida</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -536,6 +547,7 @@
         <BallotTitle>
           <Text language="en">Georgia Runoff Elections</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru-georgia</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>

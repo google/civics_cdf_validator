@@ -1250,6 +1250,7 @@
         <BallotTitle>
           <Text language="en">President of the United States</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -2119,6 +2120,7 @@
         <BallotTitle>
           <Text language="en">Vice-President of the United States</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -3413,6 +3415,7 @@
         <BallotTitle>
           <Text language="en">Governor of Virginia</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -4283,6 +4286,7 @@
         <BallotTitle>
           <Text language="en">Lieutenant Governor of Virginia</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -5152,6 +5156,7 @@
         <BallotTitle>
           <Text language="en">Attorney General</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru0002</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -5276,6 +5281,7 @@
         <BallotTitle>
           <Text language="en">Member House of Delegates District - 025</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru0150</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -5420,6 +5426,7 @@
         <BallotTitle>
           <Text language="en">Member House of Delegates District - 057</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru0311</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -5484,6 +5491,7 @@
         <BallotTitle>
           <Text language="en">Member House of Delegates District - 059</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru0107</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -5648,6 +5656,7 @@
         <BallotTitle>
           <Text language="en">Member House of Delegates District - 058</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru0076</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -5798,6 +5807,7 @@
         <BallotTitle>
           <Text language="en">Member Board of Supervisors - Scottsville</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru0103</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -5947,6 +5957,7 @@
         <BallotTitle>
           <Text language="en">Member Board of Supervisors - Jack Jouett</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru0054</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -6136,6 +6147,7 @@
         <BallotTitle>
           <Text language="en">Member Board of Supervisors - Samuel Miller</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru0030</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -6325,6 +6337,7 @@
         <BallotTitle>
           <Text language="en">Member Board of Supervisors - Rio</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru0081</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -6429,6 +6442,7 @@
         <BallotTitle>
           <Text language="en">Member School Board - Rio</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru0081</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -6533,6 +6547,7 @@
         <BallotTitle>
           <Text language="en">Member School Board - Samuel Miller</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru0030</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -6617,6 +6632,7 @@
         <BallotTitle>
           <Text language="en">Member School Board - Jack Jouett</Text>
         </BallotTitle>
+        <ContestDateStatus>confirmed</ContestDateStatus>
         <ElectoralDistrictId>ru0054</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
