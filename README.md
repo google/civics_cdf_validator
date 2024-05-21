@@ -32,6 +32,7 @@ You can use `civics_cdf_validator` to check different types of feed:
 * Results
 * Committee
 * Election Dates
+* Metadata
 
 ## List rules
 
