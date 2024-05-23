@@ -6,7 +6,7 @@
     </xs:simpleType>
     <xs:simpleType name="HtmlColorString">
         <xs:restriction base="xs:string">
-            <xs:pattern value="[0-9a-f]{6}" />
+            <xs:pattern value="[0-9a-fA-F]{6}" />
         </xs:restriction>
     </xs:simpleType>
     <xs:simpleType name="ShortString">
