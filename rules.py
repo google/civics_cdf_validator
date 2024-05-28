@@ -192,8 +192,8 @@ def element_has_text(element):
 def country_code_is_valid(country_code):
   # EU is part of ISO 3166/MA
   return (
-      country_code == "eu"
-      or pycountry.countries.get(alpha_2=country_code) is not None
+      country_code.lower() == "eu"
+      or pycountry.countries.get(alpha_2=country_code.upper()) is not None
   )
 
 
