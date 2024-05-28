@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<FeedDeliveryReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<FeedDeliveryReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <FeedCollection>
     <Feed>
       <FeedId>sample-feed-1</FeedId>

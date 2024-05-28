@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Election>
     <CandidateCollection>
       <Candidate objectId="can10861a">
