@@ -142,7 +142,7 @@
       </InternationalizedAbbreviation>
       <ContactInformation>
         <Uri Annotation="wikipedia">https://en.wikipedia.org/wiki/Republican_Party_(United_States)</Uri>
-        <Uri Annotation="official-twitter">https://twitter.com/GOP</Uri>
+        <Uri Annotation="official-twitter">https://x.com/GOP</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -162,7 +162,7 @@
       </InternationalizedAbbreviation>
       <ContactInformation>
         <Uri Annotation="wikipedia">https://en.wikipedia.org/wiki/Democratic_Party_(United_States)</Uri>
-        <Uri Annotation="official-twitter">https://twitter.com/TheDemocrats</Uri>
+        <Uri Annotation="official-twitter">https://x.com/TheDemocrats</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -199,7 +199,7 @@
       </ContactInformation>
       <ContactInformation>
         <Uri Annotation="personal-facebook">https://www.facebook.com/tedcruzpage</Uri>
-        <Uri Annotation="personal-twitter">https://twitter.com/tedcruz</Uri>
+        <Uri Annotation="personal-twitter">https://x.com/tedcruz</Uri>
         <Uri Annotation="personal-website">https://www.tedcruz.org/</Uri>
         <Uri Annotation="wikipedia">https://en.wikipedia.org/wiki/Ted_Cruz</Uri>
       </ContactInformation>
@@ -247,7 +247,7 @@
       <!-- Party leader referenced by party-leader-id. Does not require a linked office. -->
       <ContactInformation>
         <Uri Annotation="personal-facebook">https://www.facebook.com/leaderofparty</Uri>
-        <Uri Annotation="personal-twitter">https://twitter.com/partyleader</Uri>
+        <Uri Annotation="personal-twitter">https://x.com/partyleader</Uri>
         <Uri Annotation="personal-website">https://www.partyleader.org/</Uri>
         <Uri Annotation="wikipedia">https://en.wikipedia.org/wiki/Party_Leader</Uri>
       </ContactInformation>

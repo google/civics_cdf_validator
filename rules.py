@@ -2100,7 +2100,8 @@ class ValidURIAnnotation(base.BaseRule):
     parsed_url = urlparse(url)
     # Ensure media platform name is in URL.
     if (platform != "website" and platform not in parsed_url.netloc and
-        not (platform == "facebook" and "fb.com" in parsed_url.netloc)):
+        not (platform == "facebook" and "fb.com" in parsed_url.netloc) and
+        not (platform == "twitter" and "x.com" in parsed_url.netloc)):
       # Note that the URL is encoded for printing purposes
       raise loggers.ElectionError.from_message(
           "Annotation '{}' is incorrect for URI {}.".format(

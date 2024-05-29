@@ -1647,7 +1647,7 @@
         <Phone annotation="TDD">202-456-6213</Phone>
         <Uri Annotation="official-website">http://www.whitehouse.gov</Uri>
         <Uri Annotation="official-facebook">https://www.facebook.com/WhiteHouse</Uri>
-        <Uri Annotation="official-twitter">https://twitter.com/WhiteHouse</Uri>
+        <Uri Annotation="official-twitter">https://x.com/WhiteHouse</Uri>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>

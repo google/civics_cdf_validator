@@ -5791,6 +5791,33 @@ class ValidURIAnnotationTest(absltest.TestCase):
                      ("'official-fb' is not a valid annotation."))
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
 
+  def testXAnnotation(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="personal-twitter">
+          <![CDATA[https://www.x.com/juanjomalvinas]]>
+        </Uri>
+      </ContactInformation>
+    """
+    self.valid_annotation.check(etree.fromstring(root_string))
+
+  def testIncorrectXAnnotationFails(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="official-x">
+          <![CDATA[https://www.x.com]]>
+        </Uri>
+        <Uri Annotation="personal-x">
+          <![CDATA[http://www.twitter.com]]>
+        </Uri>
+      </ContactInformation>
+    """
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.valid_annotation.check(etree.fromstring(root_string))
+    self.assertEqual(cm.exception.log_entry[0].message,
+                     ("'official-x' is not a valid annotation."))
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
+
 
 class OfficesHaveJurisdictionIDTest(absltest.TestCase):
 
