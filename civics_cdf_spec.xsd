@@ -274,7 +274,7 @@
             <xs:element minOccurs="0" name="FileDate" type="PartialDate" />
             <xs:element minOccurs="0" name="IsIncumbent" type="xs:boolean" />
             <xs:element minOccurs="0" name="IsTopTicket" type="xs:boolean" />
-            <xs:element minOccurs="0" name="PartyId" type="xs:IDREF" />
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="PartyId" type="xs:IDREF" />
             <xs:element minOccurs="0" name="PersonId" type="xs:IDREF" />
             <xs:element minOccurs="0" name="PostElectionStatus" type="CandidatePostElectionStatus" />
             <xs:element minOccurs="0" name="PreElectionStatus" type="CandidatePreElectionStatus" />
@@ -622,14 +622,14 @@
         <xs:sequence>
             <xs:element maxOccurs="unbounded" minOccurs="0" name="ContactInformation" type="ContactInformation" />
             <xs:element minOccurs="0" name="DateOfBirth" type="PartialDate" />
-	    <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
+            <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
             <xs:element minOccurs="0" name="FirstName" type="xs:string" />
             <xs:element minOccurs="0" name="FullName" type="InternationalizedText" />
             <xs:element minOccurs="0" name="Gender" type="xs:string" />
             <xs:element minOccurs="0" name="LastName" type="xs:string" />
             <xs:element maxOccurs="unbounded" minOccurs="0" name="MiddleName" type="xs:string" />
             <xs:element minOccurs="0" name="Nickname" type="xs:string" />
-            <xs:element minOccurs="0" name="PartyId" type="xs:IDREF" />
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="PartyId" type="xs:IDREF" />
             <xs:element minOccurs="0" name="Prefix" type="xs:string" />
             <xs:element minOccurs="0" name="Profession" type="InternationalizedText" />
             <xs:element minOccurs="0" name="Suffix" type="xs:string" />
