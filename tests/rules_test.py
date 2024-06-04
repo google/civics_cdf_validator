@@ -7678,7 +7678,7 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
         </Term>
       </Office>
     """
-    today = datetime.datetime.now().date()
+    today = datetime.datetime.utcnow().date()
     tomorrow = today + datetime.timedelta(days=1)
     yesterday = today - datetime.timedelta(days=1)
     office_one = etree.fromstring(office_string.format(today))
