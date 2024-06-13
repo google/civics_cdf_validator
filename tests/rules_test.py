@@ -11001,6 +11001,15 @@ class FeedHasValidCountryCodeTest(absltest.TestCase):
 
     self.validator.check(etree.fromstring(feed_string))
 
+  def testValidElectionDates(self):
+    feed_string = """
+      <Feed>
+        <FeedType>election-dates</FeedType>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
   def testInvalidCountryCode(self):
     feed_string = """
       <Feed>
