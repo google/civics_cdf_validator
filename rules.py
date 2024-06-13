@@ -2415,10 +2415,16 @@ class ElectionDatesSpanContestDates(base.DateRule):
     self.reset_instance_vars()
     self.gather_dates(contest)
     contest_id = contest.get("objectId")
+    contest_date_status = contest.find("ContestDateStatus")
     if (
         election_end_date is not None
         and self.end_date is not None
         and election_end_date.is_older_than(self.end_date) > 0
+        # Only compare election end date to contests that are not canceled
+        and (
+            contest_date_status is None
+            or contest_date_status.text.lower() != "canceled"
+        )
     ):
       self.error_log.append(
           loggers.LogEntry(

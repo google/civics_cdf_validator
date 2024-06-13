@@ -7133,6 +7133,29 @@ class ElectionDatesSpanContestDatesTest(absltest.TestCase):
         ee.exception.log_entry[0].message,
     )
 
+  def testElectionWithCanceledContestEndDateAfterThanElectionEndDate(self):
+    election_report_string = """
+      <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <StartDate>2023-05-20</StartDate>
+          <EndDate>2023-05-30</EndDate>
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <ContestDateStatus>canceled</ContestDateStatus>
+              <OfficeIds>office-1</OfficeIds>
+              <PrimaryPartyIds>party-1</PrimaryPartyIds>
+              <StartDate>2023-05-20</StartDate>
+              <EndDate>2023-05-31</EndDate>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+
+    self.date_validator.check(etree.fromstring(election_report_string))
+
+    self.assertEmpty(self.date_validator.error_log)
+
   def testElectionWithValidContestDates(self):
     election_report_string = """
       <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
