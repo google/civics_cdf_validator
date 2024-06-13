@@ -3769,6 +3769,17 @@ class FeedHasValidCountryCode(base.BaseRule):
             "Invalid country code {}.".format(country_code),
             [element],
         )
+    else:
+      feed_type = element.find("FeedType")
+      if (
+          element_has_text(feed_type)
+          and feed_type.text.lower().replace("_", "-") == "election-dates"
+      ):
+        return
+      raise loggers.ElectionError.from_message(
+          "Feed {} is missing CountryCode.".format(element.find("FeedId").text),
+          [element],
+      )
 
 
 class FeedInactiveDateSetForNonEvergreenFeed(base.BaseRule):

@@ -11048,6 +11048,22 @@ class FeedHasValidCountryCodeTest(absltest.TestCase):
     )
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Feed")
 
+  def testMissingCountryCode(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <FeedType>pre-election</FeedType>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Feed test-feed is missing CountryCode.",
+    )
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Feed")
+
 
 class FeedInactiveDateSetForNonEvergreenFeedTest(absltest.TestCase):
 
