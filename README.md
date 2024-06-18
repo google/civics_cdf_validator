@@ -32,6 +32,7 @@ You can use `civics_cdf_validator` to check different types of feed:
 * Results
 * Committee
 * Election Dates
+* Metadata
 
 ## List rules
 
@@ -79,6 +80,12 @@ default). Examples:
 
   ```
   civics_cdf_validator validate results_file.xml --xsd civics_cdf_spec.xsd --rule_set election_results
+  ```
+
+  * Validate a metadata feed:
+
+  ```
+  civics_cdf_validator validate metadata_file.xml --xsd metadata_spec.xsd --rule_set metadata
   ```
 
 One can choose to only validate one or more comma separated rules by using the `-i` flag

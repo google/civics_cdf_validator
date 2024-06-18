@@ -2372,34 +2372,34 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
       self,
   ):
     election_report = """
-      <ElectionReport>	
-        <PersonCollection>	
-          <Person objectId="per001"/>	
-        </PersonCollection>	
-        <CandidateCollection>	
-          <Candidate objectId="can001">	
-            <PersonId>per001</PersonId>	
-          </Candidate>	
-        </CandidateCollection>	
-        <ContestCollection>	
-          <Contest objectId="rep" type="CandidateContest">	
-            <BallotSelection objectId="two" type="CandidateSelection">	
-              <CandidateIds>can001</CandidateIds>	
-            </BallotSelection>	
-            <SubsequentContestId>gen</SubsequentContestId>	
-          </Contest>	
-          <Contest objectId="dem" type="CandidateContest">	
-            <BallotSelection objectId="one" type="CandidateSelection">	
-              <CandidateIds>can001</CandidateIds>	
-            </BallotSelection>	
-            <SubsequentContestId>runoff</SubsequentContestId>	
-          </Contest>	
-          <Contest objectId="runoff" type="CandidateContest">	
-            <SubsequentContestId>gen</SubsequentContestId>	
-          </Contest>	
-          <Contest objectId="gen" type="CandidateContest">	
-          </Contest>	
-        </ContestCollection>	
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="rep" type="CandidateContest">
+            <BallotSelection objectId="two" type="CandidateSelection">
+              <CandidateIds>can001</CandidateIds>
+            </BallotSelection>
+            <SubsequentContestId>gen</SubsequentContestId>
+          </Contest>
+          <Contest objectId="dem" type="CandidateContest">
+            <BallotSelection objectId="one" type="CandidateSelection">
+              <CandidateIds>can001</CandidateIds>
+            </BallotSelection>
+            <SubsequentContestId>runoff</SubsequentContestId>
+          </Contest>
+          <Contest objectId="runoff" type="CandidateContest">
+            <SubsequentContestId>gen</SubsequentContestId>
+          </Contest>
+          <Contest objectId="gen" type="CandidateContest">
+          </Contest>
+        </ContestCollection>
       </ElectionReport>
     """
     report_elem = etree.fromstring(election_report)
@@ -5791,6 +5791,33 @@ class ValidURIAnnotationTest(absltest.TestCase):
                      ("'official-fb' is not a valid annotation."))
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
 
+  def testXAnnotation(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="personal-twitter">
+          <![CDATA[https://www.x.com/juanjomalvinas]]>
+        </Uri>
+      </ContactInformation>
+    """
+    self.valid_annotation.check(etree.fromstring(root_string))
+
+  def testIncorrectXAnnotationFails(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="official-x">
+          <![CDATA[https://www.x.com]]>
+        </Uri>
+        <Uri Annotation="personal-x">
+          <![CDATA[http://www.twitter.com]]>
+        </Uri>
+      </ContactInformation>
+    """
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.valid_annotation.check(etree.fromstring(root_string))
+    self.assertEqual(cm.exception.log_entry[0].message,
+                     ("'official-x' is not a valid annotation."))
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
+
 
 class OfficesHaveJurisdictionIDTest(absltest.TestCase):
 
@@ -7106,6 +7133,29 @@ class ElectionDatesSpanContestDatesTest(absltest.TestCase):
         ee.exception.log_entry[0].message,
     )
 
+  def testElectionWithCanceledContestEndDateAfterThanElectionEndDate(self):
+    election_report_string = """
+      <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election objectId="election-1">
+          <StartDate>2023-05-20</StartDate>
+          <EndDate>2023-05-30</EndDate>
+          <ContestCollection>
+            <Contest objectId="contest-1" xsi:type="CandidateContest">
+              <ContestDateStatus>canceled</ContestDateStatus>
+              <OfficeIds>office-1</OfficeIds>
+              <PrimaryPartyIds>party-1</PrimaryPartyIds>
+              <StartDate>2023-05-20</StartDate>
+              <EndDate>2023-05-31</EndDate>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+
+    self.date_validator.check(etree.fromstring(election_report_string))
+
+    self.assertEmpty(self.date_validator.error_log)
+
   def testElectionWithValidContestDates(self):
     election_report_string = """
       <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -7651,7 +7701,7 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
         </Term>
       </Office>
     """
-    today = datetime.datetime.now().date()
+    today = datetime.datetime.utcnow().date()
     tomorrow = today + datetime.timedelta(days=1)
     yesterday = today - datetime.timedelta(days=1)
     office_one = etree.fromstring(office_string.format(today))
@@ -10735,6 +10785,316 @@ class UnreferencedEntitiesOfficeholdersTest(absltest.TestCase):
     rules.UnreferencedEntitiesOfficeholders(
         etree.fromstring(test_string), etree.fromstring(schema_string)
     ).check()
+
+
+class FeedTypeHasValidFeedLongevityTest(absltest.TestCase):
+
+  def setUp(self):
+    super(FeedTypeHasValidFeedLongevityTest, self).setUp()
+    self.validator = rules.FeedTypeHasValidFeedLongevity(None, None)
+
+  def testFeedWithValidTypeAndLongevity(self):
+    feed_string = """
+      <Feed>
+        <FeedType>pre-election</FeedType>
+        <FeedLongevity>limited</FeedLongevity>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def testFeedWithInvalidTypeAndLongevity(self):
+    feed_string = """
+      <Feed>
+        <FeedType>pre-election</FeedType>
+        <FeedLongevity>evergreen</FeedLongevity>
+      </Feed>
+      """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Feed type pre-election has invalid feed longevity evergreen. Valid"
+        " feed longevities for this type are ['limited', 'yearly']",
+    )
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Feed")
+
+
+class FeedIdsAreUniqueTest(absltest.TestCase):
+
+  def setUp(self):
+    super(FeedIdsAreUniqueTest, self).setUp()
+    self.validator = rules.FeedIdsAreUnique(None, None)
+
+  def testUniqueFeedIds(self):
+    feed_collection_string = """
+      <FeedCollection>
+        <Feed>
+          <FeedId>111</FeedId>
+        </Feed>
+        <Feed>
+          <FeedId>222</FeedId>
+        </Feed>
+        <Feed>
+          <FeedId>333</FeedId>
+        </Feed>
+      </FeedCollection>
+      """
+
+    self.validator.check(etree.fromstring(feed_collection_string))
+
+  def testDuplicateFeedIds(self):
+    feed_collection_string = """
+      <FeedCollection>
+        <Feed>
+          <FeedId>111</FeedId>
+        </Feed>
+        <Feed>
+          <FeedId>222</FeedId>
+        </Feed>
+        <Feed>
+          <FeedId>111</FeedId>
+        </Feed>
+      </FeedCollection>
+      """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(feed_collection_string))
+    self.assertEqual(
+        "FeedId 111 appears multiple times in the metadata feed. Feed ids must"
+        " be unique.",
+        cm.exception.log_entry[0].message,
+    )
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Feed")
+
+
+class SourceDirPathsAreUniqueTest(absltest.TestCase):
+
+  def setUp(self):
+    super(SourceDirPathsAreUniqueTest, self).setUp()
+    self.validator = rules.SourceDirPathsAreUnique(None, None)
+
+  def testUniqueSourceDirPaths(self):
+    feed_collection_string = """
+      <FeedCollection>
+        <Feed>
+          <SourceDirPath>test_path_1</SourceDirPath>
+        </Feed>
+        <Feed>
+          <SourceDirPath>test_path_2</SourceDirPath>
+        </Feed>
+        <Feed>
+          <SourceDirPath>test_path_3</SourceDirPath>
+        </Feed>
+      </FeedCollection>
+      """
+
+    self.validator.check(etree.fromstring(feed_collection_string))
+
+  def testDuplicateSourceDirPaths(self):
+    feed_collection_string = """
+      <FeedCollection>
+        <Feed>
+          <SourceDirPath>test_path_1</SourceDirPath>
+        </Feed>
+        <Feed>
+          <SourceDirPath>test_path_2</SourceDirPath>
+        </Feed>
+        <Feed>
+          <SourceDirPath>test_path_1</SourceDirPath>
+        </Feed>
+      </FeedCollection>
+      """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(feed_collection_string))
+    self.assertEqual(
+        "SourceDirPath test_path_1 appears multiple times in the metadata feed."
+        " SourceDirPaths must be unique.",
+        cm.exception.log_entry[0].message,
+    )
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Feed")
+
+
+class ElectionEventDatesAreSequentialTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ElectionEventDatesAreSequentialTest, self).setUp()
+    self.validator = rules.ElectionEventDatesAreSequential(None, None)
+
+  def testSequentialStartAndEndDates(self):
+    election_event_string = """
+      <ElectionEvent>
+        <StartDate>2024-01-01</StartDate>
+        <EndDate>2024-01-02</EndDate>
+      </ElectionEvent>
+      """
+
+    self.validator.check(etree.fromstring(election_event_string))
+
+  def testInvalidStartAndEndDates(self):
+    election_event_string = """
+      <ElectionEvent>
+        <StartDate>2024-01-02</StartDate>
+        <EndDate>2024-01-01</EndDate>
+      </ElectionEvent>
+      """
+
+    with self.assertRaises(loggers.ElectionError):
+      self.validator.check(etree.fromstring(election_event_string))
+
+  def testInvalidStartAndFullDeliveryDates(self):
+    election_event_string = """
+      <ElectionEvent>
+        <StartDate>2024-01-01</StartDate>
+        <FullDeliveryDate>2024-01-02</FullDeliveryDate>
+      </ElectionEvent>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(election_event_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "StartDate is older than FullDeliveryDate",
+    )
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "ElectionEvent")
+
+  def testInvalidInitialAndFullDeliveryDates(self):
+    election_event_string = """
+      <ElectionEvent>
+        <InitialDeliveryDate>2024-01-02</InitialDeliveryDate>
+        <FullDeliveryDate>2024-01-01</FullDeliveryDate>
+      </ElectionEvent>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(election_event_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "FullDeliveryDate is older than InitialDeliveryDate",
+    )
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "ElectionEvent")
+
+
+class OfficeHolderSubFeedDatesAreSequentialTest(absltest.TestCase):
+
+  def setUp(self):
+    super(OfficeHolderSubFeedDatesAreSequentialTest, self).setUp()
+    self.validator = rules.OfficeHolderSubFeedDatesAreSequential(None, None)
+
+  def testSequentialInitialAndFullDeliveryDates(self):
+    office_holder_sub_feed_string = """
+      <OfficeHolderSubFeed>
+        <InitialDeliveryDate>2024-01-01</InitialDeliveryDate>
+        <FullDeliveryDate>2024-01-02</FullDeliveryDate>
+      </OfficeHolderSubFeed>
+      """
+
+    self.validator.check(etree.fromstring(office_holder_sub_feed_string))
+
+  def testInvalidInitialAndFullDeliveryDates(self):
+    office_holder_sub_feed_string = """
+      <OfficeHolderSubFeed>
+        <InitialDeliveryDate>2024-01-02</InitialDeliveryDate>
+        <FullDeliveryDate>2024-01-01</FullDeliveryDate>
+      </OfficeHolderSubFeed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(office_holder_sub_feed_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "FullDeliveryDate is older than InitialDeliveryDate",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].tag, "OfficeHolderSubFeed"
+    )
+
+
+class FeedHasValidCountryCodeTest(absltest.TestCase):
+
+  def setUp(self):
+    super(FeedHasValidCountryCodeTest, self).setUp()
+    self.validator = rules.FeedHasValidCountryCode(None, None)
+
+  def testValidCountryCode(self):
+    feed_string = """
+      <Feed>
+        <CountryCode>US</CountryCode>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def testValidElectionDates(self):
+    feed_string = """
+      <Feed>
+        <FeedType>election-dates</FeedType>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def testInvalidCountryCode(self):
+    feed_string = """
+      <Feed>
+        <CountryCode>XX</CountryCode>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Invalid country code XX.",
+    )
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def testMissingCountryCode(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <FeedType>pre-election</FeedType>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Feed test-feed is missing CountryCode.",
+    )
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Feed")
+
+
+class FeedInactiveDateSetForNonEvergreenFeedTest(absltest.TestCase):
+
+  def setUp(self):
+    super(FeedInactiveDateSetForNonEvergreenFeedTest, self).setUp()
+    self.validator = rules.FeedInactiveDateSetForNonEvergreenFeed(None, None)
+
+  def testEvergreenFeedWithoutInactiveDate(self):
+    feed_string = """
+      <Feed>
+        <FeedLongevity>evergreen</FeedLongevity>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def testEvergreenFeedWithInactiveDate(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <FeedLongevity>pre-election</FeedLongevity>
+      </Feed>
+      """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "FeedInactiveDate is not set for non-evergreen feed with FeedId"
+        " test-feed.",
+    )
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Feed")
 
 
 class RulesTest(absltest.TestCase):

@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<FeedDeliveryReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <FeedCollection>
+    <Feed>
+      <FeedId>sample-feed-1</FeedId>
+      <FeedName>Sample Feed 1</FeedName>
+      <FeedType>pre-election</FeedType>
+      <FeedLongevity>limited</FeedLongevity>
+      <SourceDirPath>//sample/path</SourceDirPath>
+      <CountryCode>US</CountryCode>
+      <FeedInactiveDate>2023-12-31</FeedInactiveDate>
+      <ElectionEventCollection>
+        <ElectionEvent>
+          <DebugName>Debug Name</DebugName>
+          <OfficeScopeCollection>
+            <OfficeScope>
+              <DebugName>Scope of US general election</DebugName>
+              <OfficeLevel>Country</OfficeLevel>
+              <JurisdictionOcdId>ocd-division/country:us</JurisdictionOcdId>
+              <OfficeRoles>president</OfficeRoles>
+              <OfficeRoles>lower house</OfficeRoles>
+              <OfficeRoles>upper house</OfficeRoles>
+            </OfficeScope>
+          </OfficeScopeCollection>
+          <BallotMeasureScopeCollection>
+            <BallotMeasureScope>
+              <DebugName>California state Ballot measures</DebugName>
+              <LocationLevel>Administrative Area 1</LocationLevel>
+              <LocationOcdId>ocd-division/country:us/state:ca</LocationOcdId>
+              <TitleOrTopic>Sample Topic Amendment</TitleOrTopic>
+            </BallotMeasureScope>
+          </BallotMeasureScopeCollection>
+          <ElectionType>general</ElectionType>
+          <ElectionDateType>scheduled</ElectionDateType>
+          <ElectionDateStatus>confirmed</ElectionDateStatus>
+          <ExpectedCandidates>100</ExpectedCandidates>
+          <InitialDeliveryDate>2023-12-01</InitialDeliveryDate>
+          <FullDeliveryDate>2023-12-20</FullDeliveryDate>
+          <PublicationDate>2023-11-20</PublicationDate>
+          <RegistrationStartDate>2023-01-01</RegistrationStartDate>
+          <RegistrationDeadlineDate>2023-06-01</RegistrationDeadlineDate>
+          <WithdrawalDeadlineDate>2023-11-01</WithdrawalDeadlineDate>
+          <StartDate>2023-12-28</StartDate>
+          <EndDate>2023-12-29</EndDate>
+        </ElectionEvent>
+      </ElectionEventCollection>
+    </Feed>
+  </FeedCollection>
+  <PartnerTag>Sample Partner</PartnerTag>
+  <GeneratedDate>2023-02-01T00:00:00Z</GeneratedDate>
+</FeedDeliveryReport>

@@ -25,9 +25,11 @@ from civics_cdf_validator import base
 from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator import office_utils
+from frozendict import frozendict
 import language_tags
 from lxml import etree
 import networkx
+import pycountry
 from six.moves.urllib.parse import urlparse
 
 _PARTY_LEADERSHIP_TYPES = ["party-leader-id", "party-chair-id"]
@@ -74,6 +76,14 @@ _EXECUTIVE_OFFICE_ROLES = frozenset([
     "deputy state executive",
     "deputy head of government",
 ])
+
+_VALID_FEED_LONGEVITY_BY_FEED_TYPE = frozendict({
+    "committee": ["evergreen"],
+    "election-dates": ["evergreen"],
+    "election-results": ["limited", "yearly"],
+    "officeholder": ["evergreen"],
+    "pre-election": ["limited", "yearly"],
+})
 
 
 def _is_executive_office(office_roles):
@@ -177,6 +187,14 @@ def get_language_to_text_map(element):
 def element_has_text(element):
   return (element is not None and element.text is not None
           and not element.text.isspace())
+
+
+def country_code_is_valid(country_code):
+  # EU is part of ISO 3166/MA
+  return (
+      country_code.lower() == "eu"
+      or pycountry.countries.get(alpha_2=country_code.upper()) is not None
+  )
 
 
 class Schema(base.TreeRule):
@@ -2082,7 +2100,8 @@ class ValidURIAnnotation(base.BaseRule):
     parsed_url = urlparse(url)
     # Ensure media platform name is in URL.
     if (platform != "website" and platform not in parsed_url.netloc and
-        not (platform == "facebook" and "fb.com" in parsed_url.netloc)):
+        not (platform == "facebook" and "fb.com" in parsed_url.netloc) and
+        not (platform == "twitter" and "x.com" in parsed_url.netloc)):
       # Note that the URL is encoded for printing purposes
       raise loggers.ElectionError.from_message(
           "Annotation '{}' is incorrect for URI {}.".format(
@@ -2396,10 +2415,16 @@ class ElectionDatesSpanContestDates(base.DateRule):
     self.reset_instance_vars()
     self.gather_dates(contest)
     contest_id = contest.get("objectId")
+    contest_date_status = contest.find("ContestDateStatus")
     if (
         election_end_date is not None
         and self.end_date is not None
         and election_end_date.is_older_than(self.end_date) > 0
+        # Only compare election end date to contests that are not canceled
+        and (
+            contest_date_status is None
+            or contest_date_status.text.lower() != "canceled"
+        )
     ):
       self.error_log.append(
           loggers.LogEntry(
@@ -3573,6 +3598,210 @@ class AffiliationHasEitherPartyOrPerson(base.BaseRule):
       )
 
 
+class FeedTypeHasValidFeedLongevity(base.BaseRule):
+  """Feeds types should have valid corresponding FeedLongevity."""
+
+  def elements(self):
+    return ["Feed"]
+
+  def check(self, element):
+    feed_type_element = element.find("FeedType")
+    feed_longevity_element = element.find("FeedLongevity")
+    if element_has_text(feed_type_element) and element_has_text(
+        feed_longevity_element
+    ):
+      feed_type = feed_type_element.text.lower().replace("_", "-")
+      feed_longevity = feed_longevity_element.text.lower().replace("_", "-")
+      if (
+          feed_type in _VALID_FEED_LONGEVITY_BY_FEED_TYPE
+          and feed_longevity
+          not in _VALID_FEED_LONGEVITY_BY_FEED_TYPE[feed_type]
+      ):
+        raise loggers.ElectionError.from_message(
+            "Feed type {} has invalid feed longevity {}. Valid feed"
+            " longevities for this type are {}".format(
+                feed_type,
+                feed_longevity,
+                _VALID_FEED_LONGEVITY_BY_FEED_TYPE[feed_type],
+            ),
+            [element],
+        )
+
+
+class FeedIdsAreUnique(base.BaseRule):
+  """FeedId should be unique."""
+
+  def elements(self):
+    return ["FeedCollection"]
+
+  def check(self, element):
+    feed_ids = set()
+    error_log = []
+    for feed_element in element.findall("Feed"):
+      if element_has_text(feed_element.find("FeedId")):
+        feed_id = feed_element.find("FeedId").text
+        if feed_id in feed_ids:
+          msg = (
+              "FeedId {} appears multiple times in the metadata feed. Feed ids"
+              " must be unique.".format(feed_id)
+          )
+          error_log.append(
+              loggers.LogEntry(
+                  msg,
+                  [feed_element],
+              )
+          )
+        feed_ids.add(feed_id)
+
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
+class SourceDirPathsAreUnique(base.BaseRule):
+  """All SourceDirPaths should be unique."""
+
+  def elements(self):
+    return ["FeedCollection"]
+
+  def check(self, element):
+    source_dir_paths = set()
+    error_log = []
+    for feed_element in element.findall("Feed"):
+      if element_has_text(feed_element.find("SourceDirPath")):
+        source_dir_path = feed_element.find("SourceDirPath").text
+        if source_dir_path in source_dir_paths:
+          msg = (
+              "SourceDirPath {} appears multiple times in the metadata feed."
+              " SourceDirPaths must be unique.".format(source_dir_path)
+          )
+          error_log.append(
+              loggers.LogEntry(
+                  msg,
+                  [feed_element],
+              )
+          )
+        source_dir_paths.add(source_dir_path)
+
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
+class ElectionEventDatesAreSequential(base.DateRule):
+  """Dates in an ElectionEvent element should be sequential."""
+
+  def elements(self):
+    return ["ElectionEvent"]
+
+  def check(self, element):
+    self.reset_instance_vars()
+    self.gather_dates(element)
+    self.check_end_after_start()
+    if element_has_text(element.find("FullDeliveryDate")) and self.start_date:
+      full_delivery_date = base.PartialDate.init_partial_date(
+          element.find("FullDeliveryDate").text
+      )
+      date_delta = self.start_date.is_older_than(full_delivery_date)
+      if date_delta > 0:
+        self.error_log.append(
+            loggers.LogEntry(
+                "StartDate is older than FullDeliveryDate",
+                [element],
+            )
+        )
+    if element_has_text(
+        element.find("InitialDeliveryDate")
+    ) and element_has_text(element.find("FullDeliveryDate")):
+      initial_delivery_date = base.PartialDate.init_partial_date(
+          element.find("InitialDeliveryDate").text
+      )
+      full_delivery_date = base.PartialDate.init_partial_date(
+          element.find("FullDeliveryDate").text
+      )
+      date_delta = full_delivery_date.is_older_than(initial_delivery_date)
+      if date_delta > 0:
+        self.error_log.append(
+            loggers.LogEntry(
+                "FullDeliveryDate is older than InitialDeliveryDate",
+                [element],
+            )
+        )
+
+    if self.error_log:
+      raise loggers.ElectionError(self.error_log)
+
+
+class OfficeHolderSubFeedDatesAreSequential(base.DateRule):
+  """Dates in an OfficeHolderSubFeed element should be sequential."""
+
+  def elements(self):
+    return ["OfficeHolderSubFeed"]
+
+  def check(self, element):
+    if element_has_text(
+        element.find("InitialDeliveryDate")
+    ) and element_has_text(element.find("FullDeliveryDate")):
+      initial_delivery_date = base.PartialDate.init_partial_date(
+          element.find("InitialDeliveryDate").text
+      )
+      full_delivery_date = base.PartialDate.init_partial_date(
+          element.find("FullDeliveryDate").text
+      )
+      date_delta = full_delivery_date.is_older_than(initial_delivery_date)
+      if date_delta > 0:
+        raise loggers.ElectionError.from_message(
+            "FullDeliveryDate is older than InitialDeliveryDate",
+            [element],
+        )
+
+
+class FeedHasValidCountryCode(base.BaseRule):
+  """Feeds should have valid country code."""
+
+  def elements(self):
+    return ["Feed"]
+
+  def check(self, element):
+    country_code_element = element.find("CountryCode")
+    if element_has_text(country_code_element):
+      country_code = country_code_element.text.upper()
+      if not country_code_is_valid(country_code):
+        raise loggers.ElectionError.from_message(
+            "Invalid country code {}.".format(country_code),
+            [element],
+        )
+    else:
+      feed_type = element.find("FeedType")
+      if (
+          element_has_text(feed_type)
+          and feed_type.text.lower().replace("_", "-") == "election-dates"
+      ):
+        return
+      raise loggers.ElectionError.from_message(
+          "Feed {} is missing CountryCode.".format(element.find("FeedId").text),
+          [element],
+      )
+
+
+class FeedInactiveDateSetForNonEvergreenFeed(base.BaseRule):
+  """All non-evergreen feeds should have a FeedInactiveDate set."""
+
+  def elements(self):
+    return ["Feed"]
+
+  def check(self, element):
+    feed_longevity = element.find("FeedLongevity")
+    if (
+        element_has_text(feed_longevity)
+        and feed_longevity.text.lower() != "evergreen"
+        and not element_has_text(element.find("FeedInactiveDate"))
+    ):
+      raise loggers.ElectionError.from_message(
+          "FeedInactiveDate is not set for non-evergreen feed with FeedId {}."
+          .format(element.find("FeedId").text),
+          [element],
+      )
+
+
 class UnreferencedEntitiesBase(base.TreeRule):
   """All non-top-level entities in a feed should be referenced by at least one other entity.
 
@@ -3831,6 +4060,13 @@ METADATA_RULES = (
     Encoding,
     OptionalAndEmpty,
     UniqueLabel,
+    FeedTypeHasValidFeedLongevity,
+    FeedIdsAreUnique,
+    SourceDirPathsAreUnique,
+    ElectionEventDatesAreSequential,
+    OfficeHolderSubFeedDatesAreSequential,
+    FeedHasValidCountryCode,
+    FeedInactiveDateSetForNonEvergreenFeed,
 )
 
 ALL_RULES = frozenset(

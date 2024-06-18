@@ -8,7 +8,7 @@
 - an Election for the general election day, with presidential state level contests, a national
   level presidential rollup, and a gubernatorial contest (2020-11-03)
 -->
-<ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Election>
       <ContestCollection>
         <Contest objectId="cc101" xsi:type="CandidateContest">
