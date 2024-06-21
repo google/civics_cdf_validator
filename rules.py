@@ -860,10 +860,9 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
   """Candidate should not be referred to by multiple unrelated contests.
 
   A Candidate object should only be referenced from one contest, unless the
-  contests are related (connected by SubsequentContestId or
-  ComposingContestIds). If a Person is running in multiple unrelated Contests,
-  then that Person is a Candidate several times over, but a Candida(te|cy) can't
-  span unrelated contests.
+  contests are related (connected by SubsequentContestId). If a Person is
+  running in multiple unrelated Contests, then that Person is a Candidate
+  several times over, but a Candida(te|cy) can't span unrelated contests.
   """
 
   def __init__(self, election_tree, schema_tree, **kwargs):
@@ -917,34 +916,6 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
       self.contest_graph.add_node(contest.get("objectId"))
 
     for contest in contests:
-      composing_contests = contest.find("ComposingContestIds")
-      if element_has_text(composing_contests):
-        children = composing_contests.text.split()
-        for child in children:
-          # composing contest id is not valid if it isn't in the graph
-          if not self.contest_graph.has_node(child):
-            raise loggers.ElectionError.from_message(
-                ("Contest {} contains a composing Contest Id ({}) that does "
-                 "not exist.").format(contest.get("objectId"), child),
-                [composing_contests])
-          # parent exists means contest is listed as composing more than once
-          if "parent" in self.contest_graph.nodes[child]:
-            raise loggers.ElectionError.from_message(
-                (
-                    "Contest {} is listed as a composing contest for multiple"
-                    " contests ({} and {}). A contest should have no more than"
-                    " one parent."
-                ).format(
-                    child,
-                    contest.get("objectId"),
-                    self.contest_graph.nodes[child]["parent"],
-                ),
-                [composing_contests],
-            )
-          # establish parent-child relationship between nodes
-          self.contest_graph.nodes[child]["parent"] = contest.get("objectId")
-          self.contest_graph.add_edge(contest.get("objectId"), child)
-
       subsequent_contest = contest.find("SubsequentContestId")
       if element_has_text(subsequent_contest):
         # subsequent contest id is not valid if it isn't in the graph

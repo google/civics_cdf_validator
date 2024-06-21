@@ -1,112 +1,46 @@
 <?xml version="1.0"?>
 <!-- Included in the ElectionReport:
-- an Election with two state level presidential primary contests (2020-03-03, CA and VA)
-- an Election on a different date with one state level presidential primary and two gubernatorial
-  primaries (2020-03-17, FL)
-- an Election with a Contest that represents a national level primary (rollup), with a date
-  spanning from the first primary to the convention date (2020-02-03 - 2020-08-20)
+- an Election with two gubernatorial primaries  (2020-09-15, DE)
+- an Election with a general gubernatorial (2020-11-03, DE)
+- an Election with three state level presidential primary contests
 - an Election for the general election day, with presidential state level contests, a national
-  level presidential rollup, and a gubernatorial contest (2020-11-03)
+  level presidential rollup
 -->
 <ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Election>
-      <ContestCollection>
-        <Contest objectId="cc101" xsi:type="CandidateContest">
-          <BallotSelection objectId="cs21_101" xsi:type="CandidateSelection">
-            <CandidateIds>candidate21</CandidateIds>
-          </BallotSelection>
-          <BallotSelection objectId="cs22_101" xsi:type="CandidateSelection">
-            <CandidateIds>candidate22</CandidateIds>
-          </BallotSelection>
-          <BallotTitle>
-            <Text language="en">President of the United States</Text>
-          </BallotTitle>
-          <ElectoralDistrictId>ru-california</ElectoralDistrictId>
-          <ExternalIdentifiers>
-            <ExternalIdentifier>
-              <Type>other</Type>
-              <OtherType>stable</OtherType>
-              <Value>contest101</Value>
-            </ExternalIdentifier>
-          </ExternalIdentifiers>
-          <Name>California Democratic Party Presidential Primary</Name>
-          <SubsequentContestId>cc201</SubsequentContestId>
-          <NumberElected>1</NumberElected>
-          <OfficeIds>office1</OfficeIds>
-          <PrimaryPartyIds>party2</PrimaryPartyIds>
-          <Type>partisan-primary-open</Type>
-          <VotesAllowed>1</VotesAllowed>
-        </Contest>
-        <Contest objectId="cc103" xsi:type="CandidateContest">
-          <BallotSelection objectId="cs21_103" xsi:type="CandidateSelection">
-            <CandidateIds>candidate21</CandidateIds>
-          </BallotSelection>
-          <BallotSelection objectId="cs22_103" xsi:type="CandidateSelection">
-            <CandidateIds>candidate22</CandidateIds>
-          </BallotSelection>
-          <BallotTitle>
-            <Text language="en">President of the United States</Text>
-          </BallotTitle>
-          <ElectoralDistrictId>ru-virginia</ElectoralDistrictId>
-          <ExternalIdentifiers>
-            <ExternalIdentifier>
-              <Type>other</Type>
-              <OtherType>stable</OtherType>
-              <Value>contest103</Value>
-            </ExternalIdentifier>
-          </ExternalIdentifiers>
-          <Name>Virginia Democratic Party Presidential Primary</Name>
-          <SubsequentContestId>cc203</SubsequentContestId>
-          <NumberElected>1</NumberElected>
-          <OfficeIds>office1</OfficeIds>
-          <PrimaryPartyIds>party2</PrimaryPartyIds>
-          <Type>partisan-primary-open</Type>
-          <VotesAllowed>1</VotesAllowed>
-        </Contest>
-      </ContestCollection>
-      <ElectionScopeId>ru-united-states</ElectionScopeId>
-    <ExternalIdentifiers>
-      <ExternalIdentifier>
-        <Type>other</Type>
-        <OtherType>stable</OtherType>
-        <Value>dem_super_tuesday_el</Value>
-      </ExternalIdentifier>
-    </ExternalIdentifiers>
-      <Name>
-        <Text language="en">2020 Democratic Party Primary - Super Tuesday</Text>
-      </Name>
-      <StartDate>2020-03</StartDate>
-      <EndDate>2025-03</EndDate>
-      <Type>partisan-primary-open</Type>
-  </Election>
-  <Election>
-    <ContestCollection>
-      <Contest objectId="cc102" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs21_102" xsi:type="CandidateSelection">
-          <CandidateIds>candidate21</CandidateIds>
-        </BallotSelection>
-        <BallotSelection objectId="cs22_102" xsi:type="CandidateSelection">
-          <CandidateIds>candidate22</CandidateIds>
-        </BallotSelection>
-        <BallotTitle>
-          <Text language="en">President of the United States</Text>
-        </BallotTitle>
-        <ElectoralDistrictId>ru-florida</ElectoralDistrictId>
+    <CandidateCollection>
+      <Candidate objectId="candidate12">
+        <BallotName>
+          <Text language="en">Republican Gubernatorial Candidate1</Text>
+        </BallotName>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>contest102</Value>
+            <Value>candidate12</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Florida Democratic Party Presidential Primary</Name>
-        <SubsequentContestId>cc202</SubsequentContestId>
-        <NumberElected>1</NumberElected>
-        <OfficeIds>office1</OfficeIds>
-        <PrimaryPartyIds>party2</PrimaryPartyIds>
-        <Type>partisan-primary-closed</Type>
-        <VotesAllowed>1</VotesAllowed>
-      </Contest>
+        <PartyId>party1</PartyId>
+        <PersonId>person12</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
+      </Candidate>
+      <Candidate objectId="candidate23">
+        <BallotName>
+          <Text language="en">Democratic Gubernatorial Candidate1</Text>
+        </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>candidate23</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>party2</PartyId>
+        <PersonId>person23</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
+      </Candidate>
+    </CandidateCollection>
+    <ContestCollection>
       <Contest objectId="cc301" xsi:type="CandidateContest">
         <BallotSelection objectId="cs12_301" xsi:type="CandidateSelection">
           <CandidateIds>candidate12</CandidateIds>
@@ -115,9 +49,9 @@
           <CandidateIds>candidate13</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">Governor of Florida - Republican Primary</Text>
+          <Text language="en">Governor of Delaware - Republican Primary</Text>
         </BallotTitle>
-        <ElectoralDistrictId>ru-florida</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-delaware</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
@@ -125,7 +59,7 @@
             <Value>contest301</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Governor of Florida - Republican Primary</Name>
+        <Name>Governor of Delaware - Republican Primary</Name>
         <SubsequentContestId>cc300</SubsequentContestId>
         <NumberElected>1</NumberElected>
         <OfficeIds>office2</OfficeIds>
@@ -141,9 +75,9 @@
           <CandidateIds>candidate24</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">Governor of Florida - Democratic Primary</Text>
+          <Text language="en">Governor of Delaware - Democratic Primary</Text>
         </BallotTitle>
-        <ElectoralDistrictId>ru-florida</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-delaware</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
@@ -151,7 +85,7 @@
             <Value>contest302</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Governor of Florida - Democratic Primary</Name>
+        <Name>Governor of Delaware - Democratic Primary</Name>
         <SubsequentContestId>cc300</SubsequentContestId>
         <NumberElected>1</NumberElected>
         <OfficeIds>office2</OfficeIds>
@@ -165,43 +99,40 @@
       <ExternalIdentifier>
         <Type>other</Type>
         <OtherType>stable</OtherType>
-        <Value>florida_primaries_el</Value>
+        <Value>delaware_primaries_el</Value>
       </ExternalIdentifier>
     </ExternalIdentifiers>
     <Name>
-      <Text language="en">2020 Florida Primaries</Text>
+      <Text language="en">Delaware gubernatorial election, 2020</Text>
     </Name>
-    <StartDate>2020-03-17</StartDate>
-    <EndDate>2025-03-17</EndDate>
+    <StartDate>2020-09-15</StartDate>
+    <EndDate>2020-09-15</EndDate>
     <Type>partisan-primary-closed</Type>
   </Election>
   <Election>
     <ContestCollection>
-      <Contest objectId="cc100" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs21_100" xsi:type="CandidateSelection">
-          <CandidateIds>candidate21</CandidateIds>
+      <Contest objectId="cc300" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs12_300" xsi:type="CandidateSelection">
+          <CandidateIds>candidate12</CandidateIds>
         </BallotSelection>
-        <BallotSelection objectId="cs22_100" xsi:type="CandidateSelection">
-          <CandidateIds>candidate22</CandidateIds>
+        <BallotSelection objectId="cs23_300" xsi:type="CandidateSelection">
+          <CandidateIds>candidate23</CandidateIds>
         </BallotSelection>
         <BallotTitle>
-          <Text language="en">President of the United States</Text>
+          <Text language="en">Governor of Delaware</Text>
         </BallotTitle>
-        <ComposingContestIds>cc101 cc102 cc103</ComposingContestIds>
-        <ElectoralDistrictId>ru-united-states</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-delaware</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>contest100</Value>
+            <Value>contest300</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>United States Democratic Party Presidential Primary</Name>
-        <SubsequentContestId>cc200</SubsequentContestId>
+        <Name>Governor of Delaware</Name>
         <NumberElected>1</NumberElected>
-        <OfficeIds>office1</OfficeIds>
-        <PrimaryPartyIds>party2</PrimaryPartyIds>
-        <Type>partisan-primary-open</Type>
+        <OfficeIds>office2</OfficeIds>
+        <Type>general</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
     </ContestCollection>
@@ -210,19 +141,19 @@
       <ExternalIdentifier>
         <Type>other</Type>
         <OtherType>stable</OtherType>
-        <Value>dem_pres_praimry_el</Value>
+        <Value>governor_delaware_gen_el</Value>
       </ExternalIdentifier>
     </ExternalIdentifiers>
     <Name>
-      <Text language="en">2020 Democratic Party Presidential Primary</Text>
+      <Text language="en">2020 Delaware gubernatorial election</Text>
     </Name>
-    <StartDate>2020-02-03</StartDate>
-    <EndDate>2025-08-20</EndDate>
-    <Type>primary</Type>
+    <StartDate>2020-11-03</StartDate>
+    <EndDate>2020-11-03</EndDate>
+    <Type>general</Type>
   </Election>
   <Election>
     <CandidateCollection>
-      <Candidate objectId="candidate11">
+      <Candidate objectId="candidate111">
         <BallotName>
           <Text language="en">Republican Presidential Candidate1</Text>
         </BallotName>
@@ -243,26 +174,67 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>candidate11</Value>
+            <Value>candidate111</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <PartyId>party1</PartyId>
         <PersonId>person11</PersonId>
         <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
-      <Candidate objectId="candidate12">
+      <Candidate objectId="candidate112">
         <BallotName>
-          <Text language="en">Republican Gubernatorial Candidate1</Text>
+          <Text language="en">Republican Presidential Candidate1</Text>
         </BallotName>
+        <ContactInformation language="en">
+          <AddressLine>655 New York Ave, NW</AddressLine>
+          <AddressLine>Washington, DC 20005</AddressLine>
+          <Email>person@congress.gov</Email>
+          <Fax>888-7777</Fax>
+          <Name>Congressional Office</Name>
+          <Phone>999-8888</Phone>
+        </ContactInformation>
+        <ContactInformation language="es">
+          <AddressLine>655 Nueva York Ave, NW</AddressLine>
+          <AddressLine>Washington, DC 20005</AddressLine>
+          <Name>Oficina del Congreso</Name>
+        </ContactInformation>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>candidate12</Value>
+            <Value>candidate112</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <PartyId>party1</PartyId>
-        <PersonId>person12</PersonId>
+        <PersonId>person11</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
+      </Candidate>
+      <Candidate objectId="candidate113">
+        <BallotName>
+          <Text language="en">Republican Presidential Candidate1</Text>
+        </BallotName>
+        <ContactInformation language="en">
+          <AddressLine>655 New York Ave, NW</AddressLine>
+          <AddressLine>Washington, DC 20005</AddressLine>
+          <Email>person@congress.gov</Email>
+          <Fax>888-7777</Fax>
+          <Name>Congressional Office</Name>
+          <Phone>999-8888</Phone>
+        </ContactInformation>
+        <ContactInformation language="es">
+          <AddressLine>655 Nueva York Ave, NW</AddressLine>
+          <AddressLine>Washington, DC 20005</AddressLine>
+          <Name>Oficina del Congreso</Name>
+        </ContactInformation>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>candidate113</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>party1</PartyId>
+        <PersonId>person11</PersonId>
         <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
       <Candidate objectId="candidate13">
@@ -280,7 +252,7 @@
         <PersonId>person13</PersonId>
         <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
-      <Candidate objectId="candidate21">
+      <Candidate objectId="candidate211">
         <BallotName>
           <Text language="en">Democratic Presidential Candidate1</Text>
         </BallotName>
@@ -288,14 +260,44 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>candidate21</Value>
+            <Value>candidate211</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <PartyId>party2</PartyId>
         <PersonId>person21</PersonId>
         <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
-      <Candidate objectId="candidate22">
+      <Candidate objectId="candidate212">
+        <BallotName>
+          <Text language="en">Democratic Presidential Candidate1</Text>
+        </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>candidate212</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>party2</PartyId>
+        <PersonId>person21</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
+      </Candidate>
+      <Candidate objectId="candidate213">
+        <BallotName>
+          <Text language="en">Democratic Presidential Candidate1</Text>
+        </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>candidate213</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>party2</PartyId>
+        <PersonId>person21</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
+      </Candidate>
+      <Candidate objectId="candidate221">
         <BallotName>
           <Text language="en">Democratic Presidential Candidate2</Text>
         </BallotName>
@@ -303,26 +305,41 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>candidate22</Value>
+            <Value>candidate221</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <PartyId>party2</PartyId>
         <PersonId>person22</PersonId>
         <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
-      <Candidate objectId="candidate23">
+      <Candidate objectId="candidate222">
         <BallotName>
-          <Text language="en">Democratic Gubernatorial Candidate1</Text>
+          <Text language="en">Democratic Presidential Candidate2</Text>
         </BallotName>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>candidate23</Value>
+            <Value>candidate222</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <PartyId>party2</PartyId>
-        <PersonId>person23</PersonId>
+        <PersonId>person22</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
+      </Candidate>
+      <Candidate objectId="candidate223">
+        <BallotName>
+          <Text language="en">Democratic Presidential Candidate2</Text>
+        </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>candidate223</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>party2</PartyId>
+        <PersonId>person22</PersonId>
         <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
       <Candidate objectId="candidate24">
@@ -342,13 +359,132 @@
       </Candidate>
     </CandidateCollection>
     <ContestCollection>
+      <Contest objectId="cc100" xsi:type="CandidateContest">
+        <BallotTitle>
+          <Text language="en">President of the United States</Text>
+        </BallotTitle>
+        <ComposingContestIds>cc101 cc102 cc103</ComposingContestIds>
+        <ElectoralDistrictId>ru-united-states</ElectoralDistrictId>
+        <EndDate>2020-08-11</EndDate>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>contest100</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>United States Democratic Party Presidential Primary</Name>
+        <StartDate>2020-02-03</StartDate>
+        <SubsequentContestId>cc200</SubsequentContestId>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party2</PrimaryPartyIds>
+        <Type>partisan-primary-open</Type>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+      <Contest objectId="cc101" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs21_101" xsi:type="CandidateSelection">
+          <CandidateIds>candidate211</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs22_101" xsi:type="CandidateSelection">
+          <CandidateIds>candidate221</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">President of the United States</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru-california</ElectoralDistrictId>
+        <EndDate>2020-03-03</EndDate>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>contest101</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>California Democratic Party Presidential Primary</Name>
+        <StartDate>2020-03-03</StartDate>
+        <SubsequentContestId>cc201</SubsequentContestId>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party2</PrimaryPartyIds>
+        <Type>partisan-primary-open</Type>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+      <Contest objectId="cc103" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs21_103" xsi:type="CandidateSelection">
+          <CandidateIds>candidate213</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs22_103" xsi:type="CandidateSelection">
+          <CandidateIds>candidate222</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">President of the United States</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru-virginia</ElectoralDistrictId>
+        <EndDate>2020-03-03</EndDate>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>contest103</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>Virginia Democratic Party Presidential Primary</Name>
+        <StartDate>2020-03-03</StartDate>
+        <SubsequentContestId>cc203</SubsequentContestId>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party2</PrimaryPartyIds>
+        <Type>partisan-primary-open</Type>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+      <Contest objectId="cc102" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs21_102" xsi:type="CandidateSelection">
+          <CandidateIds>candidate212</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs22_102" xsi:type="CandidateSelection">
+          <CandidateIds>candidate223</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">President of the United States</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru-florida</ElectoralDistrictId>
+        <EndDate>2020-03-17</EndDate>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>contest102</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>Florida Democratic Party Presidential Primary</Name>
+        <StartDate>2020-03-17</StartDate>
+        <SubsequentContestId>cc202</SubsequentContestId>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>office1</OfficeIds>
+        <PrimaryPartyIds>party2</PrimaryPartyIds>
+        <Type>partisan-primary-closed</Type>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+    </ContestCollection>
+    <ElectionScopeId>ru-united-states</ElectionScopeId>
+    <ExternalIdentifiers>
+      <ExternalIdentifier>
+        <Type>other</Type>
+        <OtherType>stable</OtherType>
+        <Value>dem_pres_praimry_el</Value>
+      </ExternalIdentifier>
+    </ExternalIdentifiers>
+    <Name>
+      <Text language="en">2020 Democratic Party Presidential Primary</Text>
+    </Name>
+    <StartDate>2020-02-03</StartDate>
+    <EndDate>2020-08-11</EndDate>
+    <Type>primary</Type>
+  </Election>
+  <Election>
+    <ContestCollection>
       <Contest objectId="cc200" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs11_200" xsi:type="CandidateSelection">
-          <CandidateIds>candidate11</CandidateIds>
-        </BallotSelection>
-        <BallotSelection objectId="cs21_200" xsi:type="CandidateSelection">
-          <CandidateIds>candidate21</CandidateIds>
-        </BallotSelection>
         <BallotTitle>
           <Text language="en">President of the United States</Text>
         </BallotTitle>
@@ -369,10 +505,10 @@
       </Contest>
       <Contest objectId="cc201" xsi:type="CandidateContest">
         <BallotSelection objectId="cs11_201" xsi:type="CandidateSelection">
-          <CandidateIds>candidate11</CandidateIds>
+          <CandidateIds>candidate111</CandidateIds>
         </BallotSelection>
         <BallotSelection objectId="cs21_201" xsi:type="CandidateSelection">
-          <CandidateIds>candidate21</CandidateIds>
+          <CandidateIds>candidate211</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">President of the United States</Text>
@@ -393,10 +529,10 @@
       </Contest>
       <Contest objectId="cc202" xsi:type="CandidateContest">
         <BallotSelection objectId="cs11_202" xsi:type="CandidateSelection">
-          <CandidateIds>candidate11</CandidateIds>
+          <CandidateIds>candidate112</CandidateIds>
         </BallotSelection>
         <BallotSelection objectId="cs21_202" xsi:type="CandidateSelection">
-          <CandidateIds>candidate21</CandidateIds>
+          <CandidateIds>candidate212</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">President of the United States</Text>
@@ -417,10 +553,10 @@
       </Contest>
       <Contest objectId="cc203" xsi:type="CandidateContest">
         <BallotSelection objectId="cs11_203" xsi:type="CandidateSelection">
-          <CandidateIds>candidate11</CandidateIds>
+          <CandidateIds>candidate113</CandidateIds>
         </BallotSelection>
         <BallotSelection objectId="cs21_203" xsi:type="CandidateSelection">
-          <CandidateIds>candidate21</CandidateIds>
+          <CandidateIds>candidate213</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">President of the United States</Text>
@@ -439,30 +575,6 @@
         <Type>general</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc300" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs12_300" xsi:type="CandidateSelection">
-          <CandidateIds>candidate12</CandidateIds>
-        </BallotSelection>
-        <BallotSelection objectId="cs23_300" xsi:type="CandidateSelection">
-          <CandidateIds>candidate23</CandidateIds>
-        </BallotSelection>
-        <BallotTitle>
-          <Text language="en">Governor of Florida</Text>
-        </BallotTitle>
-        <ElectoralDistrictId>ru-florida</ElectoralDistrictId>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>contest300</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <Name>Governor of Florida</Name>
-        <NumberElected>1</NumberElected>
-        <OfficeIds>office2</OfficeIds>
-        <Type>general</Type>
-        <VotesAllowed>1</VotesAllowed>
-      </Contest>
     </ContestCollection>
     <ElectionScopeId>ru-united-states</ElectionScopeId>
     <ExternalIdentifiers>
@@ -476,104 +588,15 @@
       <Text language="en">2020 United States Presidential General Election</Text>
     </Name>
     <StartDate>2020-11-03</StartDate>
-    <EndDate>2025-11-03</EndDate>
+    <EndDate>2020-11-03</EndDate>
     <Type>general</Type>
-  </Election>
-  <Election>
-    <CandidateCollection>
-      <Candidate objectId="candidate51">
-        <BallotName>
-          <Text language="en">Georgia Senate Candidate1</Text>
-        </BallotName>
-        <ContactInformation language="en">
-          <AddressLine>655 New York Ave, NW</AddressLine>
-          <AddressLine>Washington, DC 20005</AddressLine>
-          <Email>person@congress.gov</Email>
-          <Fax>888-7777</Fax>
-          <Name>Congressional Office</Name>
-          <Phone>999-8888</Phone>
-        </ContactInformation>
-        <ContactInformation language="es">
-          <AddressLine>655 Nueva York Ave, NW</AddressLine>
-          <AddressLine>Washington, DC 20005</AddressLine>
-          <Name>Oficina del Congreso</Name>
-        </ContactInformation>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>candidate51</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <PartyId>party1</PartyId>
-        <PersonId>person11</PersonId>
-        <PreElectionStatus>self-declared</PreElectionStatus>
-      </Candidate>
-      <Candidate objectId="candidate52">
-        <BallotName>
-          <Text language="en">Georgia Senate Candidate2</Text>
-        </BallotName>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>candidate52</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <PartyId>party1</PartyId>
-        <PersonId>person12</PersonId>
-        <PreElectionStatus>self-declared</PreElectionStatus>
-      </Candidate>
-    </CandidateCollection>
-    <ContestCollection>
-      <Contest objectId="cc500" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs21_500" xsi:type="CandidateSelection">
-          <CandidateIds>candidate51</CandidateIds>
-        </BallotSelection>
-        <BallotSelection objectId="cs22_500" xsi:type="CandidateSelection">
-          <CandidateIds>candidate52</CandidateIds>
-        </BallotSelection>
-        <BallotTitle>
-          <Text language="en">Georgia Runoff Elections</Text>
-        </BallotTitle>
-        <ElectoralDistrictId>ru-georgia</ElectoralDistrictId>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>contest500</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <Name>United States General Elections Georgia Runoff</Name>
-        <NumberElected>1</NumberElected>
-        <OfficeIds>office3</OfficeIds>
-        <Type>general</Type>
-        <Type>runoff</Type>
-        <VotesAllowed>1</VotesAllowed>
-      </Contest>
-    </ContestCollection>
-    <ElectionScopeId>ru-united-states</ElectionScopeId>
-    <ExternalIdentifiers>
-      <ExternalIdentifier>
-        <Type>other</Type>
-        <OtherType>stable</OtherType>
-        <Value>ga_sen_runoff_el</Value>
-      </ExternalIdentifier>
-    </ExternalIdentifiers>
-    <Name>
-      <Text language="en">2022 Georgia Senate Runoff</Text>
-    </Name>
-    <StartDate>2022-12-06</StartDate>
-    <EndDate>2022-12-06</EndDate>
-    <Type>general</Type>
-    <Type>runoff</Type>
   </Election>
   <Format>summary-contest</Format>
-  <GeneratedDate>2020-05-18T14:25:28</GeneratedDate>
+  <GeneratedDate>2019-05-18T14:25:28</GeneratedDate>
   <GpUnitCollection>
     <GpUnit objectId="ru-united-states" xsi:type="ReportingUnit">
       <ComposingGpUnitIds>
-        ru-california ru-florida ru-virginia ru-georgia
+        ru-california ru-florida ru-virginia ru-georgia ru-delaware
       </ComposingGpUnitIds>
       <ExternalIdentifiers>
         <ExternalIdentifier>
@@ -622,6 +645,23 @@
       </ExternalIdentifiers>
       <InternationalizedName>
         <Text language="en">Florida</Text>
+      </InternationalizedName>
+      <Type>state</Type>
+    </GpUnit>
+    <GpUnit objectId="ru-delaware" xsi:type="ReportingUnit">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>ru-delaware</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:de</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <InternationalizedName>
+        <Text language="en">Delaware</Text>
       </InternationalizedName>
       <Type>state</Type>
     </GpUnit>
@@ -700,7 +740,6 @@
           <Value>ru-united-states</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">President of the United States</Text>
@@ -711,7 +750,7 @@
       </Term>
     </Office>
     <Office objectId="office2">
-      <ElectoralDistrictId>ru-florida</ElectoralDistrictId>
+      <ElectoralDistrictId>ru-delaware</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -731,46 +770,13 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
-          <Value>ru-florida</Value>
+          <Value>ru-delaware</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <FilingDeadline>2013-01-01</FilingDeadline>
+      <FilingDeadline>2020-10-10</FilingDeadline>
       <IsPartisan>true</IsPartisan>
       <Name>
-        <Text language="en">Governor of Florida</Text>
-      </Name>
-      <SelectionMethod>directly-elected</SelectionMethod>
-      <Term>
-        <Type>full-term</Type>
-      </Term>
-    </Office>
-    <Office objectId="office3">
-      <ElectoralDistrictId>ru-georgia</ElectoralDistrictId>
-      <ExternalIdentifiers>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>stable</OtherType>
-          <Value>office3</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>upper house</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Country</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>jurisdiction-id</OtherType>
-          <Value>ru-georgia</Value>
-        </ExternalIdentifier>
-      </ExternalIdentifiers>
-      <FilingDeadline>2013-01-01</FilingDeadline>
-      <Name>
-        <Text language="en">United States Senator</Text>
+        <Text language="en">Governor of Delaware</Text>
       </Name>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
