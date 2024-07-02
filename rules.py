@@ -392,6 +392,7 @@ class ValidIDREF(base.BaseRule):
       "ScopeLevel": "GpUnit",
       "AuthorityId": "Person",
       "AuthorityIds": "Person",
+      "PartyLeaderId": "Person",
   }
 
   def setup(self):
@@ -1522,6 +1523,7 @@ class MissingStableIds(base.BaseRule):
         "Office",
         "Party",
         "PartyContest",
+        "PartyLeadership",
         "Person",
         "ReportingUnit",
     ]
@@ -2363,6 +2365,23 @@ class ElectionEndDatesOccurAfterStartDates(base.DateRule):
       self.check_end_after_start()
       if self.error_log:
         raise loggers.ElectionError(self.error_log)
+
+
+class ValidPartyLeadershipDates(base.DateRule):
+  """Party Leadership start/end dates should be valid if specified.
+
+  End dates should not occur before the start date.
+  """
+
+  def elements(self):
+    return ["PartyLeadership"]
+
+  def check(self, element):
+    self.reset_instance_vars()
+    self.gather_dates(element)
+    self.check_end_after_start()
+    if self.error_log:
+      raise loggers.ElectionError(self.error_log)
 
 
 class ElectionDatesSpanContestDates(base.DateRule):
@@ -3951,6 +3970,7 @@ COMMON_RULES = (
     UniqueStableID,
     NonExecutiveOfficeShouldHaveGovernmentBody,
     ExecutiveOfficeShouldNotHaveGovernmentBody,
+    ValidPartyLeadershipDates,
 )
 
 ELECTION_RULES = COMMON_RULES + (
