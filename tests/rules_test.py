@@ -765,6 +765,11 @@ class ValidIDREFTest(absltest.TestCase):
             <xs:element minOccurs="0" name="BallotTitle" type="InternationalText" />
         </xs:sequence>
       </xs:complexType>
+      <xs:complexType name="PartyLeadership">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="PartyLeaderId" type="xs:IDREF"/>
+        </xs:sequence>
+      </xs:complexType>
     </xs:schema>
   """)
 
@@ -842,6 +847,7 @@ class ValidIDREFTest(absltest.TestCase):
     expected_reference_mapping = {
         "ElectoralDistrictId": "GpUnit",
         "OfficeHolderPersonIds": "Person",
+        "PartyLeaderId": "Person",
     }
     actual_reference_mapping = id_ref_validator._gather_reference_mapping()
 
@@ -916,10 +922,14 @@ class ValidIDREFTest(absltest.TestCase):
     id_ref_validator.element_reference_mapping = {
         "ElectoralDistrictId": "GpUnit",
         "OfficeHolderPersonIds": "Person",
+        "PartyLeaderId": "Person",
     }
 
     idref_element = etree.fromstring("""
       <ElectoralDistrictId>gp001</ElectoralDistrictId>
+    """)
+    party_leader_id_element = etree.fromstring("""
+      <PartyLeaderId>per001</PartyLeaderId>
     """)
     idrefs_element = etree.fromstring("""
       <OfficeHolderPersonIds>per001 per002</OfficeHolderPersonIds>
@@ -929,6 +939,7 @@ class ValidIDREFTest(absltest.TestCase):
     """)
 
     id_ref_validator.check(idref_element)
+    id_ref_validator.check(party_leader_id_element)
     id_ref_validator.check(idrefs_element)
     id_ref_validator.check(empty_element)
 
@@ -3919,7 +3930,7 @@ class MissingStableIdsTest(absltest.TestCase):
 
   def testItShouldCheckAllElementsListedInReturnStatement(self):
     elements = self.missing_ids_validator.elements()
-    self.assertLen(elements, 12)
+    self.assertLen(elements, 13)
     self.assertIn("BallotMeasureContest", elements)
     self.assertIn("BallotMeasureSelection", elements)
     self.assertIn("Candidate", elements)
@@ -3932,6 +3943,7 @@ class MissingStableIdsTest(absltest.TestCase):
     self.assertIn("Person", elements)
     self.assertIn("ReportingUnit", elements)
     self.assertIn("Committee", elements)
+    self.assertIn("PartyLeadership", elements)
 
   def testStableIdPresentForOffice(self):
     test_string = self.root_string.format("<Office objectId='off1'>", "stable",
@@ -6787,6 +6799,72 @@ class ElectionEndDatesOccurAfterStartDatesTest(absltest.TestCase):
       </Election>
     """
     self.date_validator.check(etree.fromstring(election_string))
+
+
+class ValidPartyLeadershipDatesTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ValidPartyLeadershipDatesTest, self).setUp()
+    self.date_validator = rules.ValidPartyLeadershipDates(None, None)
+    self.today = datetime.datetime.now().date()
+    self.party_leadership_string = """
+    <PartyLeadership>
+      <StartDate>{}</StartDate>
+      <EndDate>{}</EndDate>
+    </PartyLeadership>
+    """
+
+  def testChecksPartyLeadershipElements(self):
+    self.assertEqual(["PartyLeadership"], self.date_validator.elements())
+
+  def testInvalidStartDateThrows(self):
+    party_leadership_string = self.party_leadership_string.format(
+        "I am invalid!", self.today
+    )
+    party_leadership = etree.fromstring(party_leadership_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.date_validator.check(party_leadership)
+
+  def testInvalidEndDateThrows(self):
+    party_leadership_string = self.party_leadership_string.format(
+        self.today, "I am invalid!"
+    )
+    party_leadership = etree.fromstring(party_leadership_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.date_validator.check(party_leadership)
+
+  def testEndDateAfterStartDateSucceeds(self):
+    party_leadership_string = self.party_leadership_string.format(
+        self.today + datetime.timedelta(days=1),
+        self.today + datetime.timedelta(days=2),
+    )
+    party_leadership = etree.fromstring(party_leadership_string)
+    self.date_validator.check(party_leadership)
+
+  def testEndDateBeforeStartDateThrows(self):
+    party_leadership_string = self.party_leadership_string.format(
+        self.today + datetime.timedelta(days=2),
+        self.today + datetime.timedelta(days=1),
+    )
+    party_leadership = etree.fromstring(party_leadership_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.date_validator.check(party_leadership)
+
+  def testIgnoresOrderWithoutBothDates(self):
+    self.date_validator.check(etree.fromstring("""
+      <PartyLeadership>
+        <StartDate>2012-01-01</StartDate>
+      </PartyLeadership>
+    """))
+    self.date_validator.check(etree.fromstring("""
+      <PartyLeadership>
+      </PartyLeadership>
+    """))
+    self.date_validator.check(etree.fromstring("""
+      <PartyLeadership>
+        <EndDate>2012-01-01</EndDate>
+      </PartyLeadership>
+    """))
 
 
 class ElectionDatesSpanContestDatesTest(absltest.TestCase):
