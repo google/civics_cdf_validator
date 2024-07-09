@@ -6,7 +6,7 @@
       <FeedName>Sample Feed 1</FeedName>
       <FeedType>pre-election</FeedType>
       <FeedLongevity>limited</FeedLongevity>
-      <SourceDirPath>//sample/path</SourceDirPath>
+      <SourceDirPath>//sample/path1</SourceDirPath>
       <CountryCode>US</CountryCode>
       <FeedInactiveDate>2023-12-31</FeedInactiveDate>
       <ElectionEventCollection>
@@ -42,6 +42,86 @@
           <WithdrawalDeadlineDate>2023-11-01</WithdrawalDeadlineDate>
           <StartDate>2023-12-28</StartDate>
           <EndDate>2023-12-29</EndDate>
+        </ElectionEvent>
+      </ElectionEventCollection>
+    </Feed>
+    <Feed>
+      <FeedId>sample-feed-2</FeedId>
+      <FeedName>Sample Feed 2</FeedName>
+      <FeedType>pre-election</FeedType>
+      <FeedLongevity>limited</FeedLongevity>
+      <SourceDirPath>//sample/path2</SourceDirPath>
+      <CountryCode>IN</CountryCode>
+      <FeedInactiveDate>2024-06-15</FeedInactiveDate>
+      <ElectionEventCollection>
+        <!-- Each phase will be represented using a separate ElectionEvent -->
+        <!-- This sample focuses on Phase 1 and Phase 2. The established methodology can be replicated and adapted for subsequent phases as needed. -->
+        <ElectionEvent>
+          <DebugName>India Lok Sabha election - Phase 1</DebugName>
+          <OfficeScopeCollection>
+            <OfficeScope>
+              <DebugName>Lok Sabha election</DebugName>
+              <OfficeLevel>Country</OfficeLevel>
+              <JurisdictionOcdId>ocd-division/country:in</JurisdictionOcdId>
+              <OfficeRoles>lower house</OfficeRoles>
+              <ElectoralDistrictCollection>
+                <!-- This list of electoral districts is not exhaustive. It is only a sample. -->
+                <OcdId>ocd-division/country:in/state:wb/cd:alipurduars</OcdId>
+                <OcdId>ocd-division/country:in/state:ut/cd:almora</OcdId>
+                <OcdId>ocd-division/country:in/state:rj/cd:alwar</OcdId>
+                <OcdId>ocd-division/country:in/territory:an/cd:andaman_and_nicobar_islands</OcdId>
+                <OcdId>ocd-division/country:in/state:tn/cd:arakkonam</OcdId>
+                <OcdId>ocd-division/country:in/state:tn/cd:arani</OcdId>
+                <OcdId>ocd-division/country:in/state:ar/cd:arunachal_east</OcdId>
+                <OcdId>ocd-division/country:in/state:ar/cd:arunachal_west</OcdId>
+                <OcdId>ocd-division/country:in/state:mp/cd:balaghat</OcdId>
+                <OcdId>ocd-division/country:in/state:ct/cd:bastar</OcdId>
+                <OcdId>ocd-division/country:in/state:mh/cd:bhandara-gondiya</OcdId>
+                <OcdId>ocd-division/country:in/state:rj/cd:bharatpur</OcdId>
+              </ElectoralDistrictCollection>
+            </OfficeScope>
+          </OfficeScopeCollection>
+          <ElectionType>general</ElectionType>
+          <ElectionDateType>scheduled</ElectionDateType>
+          <ElectionDateStatus>confirmed</ElectionDateStatus>
+          <ExpectedCandidates>500</ExpectedCandidates>
+          <InitialDeliveryDate>2023-12-01</InitialDeliveryDate>
+          <FullDeliveryDate>2024-04-04</FullDeliveryDate>
+          <StartDate>2024-04-19</StartDate>
+          <EndDate>2024-04-19</EndDate>
+        </ElectionEvent>
+        <ElectionEvent>
+          <DebugName>India Lok Sabha election - Phase 2</DebugName>
+          <OfficeScopeCollection>
+            <OfficeScope>
+              <DebugName>Lok Sabha election</DebugName>
+              <OfficeLevel>Country</OfficeLevel>
+              <JurisdictionOcdId>ocd-division/country:in</JurisdictionOcdId>
+              <OfficeRoles>lower house</OfficeRoles>
+              <ElectoralDistrictCollection>
+                <!-- This list of electoral districts is not exhaustive. It is only a sample. -->
+                <OcdId>ocd-division/country:in/state:rj/cd:ajmer</OcdId>
+                <OcdId>ocd-division/country:in/state:mh/cd:akola</OcdId>
+                <OcdId>ocd-division/country:in/state:kl/cd:alappuzha</OcdId>
+                <OcdId>ocd-division/country:in/state:up/cd:aligarh</OcdId>
+                <OcdId>ocd-division/country:in/state:kl/cd:attingal</OcdId>
+                <OcdId>ocd-division/country:in/state:up/cd:baghpat</OcdId>
+                <OcdId>ocd-division/country:in/state:wb/cd:balurghat</OcdId>
+                <OcdId>ocd-division/country:in/state:ka/cd:bangalore_central</OcdId>
+                <OcdId>ocd-division/country:in/state:ka/cd:bangalore_north</OcdId>
+                <OcdId>ocd-division/country:in/state:ka/cd:bangalore_rural</OcdId>
+                <OcdId>ocd-division/country:in/state:ka/cd:bangalore_south</OcdId>
+              </ElectoralDistrictCollection>
+            </OfficeScope>
+          </OfficeScopeCollection>
+          <ElectionType>general</ElectionType>
+          <ElectionDateType>scheduled</ElectionDateType>
+          <ElectionDateStatus>confirmed</ElectionDateStatus>
+          <ExpectedCandidates>400</ExpectedCandidates>
+          <InitialDeliveryDate>2024-02-07</InitialDeliveryDate>
+          <FullDeliveryDate>2024-04-10</FullDeliveryDate>
+          <StartDate>2024-04-26</StartDate>
+          <EndDate>2024-04-26</EndDate>
         </ElectionEvent>
       </ElectionEventCollection>
     </Feed>
