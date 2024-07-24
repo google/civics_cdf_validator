@@ -9195,7 +9195,7 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
         None,
     )
 
-  def testExecOfficeWithGovernmentBodyRaisesError(self):
+  def testExecutiveOfficeWithGovernmentBodyRaisesError(self):
     for office_role in rules._EXECUTIVE_OFFICE_ROLES:
       with self.subTest(office_role=office_role):
         office_string = f"""
@@ -9215,16 +9215,16 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
           </Office>
         """
 
-        with self.assertRaises(loggers.ElectionWarning) as ew:
+        with self.assertRaises(loggers.ElectionError) as ee:
           self.gov_validator.check(etree.fromstring(office_string))
         self.assertEqual(
             f"Executive Office element (roles: {office_role}) has an "
             "ExternalIdentifier of OtherType government(al)-body. Executive "
             "offices should not have government bodies.",
-            str(ew.exception.log_entry[0].message),
+            str(ee.exception.log_entry[0].message),
         )
 
-  def testExecOfficeWithoutGovernmentBodyIsValid(self):
+  def testExecutiveOfficeWithoutGovernmentBodyIsValid(self):
     office_string = """
       <Office>
         <ExternalIdentifiers>

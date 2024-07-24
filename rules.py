@@ -3073,7 +3073,7 @@ class ExecutiveOfficeShouldNotHaveGovernmentBody(base.BaseRule):
     office_roles = get_entity_info_for_value_type(element, "office-role")
     government_body = _get_government_body(element)
     if _is_executive_office(office_roles) and government_body:
-      raise loggers.ElectionWarning.from_message(
+      raise loggers.ElectionError.from_message(
           f"Executive Office element (roles: {','.join(office_roles)}) has an "
           "ExternalIdentifier of OtherType government(al)-body. Executive "
           "offices should not have government bodies.",
