@@ -917,18 +917,33 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
       self.contest_graph.add_node(contest.get("objectId"))
 
     for contest in contests:
+      subsequent_contest_id = None
       subsequent_contest = contest.find("SubsequentContestId")
       if element_has_text(subsequent_contest):
+        subsequent_contest_id = subsequent_contest.text
         # subsequent contest id is not valid if it isn't in the graph
-        if not self.contest_graph.has_node(subsequent_contest.text):
+        if not self.contest_graph.has_node(subsequent_contest_id):
           raise loggers.ElectionError.from_message(
               ("Contest {} contains a subsequent Contest Id ({}) that does "
                "not exist.").format(
-                   contest.get("objectId"), subsequent_contest.text),
+                   contest.get("objectId"), subsequent_contest_id),
               [subsequent_contest])
         self.contest_graph.add_edge(
             contest.get("objectId"), subsequent_contest.text
         )
+      # Add the composing contest if it exists
+      composing_contests = contest.find("ComposingContestIds")
+      if element_has_text(composing_contests):
+        children = composing_contests.text.split()
+        for child in children:
+          # composing contest id is not valid if it isn't in the graph
+          if not self.contest_graph.has_node(child):
+            raise loggers.ElectionError.from_message(
+                ("Contest {} contains a composing Contest Id ({}) that does "
+                 "not exist.").format(contest.get("objectId"), child),
+                [composing_contests])
+          if subsequent_contest_id:
+            self.contest_graph.add_edge(child, subsequent_contest_id)
 
   def _check_candidate_contests_are_related(self, contest_id_list):
     for i in range(len(contest_id_list) - 1):

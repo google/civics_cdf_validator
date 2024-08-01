@@ -2288,6 +2288,49 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     report_elem = etree.fromstring(election_report)
     self.cand_validator.check(report_elem)
 
+  def testChecksRepeatCandidateValidInRelatedContests_SubsequentOfComposing(
+      self,
+  ):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can002">
+            <PersonId>per002</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="gen" type="CandidateContest">
+            <ComposingContestIds>rep dem</ComposingContestIds>
+            <SubsequentContestId>runoff</SubsequentContestId>
+          </Contest>
+          <Contest objectId="rep" type="CandidateContest">
+            <BallotSelection objectId="one" type="CandidateSelection">
+              <CandidateIds>can001</CandidateIds>
+            </BallotSelection>
+          </Contest>
+          <Contest objectId="dem" type="CandidateContest">
+            <BallotSelection objectId="two" type="CandidateSelection">
+              <CandidateIds>can002</CandidateIds>
+            </BallotSelection>
+          </Contest>
+          <Contest objectId="runoff" type="CandidateContest">
+            <BallotSelection objectId="two_runoff" type="CandidateSelection">
+              <CandidateIds>can002</CandidateIds>
+            </BallotSelection>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    report_elem = etree.fromstring(election_report)
+    self.cand_validator.check(report_elem)
+
   def testChecksRepeatCandidatesValid_RepeatSubsequent(self):
     election_report = """
       <ElectionReport>
