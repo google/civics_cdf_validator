@@ -392,6 +392,7 @@ class ValidIDREF(base.BaseRule):
       "ScopeLevel": "GpUnit",
       "AuthorityId": "Person",
       "AuthorityIds": "Person",
+      "PartyLeaderId": "Person",
   }
 
   def setup(self):
@@ -860,10 +861,9 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
   """Candidate should not be referred to by multiple unrelated contests.
 
   A Candidate object should only be referenced from one contest, unless the
-  contests are related (connected by SubsequentContestId or
-  ComposingContestIds). If a Person is running in multiple unrelated Contests,
-  then that Person is a Candidate several times over, but a Candida(te|cy) can't
-  span unrelated contests.
+  contests are related (connected by SubsequentContestId). If a Person is
+  running in multiple unrelated Contests, then that Person is a Candidate
+  several times over, but a Candida(te|cy) can't span unrelated contests.
   """
 
   def __init__(self, election_tree, schema_tree, **kwargs):
@@ -917,6 +917,21 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
       self.contest_graph.add_node(contest.get("objectId"))
 
     for contest in contests:
+      subsequent_contest_id = None
+      subsequent_contest = contest.find("SubsequentContestId")
+      if element_has_text(subsequent_contest):
+        subsequent_contest_id = subsequent_contest.text
+        # subsequent contest id is not valid if it isn't in the graph
+        if not self.contest_graph.has_node(subsequent_contest_id):
+          raise loggers.ElectionError.from_message(
+              ("Contest {} contains a subsequent Contest Id ({}) that does "
+               "not exist.").format(
+                   contest.get("objectId"), subsequent_contest_id),
+              [subsequent_contest])
+        self.contest_graph.add_edge(
+            contest.get("objectId"), subsequent_contest.text
+        )
+      # Add the composing contest if it exists
       composing_contests = contest.find("ComposingContestIds")
       if element_has_text(composing_contests):
         children = composing_contests.text.split()
@@ -927,36 +942,8 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
                 ("Contest {} contains a composing Contest Id ({}) that does "
                  "not exist.").format(contest.get("objectId"), child),
                 [composing_contests])
-          # parent exists means contest is listed as composing more than once
-          if "parent" in self.contest_graph.nodes[child]:
-            raise loggers.ElectionError.from_message(
-                (
-                    "Contest {} is listed as a composing contest for multiple"
-                    " contests ({} and {}). A contest should have no more than"
-                    " one parent."
-                ).format(
-                    child,
-                    contest.get("objectId"),
-                    self.contest_graph.nodes[child]["parent"],
-                ),
-                [composing_contests],
-            )
-          # establish parent-child relationship between nodes
-          self.contest_graph.nodes[child]["parent"] = contest.get("objectId")
-          self.contest_graph.add_edge(contest.get("objectId"), child)
-
-      subsequent_contest = contest.find("SubsequentContestId")
-      if element_has_text(subsequent_contest):
-        # subsequent contest id is not valid if it isn't in the graph
-        if not self.contest_graph.has_node(subsequent_contest.text):
-          raise loggers.ElectionError.from_message(
-              ("Contest {} contains a subsequent Contest Id ({}) that does "
-               "not exist.").format(
-                   contest.get("objectId"), subsequent_contest.text),
-              [subsequent_contest])
-        self.contest_graph.add_edge(
-            contest.get("objectId"), subsequent_contest.text
-        )
+          if subsequent_contest_id:
+            self.contest_graph.add_edge(child, subsequent_contest_id)
 
   def _check_candidate_contests_are_related(self, contest_id_list):
     for i in range(len(contest_id_list) - 1):
@@ -1551,6 +1538,7 @@ class MissingStableIds(base.BaseRule):
         "Office",
         "Party",
         "PartyContest",
+        "PartyLeadership",
         "Person",
         "ReportingUnit",
     ]
@@ -2394,6 +2382,23 @@ class ElectionEndDatesOccurAfterStartDates(base.DateRule):
         raise loggers.ElectionError(self.error_log)
 
 
+class ValidPartyLeadershipDates(base.DateRule):
+  """Party Leadership start/end dates should be valid if specified.
+
+  End dates should not occur before the start date.
+  """
+
+  def elements(self):
+    return ["PartyLeadership"]
+
+  def check(self, element):
+    self.reset_instance_vars()
+    self.gather_dates(element)
+    self.check_end_after_start()
+    if self.error_log:
+      raise loggers.ElectionError(self.error_log)
+
+
 class ElectionDatesSpanContestDates(base.DateRule):
   """Election start/end dates should span the Contest start/end dates.
 
@@ -3083,7 +3088,7 @@ class ExecutiveOfficeShouldNotHaveGovernmentBody(base.BaseRule):
     office_roles = get_entity_info_for_value_type(element, "office-role")
     government_body = _get_government_body(element)
     if _is_executive_office(office_roles) and government_body:
-      raise loggers.ElectionWarning.from_message(
+      raise loggers.ElectionError.from_message(
           f"Executive Office element (roles: {','.join(office_roles)}) has an "
           "ExternalIdentifier of OtherType government(al)-body. Executive "
           "offices should not have government bodies.",
@@ -3980,6 +3985,7 @@ COMMON_RULES = (
     UniqueStableID,
     NonExecutiveOfficeShouldHaveGovernmentBody,
     ExecutiveOfficeShouldNotHaveGovernmentBody,
+    ValidPartyLeadershipDates,
 )
 
 ELECTION_RULES = COMMON_RULES + (

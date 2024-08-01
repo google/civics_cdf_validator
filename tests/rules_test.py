@@ -765,6 +765,11 @@ class ValidIDREFTest(absltest.TestCase):
             <xs:element minOccurs="0" name="BallotTitle" type="InternationalText" />
         </xs:sequence>
       </xs:complexType>
+      <xs:complexType name="PartyLeadership">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="PartyLeaderId" type="xs:IDREF"/>
+        </xs:sequence>
+      </xs:complexType>
     </xs:schema>
   """)
 
@@ -842,6 +847,7 @@ class ValidIDREFTest(absltest.TestCase):
     expected_reference_mapping = {
         "ElectoralDistrictId": "GpUnit",
         "OfficeHolderPersonIds": "Person",
+        "PartyLeaderId": "Person",
     }
     actual_reference_mapping = id_ref_validator._gather_reference_mapping()
 
@@ -916,10 +922,14 @@ class ValidIDREFTest(absltest.TestCase):
     id_ref_validator.element_reference_mapping = {
         "ElectoralDistrictId": "GpUnit",
         "OfficeHolderPersonIds": "Person",
+        "PartyLeaderId": "Person",
     }
 
     idref_element = etree.fromstring("""
       <ElectoralDistrictId>gp001</ElectoralDistrictId>
+    """)
+    party_leader_id_element = etree.fromstring("""
+      <PartyLeaderId>per001</PartyLeaderId>
     """)
     idrefs_element = etree.fromstring("""
       <OfficeHolderPersonIds>per001 per002</OfficeHolderPersonIds>
@@ -929,6 +939,7 @@ class ValidIDREFTest(absltest.TestCase):
     """)
 
     id_ref_validator.check(idref_element)
+    id_ref_validator.check(party_leader_id_element)
     id_ref_validator.check(idrefs_element)
     id_ref_validator.check(empty_element)
 
@@ -2008,39 +2019,6 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
         self.fail(("No matching node found for id: {} and "
                    "relative set: {}").format(node.id, node.relatives))
 
-  def testAssignsParentForComposingContests(self):
-    election_report = """
-      <ContestCollection>
-        <Contest objectId="con001">
-          <ComposingContestIds>con002 con003</ComposingContestIds>
-        </Contest>
-        <Contest objectId="con002"/>
-        <Contest objectId="con003"/>
-      </ContestCollection>
-    """
-    report_elem = etree.fromstring(election_report)
-    self.cand_validator._construct_contest_graph(report_elem)
-
-    # assert each contest has a node created for it
-    for con_id in ["con001", "con002", "con003"]:
-      found_node = con_id in self.cand_validator.contest_graph.nodes()
-      if not found_node:
-        self.fail(("No matching node found for id: {}").format(con_id))
-
-    # assert parent child relationships were created
-    for node in self.cand_validator.contest_graph.nodes():
-      if node == "con001":
-        self.assertTrue(
-            networkx.has_path(self.cand_validator.contest_graph, node, "con002")
-        )
-        self.assertTrue(
-            networkx.has_path(self.cand_validator.contest_graph, node, "con003")
-        )
-      if node == "con002" or node == "con003":
-        self.assertEqual(
-            "con001", self.cand_validator.contest_graph.nodes()[node]["parent"]
-        )
-
   def testTreeRootsAreConnectedForAnySubsequentRelationship(self):
     election_report = """
       <ContestCollection>
@@ -2065,48 +2043,6 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     self.assertTrue(
         networkx.has_path(self.cand_validator.contest_graph, "con002", "con005")
     )
-    self.assertTrue(
-        networkx.has_path(self.cand_validator.contest_graph, "con001", "con004")
-    )
-
-  def testRaisesErrorIfInvalidComposingContestId(self):
-    election_report = """
-      <ContestCollection>
-        <Contest objectId="con001">
-          <ComposingContestIds>con002 con004</ComposingContestIds>
-        </Contest>
-        <Contest objectId="con002"/>
-        <Contest objectId="con003"/>
-      </ContestCollection>
-    """
-    report_elem = etree.fromstring(election_report)
-
-    with self.assertRaises(loggers.ElectionError) as ee:
-      self.cand_validator._construct_contest_graph(report_elem)
-    self.assertEqual(("Contest con001 contains a composing Contest Id "
-                      "(con004) that does not exist."),
-                     ee.exception.log_entry[0].message)
-
-  def testRaisesErrorIfContestHasMultipleParents(self):
-    election_report = """
-      <ContestCollection>
-        <Contest objectId="con001">
-          <ComposingContestIds>con003</ComposingContestIds>
-        </Contest>
-        <Contest objectId="con002">
-          <ComposingContestIds>con003</ComposingContestIds>
-        </Contest>
-        <Contest objectId="con003"/>
-      </ContestCollection>
-    """
-    report_elem = etree.fromstring(election_report)
-
-    with self.assertRaises(loggers.ElectionError) as ee:
-      self.cand_validator._construct_contest_graph(report_elem)
-    self.assertEqual(("Contest con003 is listed as a composing contest for "
-                      "multiple contests (con002 and con001). A contest should"
-                      " have no more than one parent."),
-                     ee.exception.log_entry[0].message)
 
   def testRaisesErrorIfInvalidSubsequentContestId(self):
     election_report = """
@@ -2125,25 +2061,6 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     self.assertEqual(("Contest con001 contains a subsequent Contest Id "
                       "(con004) that does not exist."),
                      ee.exception.log_entry[0].message)
-
-  # _check_candidate_contests_are_related tests
-  def testReturnsTrueIfAllContestsInGivenListAreRelated_ParentChild(self):
-    election_report = """
-      <ContestCollection>
-        <Contest objectId="con001">
-          <ComposingContestIds>con002 con003</ComposingContestIds>
-        </Contest>
-        <Contest objectId="con002"/>
-        <Contest objectId="con003"/>
-      </ContestCollection>
-    """
-    report_elem = etree.fromstring(election_report)
-    self.cand_validator._construct_contest_graph(report_elem)
-
-    contest_id_list = ["con001", "con002", "con003"]
-    are_related = self.cand_validator._check_candidate_contests_are_related(
-        contest_id_list)
-    self.assertTrue(are_related)
 
   def testReturnsFalseIfAnyContestInGivenListNotRelated_ParentChild(self):
     election_report = """
@@ -2167,12 +2084,10 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     election_report = """
       <ContestCollection>
         <Contest objectId="con001">
-          <ComposingContestIds>con002</ComposingContestIds>
           <SubsequentContestId>con003</SubsequentContestId>
         </Contest>
-        <Contest objectId="con002"/>
         <Contest objectId="con003">
-          <ComposingContestIds>con004</ComposingContestIds>
+          <SubsequentContestId>con004</SubsequentContestId>
         </Contest>
         <Contest objectId="con004"/>
       </ContestCollection>
@@ -2180,7 +2095,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     report_elem = etree.fromstring(election_report)
     self.cand_validator._construct_contest_graph(report_elem)
 
-    contest_id_list = ["con001", "con002", "con003", "con004"]
+    contest_id_list = ["con001", "con003", "con004"]
     are_related = self.cand_validator._check_candidate_contests_are_related(
         contest_id_list
     )
@@ -2190,11 +2105,11 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     election_report = """
       <ContestCollection>
         <Contest objectId="con001">
-          <ComposingContestIds>con002</ComposingContestIds>
+          <SubsequentContestId>con002</SubsequentContestId>
         </Contest>
         <Contest objectId="con002"/>
         <Contest objectId="con003">
-          <ComposingContestIds>con004</ComposingContestIds>
+          <SubsequentContestId>con004</SubsequentContestId>
         </Contest>
         <Contest objectId="con004"/>
       </ContestCollection>
@@ -2213,15 +2128,15 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     election_report = """
       <ContestCollection>
         <Contest objectId="con001">
-          <ComposingContestIds>con002</ComposingContestIds>
+          <SubsequentContestId>con002</SubsequentContestId>
         </Contest>
         <Contest objectId="con002"/>
         <Contest objectId="con003">
-          <ComposingContestIds>con004</ComposingContestIds>
+          <SubsequentContestId>con004</SubsequentContestId>
         </Contest>
         <Contest objectId="con004"/>
         <Contest objectId="con005">
-          <ComposingContestIds>con006</ComposingContestIds>
+          <SubsequentContestId>con006</SubsequentContestId>
         </Contest>
         <Contest objectId="con006"/>
       </ContestCollection>
@@ -2239,38 +2154,6 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     valid_cands = self.cand_validator._check_separate_candidates_not_related(
         candidate_contest_mapping)
     self.assertTrue(valid_cands)
-
-  def testReturnsFalseIfParentChildBelongToSeparateCandidates(self):
-    election_report = """
-      <ContestCollection>
-        <Contest objectId="con001">
-          <ComposingContestIds>con002</ComposingContestIds>
-        </Contest>
-        <Contest objectId="con002"/>
-        <Contest objectId="con003">
-          <ComposingContestIds>con004</ComposingContestIds>
-        </Contest>
-        <Contest objectId="con004"/>
-        <Contest objectId="con005">
-          <ComposingContestIds>con006</ComposingContestIds>
-        </Contest>
-        <Contest objectId="con006"/>
-      </ContestCollection>
-    """
-    report_elem = etree.fromstring(election_report)
-    self.cand_validator._construct_contest_graph(report_elem)
-
-    # a separate candidate is used for con001 and con002
-    # con001 is parent of con002 so this should be invalid
-    candidate_contest_mapping = {
-        "can001": ["con001"],
-        "can002": ["con002", "con003", "con004"],
-        "can003": ["con005", "con006"],
-    }
-
-    valid_cands = self.cand_validator._check_separate_candidates_not_related(
-        candidate_contest_mapping)
-    self.assertFalse(valid_cands)
 
   def testReturnsFalseIfSeparateCandidatesBelongToRelatedContestFamilies(self):
     election_report = """
@@ -2405,7 +2288,9 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     report_elem = etree.fromstring(election_report)
     self.cand_validator.check(report_elem)
 
-  def testChecksRepeatCandidatesValidInRelatedContests_Composing(self):
+  def testChecksRepeatCandidateValidInRelatedContests_SubsequentOfComposing(
+      self,
+  ):
     election_report = """
       <ElectionReport>
         <PersonCollection>
@@ -2421,55 +2306,29 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
           </Candidate>
         </CandidateCollection>
         <ContestCollection>
-          <Contest objectId="con001">
-            <CandidateIds>can001 can002</CandidateIds>
-            <ComposingContestIds>con002</ComposingContestIds>
+          <Contest objectId="gen" type="CandidateContest">
+            <ComposingContestIds>rep dem</ComposingContestIds>
+            <SubsequentContestId>runoff</SubsequentContestId>
           </Contest>
-          <Contest objectId="con002">
-            <CandidateIds>can001 can002</CandidateIds>
+          <Contest objectId="rep" type="CandidateContest">
+            <BallotSelection objectId="one" type="CandidateSelection">
+              <CandidateIds>can001</CandidateIds>
+            </BallotSelection>
           </Contest>
-        </ContestCollection>
-      </ElectionReport>
-    """
-    report_elem = etree.fromstring(election_report)
-    self.cand_validator.check(report_elem)
-
-  def testChecksRepeatCandidatesValid_Composing_MultiDepth(self):
-    election_report = """
-      <ElectionReport>
-        <PersonCollection>
-          <Person objectId="per001"/>
-          <Person objectId="per002"/>
-          <Person objectId="per003"/>
-        </PersonCollection>
-        <CandidateCollection>
-          <Candidate objectId="can001">
-            <PersonId>per001</PersonId>
-          </Candidate>
-          <Candidate objectId="can002">
-            <PersonId>per002</PersonId>
-          </Candidate>
-          <Candidate objectId="can003">
-            <PersonId>per003</PersonId>
-          </Candidate>
-        </CandidateCollection>
-        <ContestCollection>
-          <Contest objectId="con001">
-            <CandidateIds>can001 can002 can003</CandidateIds>
-            <ComposingContestIds>con002</ComposingContestIds>
+          <Contest objectId="dem" type="CandidateContest">
+            <BallotSelection objectId="two" type="CandidateSelection">
+              <CandidateIds>can002</CandidateIds>
+            </BallotSelection>
           </Contest>
-          <Contest objectId="con002">
-            <CandidateIds>can001 can002</CandidateIds>
-            <ComposingContestIds>con003</ComposingContestIds>
-          </Contest>
-          <Contest objectId="con003">
-            <CandidateIds>can001 can003</CandidateIds>
+          <Contest objectId="runoff" type="CandidateContest">
+            <BallotSelection objectId="two_runoff" type="CandidateSelection">
+              <CandidateIds>can002</CandidateIds>
+            </BallotSelection>
           </Contest>
         </ContestCollection>
       </ElectionReport>
     """
     report_elem = etree.fromstring(election_report)
-    # con003 is a "grandchild" of con001 and includes the same candidates
     self.cand_validator.check(report_elem)
 
   def testChecksRepeatCandidatesValid_RepeatSubsequent(self):
@@ -2605,6 +2464,43 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     self.assertEqual(("Candidate can001 appears in the following contests"
                       " which are not all related: con001, con002"),
                      ee.exception.log_entry[0].message)
+
+  def testRaisesErrorIfRepeatCandidatesInComposingContests(self):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can002">
+            <PersonId>per002</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="con001">
+            <CandidateIds>can001 can002</CandidateIds>
+            <ComposingContestIds>con002</ComposingContestIds>
+          </Contest>
+          <Contest objectId="con002">
+            <CandidateIds>can001 can002</CandidateIds>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    report_elem = etree.fromstring(election_report)
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.cand_validator.check(report_elem)
+    self.assertLen(ee.exception.log_entry, 2)
+    self.assertEqual(("Candidate can001 appears in the following contests"
+                      " which are not all related: con001, con002"),
+                     ee.exception.log_entry[0].message)
+    self.assertEqual(("Candidate can002 appears in the following contests"
+                      " which are not all related: con001, con002"),
+                     ee.exception.log_entry[1].message)
 
   def testRaisesErrorIfPersonHasMultipleCandidatesInRelatedContests(self):
     election_report = """
@@ -4077,7 +3973,7 @@ class MissingStableIdsTest(absltest.TestCase):
 
   def testItShouldCheckAllElementsListedInReturnStatement(self):
     elements = self.missing_ids_validator.elements()
-    self.assertLen(elements, 12)
+    self.assertLen(elements, 13)
     self.assertIn("BallotMeasureContest", elements)
     self.assertIn("BallotMeasureSelection", elements)
     self.assertIn("Candidate", elements)
@@ -4090,6 +3986,7 @@ class MissingStableIdsTest(absltest.TestCase):
     self.assertIn("Person", elements)
     self.assertIn("ReportingUnit", elements)
     self.assertIn("Committee", elements)
+    self.assertIn("PartyLeadership", elements)
 
   def testStableIdPresentForOffice(self):
     test_string = self.root_string.format("<Office objectId='off1'>", "stable",
@@ -6947,6 +6844,72 @@ class ElectionEndDatesOccurAfterStartDatesTest(absltest.TestCase):
     self.date_validator.check(etree.fromstring(election_string))
 
 
+class ValidPartyLeadershipDatesTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ValidPartyLeadershipDatesTest, self).setUp()
+    self.date_validator = rules.ValidPartyLeadershipDates(None, None)
+    self.today = datetime.datetime.now().date()
+    self.party_leadership_string = """
+    <PartyLeadership>
+      <StartDate>{}</StartDate>
+      <EndDate>{}</EndDate>
+    </PartyLeadership>
+    """
+
+  def testChecksPartyLeadershipElements(self):
+    self.assertEqual(["PartyLeadership"], self.date_validator.elements())
+
+  def testInvalidStartDateThrows(self):
+    party_leadership_string = self.party_leadership_string.format(
+        "I am invalid!", self.today
+    )
+    party_leadership = etree.fromstring(party_leadership_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.date_validator.check(party_leadership)
+
+  def testInvalidEndDateThrows(self):
+    party_leadership_string = self.party_leadership_string.format(
+        self.today, "I am invalid!"
+    )
+    party_leadership = etree.fromstring(party_leadership_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.date_validator.check(party_leadership)
+
+  def testEndDateAfterStartDateSucceeds(self):
+    party_leadership_string = self.party_leadership_string.format(
+        self.today + datetime.timedelta(days=1),
+        self.today + datetime.timedelta(days=2),
+    )
+    party_leadership = etree.fromstring(party_leadership_string)
+    self.date_validator.check(party_leadership)
+
+  def testEndDateBeforeStartDateThrows(self):
+    party_leadership_string = self.party_leadership_string.format(
+        self.today + datetime.timedelta(days=2),
+        self.today + datetime.timedelta(days=1),
+    )
+    party_leadership = etree.fromstring(party_leadership_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.date_validator.check(party_leadership)
+
+  def testIgnoresOrderWithoutBothDates(self):
+    self.date_validator.check(etree.fromstring("""
+      <PartyLeadership>
+        <StartDate>2012-01-01</StartDate>
+      </PartyLeadership>
+    """))
+    self.date_validator.check(etree.fromstring("""
+      <PartyLeadership>
+      </PartyLeadership>
+    """))
+    self.date_validator.check(etree.fromstring("""
+      <PartyLeadership>
+        <EndDate>2012-01-01</EndDate>
+      </PartyLeadership>
+    """))
+
+
 class ElectionDatesSpanContestDatesTest(absltest.TestCase):
 
   def setUp(self):
@@ -9275,7 +9238,7 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
         None,
     )
 
-  def testExecOfficeWithGovernmentBodyRaisesError(self):
+  def testExecutiveOfficeWithGovernmentBodyRaisesError(self):
     for office_role in rules._EXECUTIVE_OFFICE_ROLES:
       with self.subTest(office_role=office_role):
         office_string = f"""
@@ -9295,16 +9258,16 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
           </Office>
         """
 
-        with self.assertRaises(loggers.ElectionWarning) as ew:
+        with self.assertRaises(loggers.ElectionError) as ee:
           self.gov_validator.check(etree.fromstring(office_string))
         self.assertEqual(
             f"Executive Office element (roles: {office_role}) has an "
             "ExternalIdentifier of OtherType government(al)-body. Executive "
             "offices should not have government bodies.",
-            str(ew.exception.log_entry[0].message),
+            str(ee.exception.log_entry[0].message),
         )
 
-  def testExecOfficeWithoutGovernmentBodyIsValid(self):
+  def testExecutiveOfficeWithoutGovernmentBodyIsValid(self):
     office_string = """
       <Office>
         <ExternalIdentifiers>

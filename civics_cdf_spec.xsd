@@ -206,6 +206,12 @@
         <xs:enumeration value="temporary-appointment"/>
       </xs:restriction>
     </xs:simpleType>
+    <xs:simpleType name="PartyLeadershipType">
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="party-chair"/>
+        <xs:enumeration value="party-leader"/>
+      </xs:restriction>
+    </xs:simpleType>
     <!-- ========== Elements ========== -->
     <xs:complexType name="AnnotatedString">
         <xs:simpleContent>
@@ -584,6 +590,7 @@
             <xs:element minOccurs="0" name="ContactInformation" type="ContactInformation" />
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
             <xs:element minOccurs="0" name="IsIndependent" type="xs:boolean"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Leadership" type="PartyLeadership"/>
             <xs:element minOccurs="0" name="LogoUri" type="AnnotatedUri" />
             <xs:element name="Name" type="InternationalizedText" />
             <xs:element minOccurs="0" name="PartyScopeGpUnitIds" type="xs:IDREFS" />
@@ -782,5 +789,15 @@
         <xs:element maxOccurs="1" minOccurs="0" name="PersonId" type="xs:IDREF"/>
         <xs:element maxOccurs="1" minOccurs="0" name="StartDate" type="PartialDate"/>
       </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="PartyLeadership">
+      <xs:sequence>
+        <xs:element maxOccurs="1" minOccurs="0" name="EndDate" type="PartialDate"/>
+        <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers"/>
+        <xs:element maxOccurs="1" minOccurs="1" name="PartyLeaderId" type="xs:IDREF"/>
+        <xs:element maxOccurs="1" minOccurs="0" name="StartDate" type="PartialDate"/>
+        <xs:element maxOccurs="1" minOccurs="1" name="Type" type="PartyLeadershipType"/>
+      </xs:sequence>
+      <xs:attribute name="objectId" type="xs:ID" use="required"/>
     </xs:complexType>
 </xs:schema>
