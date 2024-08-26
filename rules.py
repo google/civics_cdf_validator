@@ -3355,6 +3355,22 @@ class MultipleInternationalizedTextWithSameLanguageCode(base.BaseRule):
             (language, texts[0].strip()))
 
 
+class AllInternationalizedTextHaveEnVersion(base.BaseRule):
+  """Checks for Internationalized Text Elements missing the english version."""
+
+  def elements(self):
+    return ["BallotName", "Directions", "BallotSubTitle", "BallotTitle", "Name",
+            "InternationalizedName", "InternationalizedAbbreviation", "Alias",
+            "FullName", "Profession", "Title"]
+
+  def check(self, element):
+    language_map = get_language_to_text_map(element)
+    if "en" not in language_map:
+      raise loggers.ElectionInfo.from_message(
+          message="No \"english\" version found for the InternationalizedText.",
+          elements=[element])
+
+
 class ContestContainsValidStartDate(base.DateRule):
   """Contest elements should contain valid start dates.
 
@@ -3986,6 +4002,7 @@ COMMON_RULES = (
     NonExecutiveOfficeShouldHaveGovernmentBody,
     ExecutiveOfficeShouldNotHaveGovernmentBody,
     ValidPartyLeadershipDates,
+    AllInternationalizedTextHaveEnVersion,
 )
 
 ELECTION_RULES = COMMON_RULES + (

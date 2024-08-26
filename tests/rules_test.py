@@ -9654,6 +9654,44 @@ class MultipleInternationalizedTextWithSameLanguageCodeTest(absltest.TestCase):
     self.election_validator.check(etree.fromstring(election_string))
 
 
+class AllInternationalizedTextHaveEnVersionTest(absltest.TestCase):
+
+  def setUp(self):
+    super(AllInternationalizedTextHaveEnVersionTest, self).setUp()
+    self.election_validator = rules.AllInternationalizedTextHaveEnVersion(
+        None, None
+    )
+
+  def testInternationalizedTextWithoutENVersion(self):
+    election_string = """
+      <Name>
+        <Text language="es">
+          <![CDATA[Elecciones Generales de Jamaica, 2022]]>
+        </Text>
+      </Name>
+    """
+
+    with self.assertRaises(loggers.ElectionInfo) as ee:
+      self.election_validator.check(etree.fromstring(election_string))
+    self.assertEqual(
+        ee.exception.log_entry[0].message,
+        "No \"english\" version found for the InternationalizedText.")
+
+  def testInternationalizedTextWithENVersion(self):
+    election_string = """
+      <Name>
+        <Text language="en">
+          <![CDATA[Jamaica General Election, 2022]]>
+        </Text>
+        <Text language="es">
+          <![CDATA[Elecciones Generales de Jamaica, 2022]]>
+        </Text>
+      </Name>
+    """
+
+    self.election_validator.check(etree.fromstring(election_string))
+
+
 class ContestContainsValidStartDateTest(absltest.TestCase):
 
   def setUp(self):
