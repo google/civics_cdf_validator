@@ -10975,6 +10975,66 @@ class ElectionEventDatesAreSequentialTest(absltest.TestCase):
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "ElectionEvent")
 
 
+class NoSourceDirPathBeforeInitialDeliveryDateTest(absltest.TestCase):
+
+  def setUp(self):
+    super(NoSourceDirPathBeforeInitialDeliveryDateTest, self).setUp()
+    self.validator = rules.NoSourceDirPathBeforeInitialDeliveryDate(None, None)
+
+  @freezegun.freeze_time("2024-08-26")
+  def testInitialDeliveryDateInPast(self):
+    feed_string = """
+      <Feed>
+        <SourceDirPath>test_path_1</SourceDirPath>
+        <ElectionEventCollection>
+          <ElectionEvent>
+            <InitialDeliveryDate>2023-12-01</InitialDeliveryDate>
+          </ElectionEvent>
+        </ElectionEventCollection>
+        <OfficeHolderSubFeed>
+          <InitialDeliveryDate>2027-01-02</InitialDeliveryDate>
+        </OfficeHolderSubFeed>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  @freezegun.freeze_time("2024-08-26")
+  def testNoInitialDeliveryDate(self):
+    feed_string = """
+      <Feed>
+        <SourceDirPath>test_path_1</SourceDirPath>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  @freezegun.freeze_time("2024-08-26")
+  def testAllInitialDeliveryDateInFutureReturnsError(self):
+    feed_string = """
+      <Feed>
+        <SourceDirPath>test_path_1</SourceDirPath>
+        <ElectionEventCollection>
+          <ElectionEvent>
+            <InitialDeliveryDate>2027-12-01</InitialDeliveryDate>
+          </ElectionEvent>
+        </ElectionEventCollection>
+        <OfficeHolderSubFeed>
+          <InitialDeliveryDate>2027-01</InitialDeliveryDate>
+        </OfficeHolderSubFeed>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "SourceDirPath is defined but all initialDeliveryDate are in the"
+        " future.",
+    )
+    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Feed")
+
+
 class OfficeHolderSubFeedDatesAreSequentialTest(absltest.TestCase):
 
   def setUp(self):
