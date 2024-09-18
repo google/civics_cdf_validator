@@ -4537,6 +4537,16 @@ class PersonHasOfficeTest(absltest.TestCase):
             </ExternalIdentifier>
           </ExternalIdentifiers>
         </Party>
+        <Party>
+          <Leadership>
+            <PartyLeaderId>p5</PartyLeaderId>
+            <Type>party-chair</Type>
+          </Leadership>
+          <Leadership>
+            <PartyLeaderId>p6</PartyLeaderId>
+            <Type>party-leader</Type>
+          </Leadership>
+        </Party>
       </PartyCollection>
     """
     root_string = self._base_xml.format(defined_collections)
@@ -4544,7 +4554,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     office_validator = rules.PersonHasOffice(election_tree, None)
 
     defined_values = office_validator._gather_defined_values()
-    expected_defined_values = set(["p1", "p2", "p3", "p4"])
+    expected_defined_values = set(["p1", "p2", "p3", "p4", "p5", "p6"])
     self.assertEqual(expected_defined_values, defined_values)
 
   # check tests

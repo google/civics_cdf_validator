@@ -1799,10 +1799,15 @@ class PersonHasOffice(base.ValidReferenceRule):
     root = self.election_tree.getroot()
 
     person_reference_ids = set()
+    # Add party leaders provided in the External Identifier
     for external_id in root.findall(".//Party//ExternalIdentifier"):
       other_type = external_id.find("OtherType")
       if other_type is not None and other_type.text in _PARTY_LEADERSHIP_TYPES:
         person_reference_ids.add(external_id.find("Value").text)
+    # Add party leaders provided in the Leadership entity
+    for leader_id in root.findall(".//Party//PartyLeaderId"):
+      if leader_id.text:
+        person_reference_ids.add(leader_id.text)
 
     office_collection = root.find("OfficeCollection")
     if office_collection is not None:
