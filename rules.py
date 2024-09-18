@@ -3865,10 +3865,12 @@ class FeedInactiveDateSetForNonEvergreenFeed(base.BaseRule):
 class UnreferencedEntitiesBase(base.TreeRule):
   """All non-top-level entities in a feed should be referenced by at least one other entity.
 
-  This base class allows derived rules to specify the set of top-level and
-  warning-level entities since these differ by feed type. The rule is an info
-  for gpunits (as long as they have ComposingGpunitIds) since top-level gpunits
-  may exist solely to contain others.
+  In the context of this rule, top-level means that an entity is not expected to
+  be referenced by anything else in the feed. This base class allows derived
+  rules to specify the set of top-level and warning-level entities since these
+  differ by feed type. The rule is an info for gpunits (as long as they have
+  ComposingGpunitIds) since top-level gpunits may exist solely to contain
+  others.
   """
 
   def __init__(
@@ -3966,17 +3968,17 @@ class UnreferencedEntitiesElectionDates(UnreferencedEntitiesBase):
 
 
 class UnreferencedEntitiesOfficeholders(UnreferencedEntitiesBase):
-  """CDF offices are top-level in officeholders feeds.
+  """CDF offices and party leadership entities are top-level in officeholders feeds.
 
   This rule is a warning for CDF parties since we ask for all parties for some
-  LatAm feeds due to ads enforcement requirements.
+  LatAm feeds.
   """
 
   def __init__(self, election_tree, schema_tree, **kwargs):
     super(UnreferencedEntitiesOfficeholders, self).__init__(
         election_tree,
         schema_tree,
-        frozenset(["Office"]),
+        frozenset(["Office", "Leadership"]),
         frozenset(["Party"]),
         **kwargs,
     )

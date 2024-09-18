@@ -10757,6 +10757,16 @@ class UnreferencedEntitiesOfficeholdersTest(absltest.TestCase):
         etree.fromstring(test_string), self._base_schema
     ).check()
 
+  def testUnreferencedPartyLeadershipOk(self):
+    test_string = """
+    <Leadership objectId="leadership-id">
+    </Leadership>
+    """
+
+    rules.UnreferencedEntitiesOfficeholders(
+        etree.fromstring(test_string), self._base_schema
+    ).check()
+
   def testExternalIdReferencedPersonOk(self):
     test_string = """
     <ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
