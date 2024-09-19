@@ -3355,6 +3355,22 @@ class MultipleInternationalizedTextWithSameLanguageCode(base.BaseRule):
             (language, texts[0].strip()))
 
 
+class AllInternationalizedTextHaveEnVersion(base.BaseRule):
+  """Checks for Internationalized Text Elements missing the english version."""
+
+  def elements(self):
+    return ["BallotName", "Directions", "BallotSubTitle", "BallotTitle", "Name",
+            "InternationalizedName", "InternationalizedAbbreviation", "Alias",
+            "FullName", "Profession", "Title"]
+
+  def check(self, element):
+    language_map = get_language_to_text_map(element)
+    if "en" not in language_map:
+      raise loggers.ElectionInfo.from_message(
+          message="No \"english\" version found for the InternationalizedText.",
+          elements=[element])
+
+
 class ContestContainsValidStartDate(base.DateRule):
   """Contest elements should contain valid start dates.
 
@@ -3735,6 +3751,40 @@ class ElectionEventDatesAreSequential(base.DateRule):
       raise loggers.ElectionError(self.error_log)
 
 
+class NoSourceDirPathBeforeInitialDeliveryDate(base.BaseRule):
+  """SourceDirPath should only be defined if one of the initial delivery dates is in the past.
+  """
+
+  def elements(self):
+    return ["Feed"]
+
+  def check(self, element):
+    if not element_has_text(element.find("SourceDirPath")):
+      return
+    today = datetime.date.today()
+    today_partial_date = base.PartialDate(
+        year=today.year, month=today.month, day=today.day
+    )
+    initial_deliveries = element.findall(".//InitialDeliveryDate")
+    if initial_deliveries:
+      for initial_delivery in initial_deliveries:
+        initial_delivery_date = (
+            base.PartialDate.init_partial_date(initial_delivery.text)
+            if element_has_text(initial_delivery)
+            else None
+        )
+        if (
+            initial_delivery_date
+            and initial_delivery_date.is_older_than(today_partial_date) > 0
+        ):
+          return
+      raise loggers.ElectionWarning.from_message(
+          "SourceDirPath is defined but all initialDeliveryDate are in the"
+          " future.",
+          [element],
+      )
+
+
 class OfficeHolderSubFeedDatesAreSequential(base.DateRule):
   """Dates in an OfficeHolderSubFeed element should be sequential."""
 
@@ -3986,6 +4036,7 @@ COMMON_RULES = (
     NonExecutiveOfficeShouldHaveGovernmentBody,
     ExecutiveOfficeShouldNotHaveGovernmentBody,
     ValidPartyLeadershipDates,
+    AllInternationalizedTextHaveEnVersion,
 )
 
 ELECTION_RULES = COMMON_RULES + (
@@ -4073,6 +4124,7 @@ METADATA_RULES = (
     OfficeHolderSubFeedDatesAreSequential,
     FeedHasValidCountryCode,
     FeedInactiveDateSetForNonEvergreenFeed,
+    NoSourceDirPathBeforeInitialDeliveryDate,
 )
 
 ALL_RULES = frozenset(
