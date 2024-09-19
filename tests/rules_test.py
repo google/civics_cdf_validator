@@ -11178,6 +11178,67 @@ class FeedInactiveDateSetForNonEvergreenFeedTest(absltest.TestCase):
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Feed")
 
 
+class DeprecatedPartyLeadershipSchemaTest(absltest.TestCase):
+
+  def setUp(self):
+    super(DeprecatedPartyLeadershipSchemaTest, self).setUp()
+    self.validator = rules.DeprecatedPartyLeadershipSchema(None, None)
+
+  def testNewPartyLeadershipSchema(self):
+    party_string = """
+      <Party objectId="party-id">
+        <Leadership objectId="party-leadership-id">
+          <PartyLeaderId>person-id</PartyLeaderId>
+          <Type>party-leader</Type>
+        </Leadership>
+      </Party>
+      """
+
+    self.validator.check(etree.fromstring(party_string))
+
+  def testDeprecatedPartyLeaderSchema(self):
+    party_string = """
+      <Party objectId="party-id">
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>party-leader-id</OtherType>
+            <Value>person-id</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Party>
+      """
+
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.validator.check(etree.fromstring(party_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Specifying party leadership via external identifiers is deprecated."
+        " Please use the PartyLeadership element instead.",
+    )
+
+  def testDeprecatedPartyChairSchema(self):
+    party_string = """
+      <Party objectId="party-id">
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>party-chair-id</OtherType>
+            <Value>person-id</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Party>
+      """
+
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.validator.check(etree.fromstring(party_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Specifying party leadership via external identifiers is deprecated."
+        " Please use the PartyLeadership element instead.",
+    )
+
+
 class RulesTest(absltest.TestCase):
 
   def testAllRulesIncluded(self):

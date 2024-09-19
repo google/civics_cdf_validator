@@ -3984,6 +3984,26 @@ class UnreferencedEntitiesOfficeholders(UnreferencedEntitiesBase):
     )
 
 
+class DeprecatedPartyLeadershipSchema(base.BaseRule):
+  """Warns if the deprecated party leadership schema is used.
+
+  This rule will eventually become an error once feeds are migrated to the new
+  schema.
+  """
+
+  def elements(self):
+    return ["Party"]
+
+  def check(self, element):
+    if len(get_external_id_values(element, "party-leader-id")) or len(
+        get_external_id_values(element, "party-chair-id")
+    ):
+      raise loggers.ElectionWarning.from_message(
+          "Specifying party leadership via external identifiers is deprecated."
+          " Please use the PartyLeadership element instead."
+      )
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
@@ -4044,6 +4064,7 @@ COMMON_RULES = (
     ExecutiveOfficeShouldNotHaveGovernmentBody,
     ValidPartyLeadershipDates,
     AllInternationalizedTextHaveEnVersion,
+    DeprecatedPartyLeadershipSchema,
 )
 
 ELECTION_RULES = COMMON_RULES + (
