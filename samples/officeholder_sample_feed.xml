@@ -170,12 +170,18 @@
           <OtherType>stable</OtherType>
           <Value>stable-par1</Value>
         </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>party-leader-id</OtherType>
-          <Value>per2</Value>
-        </ExternalIdentifier>
       </ExternalIdentifiers>
+      <Leadership objectId="par-1-leader">
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>stable-par-1-leader</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyLeaderId>per2</PartyLeaderId>
+        <Type>party-leader</Type>
+      </Leadership>
       <Name>
         <Text language="en">Democratic Party</Text>
       </Name>

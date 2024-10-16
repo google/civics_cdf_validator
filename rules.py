@@ -1799,10 +1799,15 @@ class PersonHasOffice(base.ValidReferenceRule):
     root = self.election_tree.getroot()
 
     person_reference_ids = set()
+    # Add party leaders provided in the External Identifier
     for external_id in root.findall(".//Party//ExternalIdentifier"):
       other_type = external_id.find("OtherType")
       if other_type is not None and other_type.text in _PARTY_LEADERSHIP_TYPES:
         person_reference_ids.add(external_id.find("Value").text)
+    # Add party leaders provided in the Leadership entity
+    for leader_id in root.findall(".//Party//PartyLeaderId"):
+      if leader_id.text:
+        person_reference_ids.add(leader_id.text)
 
     office_collection = root.find("OfficeCollection")
     if office_collection is not None:
@@ -3860,10 +3865,12 @@ class FeedInactiveDateSetForNonEvergreenFeed(base.BaseRule):
 class UnreferencedEntitiesBase(base.TreeRule):
   """All non-top-level entities in a feed should be referenced by at least one other entity.
 
-  This base class allows derived rules to specify the set of top-level and
-  warning-level entities since these differ by feed type. The rule is an info
-  for gpunits (as long as they have ComposingGpunitIds) since top-level gpunits
-  may exist solely to contain others.
+  In the context of this rule, top-level means that an entity is not expected to
+  be referenced by anything else in the feed. This base class allows derived
+  rules to specify the set of top-level and warning-level entities since these
+  differ by feed type. The rule is an info for gpunits (as long as they have
+  ComposingGpunitIds) since top-level gpunits may exist solely to contain
+  others.
   """
 
   def __init__(
@@ -3961,20 +3968,40 @@ class UnreferencedEntitiesElectionDates(UnreferencedEntitiesBase):
 
 
 class UnreferencedEntitiesOfficeholders(UnreferencedEntitiesBase):
-  """CDF offices are top-level in officeholders feeds.
+  """CDF offices and party leadership entities are top-level in officeholders feeds.
 
   This rule is a warning for CDF parties since we ask for all parties for some
-  LatAm feeds due to ads enforcement requirements.
+  LatAm feeds.
   """
 
   def __init__(self, election_tree, schema_tree, **kwargs):
     super(UnreferencedEntitiesOfficeholders, self).__init__(
         election_tree,
         schema_tree,
-        frozenset(["Office"]),
+        frozenset(["Office", "Leadership"]),
         frozenset(["Party"]),
         **kwargs,
     )
+
+
+class DeprecatedPartyLeadershipSchema(base.BaseRule):
+  """Warns if the deprecated party leadership schema is used.
+
+  This rule will eventually become an error once feeds are migrated to the new
+  schema.
+  """
+
+  def elements(self):
+    return ["Party"]
+
+  def check(self, element):
+    if len(get_external_id_values(element, "party-leader-id")) or len(
+        get_external_id_values(element, "party-chair-id")
+    ):
+      raise loggers.ElectionWarning.from_message(
+          "Specifying party leadership via external identifiers is deprecated."
+          " Please use the PartyLeadership element instead."
+      )
 
 
 class RuleSet(enum.Enum):
@@ -4037,6 +4064,7 @@ COMMON_RULES = (
     ExecutiveOfficeShouldNotHaveGovernmentBody,
     ValidPartyLeadershipDates,
     AllInternationalizedTextHaveEnVersion,
+    DeprecatedPartyLeadershipSchema,
 )
 
 ELECTION_RULES = COMMON_RULES + (

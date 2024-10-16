@@ -4537,6 +4537,16 @@ class PersonHasOfficeTest(absltest.TestCase):
             </ExternalIdentifier>
           </ExternalIdentifiers>
         </Party>
+        <Party>
+          <Leadership>
+            <PartyLeaderId>p5</PartyLeaderId>
+            <Type>party-chair</Type>
+          </Leadership>
+          <Leadership>
+            <PartyLeaderId>p6</PartyLeaderId>
+            <Type>party-leader</Type>
+          </Leadership>
+        </Party>
       </PartyCollection>
     """
     root_string = self._base_xml.format(defined_collections)
@@ -4544,7 +4554,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     office_validator = rules.PersonHasOffice(election_tree, None)
 
     defined_values = office_validator._gather_defined_values()
-    expected_defined_values = set(["p1", "p2", "p3", "p4"])
+    expected_defined_values = set(["p1", "p2", "p3", "p4", "p5", "p6"])
     self.assertEqual(expected_defined_values, defined_values)
 
   # check tests
@@ -10747,6 +10757,16 @@ class UnreferencedEntitiesOfficeholdersTest(absltest.TestCase):
         etree.fromstring(test_string), self._base_schema
     ).check()
 
+  def testUnreferencedPartyLeadershipOk(self):
+    test_string = """
+    <Leadership objectId="leadership-id">
+    </Leadership>
+    """
+
+    rules.UnreferencedEntitiesOfficeholders(
+        etree.fromstring(test_string), self._base_schema
+    ).check()
+
   def testExternalIdReferencedPersonOk(self):
     test_string = """
     <ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -11156,6 +11176,67 @@ class FeedInactiveDateSetForNonEvergreenFeedTest(absltest.TestCase):
         " test-feed.",
     )
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Feed")
+
+
+class DeprecatedPartyLeadershipSchemaTest(absltest.TestCase):
+
+  def setUp(self):
+    super(DeprecatedPartyLeadershipSchemaTest, self).setUp()
+    self.validator = rules.DeprecatedPartyLeadershipSchema(None, None)
+
+  def testNewPartyLeadershipSchema(self):
+    party_string = """
+      <Party objectId="party-id">
+        <Leadership objectId="party-leadership-id">
+          <PartyLeaderId>person-id</PartyLeaderId>
+          <Type>party-leader</Type>
+        </Leadership>
+      </Party>
+      """
+
+    self.validator.check(etree.fromstring(party_string))
+
+  def testDeprecatedPartyLeaderSchema(self):
+    party_string = """
+      <Party objectId="party-id">
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>party-leader-id</OtherType>
+            <Value>person-id</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Party>
+      """
+
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.validator.check(etree.fromstring(party_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Specifying party leadership via external identifiers is deprecated."
+        " Please use the PartyLeadership element instead.",
+    )
+
+  def testDeprecatedPartyChairSchema(self):
+    party_string = """
+      <Party objectId="party-id">
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>party-chair-id</OtherType>
+            <Value>person-id</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Party>
+      """
+
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.validator.check(etree.fromstring(party_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Specifying party leadership via external identifiers is deprecated."
+        " Please use the PartyLeadership element instead.",
+    )
 
 
 class RulesTest(absltest.TestCase):
