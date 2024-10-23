@@ -346,10 +346,8 @@ class EmptyText(base.BaseRule):
     return ["Text"]
 
   def check(self, element):
-    if (element.text is None or
-        not element.text.strip()) or (element.text is None and
-                                      element.get("language") is not None):
-      raise loggers.ElectionWarning.from_message("Text is empty", element)
+    if element.text is None or not element.text.strip():
+      raise loggers.ElectionError.from_message("Text is empty", [element])
 
 
 class DuplicateID(base.TreeRule):
@@ -1294,24 +1292,6 @@ class DuplicatedPartyAbbreviation(ValidatePartyCollection):
     return info_log
 
 
-class EmptyPartyAbbreviation(base.BaseRule):
-  """Party abbreviations should not be empty."""
-
-  def elements(self):
-    return ["Party"]
-
-  def check(self, party):
-    abbrevs = party.find("InternationalizedAbbreviation")
-    if abbrevs is None:
-      return
-    text_elements = abbrevs.findall("Text")
-    for text_element in text_elements:
-      if text_element.text is None:
-        raise loggers.ElectionError.from_message(
-            "Empty party abbreviation found", [party]
-        )
-
-
 class DuplicatedPartyName(ValidatePartyCollection):
   """Party name should be used once in a given language.
 
@@ -2186,6 +2166,31 @@ class ValidJurisdictionID(base.ValidReferenceRule):
   def _gather_defined_values(self):
     gp_unit_elements = self.election_tree.getroot().findall(".//GpUnit")
     return {elem.get("objectId") for elem in gp_unit_elements}
+
+
+class OfficeHasjurisdictionSameAsElectoralDistrict(base.BaseRule):
+  """In election feeds, office has the electoral district same as jurisdiction."""
+
+  def elements(self):
+    return ["Office"]
+
+  def check(self, element):
+    jurisdiction_values = get_entity_info_for_value_type(
+        element, "jurisdiction-id")
+    jurisdiction_values = [
+        j_id.strip() for j_id in jurisdiction_values if j_id.strip()
+    ]
+    if not jurisdiction_values or len(jurisdiction_values) > 1:
+      return
+
+    electoral_district = element.find(".//ElectoralDistrictId")
+    if electoral_district is None:
+      return
+    if electoral_district.text.strip() != jurisdiction_values[0]:
+      raise loggers.ElectionInfo.from_message(
+          "Office has electoral district different from jurisdiction.",
+          [element],
+      )
 
 
 class OfficesHaveValidOfficeLevel(base.BaseRule):
@@ -3364,9 +3369,7 @@ class AllInternationalizedTextHaveEnVersion(base.BaseRule):
   """Checks for Internationalized Text Elements missing the english version."""
 
   def elements(self):
-    return ["BallotName", "Directions", "BallotSubTitle", "BallotTitle", "Name",
-            "InternationalizedName", "InternationalizedAbbreviation", "Alias",
-            "FullName", "Profession", "Title"]
+    return _INTERNATIONALIZED_TEXT_ELEMENTS
 
   def check(self, element):
     language_map = get_language_to_text_map(element)
@@ -4023,7 +4026,6 @@ COMMON_RULES = (
     DuplicateGpUnits,
     DuplicateID,
     EmptyText,
-    EmptyPartyAbbreviation,
     Encoding,
     GpUnitOcdId,
     HungarianStyleNotation,
@@ -4108,6 +4110,7 @@ ELECTION_RULES = COMMON_RULES + (
     ContestEndDateOccursBeforeSubsequentContestStartDate,
     ContestStartDateContainsCorrespondingEndDate,
     CandidateContestTypesAreCompatible,
+    OfficeHasjurisdictionSameAsElectoralDistrict,
 )
 
 ELECTION_RESULTS_RULES = ELECTION_RULES + (
