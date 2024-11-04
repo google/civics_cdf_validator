@@ -2,6 +2,20 @@
 <ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Format>precinct-level</Format>
   <GeneratedDate>2018-11-05T14:25:28</GeneratedDate>
+  <GovernmentBodyCollection>
+    <GovernmentBody objectId="gov0">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gov0</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>
+        <Text language="en">United States Senate</Text>
+      </Name>
+    </GovernmentBody>
+  </GovernmentBodyCollection>
   <GpUnitCollection>
     <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu0">
       <ExternalIdentifiers>
@@ -74,12 +88,8 @@
           <OtherType>office-role</OtherType>
           <Value>upper house</Value>
         </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>government-body</OtherType>
-          <Value>United States Sendate</Value>
-        </ExternalIdentifier>
       </ExternalIdentifiers>
+      <GovernmentBodyIds>gov0</GovernmentBodyIds>
       <Name>
         <Text language="en">United States Senator</Text>
       </Name>

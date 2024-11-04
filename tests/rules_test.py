@@ -584,7 +584,7 @@ class EmptyTextTest(absltest.TestCase):
   def testOnlyChecksTextElements(self):
     self.assertEqual(["Text"], self.empty_text_validator.elements())
 
-  def testIgnoresNonEmptyElements(self):
+  def testNonEmptyTextSucceeds(self):
     element_string = """
       <Text>Boomshakalaka</Text>
     """
@@ -592,31 +592,31 @@ class EmptyTextTest(absltest.TestCase):
     element = etree.fromstring(element_string)
     self.empty_text_validator.check(element)
 
-  def testThrowsWarningForEmptyElements(self):
+  def testEmptyTextRaisesError(self):
     element_string = """
       <Text></Text>
     """
 
     element = etree.fromstring(element_string)
-    with self.assertRaises(loggers.ElectionWarning):
+    with self.assertRaises(loggers.ElectionError):
       self.empty_text_validator.check(element)
 
-  def testThrowsWarningForSpaceOnlyElements(self):
+  def testSpaceOnlyTextRaisesError(self):
     empty_string = """
       <Text>   </Text>
     """
 
     element = etree.fromstring(empty_string)
-    with self.assertRaises(loggers.ElectionWarning):
+    with self.assertRaises(loggers.ElectionError):
       self.empty_text_validator.check(element)
 
-  def testEmptyTextWithLanguage(self):
+  def testEmptyTextWithLanguageRaisesError(self):
     element_string = """
       <Text language="en" />
     """
 
     element = etree.fromstring(element_string)
-    with self.assertRaises(loggers.ElectionWarning):
+    with self.assertRaises(loggers.ElectionError):
       self.empty_text_validator.check(element)
 
 
@@ -6152,10 +6152,58 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office has invalid office-level invalidvalue.")
-    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
-                     "off2")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office has invalid office-level invalidvalue.",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].get("objectId"), "off2"
+    )
+
+
+class OfficeHasjurisdictionSameAsElectoralDistrictTest(absltest.TestCase):
+
+  def setUp(self):
+    super(OfficeHasjurisdictionSameAsElectoralDistrictTest, self).setUp()
+    self.offices_validator = rules.OfficeHasjurisdictionSameAsElectoralDistrict(
+        None, None
+    )
+
+  def testValidJurisdictionAndElectoralDistrict(self):
+    test_string = """
+          <Office objectId="off2">
+            <ElectoralDistrictId>gp1222</ElectoralDistrictId>
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>jurisdiction-id</OtherType>
+               <Value>gp1222</Value>
+             </ExternalIdentifier>
+          </Office>
+        """
+    element = etree.fromstring(test_string)
+    self.offices_validator.check(element)
+
+  def testInvalidJurisdictionAndElectoralDistrict(self):
+    test_string = """
+          <Office objectId="off2">
+            <ElectoralDistrictId>gp1222</ElectoralDistrictId>
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>jurisdiction-id</OtherType>
+               <Value>gp1234</Value>
+             </ExternalIdentifier>
+          </Office>
+        """
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionInfo) as cm:
+      self.offices_validator.check(element)
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office has electoral district different from jurisdiction.",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].get("objectId"), "off2"
+    )
 
 
 class OfficesHaveValidOfficeRoleTest(absltest.TestCase):
@@ -10466,62 +10514,6 @@ class AffiliationHasEitherPartyOrPersonTest(absltest.TestCase):
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Affiliation")
 
 
-class EmptyAbbreviationTest(absltest.TestCase):
-
-  def setUp(self):
-    super(EmptyAbbreviationTest, self).setUp()
-    self.validator = rules.EmptyPartyAbbreviation(None, None)
-
-  def testEmptyPartyAbbreviation(self):
-    test_string = """
-    <Party>
-      <InternationalizedAbbreviation>
-        <Text language="en"/>
-      </InternationalizedAbbreviation>
-    </Party>
-    """
-    with self.assertRaises(loggers.ElectionError) as cm:
-      self.validator.check(etree.fromstring(test_string))
-
-    self.assertEqual(
-        cm.exception.log_entry[0].message, "Empty party abbreviation found"
-    )
-
-  def testEmptyStringPartyAbbreviation(self):
-    test_string = """
-    <Party>
-      <InternationalizedAbbreviation>
-        <Text language="en"></Text>
-      </InternationalizedAbbreviation>
-    </Party>
-    """
-    with self.assertRaises(loggers.ElectionError) as cm:
-      self.validator.check(etree.fromstring(test_string))
-
-    self.assertEqual(
-        cm.exception.log_entry[0].message, "Empty party abbreviation found"
-    )
-
-  def testGoodAbbreviation(self):
-    test_string = """
-    <Party>
-      <InternationalizedAbbreviation>
-        <Text language="en">alias</Text>
-      </InternationalizedAbbreviation>
-    </Party>
-    """
-
-    self.validator.check(etree.fromstring(test_string))
-
-  def testNoAbbreviation(self):
-    test_string = """
-    <Party>
-    </Party>
-    """
-
-    self.validator.check(etree.fromstring(test_string))
-
-
 class UnreferencedEntitiesElectionDatesTest(absltest.TestCase):
   _base_schema = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8"?>
     <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
@@ -11237,6 +11229,64 @@ class DeprecatedPartyLeadershipSchemaTest(absltest.TestCase):
         "Specifying party leadership via external identifiers is deprecated."
         " Please use the PartyLeadership element instead.",
     )
+
+
+class GovernmentBodyExternalIdTest(absltest.TestCase):
+
+  def setUp(self):
+    super(GovernmentBodyExternalIdTest, self).setUp()
+    self.validator = rules.GovernmentBodyExternalId(None, None)
+
+  def testGovernmentBodyExternalId(self):
+    government_body_string = """
+      <Office objectId="office">
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>government-body</OtherType>
+            <Value>government-body-value</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Office>
+      """
+
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.validator.check(etree.fromstring(government_body_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Specifying government body via external identifiers is deprecated."
+        " Please use the top level GovernmentBody element instead.",
+    )
+
+  def testGovernmentalBodyExternalId(self):
+    government_body_string = """
+      <Office objectId="office">
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>governmental-body</OtherType>
+            <Value>government-body-value</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Office>
+      """
+
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.validator.check(etree.fromstring(government_body_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Specifying government body via external identifiers is deprecated."
+        " Please use the top level GovernmentBody element instead.",
+    )
+
+  def testNewSchema(self):
+    office_string = """
+      <Office objectId="office-id">
+        <GovernmentBodyIds>gb</GovernmentBodyIds>
+      </Office>
+      """
+
+    self.validator.check(etree.fromstring(office_string))
 
 
 class RulesTest(absltest.TestCase):

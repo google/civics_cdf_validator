@@ -452,6 +452,13 @@
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
             <xs:element name="Format" type="ReportDetailLevel" />
             <xs:element name="GeneratedDate" type="xs:dateTime" />
+            <xs:element maxOccurs="1" minOccurs="0" name="GovernmentBodyCollection">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" name="GovernmentBody" type="GovernmentBody" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element maxOccurs="1" minOccurs="0" name="GpUnitCollection">
                 <xs:complexType>
                     <xs:sequence>
@@ -546,6 +553,7 @@
             <xs:element minOccurs="0" name="ElectoralDistrictId" type="xs:IDREF" />
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
             <xs:element minOccurs="0" name="FilingDeadline" type="PartialDate" />
+            <xs:element minOccurs="0" name="GovernmentBodyIds" type="xs:IDREFS"/>
             <xs:element minOccurs="0" name="IsPartisan" type="xs:boolean" />
             <xs:element name="Name" type="InternationalizedText" />
             <xs:element minOccurs="0" name="OfficeHolderPersonIds" type="xs:IDREFS" />
@@ -643,6 +651,14 @@
             <xs:element minOccurs="0" name="Title" type="InternationalizedText" />
         </xs:sequence>
         <xs:attribute name="objectId" type="xs:ID" use="required" />
+    </xs:complexType>
+    <xs:complexType name="GovernmentBody">
+        <xs:sequence>
+            <xs:element minOccurs="0" name="ContactInformation" type="ContactInformation" />
+            <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers"/>
+            <xs:element name="Name" type="InternationalizedText"/>
+        </xs:sequence>
+        <xs:attribute name="objectId" type="xs:ID" use="required"/>
     </xs:complexType>
     <xs:complexType name="ReportingDevice">
         <xs:complexContent>
