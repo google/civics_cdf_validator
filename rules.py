@@ -346,10 +346,8 @@ class EmptyText(base.BaseRule):
     return ["Text"]
 
   def check(self, element):
-    if (element.text is None or
-        not element.text.strip()) or (element.text is None and
-                                      element.get("language") is not None):
-      raise loggers.ElectionWarning.from_message("Text is empty", element)
+    if element.text is None or not element.text.strip():
+      raise loggers.ElectionError.from_message("Text is empty", [element])
 
 
 class DuplicateID(base.TreeRule):
@@ -1292,24 +1290,6 @@ class DuplicatedPartyAbbreviation(ValidatePartyCollection):
           info_message = "Parties have the same abbreviation in %s." % language
           info_log.append(loggers.LogEntry(info_message, parties))
     return info_log
-
-
-class EmptyPartyAbbreviation(base.BaseRule):
-  """Party abbreviations should not be empty."""
-
-  def elements(self):
-    return ["Party"]
-
-  def check(self, party):
-    abbrevs = party.find("InternationalizedAbbreviation")
-    if abbrevs is None:
-      return
-    text_elements = abbrevs.findall("Text")
-    for text_element in text_elements:
-      if text_element.text is None:
-        raise loggers.ElectionError.from_message(
-            "Empty party abbreviation found", [party]
-        )
 
 
 class DuplicatedPartyName(ValidatePartyCollection):
@@ -3364,9 +3344,7 @@ class AllInternationalizedTextHaveEnVersion(base.BaseRule):
   """Checks for Internationalized Text Elements missing the english version."""
 
   def elements(self):
-    return ["BallotName", "Directions", "BallotSubTitle", "BallotTitle", "Name",
-            "InternationalizedName", "InternationalizedAbbreviation", "Alias",
-            "FullName", "Profession", "Title"]
+    return _INTERNATIONALIZED_TEXT_ELEMENTS
 
   def check(self, element):
     language_map = get_language_to_text_map(element)
@@ -4023,7 +4001,6 @@ COMMON_RULES = (
     DuplicateGpUnits,
     DuplicateID,
     EmptyText,
-    EmptyPartyAbbreviation,
     Encoding,
     GpUnitOcdId,
     HungarianStyleNotation,

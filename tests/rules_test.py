@@ -584,7 +584,7 @@ class EmptyTextTest(absltest.TestCase):
   def testOnlyChecksTextElements(self):
     self.assertEqual(["Text"], self.empty_text_validator.elements())
 
-  def testIgnoresNonEmptyElements(self):
+  def testNonEmptyTextSucceeds(self):
     element_string = """
       <Text>Boomshakalaka</Text>
     """
@@ -592,31 +592,31 @@ class EmptyTextTest(absltest.TestCase):
     element = etree.fromstring(element_string)
     self.empty_text_validator.check(element)
 
-  def testThrowsWarningForEmptyElements(self):
+  def testEmptyTextRaisesError(self):
     element_string = """
       <Text></Text>
     """
 
     element = etree.fromstring(element_string)
-    with self.assertRaises(loggers.ElectionWarning):
+    with self.assertRaises(loggers.ElectionError):
       self.empty_text_validator.check(element)
 
-  def testThrowsWarningForSpaceOnlyElements(self):
+  def testSpaceOnlyTextRaisesError(self):
     empty_string = """
       <Text>   </Text>
     """
 
     element = etree.fromstring(empty_string)
-    with self.assertRaises(loggers.ElectionWarning):
+    with self.assertRaises(loggers.ElectionError):
       self.empty_text_validator.check(element)
 
-  def testEmptyTextWithLanguage(self):
+  def testEmptyTextWithLanguageRaisesError(self):
     element_string = """
       <Text language="en" />
     """
 
     element = etree.fromstring(element_string)
-    with self.assertRaises(loggers.ElectionWarning):
+    with self.assertRaises(loggers.ElectionError):
       self.empty_text_validator.check(element)
 
 
@@ -10464,62 +10464,6 @@ class AffiliationHasEitherPartyOrPersonTest(absltest.TestCase):
         "Affiliation must have one of: PartyId, PersonId. Cannot include both.",
     )
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Affiliation")
-
-
-class EmptyAbbreviationTest(absltest.TestCase):
-
-  def setUp(self):
-    super(EmptyAbbreviationTest, self).setUp()
-    self.validator = rules.EmptyPartyAbbreviation(None, None)
-
-  def testEmptyPartyAbbreviation(self):
-    test_string = """
-    <Party>
-      <InternationalizedAbbreviation>
-        <Text language="en"/>
-      </InternationalizedAbbreviation>
-    </Party>
-    """
-    with self.assertRaises(loggers.ElectionError) as cm:
-      self.validator.check(etree.fromstring(test_string))
-
-    self.assertEqual(
-        cm.exception.log_entry[0].message, "Empty party abbreviation found"
-    )
-
-  def testEmptyStringPartyAbbreviation(self):
-    test_string = """
-    <Party>
-      <InternationalizedAbbreviation>
-        <Text language="en"></Text>
-      </InternationalizedAbbreviation>
-    </Party>
-    """
-    with self.assertRaises(loggers.ElectionError) as cm:
-      self.validator.check(etree.fromstring(test_string))
-
-    self.assertEqual(
-        cm.exception.log_entry[0].message, "Empty party abbreviation found"
-    )
-
-  def testGoodAbbreviation(self):
-    test_string = """
-    <Party>
-      <InternationalizedAbbreviation>
-        <Text language="en">alias</Text>
-      </InternationalizedAbbreviation>
-    </Party>
-    """
-
-    self.validator.check(etree.fromstring(test_string))
-
-  def testNoAbbreviation(self):
-    test_string = """
-    <Party>
-    </Party>
-    """
-
-    self.validator.check(etree.fromstring(test_string))
 
 
 class UnreferencedEntitiesElectionDatesTest(absltest.TestCase):
