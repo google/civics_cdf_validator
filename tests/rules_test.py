@@ -6152,10 +6152,58 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office has invalid office-level invalidvalue.")
-    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
-                     "off2")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office has invalid office-level invalidvalue.",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].get("objectId"), "off2"
+    )
+
+
+class OfficeHasjurisdictionSameAsElectoralDistrictTest(absltest.TestCase):
+
+  def setUp(self):
+    super(OfficeHasjurisdictionSameAsElectoralDistrictTest, self).setUp()
+    self.offices_validator = rules.OfficeHasjurisdictionSameAsElectoralDistrict(
+        None, None
+    )
+
+  def testValidJurisdictionAndElectoralDistrict(self):
+    test_string = """
+          <Office objectId="off2">
+            <ElectoralDistrictId>gp1222</ElectoralDistrictId>
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>jurisdiction-id</OtherType>
+               <Value>gp1222</Value>
+             </ExternalIdentifier>
+          </Office>
+        """
+    element = etree.fromstring(test_string)
+    self.offices_validator.check(element)
+
+  def testInvalidJurisdictionAndElectoralDistrict(self):
+    test_string = """
+          <Office objectId="off2">
+            <ElectoralDistrictId>gp1222</ElectoralDistrictId>
+             <ExternalIdentifier>
+               <Type>other</Type>
+               <OtherType>jurisdiction-id</OtherType>
+               <Value>gp1234</Value>
+             </ExternalIdentifier>
+          </Office>
+        """
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionInfo) as cm:
+      self.offices_validator.check(element)
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office has electoral district different from jurisdiction.",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].get("objectId"), "off2"
+    )
 
 
 class OfficesHaveValidOfficeRoleTest(absltest.TestCase):

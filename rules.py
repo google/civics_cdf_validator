@@ -2168,6 +2168,31 @@ class ValidJurisdictionID(base.ValidReferenceRule):
     return {elem.get("objectId") for elem in gp_unit_elements}
 
 
+class OfficeHasjurisdictionSameAsElectoralDistrict(base.BaseRule):
+  """In election feeds, office has the electoral district same as jurisdiction."""
+
+  def elements(self):
+    return ["Office"]
+
+  def check(self, element):
+    jurisdiction_values = get_entity_info_for_value_type(
+        element, "jurisdiction-id")
+    jurisdiction_values = [
+        j_id.strip() for j_id in jurisdiction_values if j_id.strip()
+    ]
+    if not jurisdiction_values or len(jurisdiction_values) > 1:
+      return
+
+    electoral_district = element.find(".//ElectoralDistrictId")
+    if electoral_district is None:
+      return
+    if electoral_district.text.strip() != jurisdiction_values[0]:
+      raise loggers.ElectionInfo.from_message(
+          "Office has electoral district different from jurisdiction.",
+          [element],
+      )
+
+
 class OfficesHaveValidOfficeLevel(base.BaseRule):
   """Each office must have a valid office-level."""
 
@@ -4085,6 +4110,7 @@ ELECTION_RULES = COMMON_RULES + (
     ContestEndDateOccursBeforeSubsequentContestStartDate,
     ContestStartDateContainsCorrespondingEndDate,
     CandidateContestTypesAreCompatible,
+    OfficeHasjurisdictionSameAsElectoralDistrict,
 )
 
 ELECTION_RESULTS_RULES = ELECTION_RULES + (
