@@ -4007,6 +4007,26 @@ class DeprecatedPartyLeadershipSchema(base.BaseRule):
       )
 
 
+class GovernmentBodyExternalId(base.BaseRule):
+  """Warns if the government body is set using an external identifier instead of the GovernmentBody element.
+
+  This rule will be upgraded to an error once all feeds are migrated to the new
+  schema.
+  """
+
+  def elements(self):
+    return ["ExternalIdentifiers"]
+
+  def check(self, element):
+    if get_external_id_values(
+        element, "government-body"
+    ) or get_external_id_values(element, "governmental-body"):
+      raise loggers.ElectionWarning.from_message(
+          "Specifying government body via external identifiers is deprecated."
+          " Please use the top level GovernmentBody element instead."
+      )
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
   ELECTION = 1
@@ -4027,6 +4047,7 @@ COMMON_RULES = (
     DuplicateID,
     EmptyText,
     Encoding,
+    GovernmentBodyExternalId,
     GpUnitOcdId,
     HungarianStyleNotation,
     LanguageCode,

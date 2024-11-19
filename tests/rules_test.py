@@ -11231,6 +11231,64 @@ class DeprecatedPartyLeadershipSchemaTest(absltest.TestCase):
     )
 
 
+class GovernmentBodyExternalIdTest(absltest.TestCase):
+
+  def setUp(self):
+    super(GovernmentBodyExternalIdTest, self).setUp()
+    self.validator = rules.GovernmentBodyExternalId(None, None)
+
+  def testGovernmentBodyExternalId(self):
+    government_body_string = """
+      <Office objectId="office">
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>government-body</OtherType>
+            <Value>government-body-value</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Office>
+      """
+
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.validator.check(etree.fromstring(government_body_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Specifying government body via external identifiers is deprecated."
+        " Please use the top level GovernmentBody element instead.",
+    )
+
+  def testGovernmentalBodyExternalId(self):
+    government_body_string = """
+      <Office objectId="office">
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>governmental-body</OtherType>
+            <Value>government-body-value</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Office>
+      """
+
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      self.validator.check(etree.fromstring(government_body_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Specifying government body via external identifiers is deprecated."
+        " Please use the top level GovernmentBody element instead.",
+    )
+
+  def testNewSchema(self):
+    office_string = """
+      <Office objectId="office-id">
+        <GovernmentBodyIds>gb</GovernmentBodyIds>
+      </Office>
+      """
+
+    self.validator.check(etree.fromstring(office_string))
+
+
 class RulesTest(absltest.TestCase):
 
   def testAllRulesIncluded(self):
