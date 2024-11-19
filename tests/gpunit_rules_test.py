@@ -327,7 +327,8 @@ class OcdIdsExtractorTest(absltest.TestCase):
     mock_exists = MagicMock(return_value=True)
 
     # set modification date to be over an hour behind current time
-    stale_time = datetime.datetime.now() - datetime.timedelta(minutes=62)
+    now_utc = datetime.datetime.now(datetime.timezone.utc)
+    stale_time = now_utc - datetime.timedelta(minutes=62)
     mock_timestamp = time.mktime(stale_time.timetuple())
     mock_getmtime = MagicMock(return_value=mock_timestamp)
 
@@ -341,7 +342,7 @@ class OcdIdsExtractorTest(absltest.TestCase):
     self.ocdid_extractor.github_file = "country-ar.csv"
     self.ocdid_extractor._download_data = MagicMock()
     self.ocdid_extractor._get_latest_commit_date = MagicMock(
-        return_value=datetime.datetime.now()
+        return_value=now_utc
     )
 
     # pylint: disable=g-backslash-continuation
