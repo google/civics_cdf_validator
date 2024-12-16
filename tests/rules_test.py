@@ -11082,6 +11082,98 @@ class OfficeHolderSubFeedDatesAreSequentialTest(absltest.TestCase):
     )
 
 
+class FeedInactiveDateIsLatestDateTest(absltest.TestCase):
+
+  def setUp(self):
+    super(FeedInactiveDateIsLatestDateTest, self).setUp()
+    self.validator = rules.FeedInactiveDateIsLatestDate(None, None)
+
+  def testSequentialInactiveAndFullDeliveryDates(self):
+    feed_string = """
+      <Feed>
+        <SourceDirPath>test_path_1</SourceDirPath>
+        <ElectionEventCollection>
+          <ElectionEvent>
+            <InitialDeliveryDate>2023-12-01</InitialDeliveryDate>
+          </ElectionEvent>
+        </ElectionEventCollection>
+        <OfficeHolderSubFeed>
+          <InitialDeliveryDate>2023-01-02</InitialDeliveryDate>
+        </OfficeHolderSubFeed>
+        <FeedInactiveDate>2024-01-01</FeedInactiveDate>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def testInvalidInactiveAndFullDeliveryDatesElectionEvent(self):
+    feed_string = """
+      <Feed>
+        <SourceDirPath>test_path_1</SourceDirPath>
+        <ElectionEventCollection>
+          <ElectionEvent>
+            <FullDeliveryDate>2023-12-01</FullDeliveryDate>
+          </ElectionEvent>
+        </ElectionEventCollection>
+        <FeedInactiveDate>2022-01-01</FeedInactiveDate>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "FeedInactiveDate is older than FullDeliveryDate",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].tag, "Feed"
+    )
+
+  def testInvalidInactiveAndFullDeliveryDatesOfficeHolderSubFeed(self):
+    feed_string = """
+      <Feed>
+        <SourceDirPath>test_path_1</SourceDirPath>
+        <OfficeHolderSubFeed>
+          <FullDeliveryDate>2023-01-02</FullDeliveryDate>
+        </OfficeHolderSubFeed>
+        <FeedInactiveDate>2022-01-01</FeedInactiveDate>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "FeedInactiveDate is older than FullDeliveryDate",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].tag, "Feed"
+    )
+
+  def testInvalidInactiveAndEndDates(self):
+    feed_string = """
+      <Feed>
+        <SourceDirPath>test_path_1</SourceDirPath>
+        <ElectionEventCollection>
+          <ElectionEvent>
+            <EndDate>2023-12-01</EndDate>
+          </ElectionEvent>
+        </ElectionEventCollection>
+        <FeedInactiveDate>2022-01-01</FeedInactiveDate>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "FeedInactiveDate is older than EndDate",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].tag, "Feed"
+    )
+
+
 class FeedHasValidCountryCodeTest(absltest.TestCase):
 
   def setUp(self):

@@ -4106,6 +4106,35 @@ class OfficeHolderSubFeedDatesAreSequential(base.DateRule):
         )
 
 
+class FeedInactiveDateIsLatestDate(base.BaseRule):
+  """Partner feeds should have a FeedInactiveDate that occurs after the FullDeliveryDate and EndDate."""
+
+  def elements(self):
+    return ["Feed"]
+
+  def check(self, element):
+    if element_has_text(element.find("FeedInactiveDate")):
+      feed_inactive_date = base.PartialDate.init_partial_date(
+          element.find("FeedInactiveDate").text
+      )
+      for full_delivery_date_element in element.iter("FullDeliveryDate"):
+        full_delivery_date = base.PartialDate.init_partial_date(
+            full_delivery_date_element.text
+        )
+        if feed_inactive_date.is_older_than(full_delivery_date) > 0:
+          raise loggers.ElectionError.from_message(
+              "FeedInactiveDate is older than FullDeliveryDate",
+              [element],
+          )
+      for end_date_element in element.iter("EndDate"):
+        end_date = base.PartialDate.init_partial_date(end_date_element.text)
+        if feed_inactive_date.is_older_than(end_date) > 0:
+          raise loggers.ElectionError.from_message(
+              "FeedInactiveDate is older than EndDate",
+              [element],
+          )
+
+
 class FeedHasValidCountryCode(base.BaseRule):
   """Feeds should have valid country code."""
 
@@ -4470,6 +4499,7 @@ METADATA_RULES = (
     Encoding,
     FeedHasValidCountryCode,
     FeedIdsAreUnique,
+    FeedInactiveDateIsLatestDate,
     FeedInactiveDateSetForNonEvergreenFeed,
     FeedTypeHasValidFeedLongevity,
     NoSourceDirPathBeforeInitialDeliveryDate,
