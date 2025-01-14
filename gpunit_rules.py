@@ -155,9 +155,9 @@ class OcdIdsExtractor(object):
       else:
         if self.check_github:
           last_mod_date = datetime.datetime.fromtimestamp(
-              os.path.getmtime(countries_filename))
+              os.path.getmtime(countries_filename), datetime.timezone.utc)
 
-          seconds_since_mod = (datetime.datetime.now() -
+          seconds_since_mod = (datetime.datetime.now(datetime.timezone.utc) -
                                last_mod_date).total_seconds()
 
           # If 1 hour has elapsed, check GitHub for the last file update.
