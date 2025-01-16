@@ -9261,8 +9261,28 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionInfo) as ei:
       self.gov_validator.check(etree.fromstring(office_string))
     self.assertEqual(
-        "Non-executive Office element is missing an ExternalIdentifier of "
-        "OtherType government(al)-body.",
+        "Non-executive Office element is missing a government body.",
+        str(ei.exception.log_entry[0].message),
+    )
+
+  def testNonExecOfficeWithEmptyGovernmentBodyIdsRaisesError(self):
+    office_string = """
+      <Office>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>office-role</OtherType>
+            <Value>senate</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <GovernmentBodyIds>   </GovernmentBodyIds>
+      </Office>
+    """
+
+    with self.assertRaises(loggers.ElectionInfo) as ei:
+      self.gov_validator.check(etree.fromstring(office_string))
+    self.assertEqual(
+        "Non-executive Office element is missing a government body.",
         str(ei.exception.log_entry[0].message),
     )
 
@@ -9281,6 +9301,42 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
             <Value>United States Senate</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
+      </Office>
+    """
+
+    self.gov_validator.check(etree.fromstring(office_string))
+
+  def testNonExecOfficeWithGovernmentalBodyIsValid(self):
+    office_string = """
+      <Office>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>office-role</OtherType>
+            <Value>senate</Value>
+          </ExternalIdentifier>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>governmental-body</OtherType>
+            <Value>United States Senate</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Office>
+    """
+
+    self.gov_validator.check(etree.fromstring(office_string))
+
+  def testNonExecOfficeWithGovernmentBodyIdsIsValid(self):
+    office_string = """
+      <Office>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>office-role</OtherType>
+            <Value>senate</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <GovernmentBodyIds>gov_body_1</GovernmentBodyIds>
       </Office>
     """
 
@@ -9319,9 +9375,63 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
         with self.assertRaises(loggers.ElectionError) as ee:
           self.gov_validator.check(etree.fromstring(office_string))
         self.assertEqual(
-            f"Executive Office element (roles: {office_role}) has an "
-            "ExternalIdentifier of OtherType government(al)-body. Executive "
-            "offices should not have government bodies.",
+            f"Executive Office element (roles: {office_role}) has a "
+            "government body. Executive offices should not have government "
+            "bodies.",
+            str(ee.exception.log_entry[0].message),
+        )
+
+  def testExecutiveOfficeWithGovernmentalBodyRaisesError(self):
+    for office_role in rules._EXECUTIVE_OFFICE_ROLES:
+      with self.subTest(office_role=office_role):
+        office_string = f"""
+          <Office>
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value>{office_role}</Value>
+              </ExternalIdentifier>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>governmental-body</OtherType>
+                <Value>United States Senate</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Office>
+        """
+
+        with self.assertRaises(loggers.ElectionError) as ee:
+          self.gov_validator.check(etree.fromstring(office_string))
+        self.assertEqual(
+            f"Executive Office element (roles: {office_role}) has a "
+            "government body. Executive offices should not have government "
+            "bodies.",
+            str(ee.exception.log_entry[0].message),
+        )
+
+  def testExecutiveOfficeWithGovernmentBodyIdsRaisesError(self):
+    for office_role in rules._EXECUTIVE_OFFICE_ROLES:
+      with self.subTest(office_role=office_role):
+        office_string = f"""
+          <Office>
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value>{office_role}</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+            <GovernmentBodyIds>gov_body_1</GovernmentBodyIds>
+          </Office>
+        """
+
+        with self.assertRaises(loggers.ElectionError) as ee:
+          self.gov_validator.check(etree.fromstring(office_string))
+        self.assertEqual(
+            f"Executive Office element (roles: {office_role}) has a "
+            "government body. Executive offices should not have government "
+            "bodies.",
             str(ee.exception.log_entry[0].message),
         )
 
