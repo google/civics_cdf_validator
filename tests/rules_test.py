@@ -3,7 +3,6 @@
 
 import datetime
 import hashlib
-import inspect
 import io
 
 from absl.testing import absltest
@@ -1011,9 +1010,6 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
         </GpUnitCollection>
       </ElectionReport>
     """
-
-    open_mod = inspect.getmodule(open)
-    self.builtins_name = open_mod.__builtins__["__name__"]
 
     # mock open function call to read provided csv data
     downloaded_ocdid_file = "id,name\nocd-division/country:ar,Argentina"
