@@ -168,12 +168,21 @@ def add_validate_parser_ocd_id_args(parser, parser_validate):
       type=lambda x: _validate_country_codes(parser, x),
       required=False,
       default="us")
+  # This flag is no longer being used, will be removed in a future release.
   parser_validate.add_argument(
       "-g",
-      help="Skip check to see if there is a new OCD ID file on Github."
-      "Defaults to True",
+      help=(
+          """
+          Skip check to see if there is a new OCD ID file on Github.
+          Defaults to True.
+
+          WARNING: This flag is deprecated and will be removed in a future
+          release.
+          """
+      ),
       action="store_true",
-      required=False)
+      required=False,
+  )
 
 
 def add_parser_rules_filter_args(parser, cmd_parser):
@@ -296,7 +305,7 @@ def exec_profiling(func):
 def feed_validation(options, ocd_id_list=None):
   """Validate the input feed depending on the user parameters."""
   ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
-      options.c, options.ocdid_file, not options.g, ocd_id_list
+      options.c, options.ocdid_file, ocd_id_list
   )
   rule_options = {}
   if options.required_languages:

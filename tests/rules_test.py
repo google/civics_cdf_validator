@@ -1037,7 +1037,7 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     """
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
     gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, False, [ocd_id]
+        "us", None, [ocd_id]
     )
     ocdid_validator = rules.ElectoralDistrictOcdId(
         election_tree, None, ocd_id_validator=gpunit_ocdid_validator
@@ -1064,7 +1064,7 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     """
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
     gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, False, [ocd_id]
+        "us", None, [ocd_id]
     )
     ocdid_validator = rules.ElectoralDistrictOcdId(
         election_tree, None, ocd_id_validator=gpunit_ocdid_validator
@@ -1094,7 +1094,7 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     """
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
     gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, False, [ocd_id]
+        "us", None, [ocd_id]
     )
     ocdid_validator = rules.ElectoralDistrictOcdId(
         election_tree, None, ocd_id_validator=gpunit_ocdid_validator
@@ -1122,7 +1122,7 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     """
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
     gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, False, [other_ocdid]
+        "us", None, [other_ocdid]
     )
     ocdid_validator = rules.ElectoralDistrictOcdId(
         election_tree, None, ocd_id_validator=gpunit_ocdid_validator
@@ -1152,7 +1152,7 @@ class ElectoralDistrictOcdIdTest(absltest.TestCase):
     """
     election_tree = etree.fromstring(self.root_string.format(gp_unit))
     gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, False, [ocd_id]
+        "us", None, [ocd_id]
     )
     ocdid_validator = rules.ElectoralDistrictOcdId(
         election_tree, None, ocd_id_validator=gpunit_ocdid_validator
@@ -1187,7 +1187,7 @@ class GpUnitOcdIdTest(absltest.TestCase):
     """
     election_tree = etree.fromstring(root_string)
     gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, False, ["ocd-division/country:us/state:ma/county:middlesex"]
+        "us", None, ["ocd-division/country:us/state:ma/county:middlesex"]
     )
     self.gp_unit_validator = rules.GpUnitOcdId(
         election_tree, None, ocd_id_validator=gpunit_ocdid_validator
