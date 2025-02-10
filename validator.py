@@ -369,8 +369,6 @@ def main():
         open(file, "rb") for file in options.election_files
     ]
     options.xsd = open(options.xsd, "r")
-    if options.ocdid_file:
-      options.ocdid_file = open(options.ocdid_file, encoding="utf-8")
     validation_results = feed_validation(options)
     return_value = print_exceptions_from_validations(
         options, validation_results
@@ -378,8 +376,6 @@ def main():
     for file in options.election_files:
       file.close()
     options.xsd.close()
-    if options.ocdid_file:
-      options.ocdid_file.close()
     return return_value
 
 
