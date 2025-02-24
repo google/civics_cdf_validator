@@ -91,17 +91,20 @@ _VALID_FEED_LONGEVITY_BY_FEED_TYPE = frozendict({
 })
 
 
-def _is_executive_office(office_roles):
+def _is_executive_office(element):
+  office_roles = get_entity_info_for_value_type(element, "office-role")
   return not _EXECUTIVE_OFFICE_ROLES.isdisjoint(office_roles)
 
 
-def _get_government_body(element):
+def _has_government_body(element):
+  if element_has_text(element.find("GovernmentBodyIds")):
+    return True
   governmental_body = get_entity_info_for_value_type(
       element,
       "governmental-body",
   )
   government_body = get_entity_info_for_value_type(element, "government-body")
-  return governmental_body or government_body
+  return bool(governmental_body or government_body)
 
 
 def get_external_id_values(element, value_type, return_elements=False):
@@ -3344,12 +3347,9 @@ class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
     return ["Office"]
 
   def check(self, element):
-    office_roles = get_entity_info_for_value_type(element, "office-role")
-    government_body = _get_government_body(element)
-    if not _is_executive_office(office_roles) and not government_body:
+    if not _is_executive_office(element) and not _has_government_body(element):
       raise loggers.ElectionInfo.from_message(
-          "Non-executive Office element is missing an ExternalIdentifier of "
-          "OtherType government(al)-body.",
+          "Non-executive Office element is missing a government body.",
           [element],
       )
 
@@ -3361,13 +3361,12 @@ class ExecutiveOfficeShouldNotHaveGovernmentBody(base.BaseRule):
     return ["Office"]
 
   def check(self, element):
-    office_roles = get_entity_info_for_value_type(element, "office-role")
-    government_body = _get_government_body(element)
-    if _is_executive_office(office_roles) and government_body:
+    if _is_executive_office(element) and _has_government_body(element):
+      office_roles = get_entity_info_for_value_type(element, "office-role")
       raise loggers.ElectionError.from_message(
-          f"Executive Office element (roles: {','.join(office_roles)}) has an "
-          "ExternalIdentifier of OtherType government(al)-body. Executive "
-          "offices should not have government bodies.",
+          f"Executive Office element (roles: {','.join(office_roles)}) has a "
+          "government body. Executive offices should not have government "
+          "bodies.",
           [element],
       )
 

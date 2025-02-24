@@ -483,7 +483,7 @@ class RulesRegistryTest(absltest.TestCase):
   def setUp(self):
     super(RulesRegistryTest, self).setUp()
     ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, False, [_TEST_US_OCD_ID_1]
+        "us", None, [_TEST_US_OCD_ID_1]
     )
     self.registry = base.RulesRegistry(
         "test.xml", "schema.xsd", [], [], ocd_id_validator
@@ -595,10 +595,10 @@ class RulesRegistryTest(absltest.TestCase):
 
   def testMultipleInstancesValidateTheCorrectOcdIds(self):
     us_ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, False, [_TEST_US_OCD_ID_1, _TEST_US_OCD_ID_2]
+        "us", None, [_TEST_US_OCD_ID_1, _TEST_US_OCD_ID_2]
     )
     ca_ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, False, [_TEST_CA_OCD_ID_1, _TEST_CA_OCD_ID_2]
+        "us", None, [_TEST_CA_OCD_ID_1, _TEST_CA_OCD_ID_2]
     )
 
     self.assertFalse(us_ocd_id_validator.is_valid_ocd_id(_TEST_CA_OCD_ID_1))
