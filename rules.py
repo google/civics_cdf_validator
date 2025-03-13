@@ -90,6 +90,11 @@ _VALID_FEED_LONGEVITY_BY_FEED_TYPE = frozendict({
     "pre-election": ["limited", "yearly"],
 })
 
+_VALID_OFFICE_ROLE_COMBINATIONS = frozenset([
+    frozenset(["head of government", "head of state"]),
+    frozenset(["cabinet member", "general purpose officer"]),
+])
+
 
 def _is_executive_office(element):
   office_roles = get_entity_info_for_value_type(element, "office-role")
@@ -2405,50 +2410,63 @@ class OfficesHaveValidOfficeLevel(base.BaseRule):
     return ["Office"]
 
   def check(self, element):
-    office_level_values = [
+    office_levels = [
         ol_id.strip()
         for ol_id in get_external_id_values(element, "office-level")
         if ol_id.strip()
     ]
-    if not office_level_values:
+    if not office_levels:
       raise loggers.ElectionError.from_message(
-          "Office is missing an office-level.", [element]
+          "Office is missing an office level.",
+          [element],
       )
-    if len(office_level_values) > 1:
+    if len(office_levels) > 1:
       raise loggers.ElectionError.from_message(
-          "Office has more than one office-level.", [element]
+          "Office has more than one office level.",
+          [element],
       )
-    office_level_value = office_level_values[0]
-    if office_level_value not in office_utils.valid_office_level_values:
+    office_level = office_levels[0]
+    if office_level not in office_utils.VALID_OFFICE_LEVELS:
       raise loggers.ElectionError.from_message(
-          "Office has invalid office-level {}.".format(office_level_value),
+          f"Office has an invalid office level: '{office_level}'.",
           [element],
       )
 
 
 class OfficesHaveValidOfficeRole(base.BaseRule):
-  """Each office must have a valid office-role."""
+  """Each office must have valid office role(s)."""
 
   def elements(self):
     return ["Office"]
 
   def check(self, element):
-    office_role_values = [
-        office_role_value.strip()
-        for office_role_value in get_external_id_values(element, "office-role")
+    office_roles = [
+        office_role.strip()
+        for office_role in get_external_id_values(element, "office-role")
     ]
-    if not office_role_values:
+    if not office_roles:
       raise loggers.ElectionError.from_message(
-          "The office is missing an office-role.", [element]
+          "Office is missing an office role.",
+          [element],
       )
-    if len(office_role_values) > 1:
+    if len(office_roles) == 1:
+      office_role = office_roles[0]
+      if office_role not in office_utils.VALID_OFFICE_ROLES:
+        raise loggers.ElectionError.from_message(
+            f"Office has an invalid office role: '{office_role}'.",
+            [element],
+        )
+    elif len(office_roles) == 2:
+      if set(office_roles) not in _VALID_OFFICE_ROLE_COMBINATIONS:
+        raise loggers.ElectionError.from_message(
+            "Office has an invalid combination of office roles: "
+            f"{office_roles}. Valid combinations are "
+            f"{_VALID_OFFICE_ROLE_COMBINATIONS}.",
+            [element],
+        )
+    else:
       raise loggers.ElectionError.from_message(
-          "The office has more than one office-role.", [element]
-      )
-    office_role_value = office_role_values[0]
-    if office_role_value not in office_utils.valid_office_role_values:
-      raise loggers.ElectionError.from_message(
-          "The office has invalid office-role '{}'.".format(office_role_value),
+          "Office has more than two office roles.",
           [element],
       )
 

@@ -6071,8 +6071,10 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office is missing an office-level.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing an office level.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off2")
 
@@ -6089,8 +6091,10 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office is missing an office-level.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing an office level.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off2")
 
@@ -6112,8 +6116,10 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office has more than one office-level.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office has more than one office level.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off1")
 
@@ -6130,8 +6136,10 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office is missing an office-level.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing an office level.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off2")
 
@@ -6141,7 +6149,7 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
              <ExternalIdentifier>
                <Type>other</Type>
                <OtherType>office-level</OtherType>
-               <Value>invalidvalue</Value>
+               <Value>invalid level</Value>
              </ExternalIdentifier>
           </Office>
         """
@@ -6150,7 +6158,7 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
       self.offices_validator.check(element)
     self.assertEqual(
         cm.exception.log_entry[0].message,
-        "Office has invalid office-level invalidvalue.",
+        "Office has an invalid office level: 'invalid level'.",
     )
     self.assertEqual(
         cm.exception.log_entry[0].elements[0].get("objectId"), "off2"
@@ -6208,14 +6216,36 @@ class OfficesHaveValidOfficeRoleTest(absltest.TestCase):
     super(OfficesHaveValidOfficeRoleTest, self).setUp()
     self.offices_validator = rules.OfficesHaveValidOfficeRole(None, None)
 
-  def testOfficeHasOfficeRole(self):
+  def testOfficeHasValidOfficeRole(self):
     test_string = """
           <Office objectId="off1">
-             <ExternalIdentifier>
-               <Type>other</Type>
-               <OtherType>office-role</OtherType>
-               <Value>upper house</Value>
-             </ExternalIdentifier>
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value>upper house</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Office>
+        """
+    element = etree.fromstring(test_string)
+    self.offices_validator.check(element)
+
+  def testOfficeHasValidOfficeRoleCombination(self):
+    test_string = """
+          <Office objectId="off1">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value>head of state</Value>
+              </ExternalIdentifier>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value>head of government</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
           </Office>
         """
     element = etree.fromstring(test_string)
@@ -6223,65 +6253,114 @@ class OfficesHaveValidOfficeRoleTest(absltest.TestCase):
 
   def testOfficeDoesNotHaveOfficeRole(self):
     test_string = """
-          <Office objectId="off2">
-             <ExternalIdentifier>
-               <Type>other</Type>
-               <Value>Region</Value>
-             </ExternalIdentifier>
+          <Office objectId="off1">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <Value>Region</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
           </Office>
         """
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "The office is missing an office-role.")
-    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
-                     "off2")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing an office role.",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].get("objectId"), "off1"
+    )
 
   def testOfficeDoesNotHaveOfficeRoleText(self):
     test_string = """
-          <Office objectId="off2">
-             <ExternalIdentifier>
-               <Type>other</Type>
-               <OtherType>office-role</OtherType>
-               <Value></Value>
-             </ExternalIdentifier>
+          <Office objectId="off1">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value></Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
           </Office>
         """
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "The office is missing an office-role.")
-    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
-                     "off2")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing an office role.",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].get("objectId"), "off1"
+    )
 
-  def testOfficeHasMoreThanOneOfficeRoles(self):
+  def testOfficeHasInvalidOfficeRoleCombination(self):
     test_string = """
           <Office objectId="off1">
-             <ExternalIdentifier>
-               <Type>other</Type>
-               <OtherType>office-role</OtherType>
-               <Value>upper house</Value>
-             </ExternalIdentifier>
-             <ExternalIdentifier>
-               <Type>other</Type>
-               <OtherType>office-role</OtherType>
-               <Value>head of state</Value>
-             </ExternalIdentifier>
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value>upper house</Value>
+              </ExternalIdentifier>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value>lower house</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
           </Office>
         """
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "The office has more than one office-role.")
-    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
-                     "off1")
+    self.assertStartsWith(
+        cm.exception.log_entry[0].message,
+        "Office has an invalid combination of office roles: "
+        "['upper house', 'lower house']. Valid combinations are ",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].get("objectId"), "off1"
+    )
+
+  def testOfficeHasMoreThanTwoOfficeRoles(self):
+    test_string = """
+          <Office objectId="off1">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value>head of state</Value>
+              </ExternalIdentifier>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value>head of government</Value>
+              </ExternalIdentifier>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value>deputy head of government</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Office>
+        """
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.offices_validator.check(element)
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office has more than two office roles.",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].get("objectId"), "off1"
+    )
 
   def testOfficeRoleTextIsWhitespace(self):
     test_string = """
-          <Office objectId="off2">
+          <Office objectId="off1">
              <ExternalIdentifier>
                <Type>other</Type>
                <OtherType>office-role</OtherType>
@@ -6292,28 +6371,34 @@ class OfficesHaveValidOfficeRoleTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "The office has invalid office-role ''.")
-    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
-                     "off2")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office has an invalid office role: ''.",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].get("objectId"), "off1"
+    )
 
   def testInvalidOfficeRole(self):
     test_string = """
-          <Office objectId="off2">
+          <Office objectId="off1">
              <ExternalIdentifier>
                <Type>other</Type>
                <OtherType>office-role</OtherType>
-               <Value>invalidvalue</Value>
+               <Value>invalid role</Value>
              </ExternalIdentifier>
           </Office>
         """
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "The office has invalid office-role 'invalidvalue'.")
-    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
-                     "off2")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office has an invalid office role: 'invalid role'.",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].get("objectId"), "off1"
+    )
 
 
 class ContestHasValidContestStageTest(absltest.TestCase):
