@@ -11484,7 +11484,7 @@ class DeprecatedPartyLeadershipSchemaTest(absltest.TestCase):
       </Party>
       """
 
-    with self.assertRaises(loggers.ElectionWarning) as cm:
+    with self.assertRaises(loggers.ElectionError) as cm:
       self.validator.check(etree.fromstring(party_string))
     self.assertEqual(
         cm.exception.log_entry[0].message,
@@ -11505,7 +11505,7 @@ class DeprecatedPartyLeadershipSchemaTest(absltest.TestCase):
       </Party>
       """
 
-    with self.assertRaises(loggers.ElectionWarning) as cm:
+    with self.assertRaises(loggers.ElectionError) as cm:
       self.validator.check(etree.fromstring(party_string))
     self.assertEqual(
         cm.exception.log_entry[0].message,
