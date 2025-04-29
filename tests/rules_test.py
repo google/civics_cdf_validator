@@ -11533,7 +11533,7 @@ class GovernmentBodyExternalIdTest(absltest.TestCase):
       </Office>
       """
 
-    with self.assertRaises(loggers.ElectionWarning) as cm:
+    with self.assertRaises(loggers.ElectionError) as cm:
       self.validator.check(etree.fromstring(government_body_string))
     self.assertEqual(
         cm.exception.log_entry[0].message,
@@ -11554,7 +11554,7 @@ class GovernmentBodyExternalIdTest(absltest.TestCase):
       </Office>
       """
 
-    with self.assertRaises(loggers.ElectionWarning) as cm:
+    with self.assertRaises(loggers.ElectionError) as cm:
       self.validator.check(etree.fromstring(government_body_string))
     self.assertEqual(
         cm.exception.log_entry[0].message,
