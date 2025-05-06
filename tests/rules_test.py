@@ -4518,11 +4518,17 @@ class PersonHasOfficeTest(absltest.TestCase):
   # _gather_defined_values tests
   def testReturnsPartyLeaderAndOfficeHolderIds(self):
     defined_collections = """
-      <OfficeCollection>
-        <Office><OfficeHolderPersonIds>p1</OfficeHolderPersonIds></Office>
-        <Office><OfficeHolderPersonIds>p2</OfficeHolderPersonIds></Office>
-        <Office><OfficeHolderPersonIds>p3</OfficeHolderPersonIds></Office>
-      </OfficeCollection>
+      <OfficeHolderTenureCollection>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p1</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p2</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p3</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+      </OfficeHolderTenureCollection>
       <PartyCollection>
         <Party>
           <ExternalIdentifiers>
@@ -4554,7 +4560,124 @@ class PersonHasOfficeTest(absltest.TestCase):
     self.assertEqual(expected_defined_values, defined_values)
 
   # check tests
-  def testEachPersonInACollectionIsReferencedByAnOffice(self):
+  def testPartyLeadersDoNotRequireOffices(self):
+    office_party_collections = """
+      <PartyCollection>
+        <Party>
+          <Name>Republican Socialists</Name>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>Other</Type>
+              <OtherType>party-leader-id</OtherType>
+              <Value>p1</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>Other</Type>
+              <OtherType>party-leader-id</OtherType>
+              <Value>p2</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>Other</Type>
+              <OtherType>party-chair-id</OtherType>
+              <Value>p3</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Party>
+      </PartyCollection>
+    """
+    root_string = io.BytesIO(
+        bytes(self._base_xml.format(office_party_collections).encode())
+    )
+    election_tree = etree.parse(root_string)
+    office_validator = rules.PersonHasOffice(election_tree, None)
+    office_validator.check()
+
+  def testTreesWithNoRootsIgnored(self):
+    no_root_string = io.BytesIO(b"<OfficeHolderTenureCollection/>")
+    election_tree = etree.parse(no_root_string)
+    office_validator = rules.PersonHasOffice(election_tree, None)
+    office_validator.check()
+
+  def testRootsWithNoPersonCollectionIgnored(self):
+    no_collection_string = io.BytesIO(b"""
+      <xml>
+        <OfficeHolderTenureCollection/>
+      </xml>
+    """)
+    election_tree = etree.parse(no_collection_string)
+    office_validator = rules.PersonHasOffice(election_tree, None)
+    office_validator.check()
+
+  def testEachPersonReferencedByAnOfficeHolderTenureSucceeds(self):
+    office_collection = """
+      <OfficeHolderTenureCollection>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p1</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p2</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p3</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+      </OfficeHolderTenureCollection>
+    """
+    root_string = io.BytesIO(
+        bytes(self._base_xml.format(office_collection).encode())
+    )
+    election_tree = etree.parse(root_string)
+    office_validator = rules.PersonHasOffice(election_tree, None)
+    office_validator.check()
+
+  def testExtraPersonReferencedByAnOfficeHolderTenureIgnored(self):
+    # NOTE: That all offices have valid Persons is
+    # checked by testOfficeMissingOfficeHolderPersonData
+    office_collection = """
+      <OfficeHolderTenureCollection>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p1</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p2</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p3</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p4</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+      </OfficeHolderTenureCollection>
+    """
+    root_string = io.BytesIO(
+        bytes(self._base_xml.format(office_collection).encode())
+    )
+    election_tree = etree.parse(root_string)
+    rules.PersonHasOffice(election_tree, None).check()
+
+  def testPersonNotReferencedByAnOfficeHolderTenureFails(self):
+    office_collection = """
+      <OfficeHolderTenureCollection>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p1</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p2</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+      </OfficeHolderTenureCollection>
+    """
+    root_string = io.BytesIO(
+        bytes(self._base_xml.format(office_collection).encode())
+    )
+    election_tree = etree.parse(root_string)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      rules.PersonHasOffice(election_tree, None).check()
+    self.assertIn(
+        "No defined data for p3 found in the feed.",
+        context.exception.log_entry[0].message,
+    )
+
+  def testEachPersonInACollectionIsReferencedByAnOfficeSucceeds(self):
     office_collection = """
       <OfficeCollection>
         <Office><OfficeHolderPersonIds>p1</OfficeHolderPersonIds></Office>
@@ -4563,79 +4686,13 @@ class PersonHasOfficeTest(absltest.TestCase):
       </OfficeCollection>
     """
     root_string = io.BytesIO(
-        bytes(self._base_xml.format(office_collection).encode()))
+        bytes(self._base_xml.format(office_collection).encode())
+    )
     election_tree = etree.parse(root_string)
     office_validator = rules.PersonHasOffice(election_tree, None)
     office_validator.check()
 
-  def testIgnoresTreesWithNoRoots(self):
-    no_root_string = io.BytesIO(b"<OfficeCollection/>")
-    election_tree = etree.parse(no_root_string)
-    office_validator = rules.PersonHasOffice(election_tree, None)
-    office_validator.check()
-
-  def testIgnoresRootsWithNoPersonCollection(self):
-    no_collection_string = io.BytesIO(b"""
-      <xml>
-        <OfficeCollection/>
-      </xml>
-    """)
-    election_tree = etree.parse(no_collection_string)
-    office_validator = rules.PersonHasOffice(election_tree, None)
-    office_validator.check()
-
-  def testRaisesErrorIfPersonIsNotReferencedInAnyOffice(self):
-    office_collection = """
-      <OfficeCollection>
-        <Office><OfficeHolderPersonIds>p1</OfficeHolderPersonIds></Office>
-        <Office><OfficeHolderPersonIds>p2</OfficeHolderPersonIds></Office>
-        <Office/>
-      </OfficeCollection>
-    """
-    root_string = io.BytesIO(
-        bytes(self._base_xml.format(office_collection).encode()))
-    election_tree = etree.parse(root_string)
-    office_validator = rules.PersonHasOffice(election_tree, None)
-    with self.assertRaises(loggers.ElectionError):
-      office_validator.check()
-
-  def testRaisesErrorIfTheresAPersonCollectionButNoOfficeCollection(self):
-    root_string = io.BytesIO(bytes(self._base_xml.encode()))
-    election_tree = etree.parse(root_string)
-    office_validator = rules.PersonHasOffice(election_tree, None)
-    with self.assertRaises(loggers.ElectionError):
-      office_validator.check()
-
-  def testPartyLeadersDoNotRequireOffices(self):
-    office_party_collections = """
-      <OfficeCollection>
-          <Office><OfficeHolderPersonIds>p1</OfficeHolderPersonIds></Office>
-        </OfficeCollection>
-        <PartyCollection>
-          <Party>
-            <Name>Republican Socialists</Name>
-            <ExternalIdentifiers>
-              <ExternalIdentifier>
-                <Type>Other</Type>
-                <OtherType>party-leader-id</OtherType>
-                <Value>p2</Value>
-              </ExternalIdentifier>
-              <ExternalIdentifier>
-                <Type>Other</Type>
-                <OtherType>party-chair-id</OtherType>
-                <Value>p3</Value>
-              </ExternalIdentifier>
-            </ExternalIdentifiers>
-          </Party>
-        </PartyCollection>
-    """
-    root_string = io.BytesIO(
-        bytes(self._base_xml.format(office_party_collections).encode()))
-    election_tree = etree.parse(root_string)
-    office_validator = rules.PersonHasOffice(election_tree, None)
-    office_validator.check()
-
-  def testPersonHasOneOffice(self):
+  def testExtraPersonReferencedByAnOfficeIgnored(self):
     # NOTE: That all offices have valid Persons is
     # checked by testOfficeMissingOfficeHolderPersonData
     office_collection = """
@@ -4659,7 +4716,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     election_tree = etree.parse(root_string)
     rules.PersonHasOffice(election_tree, None).check()
 
-  def testPersonHasOneOffice_fails(self):
+  def testPersonNotReferencedByAnOfficeFails(self):
     office_collection = """
       <OfficeCollection>
         <Office objectId="o1">
@@ -4674,13 +4731,14 @@ class PersonHasOfficeTest(absltest.TestCase):
         bytes(self._base_xml.format(office_collection).encode()))
     election_tree = etree.parse(root_string)
 
-    with self.assertRaises(loggers.ElectionError) as cm:
+    with self.assertRaises(loggers.ElectionError) as context:
       rules.PersonHasOffice(election_tree, None).check()
+    self.assertIn(
+        "No defined data for p3 found in the feed.",
+        context.exception.log_entry[0].message,
+    )
 
-    self.assertIn("No defined data for p3 found in the feed.",
-                  cm.exception.log_entry[0].message)
-
-  def testOfficeHasOnePerson_fails(self):
+  def testOfficeHasOnePersonFails(self):
     office_collection = """
       <OfficeCollection>
         <Office objectId="o1">

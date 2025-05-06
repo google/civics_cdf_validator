@@ -1941,8 +1941,20 @@ class PersonHasOffice(base.ValidReferenceRule):
       if leader_id.text:
         person_reference_ids.add(leader_id.text)
 
+    office_holder_tenure_collection = root.find("OfficeHolderTenureCollection")
+    if office_holder_tenure_collection is not None:
+      for office_holder_tenure in office_holder_tenure_collection.findall(
+          "OfficeHolderTenure"
+      ):
+        id_obj = office_holder_tenure.find("OfficeHolderPersonId")
+        if id_obj is not None and id_obj.text:
+          person_reference_ids.add(id_obj.text.strip())
+
     office_collection = root.find("OfficeCollection")
-    if office_collection is not None:
+    if (
+        office_holder_tenure_collection is None
+        and office_collection is not None
+    ):
       for office in office_collection.findall("Office"):
         id_obj = office.find("OfficeHolderPersonIds")
         if id_obj is not None and id_obj.text:
