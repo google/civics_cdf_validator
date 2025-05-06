@@ -421,9 +421,12 @@ class ValidIDREF(base.BaseRule):
     self.element_reference_mapping = {}
 
   _REFERENCE_TYPE_OVERRIDES = {
+      # ID refs to GpUnits
       "ElectoralDistrictId": "GpUnit",
       "ElectionScopeId": "GpUnit",
       "ScopeLevel": "GpUnit",
+      "JurisdictionId": "GpUnit",
+      # ID refs to Persons
       "AuthorityId": "Person",
       "AuthorityIds": "Person",
       "PartyLeaderId": "Person",
