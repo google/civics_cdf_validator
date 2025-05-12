@@ -2857,6 +2857,47 @@ class DateStatusMatches(base.DateRule):
       raise loggers.ElectionInfo.from_message(msg, [election_elem])
 
 
+class OfficeSelectionMethodMatch(base.BaseRule):
+  """Office and OfficeHolderTenure need to have matching selection methods.
+
+  Ensure that the OfficeSelectionMethod of a given OfficeHolderTenure is
+  also
+  present in the list of SelectionMethods of the Office it points to.
+  """
+
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    self.office_selection_methods = {}
+    officeholder_tenure_elements = self.get_elements_by_class(
+        election_tree, "OfficeHolderTenure"
+    )
+    office_elements = self.get_elements_by_class(election_tree, "Office")
+    if officeholder_tenure_elements:
+      for element in office_elements:
+        office_id = element.get("objectId")
+        selection_methods = {
+            selection_method.text
+            for selection_method in element.findall("SelectionMethod")
+        }
+        self.office_selection_methods[office_id] = selection_methods
+
+  def elements(self):
+    return ["OfficeHolderTenure"]
+
+  def check(self, element):
+    office_id = element.find("OfficeId").text
+    office_selection_method = element.find("OfficeSelectionMethod").text
+    if (
+        office_id not in self.office_selection_methods
+        or office_selection_method
+        not in self.office_selection_methods[office_id]
+    ):
+      raise loggers.ElectionError.from_message(
+          "OfficeSelectionMethod does not have a matching SelectionMethod"
+          " in the corresponding Office element.",
+          [element],
+      )
+
+
 class OfficeTermDates(base.DateRule):
   """Office elements should contain valid term dates.
 
@@ -4546,6 +4587,7 @@ ELECTION_RESULTS_RULES = ELECTION_RULES + (
 OFFICEHOLDER_RULES = COMMON_RULES + (
     # go/keep-sorted start
     DateOfBirthIsInPast,
+    OfficeSelectionMethodMatch,
     OfficeTermDates,
     PersonHasOffice,
     ProhibitElectionData,

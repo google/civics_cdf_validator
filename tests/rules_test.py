@@ -7658,6 +7658,56 @@ class DateStatusTest(absltest.TestCase):
         "confirm.", ei.exception.log_entry[0].message)
 
 
+class OfficeSelectionMethodMatchTest(absltest.TestCase):
+
+  def setUp(self):
+    super(OfficeSelectionMethodMatchTest, self).setUp()
+    root_string = """
+      <Report>
+        <OfficeCollection>
+          <Office objectId="off0">
+            <SelectionMethod>appointed</SelectionMethod>
+            <SelectionMethod>directly-elected</SelectionMethod>
+          </Office>
+        </OfficeCollection>
+        <OfficeHolderTenureCollection>
+          <OfficeHolderTenure>
+          </OfficeHolderTenure>
+        </OfficeHolderTenureCollection>
+      </Report>
+    """
+    element_tree = etree.fromstring(root_string)
+    self.validator = rules.OfficeSelectionMethodMatch(element_tree, None)
+
+  def testChecksOfficeSelectionMethodMatchElements(self):
+    self.assertEqual(["OfficeHolderTenure"], self.validator.elements())
+
+  def testMatchingOfficeSelectionMethod(self):
+    office_holder_tenure = """
+      <OfficeHolderTenure objectId="offten0">
+        <OfficeId>off0</OfficeId>
+        <OfficeSelectionMethod>directly-elected</OfficeSelectionMethod>
+      </OfficeHolderTenure>
+    """
+
+    self.validator.check(etree.fromstring(office_holder_tenure))
+
+  def testMismatchedOfficeSelectionMethod(self):
+    office_holder_tenure = """
+      <OfficeHolderTenure objectId="offten0">
+        <OfficeId>off0</OfficeId>
+        <OfficeSelectionMethod>succession</OfficeSelectionMethod>
+      </OfficeHolderTenure>
+    """
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.validator.check(etree.fromstring(office_holder_tenure))
+    self.assertEqual(
+        "OfficeSelectionMethod does not have a matching SelectionMethod"
+        " in the corresponding Office element.",
+        ee.exception.log_entry[0].message,
+    )
+
+
 class OfficeTermDatesTest(absltest.TestCase):
 
   def setUp(self):

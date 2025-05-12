@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Format>precinct-level</Format>
+  <GeneratedDate>2018-11-05T14:25:28</GeneratedDate>
+  <GovernmentBodyCollection>
+    <GovernmentBody objectId="gov0">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gov0</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>
+        <Text language="en">United States Senate</Text>
+      </Name>
+    </GovernmentBody>
+  </GovernmentBodyCollection>
+  <GpUnitCollection>
+    <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu0">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:tx</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-2lkjg1zsv9j</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>Texas</Name>
+      <Type>state</Type>
+    </GpUnit>
+    <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu1">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:vt</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-wlkj2oijg2g</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <InternationalizedName>
+        <Text language="en">Vermont</Text>
+        <Text language="bg">Върмонт</Text>
+      </InternationalizedName>
+      <Type>state</Type>
+    </GpUnit>
+    <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu2">
+      <ComposingGpUnitIds>ru-gpu0 ru-gpu1</ComposingGpUnitIds>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-2k3flj2kjf2</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>United States</Name>
+      <Type>country</Type>
+    </GpUnit>
+  </GpUnitCollection>
+  <Issuer>Data Partner X</Issuer>
+  <IssuerAbbreviation>DPX</IssuerAbbreviation>
+  <OfficeCollection>
+    <Office objectId="off0">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off0</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <GovernmentBodyIds>gov0</GovernmentBodyIds>
+      <JurisdictionId>ru-gpu0</JurisdictionId>
+      <OfficeLevel>Country</OfficeLevel>
+      <OfficeRole>president</OfficeRole>
+      <Name>
+        <Text language="en">United States Senator</Text>
+      </Name>
+      <OfficeHolderPersonIds>per0</OfficeHolderPersonIds>
+      <SelectionMethod>directly-elected</SelectionMethod>
+    </Office>
+    <Office objectId="off1">
+      <ContactInformation language="en">
+        <AddressLine>655 New York Ave, NW</AddressLine>
+        <AddressLine>Washington, DC 20005</AddressLine>
+        <Email>person@congress.gov</Email>
+        <Fax>888-7777</Fax>
+        <Name>Congressional Office</Name>
+        <Phone>999-8888</Phone>
+      </ContactInformation>
+      <ContactInformation language="es">
+        <AddressLine>655 Nueva York Ave, NW</AddressLine>
+        <AddressLine>Washington, DC 20005</AddressLine>
+        <Name>Oficina del Congreso</Name>
+      </ContactInformation>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <JurisdictionId>ru-gpu1</JurisdictionId>
+      <OfficeLevel>Country</OfficeLevel>
+      <OfficeRole>vice president</OfficeRole>
+      <Name>
+        <Text language="en">United States Vice President</Text>
+      </Name>
+      <OfficeHolderPersonIds>per1</OfficeHolderPersonIds>
+      <SelectionMethod>directly-elected</SelectionMethod>
+    </Office>
+  </OfficeCollection>
+  <OfficeHolderTenureCollection>
+    <OfficeHolderTenure objectId="offten0">
+      <ElectoralDistrictId>ru-united-states</ElectoralDistrictId>
+      <OfficeHolderPersonId>per1</OfficeHolderPersonId>
+      <OfficeId>off0</OfficeId>
+      <OfficeSelectionMethod>directly-elected</OfficeSelectionMethod>
+    </OfficeHolderTenure>
+    <OfficeHolderTenure objectId="offten1">
+      <ElectoralDistrictId>ru-united-states</ElectoralDistrictId>
+      <OfficeHolderPersonId>per1</OfficeHolderPersonId>
+      <OfficeId>off1</OfficeId>
+      <OfficeSelectionMethod>directly-elected</OfficeSelectionMethod>
+    </OfficeHolderTenure>
+  </OfficeHolderTenureCollection>
+  <PartyCollection>
+    <Party objectId="par0">
+      <InternationalizedAbbreviation>
+        <Text language="en">R</Text>
+      </InternationalizedAbbreviation>
+      <ContactInformation>
+        <Uri Annotation="wikipedia">https://en.wikipedia.org/wiki/Republican_Party_(United_States)</Uri>
+        <Uri Annotation="official-twitter">https://x.com/GOP</Uri>
+      </ContactInformation>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-par0</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>
+        <Text language="en">Republican Party</Text>
+      </Name>
+      <PartyScopeGpUnitIds>ru-gpu2</PartyScopeGpUnitIds>
+    </Party>
+    <Party objectId="par1">
+      <InternationalizedAbbreviation>
+        <Text language="en">D</Text>
+      </InternationalizedAbbreviation>
+      <ContactInformation>
+        <Uri Annotation="wikipedia">https://en.wikipedia.org/wiki/Democratic_Party_(United_States)</Uri>
+        <Uri Annotation="official-twitter">https://x.com/TheDemocrats</Uri>
+      </ContactInformation>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-par1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Leadership objectId="par-1-leader">
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>stable-par-1-leader</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyLeaderId>per2</PartyLeaderId>
+        <Type>party-leader</Type>
+      </Leadership>
+      <Name>
+        <Text language="en">Democratic Party</Text>
+      </Name>
+      <PartyScopeGpUnitIds>ru-gpu2</PartyScopeGpUnitIds>
+    </Party>
+  </PartyCollection>
+  <PersonCollection>
+    <Person objectId="per0">
+      <ContactInformation language="en">
+        <AddressLine>655 New York Ave, NW</AddressLine>
+        <AddressLine>Washington, DC 20005</AddressLine>
+        <Email>obama.library@nara.gov</Email>
+        <Fax>888-7777</Fax>
+        <Name>Barack Obama Office</Name>
+        <Phone>(847) 252-5700</Phone>
+      </ContactInformation>
+      <ContactInformation language="es">
+        <AddressLine>655 Nueva York Ave, NW</AddressLine>
+        <AddressLine>Washington, DC 20005</AddressLine>
+        <Name>Oficina de Barack Obama</Name>
+      </ContactInformation>
+      <ContactInformation>
+        <Uri Annotation="personal-facebook">https://www.facebook.com/tedcruzpage</Uri>
+        <Uri Annotation="personal-twitter">https://x.com/tedcruz</Uri>
+        <Uri Annotation="personal-website">https://www.tedcruz.org/</Uri>
+        <Uri Annotation="wikipedia">https://en.wikipedia.org/wiki/Ted_Cruz</Uri>
+      </ContactInformation>
+      <DateOfBirth>1970-12-22</DateOfBirth>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-per0</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FirstName>Rafael</FirstName>
+      <FullName>
+        <Text language="en">Rafael Edward "Ted" Cruz</Text>
+      </FullName>
+      <Gender>Male</Gender>
+      <LastName>Cruz</LastName>
+      <MiddleName>Edward</MiddleName>
+      <Nickname>Ted Cruz</Nickname>
+      <PartyId>par0</PartyId>
+    </Person>
+    <Person objectId="per1">
+      <ContactInformation>
+        <Uri Annotation="personal-website">https://act.berniesanders.com/signup/signup/</Uri>
+        <Uri Annotation="personal-facebook">https://www.facebook.com/berniesanders</Uri>
+        <Uri Annotation="wikipedia">https://en.wikipedia.org/wiki/Bernie_Sanders</Uri>
+      </ContactInformation>
+      <DateOfBirth>1941-09-08</DateOfBirth>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-per1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FirstName>Bernie</FirstName>
+      <FullName>
+        <Text language="en">Bernie Sanders</Text>
+      </FullName>
+      <Gender>Male</Gender>
+      <LastName>Sanders</LastName>
+      <PartyId>par1</PartyId>
+    </Person>
+    <Person objectId="per2">
+      <!-- Party leader referenced by party-leader-id. Does not require a linked office. -->
+      <ContactInformation>
+        <Uri Annotation="personal-facebook">https://www.facebook.com/leaderofparty</Uri>
+        <Uri Annotation="personal-twitter">https://x.com/partyleader</Uri>
+        <Uri Annotation="personal-website">https://www.partyleader.org/</Uri>
+        <Uri Annotation="wikipedia">https://en.wikipedia.org/wiki/Party_Leader</Uri>
+      </ContactInformation>
+      <DateOfBirth>1970-12-25</DateOfBirth>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-per2</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FirstName>Lebron</FirstName>
+      <FullName>
+        <Text language="en">Lebron "Party Leader" King</Text>
+      </FullName>
+      <Gender>Male</Gender>
+      <LastName>King</LastName>
+      <MiddleName>Marcus</MiddleName>
+      <PartyId>par1</PartyId>
+    </Person>
+  </PersonCollection>
+  <SequenceStart>1</SequenceStart>
+  <SequenceEnd>1</SequenceEnd>
+  <Status>certified</Status>
+  <VendorApplicationId>Hand-generated</VendorApplicationId>
+</ElectionReport>
