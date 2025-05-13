@@ -17,7 +17,9 @@ limitations under the License.
 from __future__ import print_function
 
 import datetime
+import functools
 import re
+
 from civics_cdf_validator import loggers
 from civics_cdf_validator import stats
 from lxml import etree
@@ -235,6 +237,7 @@ class DateRule(BaseRule):
         self.error_log.append(loggers.LogEntry(error_message, [self.end_elem]))
 
 
+@functools.total_ordering
 class PartialDate():
   """Check for PartialDate."""
 
@@ -256,6 +259,12 @@ class PartialDate():
           self.day).zfill(2))
     else:
       return "Not defined"
+
+  def __lt__(self, other):
+    return self.is_older_than(other) > 0
+
+  def __eq__(self, other):
+    return self.is_older_than(other) == 0
 
   @classmethod
   def init_partial_date(cls, date_string):

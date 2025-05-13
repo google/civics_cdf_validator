@@ -232,6 +232,35 @@ class PartialDateTest(absltest.TestCase):
     partial_date = base.PartialDate.init_partial_date("2022-2-30")
     self.assertIsNone(partial_date)
 
+  def testLessThanYearOnly(self):
+    self.assertLess(base.PartialDate(2020), base.PartialDate(2021))
+
+  def testLessThanYearMonth(self):
+    self.assertLess(base.PartialDate(2020, 1), base.PartialDate(2020, 2))
+
+  def testLessThanCompleteDate(self):
+    self.assertLess(base.PartialDate(2020, 1, 1), base.PartialDate(2020, 1, 2))
+
+  def testGreaterThanYearOnly(self):
+    self.assertGreater(base.PartialDate(2021), base.PartialDate(2020))
+
+  def testGreaterThanYearMonth(self):
+    self.assertGreater(base.PartialDate(2020, 2), base.PartialDate(2020, 1))
+
+  def testGreaterThanCompleteDate(self):
+    self.assertGreater(
+        base.PartialDate(2020, 1, 2), base.PartialDate(2020, 1, 1)
+    )
+
+  def testEqualToYearOnly(self):
+    self.assertEqual(base.PartialDate(2020), base.PartialDate(2020))
+
+  def testEqualToYearMonth(self):
+    self.assertEqual(base.PartialDate(2020, 1), base.PartialDate(2020, 1))
+
+  def testEqualToCompleteDate(self):
+    self.assertEqual(base.PartialDate(2020, 1, 1), base.PartialDate(2020, 1, 1))
+
   def testShouldCheckIsOlderThan(self):
     partial_date_older = base.PartialDate(2021, 3, 12)
     partial_date_younger = base.PartialDate(2021, 11, 2)

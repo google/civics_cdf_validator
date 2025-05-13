@@ -2683,7 +2683,7 @@ class ElectionDatesSpanContestDates(base.DateRule):
     if (
         election_end_date is not None
         and self.end_date is not None
-        and election_end_date.is_older_than(self.end_date) > 0
+        and election_end_date < self.end_date
         # Only compare election end date to contests that are not canceled
         and (
             contest_date_status is None
@@ -2705,7 +2705,7 @@ class ElectionDatesSpanContestDates(base.DateRule):
     if (
         election_start_date is not None
         and self.start_date is not None
-        and self.start_date.is_older_than(election_start_date) > 0
+        and self.start_date < election_start_date
     ):
       self.error_log.append(
           loggers.LogEntry(
@@ -2955,7 +2955,6 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
       term = office.find(".//Term")
       if term is not None:
         date_validator = base.DateRule(None, None)
-        limit_check = 0
         date_validator.gather_dates(term)
         end_date_person = date_validator.end_date
         if end_date_person is not None:
@@ -2967,8 +2966,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
               sixty_days_earlier.month,
               sixty_days_earlier.day,
           )
-          limit_check = partial_date_sixty_days.is_older_than(end_date_person)
-          if limit_check < 0:
+          if end_date_person < partial_date_sixty_days:
             outdated_offices.append(office.get("objectId"))
     for person in persons:
       pid = person.get("objectId")
@@ -3518,11 +3516,11 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
       subsequent_contest = contest_by_id[subsequent_contest_id]
       # Check that the subsequent contest has a later end date
       if subsequent_contest is not None and contest is not None:
-        end_delta = base.PartialDate.is_older_than(
-            contest_end_date_by_id[subsequent_contest_id],
-            contest_end_date_by_id[contest_id],
-        )
-        if end_delta > 0:
+        contest_end_date = contest_end_date_by_id[contest_id]
+        subsequent_contest_end_date = contest_end_date_by_id[
+            subsequent_contest_id
+        ]
+        if subsequent_contest_end_date < contest_end_date:
           error_log.append(
               loggers.LogEntry(
                   f"Contest {contest_id} references a subsequent contest with"
@@ -3839,8 +3837,7 @@ class ContestEndDateOccursBeforeSubsequentContestStartDate(base.DateRule):
       _, contest_end = dates_by_contest_id[contest_id]
       subsequent_contest_start, _ = dates_by_contest_id[subsequent_contest_id]
       if contest_end is not None and subsequent_contest_start is not None:
-        date_delta = contest_end.is_older_than(subsequent_contest_start)
-        if date_delta < 0:
+        if subsequent_contest_start < contest_end:
           self.error_log.append(
               loggers.LogEntry(
                   "Contest {} with end date {} does not occur before"
@@ -4092,8 +4089,7 @@ class ElectionEventDatesAreSequential(base.DateRule):
       full_delivery_date = base.PartialDate.init_partial_date(
           element.find("FullDeliveryDate").text
       )
-      date_delta = self.start_date.is_older_than(full_delivery_date)
-      if date_delta > 0:
+      if self.start_date < full_delivery_date:
         self.error_log.append(
             loggers.LogEntry(
                 "StartDate is older than FullDeliveryDate",
@@ -4109,8 +4105,7 @@ class ElectionEventDatesAreSequential(base.DateRule):
       full_delivery_date = base.PartialDate.init_partial_date(
           element.find("FullDeliveryDate").text
       )
-      date_delta = full_delivery_date.is_older_than(initial_delivery_date)
-      if date_delta > 0:
+      if full_delivery_date < initial_delivery_date:
         self.error_log.append(
             loggers.LogEntry(
                 "FullDeliveryDate is older than InitialDeliveryDate",
@@ -4143,10 +4138,7 @@ class NoSourceDirPathBeforeInitialDeliveryDate(base.BaseRule):
             if element_has_text(initial_delivery)
             else None
         )
-        if (
-            initial_delivery_date
-            and initial_delivery_date.is_older_than(today_partial_date) > 0
-        ):
+        if initial_delivery_date and initial_delivery_date < today_partial_date:
           return
       raise loggers.ElectionWarning.from_message(
           "SourceDirPath is defined but all initialDeliveryDate are in the"
@@ -4171,8 +4163,7 @@ class OfficeHolderSubFeedDatesAreSequential(base.DateRule):
       full_delivery_date = base.PartialDate.init_partial_date(
           element.find("FullDeliveryDate").text
       )
-      date_delta = full_delivery_date.is_older_than(initial_delivery_date)
-      if date_delta > 0:
+      if full_delivery_date < initial_delivery_date:
         raise loggers.ElectionError.from_message(
             "FullDeliveryDate is older than InitialDeliveryDate",
             [element],
@@ -4194,14 +4185,14 @@ class FeedInactiveDateIsLatestDate(base.BaseRule):
         full_delivery_date = base.PartialDate.init_partial_date(
             full_delivery_date_element.text
         )
-        if feed_inactive_date.is_older_than(full_delivery_date) > 0:
+        if feed_inactive_date < full_delivery_date:
           raise loggers.ElectionError.from_message(
               "FeedInactiveDate is older than FullDeliveryDate",
               [element],
           )
       for end_date_element in element.iter("EndDate"):
         end_date = base.PartialDate.init_partial_date(end_date_element.text)
-        if feed_inactive_date.is_older_than(end_date) > 0:
+        if feed_inactive_date < end_date:
           raise loggers.ElectionError.from_message(
               "FeedInactiveDate is older than EndDate",
               [element],
