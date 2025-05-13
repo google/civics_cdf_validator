@@ -1,0 +1,120 @@
+<ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Election objectId="e2025ElboniaGeneral">
+    <!-- No Contests are included in Voter Information feeds, thus no ContestCollection. -->
+    <ElectionDateStatus>confirmed</ElectionDateStatus>
+    <ElectionDateType>scheduled</ElectionDateType>
+    <ElectionScopeId>ru-1</ElectionScopeId>
+    <ExternalIdentifiers>
+      <ExternalIdentifier>
+        <Type>other</Type>
+        <OtherType>stable</OtherType>
+        <Value>e2025ElboniaGeneral</Value>
+      </ExternalIdentifier>
+    </ExternalIdentifiers>
+    <Name>
+      <Text language="en">2025 Elbonian general election</Text>
+    </Name>
+    <StartDate>2030-05-01</StartDate>
+    <EndDate>2030-05-01</EndDate>
+    <Type>general</Type>
+  </Election>
+
+  <ElectoralCommissionCollection>
+    <ElectoralCommission objectId="ec1">
+      <ContactInformation label="ci">
+        <Uri Annotation="official-youtube">
+          <![CDATA[ https://www.youtube.com/channel/example-electoral-commission ]]>
+        </Uri>
+        <Uri Annotation="official-facebook">
+         <![CDATA[ https://www.facebook.com/example-electoral-commission ]]>
+        </Uri>
+      </ContactInformation>
+      <ElectoralCommissionWebsite>
+        <Uri language="en"><![CDATA[https://example.com/electoral-commission]]></Uri>
+      </ElectoralCommissionWebsite>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>ec1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>
+        <Text language="en">Elbonia Election Commission</Text>
+      </Name>
+      <ScopeGpUnitIds>ru-1</ScopeGpUnitIds>
+    </ElectoralCommission>
+  </ElectoralCommissionCollection>
+  <Format>summary-contest</Format>
+  <GeneratedDate>2025-05-01T00:00:00.794Z</GeneratedDate>
+  <GpUnitCollection>
+    <GpUnit objectId="ru-1" xsi:type="ReportingUnit">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>ru-1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <InternationalizedName>
+        <Text language="en">Country of Elbonia</Text>
+      </InternationalizedName>
+      <Type>country</Type>
+    </GpUnit>
+  </GpUnitCollection>
+  <Issuer>Example Feed Producer</Issuer>
+  <IssuerAbbreviation>EFP</IssuerAbbreviation>
+  <SequenceStart>1</SequenceStart>
+  <SequenceEnd>1</SequenceEnd>
+  <Status>pre-election</Status>
+  <VendorApplicationId>Hand Generated Sample Feed</VendorApplicationId>
+  <VoterInformationCollection>
+    <!-- Voter Information that is evergreen for the specified scope. -->
+    <VoterInformation objectId="vi1">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>vi1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <VoterInformationWebsite>
+        <Type>candidate-information</Type>
+        <Uri language="en"><![CDATA[https://example.com/candidate-information]]></Uri>
+      </VoterInformationWebsite>
+      <VoterInformationWebsite>
+         <Type>candidate-information</Type>
+         <Uri language="es"><![CDATA[https://example.com/informacion-del-candidato]]></Uri>
+      </VoterInformationWebsite>
+      <VoterInformationWebsite>
+        <Type>voter-registration</Type>
+        <Uri language="en"><![CDATA[https://example.com/voter-registration]]></Uri>
+        <IsGeoFenced>true</IsGeoFenced>
+        <IsUserInputRequired>true</IsUserInputRequired>
+      </VoterInformationWebsite>
+      <ScopeGpUnitIds>ru-1</ScopeGpUnitIds>
+    </VoterInformation>
+
+    <!-- Voter Information scoped to a specific election. -->
+    <VoterInformation objectId="vi2">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>vi2</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <VoterInformationWebsite>
+        <Type>candidate-information</Type>
+        <Uri language="en"><![CDATA[https://example.com/candidate-info]]></Uri>
+        <IsGeoFenced>false</IsGeoFenced>
+        <IsUserInputRequired>true</IsUserInputRequired>
+      </VoterInformationWebsite>
+      <AssociatedElectionIds>e2025ElboniaGeneral</AssociatedElectionIds>
+    </VoterInformation>
+  </VoterInformationCollection>
+</ElectionReport>
