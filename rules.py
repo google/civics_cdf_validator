@@ -2898,37 +2898,76 @@ class OfficeSelectionMethodMatch(base.BaseRule):
       )
 
 
+class OfficeHolderTenureTermDates(base.DateRule):
+  """OfficeHolderTenure elements should contain valid term dates."""
+
+  def elements(self):
+    return ["OfficeHolderTenure"]
+
+  def check(self, element):
+    start_date = element.find("StartDate")
+    end_date = element.find("EndDate")
+    if element_has_text(start_date) and element_has_text(end_date):
+      start_date_obj = base.PartialDate.init_partial_date(start_date.text)
+      end_date_obj = base.PartialDate.init_partial_date(end_date.text)
+      if end_date_obj < start_date_obj:
+        raise loggers.ElectionError.from_message(
+            "OfficeHolderTenure element has an EndDate that is before the"
+            " StartDate.",
+            [element],
+        )
+
+
 class OfficeTermDates(base.DateRule):
   """Office elements should contain valid term dates.
 
   Offices with OfficeHolderPersonIds should have a Term declared. Given
   term should have a start date. If term also has an end date then end date
-  should come after start date.
+  should come after start date. Post Office split feed office objects should
+  not have a Term element.
   """
+
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    self.is_post_office_split_feed = False
+    officeholder_tenure_collection_element = self.get_elements_by_class(
+        election_tree, "OfficeHolderTenureCollection"
+    )
+    if officeholder_tenure_collection_element:
+      self.is_post_office_split_feed = True
 
   def elements(self):
     return ["Office"]
 
   def check(self, element):
     self.reset_instance_vars()
-    off_per_id = element.find("OfficeHolderPersonIds")
-    if element_has_text(off_per_id):
+    if self.is_post_office_split_feed:
       term = element.find("Term")
-      if term is None:
-        raise loggers.ElectionWarning.from_message(
-            "The Office is missing a Term.", [element]
+      if term is not None:
+        raise loggers.ElectionError.from_message(
+            "Office should not contain Term data in post Office split feed.",
+            [element],
         )
+      if self.error_log:
+        raise loggers.ElectionError(self.error_log)
+    else:
+      off_per_id = element.find("OfficeHolderPersonIds")
+      if element_has_text(off_per_id):
+        term = element.find("Term")
+        if term is None:
+          raise loggers.ElectionWarning.from_message(
+              "The Office is missing a Term.", [element]
+          )
 
-      self.gather_dates(term)
-      if self.start_date is None:
-        raise loggers.ElectionWarning.from_message(
-            "The Office is missing a Term > StartDate.", [element]
-        )
-      elif self.end_date is not None:
-        self.check_end_after_start()
+        self.gather_dates(term)
+        if self.start_date is None:
+          raise loggers.ElectionWarning.from_message(
+              "The Office is missing a Term > StartDate.", [element]
+          )
+        elif self.end_date is not None:
+          self.check_end_after_start()
 
-    if self.error_log:
-      raise loggers.ElectionError(self.error_log)
+      if self.error_log:
+        raise loggers.ElectionError(self.error_log)
 
 
 class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
@@ -4578,6 +4617,7 @@ ELECTION_RESULTS_RULES = ELECTION_RULES + (
 OFFICEHOLDER_RULES = COMMON_RULES + (
     # go/keep-sorted start
     DateOfBirthIsInPast,
+    OfficeHolderTenureTermDates,
     OfficeSelectionMethodMatch,
     OfficeTermDates,
     PersonHasOffice,

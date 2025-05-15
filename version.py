@@ -5,4 +5,4 @@ No dependencies should be added to this module.
 See https://packaging.python.org/guides/single-sourcing-package-version/
 """
 
-__version__ = '1.49.dev9'
+__version__ = '1.49.dev10'

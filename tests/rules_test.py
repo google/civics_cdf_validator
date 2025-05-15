@@ -3906,48 +3906,58 @@ class UniqueStableIDTest(absltest.TestCase):
 
   def testUniqueStableIDPass(self):
 
-    test_string = self.root_string.format("04_AS", "04_A", "stable-can-1",
-                                          "stable-can-2", "stable-can-3")
+    test_string = self.root_string.format(
+        "04_AS", "04_A", "stable-can-1", "stable-can-2", "stable-can-3"
+    )
     election_tree = etree.fromstring(test_string)
     rules.UniqueStableID(election_tree, None).check()
 
   def testUniqueStableIDFail(self):
 
-    test_string = self.root_string.format("04_AS", "04_A", "04_AS",
-                                          "stable-can-2", "stable-can-3")
+    test_string = self.root_string.format(
+        "04_AS", "04_A", "04_AS", "stable-can-2", "stable-can-3"
+    )
     election_tree = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as ee:
       rules.UniqueStableID(election_tree, None).check()
     self.assertEqual(
         "Stable ID 04_AS is not unique as it is mapped in ['off04_AS', 'can1']",
-        ee.exception.log_entry[0].message)
+        ee.exception.log_entry[0].message,
+    )
 
   def testUniqueStableIDFailMultipleElements(self):
 
-    test_string = self.root_string.format("04_AS", "04_A", "04_AS", "04_A",
-                                          "stable-can-3")
+    test_string = self.root_string.format(
+        "04_AS", "04_A", "04_AS", "04_A", "stable-can-3"
+    )
     election_tree = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as ee:
       rules.UniqueStableID(election_tree, None).check()
     self.assertEqual(
         "Stable ID 04_AS is not unique as it is mapped in ['off04_AS', 'can1']",
-        ee.exception.log_entry[0].message)
+        ee.exception.log_entry[0].message,
+    )
     self.assertEqual(
         "Stable ID 04_A is not unique as it is mapped in ['off04_A', 'can2']",
-        ee.exception.log_entry[1].message)
+        ee.exception.log_entry[1].message,
+    )
 
   def testUniqueStableIDFailThreeElements(self):
-    test_string = self.root_string.format("04_AS", "04_A", "04_AS", "04_A",
-                                          "04_A")
+    test_string = self.root_string.format(
+        "04_AS", "04_A", "04_AS", "04_A", "04_A"
+    )
     election_tree = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as ee:
       rules.UniqueStableID(election_tree, None).check()
     self.assertEqual(
         "Stable ID 04_AS is not unique as it is mapped in ['off04_AS', 'can1']",
-        ee.exception.log_entry[0].message)
+        ee.exception.log_entry[0].message,
+    )
     self.assertEqual(
-        "Stable ID 04_A is not unique as it is mapped in ['off04_A', 'can2', 'can3']",
-        ee.exception.log_entry[1].message)
+        "Stable ID 04_A is not unique as it is mapped in ['off04_A', 'can2',"
+        " 'can3']",
+        ee.exception.log_entry[1].message,
+    )
 
 
 class MissingStableIdsTest(absltest.TestCase):
@@ -7708,11 +7718,83 @@ class OfficeSelectionMethodMatchTest(absltest.TestCase):
     )
 
 
+class OfficeHolderTenureTermDatesTest(absltest.TestCase):
+
+  def setUp(self):
+    super(OfficeHolderTenureTermDatesTest, self).setUp()
+    self.validator = rules.OfficeHolderTenureTermDates(None, None)
+
+  def testChecksCorrectElements(self):
+    self.assertEqual(["OfficeHolderTenure"], self.validator.elements())
+
+  def testNoTermDates(self):
+    office_holder_tenure = """
+      <OfficeHolderTenure objectId="offten0">
+      </OfficeHolderTenure>
+    """
+    self.validator.check(etree.fromstring(office_holder_tenure))
+
+  def testStartDateOnly(self):
+    office_holder_tenure = """
+      <OfficeHolderTenure objectId="offten0">
+        <StartDate>2025-03-23</StartDate>
+      </OfficeHolderTenure>
+    """
+    self.validator.check(etree.fromstring(office_holder_tenure))
+
+  def testStartDateIsEmpty(self):
+    office_holder_tenure = """
+      <OfficeHolderTenure objectId="offten0">
+        <StartDate></StartDate>
+      </OfficeHolderTenure>
+    """
+    self.validator.check(etree.fromstring(office_holder_tenure))
+
+  def testValidTermDates(self):
+    office_holder_tenure = """
+      <OfficeHolderTenure objectId="offten0">
+        <StartDate>2025-03-23</StartDate>
+        <EndDate>2026-06-21</EndDate>
+      </OfficeHolderTenure>
+    """
+    self.validator.check(etree.fromstring(office_holder_tenure))
+
+  def testInvalidTermDates(self):
+    office_holder_tenure = """
+      <OfficeHolderTenure objectId="offten0">
+        <StartDate>2026-06-22</StartDate>
+        <EndDate>2026-06-21</EndDate>
+      </OfficeHolderTenure>
+    """
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.validator.check(etree.fromstring(office_holder_tenure))
+    self.assertEqual(
+        "OfficeHolderTenure element has an EndDate that is before the"
+        " StartDate.",
+        ee.exception.log_entry[0].message,
+    )
+
+
 class OfficeTermDatesTest(absltest.TestCase):
 
   def setUp(self):
     super(OfficeTermDatesTest, self).setUp()
-    self.date_validator = rules.OfficeTermDates(None, None)
+    root_string = """
+      <Report>
+      </Report>
+    """
+    element_tree = etree.fromstring(root_string)
+    self.date_validator = rules.OfficeTermDates(element_tree, None)
+    root_string = """
+      <Report>
+        <OfficeHolderTenureCollection>
+        </OfficeHolderTenureCollection>
+      </Report>
+    """
+    element_tree = etree.fromstring(root_string)
+    self.post_office_split_date_validator = rules.OfficeTermDates(
+        element_tree, None
+    )
     self.office_string = """
       <Office objectId="off1">
         <OfficeHolderPersonIds>per0</OfficeHolderPersonIds>
@@ -7784,6 +7866,27 @@ class OfficeTermDatesTest(absltest.TestCase):
       </Office>
     """
     self.date_validator.check(etree.fromstring(office_string))
+
+  def testPostOfficeSplitFeedOfficeWithoutTermElement(self):
+    office = """
+      <Office objectId="off1">
+      </Office>
+    """
+    self.post_office_split_date_validator.check(etree.fromstring(office))
+
+  def testPostOfficeSplitFeedOfficeWithTermElement(self):
+    office = """
+      <Office objectId="off1">
+        <Term>
+        </Term>
+      </Office>
+    """
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.post_office_split_date_validator.check(etree.fromstring(office))
+    self.assertEqual(
+        "Office should not contain Term data in post Office split feed.",
+        ee.exception.log_entry[0].message,
+    )
 
 
 class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):

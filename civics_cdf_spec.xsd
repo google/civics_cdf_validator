@@ -644,7 +644,7 @@
             <xs:element name="OfficeId" type="xs:IDREF" />
             <xs:element minOccurs="0" name="SeatStatus" type="SeatStatus"/>
             <xs:element name="OfficeSelectionMethod" type="OfficeSelectionMethod" />
-            <xs:element minOccurs="0" name="StartDate" type="PartialDate" />
+            <xs:element name="StartDate" type="PartialDate" />
             <xs:element minOccurs="0" name="EndDate" type="PartialDate" />
             <xs:element minOccurs="0" name="OfficeTermType" type="OfficeTermType" />
         </xs:sequence>
