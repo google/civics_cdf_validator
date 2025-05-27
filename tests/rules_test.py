@@ -7623,7 +7623,6 @@ class DateStatusTest(absltest.TestCase):
     self.date_status_validator.check(etree.fromstring(self.base_report))
 
   def testElectionWithNoContests(self):
-    print(self.base_report.format("", "canceled"))
     self.date_status_validator.check(
         etree.fromstring(self.base_report.format("", "canceled")))
 
@@ -11890,6 +11889,238 @@ class UnsupportedOfficeHolderTenureSchemaTest(absltest.TestCase):
         context.exception.log_entry[0].message,
         "Specifying OfficeHolderTenureCollection on ElectionReport is not yet "
         "supported.",
+    )
+
+
+class ElectoralCommissionCollectionExistsTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ElectoralCommissionCollectionExistsTest, self).setUp()
+    self.validator = rules.ElectoralCommissionCollectionExists(None, None)
+
+  def testElectionReportWithoutElectoralCommissionCollectionFails(self):
+    election_report_string = """
+      <ElectionReport></ElectionReport>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "ElectoralCommissionCollection should exist.",
+    )
+
+  def testElectionReportWithElectoralCommissionCollectionSucceeds(self):
+    election_report_string = """
+      <ElectionReport>
+        <ElectoralCommissionCollection></ElectoralCommissionCollection>
+      </ElectionReport>
+      """
+    self.validator.check(etree.fromstring(election_report_string))
+
+
+class VoterInformationCollectionExistsTest(absltest.TestCase):
+
+  def setUp(self):
+    super(VoterInformationCollectionExistsTest, self).setUp()
+    self.validator = rules.VoterInformationCollectionExists(None, None)
+
+  def testElectionReportWithoutVoterInformationCollectionWarns(self):
+    election_report_string = """
+      <ElectionReport></ElectionReport>
+      """
+    with self.assertRaises(loggers.ElectionWarning) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "VoterInformationCollection should exist.",
+    )
+
+  def testElectionReportWithVoterInformationCollectionSucceeds(self):
+    election_report_string = """
+      <ElectionReport>
+        <VoterInformationCollection></VoterInformationCollection>
+      </ElectionReport>
+      """
+    self.validator.check(etree.fromstring(election_report_string))
+
+
+class NoExtraElectionElementsTest(absltest.TestCase):
+  """Elections should not have inappropriate elements."""
+
+  def setUp(self):
+    super(NoExtraElectionElementsTest, self).setUp()
+    self.validator = rules.NoExtraElectionElements(None, None)
+
+  def testElectionWithoutExtraElementsSucceeds(self):
+    election_report_string = """<Election></Election>"""
+    self.validator.check(etree.fromstring(election_report_string))
+
+  def testElectionWithBallotStyleCollectionFails(self):
+    election_report_string = """
+      <Election>
+        <BallotStyleCollection></BallotStyleCollection>
+      </Election>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "BallotStyleCollection should not exist.",
+    )
+
+  def testElectionWithCandidateCollectionFails(self):
+    election_report_string = """
+      <Election>
+        <CandidateCollection></CandidateCollection>
+      </Election>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "CandidateCollection should not exist.",
+    )
+
+  def testElectionWithContestCollectionFails(self):
+    election_report_string = """
+      <Election>
+        <ContestCollection></ContestCollection>
+      </Election>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "ContestCollection should not exist.",
+    )
+
+  def testElectionWithCountStatusFails(self):
+    election_report_string = """
+      <Election>
+        <CountStatus></CountStatus>
+      </Election>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "CountStatus should not exist.",
+    )
+
+
+class WarnOnElementsNotRecommendedForElectionTest(absltest.TestCase):
+  """Elections should warn on elements that are not recommended."""
+
+  def setUp(self):
+    super(WarnOnElementsNotRecommendedForElectionTest, self).setUp()
+    self.validator = rules.WarnOnElementsNotRecommendedForElection(None, None)
+
+  def testElectionWithoutContactInformationSucceeds(self):
+    election_report_string = """<Election></Election>"""
+    self.validator.check(etree.fromstring(election_report_string))
+
+  def testElectionWithContactInformationWarns(self):
+    election_report_string = """
+      <Election>
+        <ContactInformation></ContactInformation>
+      </Election>
+      """
+    with self.assertRaises(loggers.ElectionWarning) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "ContactInformation is not recommended for Election, prefer using an"
+        " ElectionAdministration.",
+    )
+
+
+class NoExtraElectionReportCollectionsTest(absltest.TestCase):
+  """ElectionReports should not have inappropriate elements."""
+
+  def setUp(self):
+    super(NoExtraElectionReportCollectionsTest, self).setUp()
+    self.validator = rules.NoExtraElectionReportCollections(None, None)
+
+  def testElectionReportWithoutExtraElementsSucceeds(self):
+    election_report_string = """<ElectionReport></ElectionReport>"""
+    self.validator.check(etree.fromstring(election_report_string))
+
+  def testElectionReportWithCommitteeCollectionFails(self):
+    election_report_string = """
+      <ElectionReport>
+        <CommitteeCollection></CommitteeCollection>
+      </ElectionReport>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "CommitteeCollection should not exist.",
+    )
+
+  def testElectionReportWithGovernmentBodyCollectionFails(self):
+    election_report_string = """
+      <ElectionReport>
+        <GovernmentBodyCollection></GovernmentBodyCollection>
+      </ElectionReport>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "GovernmentBodyCollection should not exist.",
+    )
+
+  def testElectionReportWithOfficeCollectionFails(self):
+    election_report_string = """
+      <ElectionReport>
+        <OfficeCollection></OfficeCollection>
+      </ElectionReport>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "OfficeCollection should not exist.",
+    )
+
+  def testElectionReportWithOfficeHolderTenureCollectionFails(self):
+    election_report_string = """
+      <ElectionReport>
+        <OfficeHolderTenureCollection></OfficeHolderTenureCollection>
+      </ElectionReport>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "OfficeHolderTenureCollection should not exist.",
+    )
+
+  def testElectionReportWithPartyCollectionFails(self):
+    election_report_string = """
+      <ElectionReport>
+        <PartyCollection></PartyCollection>
+      </ElectionReport>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "PartyCollection should not exist.",
+    )
+
+  def testElectionReportWithPersonCollectionFails(self):
+    election_report_string = """
+      <ElectionReport>
+        <PersonCollection></PersonCollection>
+      </ElectionReport>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "PersonCollection should not exist.",
     )
 
 

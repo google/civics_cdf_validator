@@ -4490,6 +4490,118 @@ class UnsupportedOfficeHolderTenureSchema(base.BaseRule):
       )
 
 
+class ElectoralCommissionCollectionExists(base.BaseRule):
+  """ElectoralCommissionCollection should exist."""
+
+  def elements(self):
+    return ["ElectionReport"]
+
+  def check(self, element):
+    if element.find("ElectoralCommissionCollection") is None:
+      raise loggers.ElectionError.from_message(
+          "ElectoralCommissionCollection should exist."
+      )
+
+
+class VoterInformationCollectionExists(base.BaseRule):
+  """Warn if there is no VoterInformationCollection."""
+
+  def elements(self):
+    return ["ElectionReport"]
+
+  def check(self, element):
+    if element.find("VoterInformationCollection") is None:
+      raise loggers.ElectionWarning.from_message(
+          "VoterInformationCollection should exist."
+      )
+
+
+class NoExtraElectionElements(base.BaseRule):
+  """Elections for voter information feeds should not have certain elements.
+
+  BallotStyleCollection, CandidateCollection, ContestCollection, CountStatus
+  should all be excluded.
+  """
+
+  def elements(self):
+    return ["Election"]
+
+  def check(self, element):
+    if element.find("BallotStyleCollection") is not None:
+      raise loggers.ElectionError.from_message(
+          "BallotStyleCollection should not exist."
+      )
+
+    if element.find("CandidateCollection") is not None:
+      raise loggers.ElectionError.from_message(
+          "CandidateCollection should not exist."
+      )
+    if element.find("ContestCollection") is not None:
+      raise loggers.ElectionError.from_message(
+          "ContestCollection should not exist."
+      )
+
+    if element.find("CountStatus") is not None:
+      raise loggers.ElectionError.from_message("CountStatus should not exist.")
+
+
+class WarnOnElementsNotRecommendedForElection(base.BaseRule):
+  """Warn on ContactInformation on an Election for voter information feeds."""
+
+  def elements(self):
+    return ["Election"]
+
+  def check(self, element):
+    if element.find("ContactInformation") is not None:
+      raise loggers.ElectionWarning.from_message(
+          "ContactInformation is not recommended for Election, prefer using an"
+          " ElectionAdministration."
+      )
+
+
+class NoExtraElectionReportCollections(base.BaseRule):
+  """ElectionReports for voter information feeds should not have certain elements.
+
+  CommitteeCollection, GovernmentBodyCollection, OfficeCollection,
+  OfficeHolderTenureCollection, PartyCollection, PersonCollection should all be
+  excluded.
+  """
+
+  def elements(self):
+    return ["ElectionReport"]
+
+  def check(self, element):
+    if element.find("CommitteeCollection") is not None:
+      raise loggers.ElectionError.from_message(
+          "CommitteeCollection should not exist."
+      )
+
+    if element.find("GovernmentBodyCollection") is not None:
+      raise loggers.ElectionError.from_message(
+          "GovernmentBodyCollection should not exist."
+      )
+
+    if element.find("OfficeCollection") is not None:
+      raise loggers.ElectionError.from_message(
+          "OfficeCollection should not exist."
+      )
+
+    if element.find("OfficeHolderTenureCollection") is not None:
+      raise loggers.ElectionError.from_message(
+          "OfficeHolderTenureCollection should not exist."
+      )
+
+    if element.find("PartyCollection") is not None:
+      raise loggers.ElectionError.from_message(
+          "PartyCollection should not exist."
+      )
+
+    if element.find("PersonCollection") is not None:
+      raise loggers.ElectionError.from_message(
+          "PersonCollection should not exist."
+      )
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
 
@@ -4499,6 +4611,7 @@ class RuleSet(enum.Enum):
   ELECTION_DATES = 4
   ELECTION_RESULTS = 5
   METADATA = 6
+  VOTER_INFORMATION = 7
 
 
 # To add new rules, create a new class, inherit the base rule,
@@ -4660,6 +4773,16 @@ METADATA_RULES = (
     # go/keep-sorted end
 )
 
+VOTER_INFORMATION_RULES = COMMON_RULES + (
+    # go/keep-sorted start
+    ElectoralCommissionCollectionExists,
+    NoExtraElectionElements,
+    NoExtraElectionReportCollections,
+    VoterInformationCollectionExists,
+    WarnOnElementsNotRecommendedForElection,
+    # go/keep-sorted end
+)
+
 ALL_RULES = frozenset(
     COMMON_RULES
     + ELECTION_RULES
@@ -4667,5 +4790,6 @@ ALL_RULES = frozenset(
     + OFFICEHOLDER_RULES
     + COMMITTEE_RULES
     + ELECTION_DATES_RULES
+    + VOTER_INFORMATION_RULES
     + METADATA_RULES
 )

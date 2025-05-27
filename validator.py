@@ -260,6 +260,8 @@ def filter_all_rules_using_user_arg(rules_allowlist, rule_set, rules_blocklist):
       rule_names = [x.__name__ for x in rules.ELECTION_RESULTS_RULES]
     elif rule_set == rules.RuleSet.METADATA:
       rule_names = [x.__name__ for x in rules.METADATA_RULES]
+    elif rule_set == rules.RuleSet.VOTER_INFORMATION:
+      rule_names = [x.__name__ for x in rules.VOTER_INFORMATION_RULES]
     else:
       raise AssertionError("Invalid rule_set: " + rule_set)
     if rules_blocklist:
