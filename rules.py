@@ -96,8 +96,14 @@ _VALID_OFFICE_ROLE_COMBINATIONS = frozenset([
 ])
 
 
-def _is_executive_office(element):
-  office_roles = get_entity_info_for_value_type(element, "office-role")
+def _get_office_roles(element, is_post_office_split_feed=False):
+  if is_post_office_split_feed:
+    return [element.text for element in element.findall("OfficeRole")]
+  return get_entity_info_for_value_type(element, "office-role")
+
+
+def _is_executive_office(element, is_post_office_split_feed=False):
+  office_roles = _get_office_roles(element, is_post_office_split_feed)
   return not _EXECUTIVE_OFFICE_ROLES.isdisjoint(office_roles)
 
 
@@ -3454,11 +3460,21 @@ class PartySpanMultipleCountries(base.BaseRule):
 class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
   """Ensure non-executive Office elements have a government body defined."""
 
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    self.is_post_office_split_feed = False
+    officeholder_tenure_collection_element = self.get_elements_by_class(
+        election_tree, "OfficeHolderTenureCollection"
+    )
+    if officeholder_tenure_collection_element:
+      self.is_post_office_split_feed = True
+
   def elements(self):
     return ["Office"]
 
   def check(self, element):
-    if not _is_executive_office(element) and not _has_government_body(element):
+    if not _is_executive_office(
+        element, self.is_post_office_split_feed
+    ) and not _has_government_body(element):
       raise loggers.ElectionInfo.from_message(
           "Non-executive Office element is missing a government body.",
           [element],
@@ -3468,12 +3484,22 @@ class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
 class ExecutiveOfficeShouldNotHaveGovernmentBody(base.BaseRule):
   """Ensure executive Office elements do not have a government body defined."""
 
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    self.is_post_office_split_feed = False
+    officeholder_tenure_collection_element = self.get_elements_by_class(
+        election_tree, "OfficeHolderTenureCollection"
+    )
+    if officeholder_tenure_collection_element:
+      self.is_post_office_split_feed = True
+
   def elements(self):
     return ["Office"]
 
   def check(self, element):
-    if _is_executive_office(element) and _has_government_body(element):
-      office_roles = get_entity_info_for_value_type(element, "office-role")
+    if _is_executive_office(
+        element, self.is_post_office_split_feed
+    ) and _has_government_body(element):
+      office_roles = _get_office_roles(element, self.is_post_office_split_feed)
       raise loggers.ElectionError.from_message(
           f"Executive Office element (roles: {','.join(office_roles)}) has a "
           "government body. Executive offices should not have government "

@@ -9528,13 +9528,34 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
 
   def setUp(self):
     super(NonExecutiveOfficeShouldHaveGovernmentBodyTest, self).setUp()
+    root_string = """
+      <Report>
+      </Report>
+    """
+    element_tree = etree.fromstring(root_string)
     self.gov_validator = rules.NonExecutiveOfficeShouldHaveGovernmentBody(
+        element_tree,
         None,
-        None,
+    )
+    root_string = """
+      <Report>
+        <OfficeHolderTenureCollection>
+        </OfficeHolderTenureCollection>
+      </Report>
+    """
+    element_tree = etree.fromstring(root_string)
+    self.post_office_split_validator = (
+        rules.NonExecutiveOfficeShouldHaveGovernmentBody(
+            element_tree,
+            None,
+        )
     )
 
   def testChecksOfficeElements(self):
     self.assertEqual(["Office"], self.gov_validator.elements())
+
+  def testPostSplitChecksOfficeElements(self):
+    self.assertEqual(["Office"], self.post_office_split_validator.elements())
 
   def testNonExecOfficeWithoutGovernmentBodyRaisesError(self):
     office_string = """
@@ -9551,6 +9572,20 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionInfo) as ei:
       self.gov_validator.check(etree.fromstring(office_string))
+    self.assertEqual(
+        "Non-executive Office element is missing a government body.",
+        str(ei.exception.log_entry[0].message),
+    )
+
+  def testPostSplitNonExecOfficeWithoutGovernmentBodyRaisesError(self):
+    office_string = """
+      <Office>
+        <OfficeRole>senate</OfficeRole>
+      </Office>
+    """
+
+    with self.assertRaises(loggers.ElectionInfo) as ei:
+      self.post_office_split_validator.check(etree.fromstring(office_string))
     self.assertEqual(
         "Non-executive Office element is missing a government body.",
         str(ei.exception.log_entry[0].message),
@@ -9577,6 +9612,21 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
         str(ei.exception.log_entry[0].message),
     )
 
+  def testPostSplitNonExecOfficeWithEmptyGovernmentBodyIdsRaisesError(self):
+    office_string = """
+      <Office>
+        <GovernmentBodyIds>   </GovernmentBodyIds>
+        <OfficeRole>senate</OfficeRole>
+      </Office>
+    """
+
+    with self.assertRaises(loggers.ElectionInfo) as ei:
+      self.post_office_split_validator.check(etree.fromstring(office_string))
+    self.assertEqual(
+        "Non-executive Office element is missing a government body.",
+        str(ei.exception.log_entry[0].message),
+    )
+
   def testNonExecOfficeWithGovernmentBodyIsValid(self):
     office_string = """
       <Office>
@@ -9596,6 +9646,22 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
     """
 
     self.gov_validator.check(etree.fromstring(office_string))
+
+  def testPostSplitNonExecOfficeWithGovernmentBodyIsValid(self):
+    office_string = """
+      <Office>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>government-body</OtherType>
+            <Value>United States Senate</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <OfficeRole>senate</OfficeRole>
+      </Office>
+    """
+
+    self.post_office_split_validator.check(etree.fromstring(office_string))
 
   def testNonExecOfficeWithGovernmentalBodyIsValid(self):
     office_string = """
@@ -9617,6 +9683,22 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
 
     self.gov_validator.check(etree.fromstring(office_string))
 
+  def testPostSplitNonExecOfficeWithGovernmentalBodyIsValid(self):
+    office_string = """
+      <Office>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>governmental-body</OtherType>
+            <Value>United States Senate</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <OfficeRole>senate</OfficeRole>
+      </Office>
+    """
+
+    self.post_office_split_validator.check(etree.fromstring(office_string))
+
   def testNonExecOfficeWithGovernmentBodyIdsIsValid(self):
     office_string = """
       <Office>
@@ -9633,14 +9715,42 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
 
     self.gov_validator.check(etree.fromstring(office_string))
 
+  def testPostSplitNonExecOfficeWithGovernmentBodyIdsIsValid(self):
+    office_string = """
+      <Office>
+        <GovernmentBodyIds>gov_body_1</GovernmentBodyIds>
+        <OfficeRole>senate</OfficeRole>
+      </Office>
+    """
+
+    self.post_office_split_validator.check(etree.fromstring(office_string))
+
 
 class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
 
   def setUp(self):
     super(ExecutiveOfficeShouldNotHaveGovernmentBodyTest, self).setUp()
+    root_string = """
+      <Report>
+      </Report>
+    """
+    element_tree = etree.fromstring(root_string)
     self.gov_validator = rules.ExecutiveOfficeShouldNotHaveGovernmentBody(
+        element_tree,
         None,
-        None,
+    )
+    root_string = """
+      <Report>
+        <OfficeHolderTenureCollection>
+        </OfficeHolderTenureCollection>
+      </Report>
+    """
+    element_tree = etree.fromstring(root_string)
+    self.post_office_split_validator = (
+        rules.ExecutiveOfficeShouldNotHaveGovernmentBody(
+            element_tree,
+            None,
+        )
     )
 
   def testExecutiveOfficeWithGovernmentBodyRaisesError(self):
@@ -9665,6 +9775,33 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
 
         with self.assertRaises(loggers.ElectionError) as ee:
           self.gov_validator.check(etree.fromstring(office_string))
+        self.assertEqual(
+            f"Executive Office element (roles: {office_role}) has a "
+            "government body. Executive offices should not have government "
+            "bodies.",
+            str(ee.exception.log_entry[0].message),
+        )
+
+  def testPostSplitExecutiveOfficeWithGovernmentBodyRaisesError(self):
+    for office_role in rules._EXECUTIVE_OFFICE_ROLES:
+      with self.subTest(office_role=office_role):
+        office_string = f"""
+          <Office>
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>government-body</OtherType>
+                <Value>United States Senate</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+            <OfficeRole>{office_role}</OfficeRole>
+          </Office>
+        """
+
+        with self.assertRaises(loggers.ElectionError) as ee:
+          self.post_office_split_validator.check(
+              etree.fromstring(office_string)
+          )
         self.assertEqual(
             f"Executive Office element (roles: {office_role}) has a "
             "government body. Executive offices should not have government "
@@ -9701,6 +9838,33 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
             str(ee.exception.log_entry[0].message),
         )
 
+  def testPostSplitExecutiveOfficeWithGovernmentalBodyRaisesError(self):
+    for office_role in rules._EXECUTIVE_OFFICE_ROLES:
+      with self.subTest(office_role=office_role):
+        office_string = f"""
+          <Office>
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>governmental-body</OtherType>
+                <Value>United States Senate</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+            <OfficeRole>{office_role}</OfficeRole>
+          </Office>
+        """
+
+        with self.assertRaises(loggers.ElectionError) as ee:
+          self.post_office_split_validator.check(
+              etree.fromstring(office_string)
+          )
+        self.assertEqual(
+            f"Executive Office element (roles: {office_role}) has a "
+            "government body. Executive offices should not have government "
+            "bodies.",
+            str(ee.exception.log_entry[0].message),
+        )
+
   def testExecutiveOfficeWithGovernmentBodyIdsRaisesError(self):
     for office_role in rules._EXECUTIVE_OFFICE_ROLES:
       with self.subTest(office_role=office_role):
@@ -9726,6 +9890,27 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
             str(ee.exception.log_entry[0].message),
         )
 
+  def testPostSplitExecutiveOfficeWithGovernmentBodyIdsRaisesError(self):
+    for office_role in rules._EXECUTIVE_OFFICE_ROLES:
+      with self.subTest(office_role=office_role):
+        office_string = f"""
+          <Office>
+            <GovernmentBodyIds>gov_body_1</GovernmentBodyIds>
+            <OfficeRole>{office_role}</OfficeRole>
+          </Office>
+        """
+
+        with self.assertRaises(loggers.ElectionError) as ee:
+          self.post_office_split_validator.check(
+              etree.fromstring(office_string)
+          )
+        self.assertEqual(
+            f"Executive Office element (roles: {office_role}) has a "
+            "government body. Executive offices should not have government "
+            "bodies.",
+            str(ee.exception.log_entry[0].message),
+        )
+
   def testExecutiveOfficeWithoutGovernmentBodyIsValid(self):
     office_string = """
       <Office>
@@ -9740,6 +9925,15 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
     """
 
     self.gov_validator.check(etree.fromstring(office_string))
+
+  def testPostSplitExecutiveOfficeWithoutGovernmentBodyIsValid(self):
+    office_string = """
+      <Office>
+        <OfficeRole>head of state</OfficeRole>
+      </Office>
+    """
+
+    self.post_office_split_validator.check(etree.fromstring(office_string))
 
 
 class OfficeSelectionMethodTest(absltest.TestCase):
