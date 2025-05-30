@@ -4182,34 +4182,32 @@ class ElectionEventDatesAreSequential(base.DateRule):
       raise loggers.ElectionError(self.error_log)
 
 
-class NoSourceDirPathBeforeInitialDeliveryDate(base.BaseRule):
-  """SourceDirPath should only be defined if one of the initial delivery dates is in the past."""
+class SourceDirPathMustBeSetAfterInitialDeliveryDate(base.BaseRule):
+  """SourceDirPath must be set if any InitialDeliveryDate is in the past."""
 
   def elements(self):
     return ["Feed"]
 
   def check(self, element):
-    if not element_has_text(element.find("SourceDirPath")):
+    if element_has_text(element.find("SourceDirPath")):
       return
     today = datetime.date.today()
     today_partial_date = base.PartialDate(
         year=today.year, month=today.month, day=today.day
     )
-    initial_deliveries = element.findall(".//InitialDeliveryDate")
-    if initial_deliveries:
-      for initial_delivery in initial_deliveries:
-        initial_delivery_date = (
-            base.PartialDate.init_partial_date(initial_delivery.text)
-            if element_has_text(initial_delivery)
-            else None
-        )
-        if initial_delivery_date and initial_delivery_date < today_partial_date:
-          return
-      raise loggers.ElectionWarning.from_message(
-          "SourceDirPath is defined but all initialDeliveryDate are in the"
-          " future.",
-          [element],
+    initial_deliveries = element.findall(".//InitialDeliveryDate") or []
+    for initial_delivery in initial_deliveries:
+      initial_delivery_date = (
+          base.PartialDate.init_partial_date(initial_delivery.text)
+          if element_has_text(initial_delivery)
+          else None
       )
+      if initial_delivery_date and initial_delivery_date < today_partial_date:
+        raise loggers.ElectionError.from_message(
+            "SourceDirPath is not set but an InitialDeliveryDate is in the "
+            f"past for feed {element.find('FeedId').text}.",
+            [element],
+        )
 
 
 class OfficeHolderSubFeedDatesAreSequential(base.DateRule):
@@ -4790,10 +4788,10 @@ METADATA_RULES = (
     FeedInactiveDateIsLatestDate,
     FeedInactiveDateSetForNonEvergreenFeed,
     FeedTypeHasValidFeedLongevity,
-    NoSourceDirPathBeforeInitialDeliveryDate,
     OfficeHolderSubFeedDatesAreSequential,
     OptionalAndEmpty,
     Schema,
+    SourceDirPathMustBeSetAfterInitialDeliveryDate,
     SourceDirPathsAreUnique,
     UniqueLabel,
     # go/keep-sorted end

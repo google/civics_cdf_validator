@@ -11582,14 +11582,26 @@ class ElectionEventDatesAreSequentialTest(absltest.TestCase):
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "ElectionEvent")
 
 
-class NoSourceDirPathBeforeInitialDeliveryDateTest(absltest.TestCase):
+class SourceDirPathMustBeSetAfterInitialDeliveryDateTest(absltest.TestCase):
 
   def setUp(self):
-    super(NoSourceDirPathBeforeInitialDeliveryDateTest, self).setUp()
-    self.validator = rules.NoSourceDirPathBeforeInitialDeliveryDate(None, None)
+    super(SourceDirPathMustBeSetAfterInitialDeliveryDateTest, self).setUp()
+    self.validator = rules.SourceDirPathMustBeSetAfterInitialDeliveryDate(
+        None, None
+    )
 
   @freezegun.freeze_time("2024-08-26")
-  def testInitialDeliveryDateInPast(self):
+  def testNoInitialDeliveryDateHasSourceDirPathSucceeds(self):
+    feed_string = """
+      <Feed>
+        <SourceDirPath>test_path_1</SourceDirPath>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  @freezegun.freeze_time("2024-08-26")
+  def testInitialDeliveryDateInPastHasSourceDirPathSucceeds(self):
     feed_string = """
       <Feed>
         <SourceDirPath>test_path_1</SourceDirPath>
@@ -11607,17 +11619,7 @@ class NoSourceDirPathBeforeInitialDeliveryDateTest(absltest.TestCase):
     self.validator.check(etree.fromstring(feed_string))
 
   @freezegun.freeze_time("2024-08-26")
-  def testNoInitialDeliveryDate(self):
-    feed_string = """
-      <Feed>
-        <SourceDirPath>test_path_1</SourceDirPath>
-      </Feed>
-      """
-
-    self.validator.check(etree.fromstring(feed_string))
-
-  @freezegun.freeze_time("2024-08-26")
-  def testAllInitialDeliveryDateInFutureReturnsError(self):
+  def testAllInitialDeliveryDateInFutureHasSourceDirPathSucceeds(self):
     feed_string = """
       <Feed>
         <SourceDirPath>test_path_1</SourceDirPath>
@@ -11632,14 +11634,55 @@ class NoSourceDirPathBeforeInitialDeliveryDateTest(absltest.TestCase):
       </Feed>
       """
 
-    with self.assertRaises(loggers.ElectionWarning) as cm:
+    self.validator.check(etree.fromstring(feed_string))
+
+  @freezegun.freeze_time("2025-01-01")
+  def testNoInitialDeliveryDateNoSourceDirPathSucceeds(self):
+    feed_string = """<Feed></Feed>"""
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  @freezegun.freeze_time("2024-08-26")
+  def testAllInitialDeliveryDateInFutureNoSourceDirPathSucceeds(self):
+    feed_string = """
+      <Feed>
+        <ElectionEventCollection>
+          <ElectionEvent>
+            <InitialDeliveryDate>2027-12-01</InitialDeliveryDate>
+          </ElectionEvent>
+        </ElectionEventCollection>
+        <OfficeHolderSubFeed>
+          <InitialDeliveryDate>2027-01</InitialDeliveryDate>
+        </OfficeHolderSubFeed>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  @freezegun.freeze_time("2024-08-26")
+  def testInitialDeliveryDateInPastNoSourceDirPathFails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>fake_feed_id</FeedId>
+        <ElectionEventCollection>
+          <ElectionEvent>
+            <InitialDeliveryDate>2023-12-01</InitialDeliveryDate>
+          </ElectionEvent>
+        </ElectionEventCollection>
+        <OfficeHolderSubFeed>
+          <InitialDeliveryDate>2027-01</InitialDeliveryDate>
+        </OfficeHolderSubFeed>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(feed_string))
     self.assertEqual(
-        cm.exception.log_entry[0].message,
-        "SourceDirPath is defined but all initialDeliveryDate are in the"
-        " future.",
+        context.exception.log_entry[0].message,
+        "SourceDirPath is not set but an InitialDeliveryDate is in the past "
+        "for feed fake_feed_id.",
     )
-    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Feed")
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
 
 class OfficeHolderSubFeedDatesAreSequentialTest(absltest.TestCase):
