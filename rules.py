@@ -2365,17 +2365,24 @@ class OfficesHaveJurisdictionID(base.BaseRule):
     return ["Office"]
 
   def check(self, element):
-    jurisdiction_values = get_entity_info_for_value_type(
-        element, "jurisdiction-id"
-    )
+    jurisdiction_values = []
+    post_office_split_jurisdiction_element = element.find("JurisdictionId")
+    if element_has_text(post_office_split_jurisdiction_element):
+      jurisdiction_values.append(post_office_split_jurisdiction_element.text)
+    else:
+      jurisdiction_values = get_entity_info_for_value_type(
+          element, "jurisdiction-id"
+      )
+
     jurisdiction_values = [j_id for j_id in jurisdiction_values if j_id.strip()]
     if not jurisdiction_values:
       raise loggers.ElectionError.from_message(
-          "Office is missing a jurisdiction-id.", [element]
+          "Office is missing a jurisdiction ID.", [element]
       )
     if len(jurisdiction_values) > 1:
       raise loggers.ElectionError.from_message(
-          "Office has more than one jurisdiction-id.", [element]
+          "Office has more than one jurisdiction ID.",
+          [element],
       )
 
 
@@ -2431,11 +2438,17 @@ class OfficesHaveValidOfficeLevel(base.BaseRule):
     return ["Office"]
 
   def check(self, element):
-    office_levels = [
-        ol_id.strip()
-        for ol_id in get_external_id_values(element, "office-level")
-        if ol_id.strip()
-    ]
+    office_levels = []
+    post_office_split_office_level_element = element.find("Level")
+    if element_has_text(post_office_split_office_level_element):
+      office_levels.append(post_office_split_office_level_element.text)
+    else:
+      office_levels = [
+          ol_id.strip()
+          for ol_id in get_external_id_values(element, "office-level")
+          if ol_id.strip()
+      ]
+
     if not office_levels:
       raise loggers.ElectionError.from_message(
           "Office is missing an office level.",
@@ -2461,10 +2474,13 @@ class OfficesHaveValidOfficeRole(base.BaseRule):
     return ["Office"]
 
   def check(self, element):
-    office_roles = [
-        office_role.strip()
-        for office_role in get_external_id_values(element, "office-role")
-    ]
+    office_roles = [role.text for role in element.findall("Role")]
+    if not office_roles:
+      office_roles = [
+          office_role.strip()
+          for office_role in get_external_id_values(element, "office-role")
+      ]
+
     if not office_roles:
       raise loggers.ElectionError.from_message(
           "Office is missing an office role.",

@@ -5805,6 +5805,15 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     self.offices_validator.check(element)
 
+  def testOfficeHasPostOfficeSplitJurisdictionID(self):
+    test_string = """
+          <Office objectId="off1">
+            <JurisdictionId>ru-gpu2</JurisdictionId>
+          </Office>
+        """
+    element = etree.fromstring(test_string)
+    self.offices_validator.check(element)
+
   def testOfficeHasJurisdictionIDByExternalIdentifier(self):
     test_string = """
           <Office objectId="off1">
@@ -5827,8 +5836,10 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office is missing a jurisdiction-id.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing a jurisdiction ID.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off2")
 
@@ -5841,8 +5852,10 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office is missing a jurisdiction-id.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing a jurisdiction ID.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off2")
 
@@ -5856,8 +5869,10 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office has more than one jurisdiction-id.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office has more than one jurisdiction ID.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off1")
 
@@ -5873,8 +5888,10 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office is missing a jurisdiction-id.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing a jurisdiction ID.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off2")
 
@@ -5891,8 +5908,10 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office is missing a jurisdiction-id.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing a jurisdiction ID.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off2")
 
@@ -5914,8 +5933,10 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office has more than one jurisdiction-id.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office has more than one jurisdiction ID.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off1")
 
@@ -5932,8 +5953,10 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office is missing a jurisdiction-id.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing a jurisdiction ID.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off2")
 
@@ -5946,8 +5969,10 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office is missing a jurisdiction-id.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing a jurisdiction ID.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off2")
 
@@ -6127,6 +6152,15 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     self.offices_validator.check(element)
 
+  def testOfficeHasPostOfficeSplitOfficeLevel(self):
+    test_string = """
+          <Office objectId="off1">
+             <Level>District</Level>
+          </Office>
+        """
+    element = etree.fromstring(test_string)
+    self.offices_validator.check(element)
+
   def testOfficeDoesNotHaveOfficeLevelByExternalIdentifier(self):
     test_string = """
           <Office objectId="off2">
@@ -6294,6 +6328,15 @@ class OfficesHaveValidOfficeRoleTest(absltest.TestCase):
                 <Value>upper house</Value>
               </ExternalIdentifier>
             </ExternalIdentifiers>
+          </Office>
+        """
+    element = etree.fromstring(test_string)
+    self.offices_validator.check(element)
+
+  def testPostOfficeSplitOfficeHasValidOfficeRole(self):
+    test_string = """
+          <Office objectId="off1">
+            <Role>upper house</Role>
           </Office>
         """
     element = etree.fromstring(test_string)
