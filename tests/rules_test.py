@@ -8062,14 +8062,16 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
         " from the feed.",
         ei.exception.log_entry[0].message,
     )
-    self.assertEqual("offten1", ei.exception.log_entry[0].elements[0])
+    self.assertEqual(
+        "offten1", ei.exception.log_entry[0].elements[0].get("objectId")
+    )
     self.assertEqual(
         "All officeholder tenures ended more than 60 days ago. "
         "Therefore, you can remove the person and the related "
         "officeholder tenures from the feed.",
         ei.exception.log_entry[1].message,
     )
-    self.assertEqual("per1", ei.exception.log_entry[1].elements[0])
+    self.assertEqual("per1", ei.exception.log_entry[1].elements[0].text)
 
   def testEndDateOfficeHolderRaiseInfoForMultipleOfficeHolderTenures(self):
     test_string = self.post_office_split_base_string.format(
@@ -8086,7 +8088,9 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
         " from the feed.",
         ei.exception.log_entry[0].message,
     )
-    self.assertEqual("offten0", ei.exception.log_entry[0].elements[0])
+    self.assertEqual(
+        "offten0", ei.exception.log_entry[0].elements[0].get("objectId")
+    )
     with self.assertRaises(loggers.ElectionInfo) as ei:
       election_tree = etree.ElementTree(etree.fromstring(test_string))
       rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
@@ -8098,7 +8102,9 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
         " from the feed.",
         ei.exception.log_entry[1].message,
     )
-    self.assertEqual("offten1", ei.exception.log_entry[1].elements[0])
+    self.assertEqual(
+        "offten1", ei.exception.log_entry[1].elements[0].get("objectId")
+    )
 
   @freezegun.freeze_time("2022-01-01")
   def testEndDateOfficeHolderDoesNotRaiseInfo(self):

@@ -84,7 +84,6 @@ class ElectionInfo(ElectionException):
 
 def get_parent_hierarchy_object_id_str(elt):
   """Get the elt path from the 1st parent with an objectId / ElectionReport."""
-
   elt_hierarchy = []
   current_elt = elt
   while current_elt is not None:
@@ -203,4 +202,3 @@ def severities_names():
   for exp in ExceptionListWrapper.SUPPORTED_SEVERITIES:
     names.append(exp.description.lower())
   return names
-

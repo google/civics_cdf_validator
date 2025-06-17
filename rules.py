@@ -3018,8 +3018,10 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
           self.election_tree, "OfficeHolderTenure"
       )
       for officeholder_tenure in officeholder_tenures:
-        person_id = officeholder_tenure.find("OfficeHolderPersonId").text
-        object_id = officeholder_tenure.get("objectId")
+        office_holder_person_elem = officeholder_tenure.find(
+            "OfficeHolderPersonId"
+        )
+        person_id = office_holder_person_elem.text
         date_validator = base.DateRule(None, None)
         date_validator.gather_dates(officeholder_tenure)
         end_date = date_validator.end_date
@@ -3033,13 +3035,15 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
               sixty_days_earlier.day,
           )
           if end_date < partial_date_sixty_days:
-            outdated_officeholder_tenures.append(object_id)
+            outdated_officeholder_tenures.append(officeholder_tenure)
           if person_id in outdated_officetenure_persons.keys():
             outdated_officetenure_persons[person_id].append(
-                (object_id, end_date)
+                (office_holder_person_elem, end_date)
             )
           else:
-            outdated_officetenure_persons[person_id] = [(object_id, end_date)]
+            outdated_officetenure_persons[person_id] = [
+                (office_holder_person_elem, end_date)
+            ]
       for outdated_officeholder_tenure in outdated_officeholder_tenures:
         info_message = (
             "The officeholder tenure end date is more than 60 days"
@@ -3051,7 +3055,9 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
         )
       for person_id, value_list in outdated_officetenure_persons.items():
         has_recent_tenure = False
+        office_holder_person_elem = None
         for value in value_list:
+          office_holder_person_elem = value[0]
           end_date = value[1]
           sixty_days_earlier = datetime.datetime.now() + datetime.timedelta(
               days=-60
@@ -3063,13 +3069,15 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
           )
           if end_date > partial_date_sixty_days:
             has_recent_tenure = True
-        if not has_recent_tenure:
+        if not has_recent_tenure and office_holder_person_elem is not None:
           info_message = (
               "All officeholder tenures ended more than 60 days ago. "
-              "Therefore, you can remove the person and the related "
-              "officeholder tenures from the feed."
+              "Therefore, you can remove the person and the "
+              "related officeholder tenures from the feed."
           )
-          info_log.append(loggers.LogEntry(info_message, [person_id]))
+          info_log.append(
+              loggers.LogEntry(info_message, [office_holder_person_elem])
+          )
     else:
       for office in offices:
         person_id = office.find("OfficeHolderPersonIds").text
