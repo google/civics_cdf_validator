@@ -3489,9 +3489,6 @@ class MissingFieldsInfo(base.MissingFieldRule):
 
   def element_field_mapping(self):
     return {
-        "Office": [
-            "ElectoralDistrictId",
-        ],
     }
 
 
@@ -4511,10 +4508,20 @@ class UnreferencedEntitiesOfficeholders(UnreferencedEntitiesBase):
   """
 
   def __init__(self, election_tree, schema_tree, **kwargs):
+    office_holder_tenure_collection = self.get_elements_by_class(
+        election_tree, "OfficeHolderTenure"
+    )
+    is_post_office_split = False
+    if office_holder_tenure_collection:
+      is_post_office_split = True
     super(UnreferencedEntitiesOfficeholders, self).__init__(
         election_tree,
         schema_tree,
-        frozenset(["Office", "Leadership"]),
+        (
+            frozenset(["OfficeHolderTenure", "Leadership"])
+            if is_post_office_split
+            else frozenset(["Office", "Leadership"])
+        ),
         frozenset(["Party"]),
         **kwargs,
     )

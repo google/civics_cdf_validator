@@ -9534,29 +9534,6 @@ class MissingFieldsInfoTest(absltest.TestCase):
   def testSetsSeverityLevelToWarning(self):
     self.assertEqual(0, self.field_validator.get_severity())
 
-  def testRequiredFieldIsPresent_Candidate(self):
-    office = """
-      <Office objectId="123">
-        <ElectoralDistrictId>ru_2343</ElectoralDistrictId>
-      </Office>
-    """
-    self.field_validator.check(etree.fromstring(office))
-
-  def testRaisesInfoForMissingField_Candidate(self):
-    office = """
-      <Office objectId="123">
-      </Office>
-    """
-
-    with self.assertRaises(loggers.ElectionInfo) as ew:
-      self.field_validator.check(etree.fromstring(office))
-
-    self.assertEqual(
-        ew.exception.log_entry[0].message,
-        "The element Office is missing field ElectoralDistrictId.")
-    self.assertEqual(ew.exception.log_entry[0].elements[0].get("objectId"),
-                     "123")
-
 
 class PartySpanMultipleCountriesTest(absltest.TestCase):
 
@@ -11491,6 +11468,18 @@ class UnreferencedEntitiesOfficeholdersTest(absltest.TestCase):
     test_string = """
     <Leadership objectId="leadership-id">
     </Leadership>
+    """
+
+    rules.UnreferencedEntitiesOfficeholders(
+        etree.fromstring(test_string), self._base_schema
+    ).check()
+
+  def testUnreferencedTopLevelOfficeHolderTenureOk(self):
+    test_string = """
+    <OfficeHolderCollection>
+      <OfficeHolderTenure objectId="office-ten-id">
+      </OfficeHolderTenure>
+    </OfficeHolderCollection>
     """
 
     rules.UnreferencedEntitiesOfficeholders(
