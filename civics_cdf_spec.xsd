@@ -212,6 +212,29 @@
         <xs:enumeration value="party-leader"/>
       </xs:restriction>
     </xs:simpleType>
+    <xs:simpleType name="VoterInformationWebsiteType">
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="voter-registration" />
+        <xs:enumeration value="voting-procedures" />
+        <xs:enumeration value="polling-location" />
+        <xs:enumeration value="candidate-information" />
+        <xs:enumeration value="voter-info" />
+        <xs:enumeration value="election-results-information" />
+        <xs:enumeration value="registration-requirements" />
+        <xs:enumeration value="voter-registration-check" />
+        <xs:enumeration value="voter-registration-by-mail" />
+        <xs:enumeration value="voter-id-registration-requirements" />
+        <xs:enumeration value="voter-registration-online" />
+        <xs:enumeration value="voter-registration-deadlines" />
+        <xs:enumeration value="how-to-vote" />
+        <xs:enumeration value="voting-requirements" />
+        <xs:enumeration value="how-to-vote-by-mail" />
+        <xs:enumeration value="how-to-vote-overseas" />
+        <xs:enumeration value="how-to-vote-absentee" />
+        <xs:enumeration value="how-to-vote-by-proxy" />
+        <xs:enumeration value="voting-id-requirements" />
+      </xs:restriction>
+    </xs:simpleType>
     <!-- ========== Elements ========== -->
     <xs:complexType name="AnnotatedString">
         <xs:simpleContent>
@@ -358,8 +381,10 @@
             <xs:element name="ElectoralDistrictId" type="xs:IDREF" />
             <xs:element maxOccurs="1" minOccurs="0" name="EndDate" type="PartialDate"/>
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
+            <xs:element maxOccurs="1" minOccurs="0" name="FilingDeadline" type="PartialDate" />
             <xs:element minOccurs="0" name="HasRotation" type="xs:boolean" />
             <xs:element name="Name" type="xs:string" />
+            <xs:element maxOccurs="1" minOccurs="0" name="Seat" type="xs:string" />
             <xs:element minOccurs="0" name="SequenceOrder" type="xs:integer" />
             <xs:element maxOccurs="1" minOccurs="0" name="StartDate" type="PartialDate"/>
             <xs:element minOccurs="0" name="SubUnitsReported" type="xs:integer" />
@@ -449,6 +474,13 @@
               </xs:complexType>
             </xs:element>
             <xs:element maxOccurs="unbounded" minOccurs="0" name="Election" type="Election" />
+            <xs:element minOccurs="0" name="ElectoralCommissionCollection">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element maxOccurs="unbounded" name="ElectoralCommission" type="ElectoralCommission" />
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
             <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
             <xs:element name="Format" type="ReportDetailLevel" />
             <xs:element name="GeneratedDate" type="xs:dateTime" />
@@ -478,6 +510,13 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="OfficeHolderTenureCollection">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" name="OfficeHolderTenure" type="OfficeHolderTenure" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element maxOccurs="1" minOccurs="0" name="PartyCollection">
                 <xs:complexType>
                     <xs:sequence>
@@ -497,7 +536,14 @@
             <xs:element name="Status" type="ResultsStatus" />
             <xs:element minOccurs="0" name="TestType" type="xs:string" />
             <xs:element name="VendorApplicationId" type="xs:string" />
-            </xs:sequence>
+            <xs:element minOccurs="0" name="VoterInformationCollection">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="1" name="VoterInformation" type="VoterInformation" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
     </xs:complexType>
     <xs:complexType name="ExternalIdentifiers">
         <xs:sequence>
@@ -540,6 +586,13 @@
         </xs:sequence>
         <xs:attribute name="label" type="xs:string" />
     </xs:complexType>
+    <xs:complexType name="InternationalizedUri">
+        <xs:simpleContent>
+            <xs:extension base="xs:anyURI">
+                <xs:attribute name="language" type="xs:language" use="required" />
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
     <xs:complexType name="LanguageString">
         <xs:simpleContent>
             <xs:extension base="xs:string">
@@ -555,10 +608,13 @@
             <xs:element minOccurs="0" name="FilingDeadline" type="PartialDate" />
             <xs:element minOccurs="0" name="GovernmentBodyIds" type="xs:IDREFS"/>
             <xs:element minOccurs="0" name="IsPartisan" type="xs:boolean" />
+            <xs:element minOccurs="0" name="JurisdictionId" type="xs:IDREF" />
+            <xs:element minOccurs="0" name="Level" type="OfficeLevel"/>
             <xs:element name="Name" type="InternationalizedText" />
             <xs:element minOccurs="0" name="OfficeHolderPersonIds" type="xs:IDREFS" />
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Role" type="OfficeRole"/>
             <xs:element maxOccurs="1" minOccurs="0" name="SeatStatus" type="SeatStatus"/>
-            <xs:element minOccurs="0" name="SelectionMethod" type="OfficeSelectionMethod" />
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="SelectionMethod" type="OfficeSelectionMethod" />
             <xs:element minOccurs="0" name="Term">
                 <xs:complexType>
                     <xs:sequence>
@@ -580,6 +636,21 @@
             <xs:element maxOccurs="unbounded" minOccurs="0" name="SubOfficeGroup" type="OfficeGroup" />
         </xs:sequence>
         <xs:attribute name="label" type="xs:string" />
+    </xs:complexType>
+    <xs:complexType name="OfficeHolderTenure">
+        <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="ContactInformation" type="ContactInformation" />
+            <xs:element name="ElectoralDistrictId" type="xs:IDREF" />
+            <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers" />
+            <xs:element name="OfficeHolderPersonId" type="xs:IDREF" />
+            <xs:element name="OfficeId" type="xs:IDREF" />
+            <xs:element minOccurs="0" name="SeatStatus" type="SeatStatus"/>
+            <xs:element name="OfficeSelectionMethod" type="OfficeSelectionMethod" />
+            <xs:element name="StartDate" type="PartialDate" />
+            <xs:element minOccurs="0" name="EndDate" type="PartialDate" />
+            <xs:element minOccurs="0" name="OfficeTermType" type="OfficeTermType" />
+        </xs:sequence>
+        <xs:attribute name="objectId" type="xs:ID" use="required" />
     </xs:complexType>
     <xs:complexType name="OrderedContest">
         <xs:sequence>
@@ -764,6 +835,7 @@
             </xs:extension>
         </xs:simpleContent>
     </xs:complexType>
+    <!-- ========== Political Committee Feed Types ========== -->
     <xs:complexType name="Committee">
       <xs:sequence>
         <xs:element maxOccurs="1" minOccurs="1" name="AffiliationCollection">
@@ -816,4 +888,42 @@
       </xs:sequence>
       <xs:attribute name="objectId" type="xs:ID" use="required"/>
     </xs:complexType>
+
+    <!-- ========== Voter Info Feed Types ========== -->
+    <xs:complexType name="ElectoralCommission">
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" minOccurs="0" name="ContactInformation" type="ContactInformation" />
+        <xs:element maxOccurs="unbounded" minOccurs="1" name="ElectoralCommissionWebsite" type="ElectoralCommissionWebsite" />
+        <xs:element maxOccurs="1" minOccurs="1" name="ExternalIdentifiers" type="ExternalIdentifiers" />
+        <xs:element maxOccurs="1" minOccurs="1" name="Name" type="InternationalizedText"/>
+        <xs:element maxOccurs="1" minOccurs="1" name="ScopeGpUnitIds" type="xs:IDREFS" />
+      </xs:sequence>
+      <xs:attribute name="objectId" type="xs:ID" use="required"/>
+    </xs:complexType>
+  <xs:complexType name="ElectoralCommissionWebsite">
+    <xs:sequence>
+      <xs:element maxOccurs="unbounded" name="Uri" type="InternationalizedUri" />
+      <xs:element minOccurs="0" name="IsGeoFenced" type="xs:boolean"/>
+      <xs:element minOccurs="0" name="IsUserInputRequired" type="xs:boolean"/>
+    </xs:sequence>
+  </xs:complexType>
+    <xs:complexType name="VoterInformation">
+      <xs:sequence>
+        <xs:element maxOccurs="1" minOccurs="1" name="ExternalIdentifiers" type="ExternalIdentifiers" />
+        <xs:element maxOccurs="unbounded" minOccurs="1" name="VoterInformationWebsite" type="VoterInformationWebsite" />
+        <xs:choice>
+            <xs:element maxOccurs="1" minOccurs="1" name="AssociatedElectionIds"  type="xs:IDREFS" />
+            <xs:element maxOccurs="1" minOccurs="1" name="ScopeGpUnitIds" type="xs:IDREFS" />
+        </xs:choice>
+      </xs:sequence>
+      <xs:attribute name="objectId" type="xs:ID" use="required"/>
+    </xs:complexType>
+  <xs:complexType name="VoterInformationWebsite">
+      <xs:sequence>
+          <xs:element maxOccurs="unbounded" minOccurs="1" name="Type" type="VoterInformationWebsiteType" />
+          <xs:element maxOccurs="unbounded" minOccurs="1" name="Uri" type="InternationalizedUri" />
+          <xs:element minOccurs="0" name="IsGeoFenced" type="xs:boolean"/>
+          <xs:element minOccurs="0" name="IsUserInputRequired" type="xs:boolean"/>
+      </xs:sequence>
+  </xs:complexType>
 </xs:schema>

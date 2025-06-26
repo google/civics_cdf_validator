@@ -3906,48 +3906,58 @@ class UniqueStableIDTest(absltest.TestCase):
 
   def testUniqueStableIDPass(self):
 
-    test_string = self.root_string.format("04_AS", "04_A", "stable-can-1",
-                                          "stable-can-2", "stable-can-3")
+    test_string = self.root_string.format(
+        "04_AS", "04_A", "stable-can-1", "stable-can-2", "stable-can-3"
+    )
     election_tree = etree.fromstring(test_string)
     rules.UniqueStableID(election_tree, None).check()
 
   def testUniqueStableIDFail(self):
 
-    test_string = self.root_string.format("04_AS", "04_A", "04_AS",
-                                          "stable-can-2", "stable-can-3")
+    test_string = self.root_string.format(
+        "04_AS", "04_A", "04_AS", "stable-can-2", "stable-can-3"
+    )
     election_tree = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as ee:
       rules.UniqueStableID(election_tree, None).check()
     self.assertEqual(
         "Stable ID 04_AS is not unique as it is mapped in ['off04_AS', 'can1']",
-        ee.exception.log_entry[0].message)
+        ee.exception.log_entry[0].message,
+    )
 
   def testUniqueStableIDFailMultipleElements(self):
 
-    test_string = self.root_string.format("04_AS", "04_A", "04_AS", "04_A",
-                                          "stable-can-3")
+    test_string = self.root_string.format(
+        "04_AS", "04_A", "04_AS", "04_A", "stable-can-3"
+    )
     election_tree = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as ee:
       rules.UniqueStableID(election_tree, None).check()
     self.assertEqual(
         "Stable ID 04_AS is not unique as it is mapped in ['off04_AS', 'can1']",
-        ee.exception.log_entry[0].message)
+        ee.exception.log_entry[0].message,
+    )
     self.assertEqual(
         "Stable ID 04_A is not unique as it is mapped in ['off04_A', 'can2']",
-        ee.exception.log_entry[1].message)
+        ee.exception.log_entry[1].message,
+    )
 
   def testUniqueStableIDFailThreeElements(self):
-    test_string = self.root_string.format("04_AS", "04_A", "04_AS", "04_A",
-                                          "04_A")
+    test_string = self.root_string.format(
+        "04_AS", "04_A", "04_AS", "04_A", "04_A"
+    )
     election_tree = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as ee:
       rules.UniqueStableID(election_tree, None).check()
     self.assertEqual(
         "Stable ID 04_AS is not unique as it is mapped in ['off04_AS', 'can1']",
-        ee.exception.log_entry[0].message)
+        ee.exception.log_entry[0].message,
+    )
     self.assertEqual(
-        "Stable ID 04_A is not unique as it is mapped in ['off04_A', 'can2', 'can3']",
-        ee.exception.log_entry[1].message)
+        "Stable ID 04_A is not unique as it is mapped in ['off04_A', 'can2',"
+        " 'can3']",
+        ee.exception.log_entry[1].message,
+    )
 
 
 class MissingStableIdsTest(absltest.TestCase):
@@ -4518,11 +4528,17 @@ class PersonHasOfficeTest(absltest.TestCase):
   # _gather_defined_values tests
   def testReturnsPartyLeaderAndOfficeHolderIds(self):
     defined_collections = """
-      <OfficeCollection>
-        <Office><OfficeHolderPersonIds>p1</OfficeHolderPersonIds></Office>
-        <Office><OfficeHolderPersonIds>p2</OfficeHolderPersonIds></Office>
-        <Office><OfficeHolderPersonIds>p3</OfficeHolderPersonIds></Office>
-      </OfficeCollection>
+      <OfficeHolderTenureCollection>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p1</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p2</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p3</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+      </OfficeHolderTenureCollection>
       <PartyCollection>
         <Party>
           <ExternalIdentifiers>
@@ -4554,7 +4570,124 @@ class PersonHasOfficeTest(absltest.TestCase):
     self.assertEqual(expected_defined_values, defined_values)
 
   # check tests
-  def testEachPersonInACollectionIsReferencedByAnOffice(self):
+  def testPartyLeadersDoNotRequireOffices(self):
+    office_party_collections = """
+      <PartyCollection>
+        <Party>
+          <Name>Republican Socialists</Name>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>Other</Type>
+              <OtherType>party-leader-id</OtherType>
+              <Value>p1</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>Other</Type>
+              <OtherType>party-leader-id</OtherType>
+              <Value>p2</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>Other</Type>
+              <OtherType>party-chair-id</OtherType>
+              <Value>p3</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Party>
+      </PartyCollection>
+    """
+    root_string = io.BytesIO(
+        bytes(self._base_xml.format(office_party_collections).encode())
+    )
+    election_tree = etree.parse(root_string)
+    office_validator = rules.PersonHasOffice(election_tree, None)
+    office_validator.check()
+
+  def testTreesWithNoRootsIgnored(self):
+    no_root_string = io.BytesIO(b"<OfficeHolderTenureCollection/>")
+    election_tree = etree.parse(no_root_string)
+    office_validator = rules.PersonHasOffice(election_tree, None)
+    office_validator.check()
+
+  def testRootsWithNoPersonCollectionIgnored(self):
+    no_collection_string = io.BytesIO(b"""
+      <xml>
+        <OfficeHolderTenureCollection/>
+      </xml>
+    """)
+    election_tree = etree.parse(no_collection_string)
+    office_validator = rules.PersonHasOffice(election_tree, None)
+    office_validator.check()
+
+  def testEachPersonReferencedByAnOfficeHolderTenureSucceeds(self):
+    office_collection = """
+      <OfficeHolderTenureCollection>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p1</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p2</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p3</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+      </OfficeHolderTenureCollection>
+    """
+    root_string = io.BytesIO(
+        bytes(self._base_xml.format(office_collection).encode())
+    )
+    election_tree = etree.parse(root_string)
+    office_validator = rules.PersonHasOffice(election_tree, None)
+    office_validator.check()
+
+  def testExtraPersonReferencedByAnOfficeHolderTenureIgnored(self):
+    # NOTE: That all offices have valid Persons is
+    # checked by testOfficeMissingOfficeHolderPersonData
+    office_collection = """
+      <OfficeHolderTenureCollection>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p1</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p2</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p3</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p4</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+      </OfficeHolderTenureCollection>
+    """
+    root_string = io.BytesIO(
+        bytes(self._base_xml.format(office_collection).encode())
+    )
+    election_tree = etree.parse(root_string)
+    rules.PersonHasOffice(election_tree, None).check()
+
+  def testPersonNotReferencedByAnOfficeHolderTenureFails(self):
+    office_collection = """
+      <OfficeHolderTenureCollection>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p1</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+        <OfficeHolderTenure>
+          <OfficeHolderPersonId>p2</OfficeHolderPersonId>
+        </OfficeHolderTenure>
+      </OfficeHolderTenureCollection>
+    """
+    root_string = io.BytesIO(
+        bytes(self._base_xml.format(office_collection).encode())
+    )
+    election_tree = etree.parse(root_string)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      rules.PersonHasOffice(election_tree, None).check()
+    self.assertIn(
+        "No defined data for p3 found in the feed.",
+        context.exception.log_entry[0].message,
+    )
+
+  def testEachPersonInACollectionIsReferencedByAnOfficeSucceeds(self):
     office_collection = """
       <OfficeCollection>
         <Office><OfficeHolderPersonIds>p1</OfficeHolderPersonIds></Office>
@@ -4563,79 +4696,13 @@ class PersonHasOfficeTest(absltest.TestCase):
       </OfficeCollection>
     """
     root_string = io.BytesIO(
-        bytes(self._base_xml.format(office_collection).encode()))
+        bytes(self._base_xml.format(office_collection).encode())
+    )
     election_tree = etree.parse(root_string)
     office_validator = rules.PersonHasOffice(election_tree, None)
     office_validator.check()
 
-  def testIgnoresTreesWithNoRoots(self):
-    no_root_string = io.BytesIO(b"<OfficeCollection/>")
-    election_tree = etree.parse(no_root_string)
-    office_validator = rules.PersonHasOffice(election_tree, None)
-    office_validator.check()
-
-  def testIgnoresRootsWithNoPersonCollection(self):
-    no_collection_string = io.BytesIO(b"""
-      <xml>
-        <OfficeCollection/>
-      </xml>
-    """)
-    election_tree = etree.parse(no_collection_string)
-    office_validator = rules.PersonHasOffice(election_tree, None)
-    office_validator.check()
-
-  def testRaisesErrorIfPersonIsNotReferencedInAnyOffice(self):
-    office_collection = """
-      <OfficeCollection>
-        <Office><OfficeHolderPersonIds>p1</OfficeHolderPersonIds></Office>
-        <Office><OfficeHolderPersonIds>p2</OfficeHolderPersonIds></Office>
-        <Office/>
-      </OfficeCollection>
-    """
-    root_string = io.BytesIO(
-        bytes(self._base_xml.format(office_collection).encode()))
-    election_tree = etree.parse(root_string)
-    office_validator = rules.PersonHasOffice(election_tree, None)
-    with self.assertRaises(loggers.ElectionError):
-      office_validator.check()
-
-  def testRaisesErrorIfTheresAPersonCollectionButNoOfficeCollection(self):
-    root_string = io.BytesIO(bytes(self._base_xml.encode()))
-    election_tree = etree.parse(root_string)
-    office_validator = rules.PersonHasOffice(election_tree, None)
-    with self.assertRaises(loggers.ElectionError):
-      office_validator.check()
-
-  def testPartyLeadersDoNotRequireOffices(self):
-    office_party_collections = """
-      <OfficeCollection>
-          <Office><OfficeHolderPersonIds>p1</OfficeHolderPersonIds></Office>
-        </OfficeCollection>
-        <PartyCollection>
-          <Party>
-            <Name>Republican Socialists</Name>
-            <ExternalIdentifiers>
-              <ExternalIdentifier>
-                <Type>Other</Type>
-                <OtherType>party-leader-id</OtherType>
-                <Value>p2</Value>
-              </ExternalIdentifier>
-              <ExternalIdentifier>
-                <Type>Other</Type>
-                <OtherType>party-chair-id</OtherType>
-                <Value>p3</Value>
-              </ExternalIdentifier>
-            </ExternalIdentifiers>
-          </Party>
-        </PartyCollection>
-    """
-    root_string = io.BytesIO(
-        bytes(self._base_xml.format(office_party_collections).encode()))
-    election_tree = etree.parse(root_string)
-    office_validator = rules.PersonHasOffice(election_tree, None)
-    office_validator.check()
-
-  def testPersonHasOneOffice(self):
+  def testExtraPersonReferencedByAnOfficeIgnored(self):
     # NOTE: That all offices have valid Persons is
     # checked by testOfficeMissingOfficeHolderPersonData
     office_collection = """
@@ -4659,7 +4726,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     election_tree = etree.parse(root_string)
     rules.PersonHasOffice(election_tree, None).check()
 
-  def testPersonHasOneOffice_fails(self):
+  def testPersonNotReferencedByAnOfficeFails(self):
     office_collection = """
       <OfficeCollection>
         <Office objectId="o1">
@@ -4674,13 +4741,14 @@ class PersonHasOfficeTest(absltest.TestCase):
         bytes(self._base_xml.format(office_collection).encode()))
     election_tree = etree.parse(root_string)
 
-    with self.assertRaises(loggers.ElectionError) as cm:
+    with self.assertRaises(loggers.ElectionError) as context:
       rules.PersonHasOffice(election_tree, None).check()
+    self.assertIn(
+        "No defined data for p3 found in the feed.",
+        context.exception.log_entry[0].message,
+    )
 
-    self.assertIn("No defined data for p3 found in the feed.",
-                  cm.exception.log_entry[0].message)
-
-  def testOfficeHasOnePerson_fails(self):
+  def testOfficeHasOnePersonFails(self):
     office_collection = """
       <OfficeCollection>
         <Office objectId="o1">
@@ -5671,7 +5739,7 @@ class ValidURIAnnotationTest(absltest.TestCase):
     root_string = """
       <ContactInformation label="ci_par_at_1">
         <Uri Annotation="personal-facebook">
-          <![CDATA[https://www.fb.com/juanjomalvinas]]>
+          <![CDATA[https://www.fb.com/example]]>
         </Uri>
       </ContactInformation>
     """
@@ -5698,7 +5766,7 @@ class ValidURIAnnotationTest(absltest.TestCase):
     root_string = """
       <ContactInformation label="ci_par_at_1">
         <Uri Annotation="personal-twitter">
-          <![CDATA[https://www.x.com/juanjomalvinas]]>
+          <![CDATA[https://www.x.com/example]]>
         </Uri>
       </ContactInformation>
     """
@@ -5721,6 +5789,16 @@ class ValidURIAnnotationTest(absltest.TestCase):
                      ("'official-x' is not a valid annotation."))
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
 
+  def testWhatsappAnnotation(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="personal-whatsapp">
+          <![CDATA[https://www.whatsapp.com/example]]>
+        </Uri>
+      </ContactInformation>
+    """
+    self.valid_annotation.check(etree.fromstring(root_string))
+
 
 class OfficesHaveJurisdictionIDTest(absltest.TestCase):
 
@@ -5732,6 +5810,15 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
     test_string = """
           <Office objectId="off1">
             <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          </Office>
+        """
+    element = etree.fromstring(test_string)
+    self.offices_validator.check(element)
+
+  def testOfficeHasPostOfficeSplitJurisdictionID(self):
+    test_string = """
+          <Office objectId="off1">
+            <JurisdictionId>ru-gpu2</JurisdictionId>
           </Office>
         """
     element = etree.fromstring(test_string)
@@ -5759,8 +5846,10 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office is missing a jurisdiction-id.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing a jurisdiction ID.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off2")
 
@@ -5773,8 +5862,10 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office is missing a jurisdiction-id.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing a jurisdiction ID.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off2")
 
@@ -5788,8 +5879,10 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office has more than one jurisdiction-id.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office has more than one jurisdiction ID.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off1")
 
@@ -5805,8 +5898,10 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office is missing a jurisdiction-id.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing a jurisdiction ID.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off2")
 
@@ -5823,8 +5918,10 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office is missing a jurisdiction-id.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing a jurisdiction ID.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off2")
 
@@ -5846,8 +5943,10 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office has more than one jurisdiction-id.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office has more than one jurisdiction ID.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off1")
 
@@ -5864,8 +5963,10 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office is missing a jurisdiction-id.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing a jurisdiction ID.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off2")
 
@@ -5878,8 +5979,10 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office is missing a jurisdiction-id.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing a jurisdiction ID.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off2")
 
@@ -6059,6 +6162,15 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     self.offices_validator.check(element)
 
+  def testOfficeHasPostOfficeSplitOfficeLevel(self):
+    test_string = """
+          <Office objectId="off1">
+             <Level>District</Level>
+          </Office>
+        """
+    element = etree.fromstring(test_string)
+    self.offices_validator.check(element)
+
   def testOfficeDoesNotHaveOfficeLevelByExternalIdentifier(self):
     test_string = """
           <Office objectId="off2">
@@ -6071,8 +6183,10 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office is missing an office-level.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing an office level.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off2")
 
@@ -6089,8 +6203,10 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office is missing an office-level.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing an office level.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off2")
 
@@ -6112,8 +6228,10 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office has more than one office-level.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office has more than one office level.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off1")
 
@@ -6130,8 +6248,10 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "Office is missing an office-level.")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing an office level.",
+    )
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "off2")
 
@@ -6141,7 +6261,7 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
              <ExternalIdentifier>
                <Type>other</Type>
                <OtherType>office-level</OtherType>
-               <Value>invalidvalue</Value>
+               <Value>invalid level</Value>
              </ExternalIdentifier>
           </Office>
         """
@@ -6150,7 +6270,7 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
       self.offices_validator.check(element)
     self.assertEqual(
         cm.exception.log_entry[0].message,
-        "Office has invalid office-level invalidvalue.",
+        "Office has an invalid office level: 'invalid level'.",
     )
     self.assertEqual(
         cm.exception.log_entry[0].elements[0].get("objectId"), "off2"
@@ -6208,14 +6328,45 @@ class OfficesHaveValidOfficeRoleTest(absltest.TestCase):
     super(OfficesHaveValidOfficeRoleTest, self).setUp()
     self.offices_validator = rules.OfficesHaveValidOfficeRole(None, None)
 
-  def testOfficeHasOfficeRole(self):
+  def testOfficeHasValidOfficeRole(self):
     test_string = """
           <Office objectId="off1">
-             <ExternalIdentifier>
-               <Type>other</Type>
-               <OtherType>office-role</OtherType>
-               <Value>upper house</Value>
-             </ExternalIdentifier>
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value>upper house</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Office>
+        """
+    element = etree.fromstring(test_string)
+    self.offices_validator.check(element)
+
+  def testPostOfficeSplitOfficeHasValidOfficeRole(self):
+    test_string = """
+          <Office objectId="off1">
+            <Role>upper house</Role>
+          </Office>
+        """
+    element = etree.fromstring(test_string)
+    self.offices_validator.check(element)
+
+  def testOfficeHasValidOfficeRoleCombination(self):
+    test_string = """
+          <Office objectId="off1">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value>head of state</Value>
+              </ExternalIdentifier>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value>head of government</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
           </Office>
         """
     element = etree.fromstring(test_string)
@@ -6223,65 +6374,114 @@ class OfficesHaveValidOfficeRoleTest(absltest.TestCase):
 
   def testOfficeDoesNotHaveOfficeRole(self):
     test_string = """
-          <Office objectId="off2">
-             <ExternalIdentifier>
-               <Type>other</Type>
-               <Value>Region</Value>
-             </ExternalIdentifier>
+          <Office objectId="off1">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <Value>Region</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
           </Office>
         """
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "The office is missing an office-role.")
-    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
-                     "off2")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing an office role.",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].get("objectId"), "off1"
+    )
 
   def testOfficeDoesNotHaveOfficeRoleText(self):
     test_string = """
-          <Office objectId="off2">
-             <ExternalIdentifier>
-               <Type>other</Type>
-               <OtherType>office-role</OtherType>
-               <Value></Value>
-             </ExternalIdentifier>
+          <Office objectId="off1">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value></Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
           </Office>
         """
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "The office is missing an office-role.")
-    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
-                     "off2")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office is missing an office role.",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].get("objectId"), "off1"
+    )
 
-  def testOfficeHasMoreThanOneOfficeRoles(self):
+  def testOfficeHasInvalidOfficeRoleCombination(self):
     test_string = """
           <Office objectId="off1">
-             <ExternalIdentifier>
-               <Type>other</Type>
-               <OtherType>office-role</OtherType>
-               <Value>upper house</Value>
-             </ExternalIdentifier>
-             <ExternalIdentifier>
-               <Type>other</Type>
-               <OtherType>office-role</OtherType>
-               <Value>head of state</Value>
-             </ExternalIdentifier>
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value>upper house</Value>
+              </ExternalIdentifier>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value>lower house</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
           </Office>
         """
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "The office has more than one office-role.")
-    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
-                     "off1")
+    self.assertStartsWith(
+        cm.exception.log_entry[0].message,
+        "Office has an invalid combination of office roles: "
+        "['upper house', 'lower house']. Valid combinations are ",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].get("objectId"), "off1"
+    )
+
+  def testOfficeHasMoreThanTwoOfficeRoles(self):
+    test_string = """
+          <Office objectId="off1">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value>head of state</Value>
+              </ExternalIdentifier>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value>head of government</Value>
+              </ExternalIdentifier>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>office-role</OtherType>
+                <Value>deputy head of government</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Office>
+        """
+    element = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.offices_validator.check(element)
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office has more than two office roles.",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].get("objectId"), "off1"
+    )
 
   def testOfficeRoleTextIsWhitespace(self):
     test_string = """
-          <Office objectId="off2">
+          <Office objectId="off1">
              <ExternalIdentifier>
                <Type>other</Type>
                <OtherType>office-role</OtherType>
@@ -6292,28 +6492,34 @@ class OfficesHaveValidOfficeRoleTest(absltest.TestCase):
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "The office has invalid office-role ''.")
-    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
-                     "off2")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office has an invalid office role: ''.",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].get("objectId"), "off1"
+    )
 
   def testInvalidOfficeRole(self):
     test_string = """
-          <Office objectId="off2">
+          <Office objectId="off1">
              <ExternalIdentifier>
                <Type>other</Type>
                <OtherType>office-role</OtherType>
-               <Value>invalidvalue</Value>
+               <Value>invalid role</Value>
              </ExternalIdentifier>
           </Office>
         """
     element = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as cm:
       self.offices_validator.check(element)
-    self.assertEqual(cm.exception.log_entry[0].message,
-                     "The office has invalid office-role 'invalidvalue'.")
-    self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
-                     "off2")
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Office has an invalid office role: 'invalid role'.",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].get("objectId"), "off1"
+    )
 
 
 class ContestHasValidContestStageTest(absltest.TestCase):
@@ -7470,7 +7676,6 @@ class DateStatusTest(absltest.TestCase):
     self.date_status_validator.check(etree.fromstring(self.base_report))
 
   def testElectionWithNoContests(self):
-    print(self.base_report.format("", "canceled"))
     self.date_status_validator.check(
         etree.fromstring(self.base_report.format("", "canceled")))
 
@@ -7515,11 +7720,133 @@ class DateStatusTest(absltest.TestCase):
         "confirm.", ei.exception.log_entry[0].message)
 
 
+class OfficeSelectionMethodMatchTest(absltest.TestCase):
+
+  def setUp(self):
+    super(OfficeSelectionMethodMatchTest, self).setUp()
+    root_string = """
+      <Report>
+        <OfficeCollection>
+          <Office objectId="off0">
+            <SelectionMethod>appointed</SelectionMethod>
+            <SelectionMethod>directly-elected</SelectionMethod>
+          </Office>
+        </OfficeCollection>
+        <OfficeHolderTenureCollection>
+          <OfficeHolderTenure>
+          </OfficeHolderTenure>
+        </OfficeHolderTenureCollection>
+      </Report>
+    """
+    element_tree = etree.fromstring(root_string)
+    self.validator = rules.OfficeSelectionMethodMatch(element_tree, None)
+
+  def testChecksOfficeSelectionMethodMatchElements(self):
+    self.assertEqual(["OfficeHolderTenure"], self.validator.elements())
+
+  def testMatchingOfficeSelectionMethod(self):
+    office_holder_tenure = """
+      <OfficeHolderTenure objectId="offten0">
+        <OfficeId>off0</OfficeId>
+        <OfficeSelectionMethod>directly-elected</OfficeSelectionMethod>
+      </OfficeHolderTenure>
+    """
+
+    self.validator.check(etree.fromstring(office_holder_tenure))
+
+  def testMismatchedOfficeSelectionMethod(self):
+    office_holder_tenure = """
+      <OfficeHolderTenure objectId="offten0">
+        <OfficeId>off0</OfficeId>
+        <OfficeSelectionMethod>succession</OfficeSelectionMethod>
+      </OfficeHolderTenure>
+    """
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.validator.check(etree.fromstring(office_holder_tenure))
+    self.assertEqual(
+        "OfficeSelectionMethod does not have a matching SelectionMethod"
+        " in the corresponding Office element.",
+        ee.exception.log_entry[0].message,
+    )
+
+
+class OfficeHolderTenureTermDatesTest(absltest.TestCase):
+
+  def setUp(self):
+    super(OfficeHolderTenureTermDatesTest, self).setUp()
+    self.validator = rules.OfficeHolderTenureTermDates(None, None)
+
+  def testChecksCorrectElements(self):
+    self.assertEqual(["OfficeHolderTenure"], self.validator.elements())
+
+  def testNoTermDates(self):
+    office_holder_tenure = """
+      <OfficeHolderTenure objectId="offten0">
+      </OfficeHolderTenure>
+    """
+    self.validator.check(etree.fromstring(office_holder_tenure))
+
+  def testStartDateOnly(self):
+    office_holder_tenure = """
+      <OfficeHolderTenure objectId="offten0">
+        <StartDate>2025-03-23</StartDate>
+      </OfficeHolderTenure>
+    """
+    self.validator.check(etree.fromstring(office_holder_tenure))
+
+  def testStartDateIsEmpty(self):
+    office_holder_tenure = """
+      <OfficeHolderTenure objectId="offten0">
+        <StartDate></StartDate>
+      </OfficeHolderTenure>
+    """
+    self.validator.check(etree.fromstring(office_holder_tenure))
+
+  def testValidTermDates(self):
+    office_holder_tenure = """
+      <OfficeHolderTenure objectId="offten0">
+        <StartDate>2025-03-23</StartDate>
+        <EndDate>2026-06-21</EndDate>
+      </OfficeHolderTenure>
+    """
+    self.validator.check(etree.fromstring(office_holder_tenure))
+
+  def testInvalidTermDates(self):
+    office_holder_tenure = """
+      <OfficeHolderTenure objectId="offten0">
+        <StartDate>2026-06-22</StartDate>
+        <EndDate>2026-06-21</EndDate>
+      </OfficeHolderTenure>
+    """
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.validator.check(etree.fromstring(office_holder_tenure))
+    self.assertEqual(
+        "OfficeHolderTenure element has an EndDate that is before the"
+        " StartDate.",
+        ee.exception.log_entry[0].message,
+    )
+
+
 class OfficeTermDatesTest(absltest.TestCase):
 
   def setUp(self):
     super(OfficeTermDatesTest, self).setUp()
-    self.date_validator = rules.OfficeTermDates(None, None)
+    root_string = """
+      <Report>
+      </Report>
+    """
+    element_tree = etree.fromstring(root_string)
+    self.date_validator = rules.OfficeTermDates(element_tree, None)
+    root_string = """
+      <Report>
+        <OfficeHolderTenureCollection>
+        </OfficeHolderTenureCollection>
+      </Report>
+    """
+    element_tree = etree.fromstring(root_string)
+    self.post_office_split_date_validator = rules.OfficeTermDates(
+        element_tree, None
+    )
     self.office_string = """
       <Office objectId="off1">
         <OfficeHolderPersonIds>per0</OfficeHolderPersonIds>
@@ -7592,6 +7919,27 @@ class OfficeTermDatesTest(absltest.TestCase):
     """
     self.date_validator.check(etree.fromstring(office_string))
 
+  def testPostOfficeSplitFeedOfficeWithoutTermElement(self):
+    office = """
+      <Office objectId="off1">
+      </Office>
+    """
+    self.post_office_split_date_validator.check(etree.fromstring(office))
+
+  def testPostOfficeSplitFeedOfficeWithTermElement(self):
+    office = """
+      <Office objectId="off1">
+        <Term>
+        </Term>
+      </Office>
+    """
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.post_office_split_date_validator.check(etree.fromstring(office))
+    self.assertEqual(
+        "Office should not contain Term data in post Office split feed.",
+        ee.exception.log_entry[0].message,
+    )
+
 
 class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
 
@@ -7637,6 +7985,37 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     </ElectionReport>
     """
 
+    self.post_office_split_base_string = """
+    <ElectionReport>
+      <OfficeCollection>
+        <Office objectId="off0">
+        </Office>
+        <Office objectId="off1">
+        </Office>
+      </OfficeCollection>
+      <OfficeHolderTenureCollection>
+        <OfficeHolderTenure objectId="offten0">
+          <StartDate>{}</StartDate>
+          <EndDate>{}</EndDate>
+          <OfficeHolderPersonId>per0</OfficeHolderPersonId>
+          <OfficeId>off0</OfficeId>
+          <OfficeSelectionMethod>directly-elected</OfficeSelectionMethod>
+        </OfficeHolderTenure>
+        <OfficeHolderTenure objectId="offten1">
+          <StartDate>{}</StartDate>
+          <EndDate>{}</EndDate>
+          <OfficeHolderPersonId>per1</OfficeHolderPersonId>
+          <OfficeId>off1</OfficeId>
+          <OfficeSelectionMethod>directly-elected</OfficeSelectionMethod>
+        </OfficeHolderTenure>
+      </OfficeHolderTenureCollection>
+      <PersonCollection>
+        <Person objectId="per0"></Person>
+        <Person objectId="per1"></Person>
+      </PersonCollection>
+    </ElectionReport>
+    """
+
   def testEndDateOfficeHolderRaiseInfo(self):
     office_string = self.base_string.format("per0", "2019-01-02", "2021-01-20",
                                             "per1", "2019-01-02", "",
@@ -7678,6 +8057,65 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     self.assertEqual("per1",
                      ei.exception.log_entry[1].elements[0].get("objectId"))
 
+  def testPostOfficeSplitEndDateOfficeHolderRaiseInfo(self):
+    test_string = self.post_office_split_base_string.format(
+        "2019-01-02", "", "2019-10-02", "2023-06-21"
+    )
+    with self.assertRaises(loggers.ElectionInfo) as ei:
+      election_tree = etree.ElementTree(etree.fromstring(test_string))
+      rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
+          election_tree, None
+      ).check()
+    self.assertEqual(
+        "The officeholder tenure end date is more than 60 days"
+        " in the past; this OfficeHolderTenure element can be removed"
+        " from the feed.",
+        ei.exception.log_entry[0].message,
+    )
+    self.assertEqual(
+        "offten1", ei.exception.log_entry[0].elements[0].get("objectId")
+    )
+    self.assertEqual(
+        "All officeholder tenures ended more than 60 days ago. "
+        "Therefore, you can remove the person and the related "
+        "officeholder tenures from the feed.",
+        ei.exception.log_entry[1].message,
+    )
+    self.assertEqual("per1", ei.exception.log_entry[1].elements[0].text)
+
+  def testEndDateOfficeHolderRaiseInfoForMultipleOfficeHolderTenures(self):
+    test_string = self.post_office_split_base_string.format(
+        "2019-01-02", "2021-12-21", "2019-10-02", "2023-06-21"
+    )
+    with self.assertRaises(loggers.ElectionInfo) as ei:
+      election_tree = etree.ElementTree(etree.fromstring(test_string))
+      rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
+          election_tree, None
+      ).check()
+    self.assertEqual(
+        "The officeholder tenure end date is more than 60 days"
+        " in the past; this OfficeHolderTenure element can be removed"
+        " from the feed.",
+        ei.exception.log_entry[0].message,
+    )
+    self.assertEqual(
+        "offten0", ei.exception.log_entry[0].elements[0].get("objectId")
+    )
+    with self.assertRaises(loggers.ElectionInfo) as ei:
+      election_tree = etree.ElementTree(etree.fromstring(test_string))
+      rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
+          election_tree, None
+      ).check()
+    self.assertEqual(
+        "The officeholder tenure end date is more than 60 days"
+        " in the past; this OfficeHolderTenure element can be removed"
+        " from the feed.",
+        ei.exception.log_entry[1].message,
+    )
+    self.assertEqual(
+        "offten1", ei.exception.log_entry[1].elements[0].get("objectId")
+    )
+
   @freezegun.freeze_time("2022-01-01")
   def testEndDateOfficeHolderDoesNotRaiseInfo(self):
     office_string = self.base_string.format("per0", "2019-01-31", "2023-04-16",
@@ -7687,6 +8125,16 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     election_tree = etree.ElementTree(etree.fromstring(office_string))
     rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(election_tree,
                                                           None).check()
+
+  @freezegun.freeze_time("2022-01-01")
+  def testPostOfficeSplitEndDateOfficeHolderDoesNotRaiseInfo(self):
+    test_string = self.post_office_split_base_string.format(
+        "2019-01-02", "2021-12-01", "2020-10-02", "2023-01-01"
+    )
+    election_tree = etree.ElementTree(etree.fromstring(test_string))
+    rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
+        election_tree, None
+    ).check()
 
 
 class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
@@ -9096,29 +9544,6 @@ class MissingFieldsInfoTest(absltest.TestCase):
   def testSetsSeverityLevelToWarning(self):
     self.assertEqual(0, self.field_validator.get_severity())
 
-  def testRequiredFieldIsPresent_Candidate(self):
-    office = """
-      <Office objectId="123">
-        <ElectoralDistrictId>ru_2343</ElectoralDistrictId>
-      </Office>
-    """
-    self.field_validator.check(etree.fromstring(office))
-
-  def testRaisesInfoForMissingField_Candidate(self):
-    office = """
-      <Office objectId="123">
-      </Office>
-    """
-
-    with self.assertRaises(loggers.ElectionInfo) as ew:
-      self.field_validator.check(etree.fromstring(office))
-
-    self.assertEqual(
-        ew.exception.log_entry[0].message,
-        "The element Office is missing field ElectoralDistrictId.")
-    self.assertEqual(ew.exception.log_entry[0].elements[0].get("objectId"),
-                     "123")
-
 
 class PartySpanMultipleCountriesTest(absltest.TestCase):
 
@@ -9233,13 +9658,34 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
 
   def setUp(self):
     super(NonExecutiveOfficeShouldHaveGovernmentBodyTest, self).setUp()
+    root_string = """
+      <Report>
+      </Report>
+    """
+    element_tree = etree.fromstring(root_string)
     self.gov_validator = rules.NonExecutiveOfficeShouldHaveGovernmentBody(
+        element_tree,
         None,
-        None,
+    )
+    root_string = """
+      <Report>
+        <OfficeHolderTenureCollection>
+        </OfficeHolderTenureCollection>
+      </Report>
+    """
+    element_tree = etree.fromstring(root_string)
+    self.post_office_split_validator = (
+        rules.NonExecutiveOfficeShouldHaveGovernmentBody(
+            element_tree,
+            None,
+        )
     )
 
   def testChecksOfficeElements(self):
     self.assertEqual(["Office"], self.gov_validator.elements())
+
+  def testPostSplitChecksOfficeElements(self):
+    self.assertEqual(["Office"], self.post_office_split_validator.elements())
 
   def testNonExecOfficeWithoutGovernmentBodyRaisesError(self):
     office_string = """
@@ -9256,6 +9702,20 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionInfo) as ei:
       self.gov_validator.check(etree.fromstring(office_string))
+    self.assertEqual(
+        "Non-executive Office element is missing a government body.",
+        str(ei.exception.log_entry[0].message),
+    )
+
+  def testPostSplitNonExecOfficeWithoutGovernmentBodyRaisesError(self):
+    office_string = """
+      <Office>
+        <OfficeRole>senate</OfficeRole>
+      </Office>
+    """
+
+    with self.assertRaises(loggers.ElectionInfo) as ei:
+      self.post_office_split_validator.check(etree.fromstring(office_string))
     self.assertEqual(
         "Non-executive Office element is missing a government body.",
         str(ei.exception.log_entry[0].message),
@@ -9282,6 +9742,21 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
         str(ei.exception.log_entry[0].message),
     )
 
+  def testPostSplitNonExecOfficeWithEmptyGovernmentBodyIdsRaisesError(self):
+    office_string = """
+      <Office>
+        <GovernmentBodyIds>   </GovernmentBodyIds>
+        <OfficeRole>senate</OfficeRole>
+      </Office>
+    """
+
+    with self.assertRaises(loggers.ElectionInfo) as ei:
+      self.post_office_split_validator.check(etree.fromstring(office_string))
+    self.assertEqual(
+        "Non-executive Office element is missing a government body.",
+        str(ei.exception.log_entry[0].message),
+    )
+
   def testNonExecOfficeWithGovernmentBodyIsValid(self):
     office_string = """
       <Office>
@@ -9301,6 +9776,22 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
     """
 
     self.gov_validator.check(etree.fromstring(office_string))
+
+  def testPostSplitNonExecOfficeWithGovernmentBodyIsValid(self):
+    office_string = """
+      <Office>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>government-body</OtherType>
+            <Value>United States Senate</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <OfficeRole>senate</OfficeRole>
+      </Office>
+    """
+
+    self.post_office_split_validator.check(etree.fromstring(office_string))
 
   def testNonExecOfficeWithGovernmentalBodyIsValid(self):
     office_string = """
@@ -9322,6 +9813,22 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
 
     self.gov_validator.check(etree.fromstring(office_string))
 
+  def testPostSplitNonExecOfficeWithGovernmentalBodyIsValid(self):
+    office_string = """
+      <Office>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>governmental-body</OtherType>
+            <Value>United States Senate</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <OfficeRole>senate</OfficeRole>
+      </Office>
+    """
+
+    self.post_office_split_validator.check(etree.fromstring(office_string))
+
   def testNonExecOfficeWithGovernmentBodyIdsIsValid(self):
     office_string = """
       <Office>
@@ -9338,14 +9845,42 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
 
     self.gov_validator.check(etree.fromstring(office_string))
 
+  def testPostSplitNonExecOfficeWithGovernmentBodyIdsIsValid(self):
+    office_string = """
+      <Office>
+        <GovernmentBodyIds>gov_body_1</GovernmentBodyIds>
+        <OfficeRole>senate</OfficeRole>
+      </Office>
+    """
+
+    self.post_office_split_validator.check(etree.fromstring(office_string))
+
 
 class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
 
   def setUp(self):
     super(ExecutiveOfficeShouldNotHaveGovernmentBodyTest, self).setUp()
+    root_string = """
+      <Report>
+      </Report>
+    """
+    element_tree = etree.fromstring(root_string)
     self.gov_validator = rules.ExecutiveOfficeShouldNotHaveGovernmentBody(
+        element_tree,
         None,
-        None,
+    )
+    root_string = """
+      <Report>
+        <OfficeHolderTenureCollection>
+        </OfficeHolderTenureCollection>
+      </Report>
+    """
+    element_tree = etree.fromstring(root_string)
+    self.post_office_split_validator = (
+        rules.ExecutiveOfficeShouldNotHaveGovernmentBody(
+            element_tree,
+            None,
+        )
     )
 
   def testExecutiveOfficeWithGovernmentBodyRaisesError(self):
@@ -9370,6 +9905,33 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
 
         with self.assertRaises(loggers.ElectionError) as ee:
           self.gov_validator.check(etree.fromstring(office_string))
+        self.assertEqual(
+            f"Executive Office element (roles: {office_role}) has a "
+            "government body. Executive offices should not have government "
+            "bodies.",
+            str(ee.exception.log_entry[0].message),
+        )
+
+  def testPostSplitExecutiveOfficeWithGovernmentBodyRaisesError(self):
+    for office_role in rules._EXECUTIVE_OFFICE_ROLES:
+      with self.subTest(office_role=office_role):
+        office_string = f"""
+          <Office>
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>government-body</OtherType>
+                <Value>United States Senate</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+            <OfficeRole>{office_role}</OfficeRole>
+          </Office>
+        """
+
+        with self.assertRaises(loggers.ElectionError) as ee:
+          self.post_office_split_validator.check(
+              etree.fromstring(office_string)
+          )
         self.assertEqual(
             f"Executive Office element (roles: {office_role}) has a "
             "government body. Executive offices should not have government "
@@ -9406,6 +9968,33 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
             str(ee.exception.log_entry[0].message),
         )
 
+  def testPostSplitExecutiveOfficeWithGovernmentalBodyRaisesError(self):
+    for office_role in rules._EXECUTIVE_OFFICE_ROLES:
+      with self.subTest(office_role=office_role):
+        office_string = f"""
+          <Office>
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>governmental-body</OtherType>
+                <Value>United States Senate</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+            <OfficeRole>{office_role}</OfficeRole>
+          </Office>
+        """
+
+        with self.assertRaises(loggers.ElectionError) as ee:
+          self.post_office_split_validator.check(
+              etree.fromstring(office_string)
+          )
+        self.assertEqual(
+            f"Executive Office element (roles: {office_role}) has a "
+            "government body. Executive offices should not have government "
+            "bodies.",
+            str(ee.exception.log_entry[0].message),
+        )
+
   def testExecutiveOfficeWithGovernmentBodyIdsRaisesError(self):
     for office_role in rules._EXECUTIVE_OFFICE_ROLES:
       with self.subTest(office_role=office_role):
@@ -9431,6 +10020,27 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
             str(ee.exception.log_entry[0].message),
         )
 
+  def testPostSplitExecutiveOfficeWithGovernmentBodyIdsRaisesError(self):
+    for office_role in rules._EXECUTIVE_OFFICE_ROLES:
+      with self.subTest(office_role=office_role):
+        office_string = f"""
+          <Office>
+            <GovernmentBodyIds>gov_body_1</GovernmentBodyIds>
+            <OfficeRole>{office_role}</OfficeRole>
+          </Office>
+        """
+
+        with self.assertRaises(loggers.ElectionError) as ee:
+          self.post_office_split_validator.check(
+              etree.fromstring(office_string)
+          )
+        self.assertEqual(
+            f"Executive Office element (roles: {office_role}) has a "
+            "government body. Executive offices should not have government "
+            "bodies.",
+            str(ee.exception.log_entry[0].message),
+        )
+
   def testExecutiveOfficeWithoutGovernmentBodyIsValid(self):
     office_string = """
       <Office>
@@ -9445,6 +10055,15 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
     """
 
     self.gov_validator.check(etree.fromstring(office_string))
+
+  def testPostSplitExecutiveOfficeWithoutGovernmentBodyIsValid(self):
+    office_string = """
+      <Office>
+        <OfficeRole>head of state</OfficeRole>
+      </Office>
+    """
+
+    self.post_office_split_validator.check(etree.fromstring(office_string))
 
 
 class OfficeSelectionMethodTest(absltest.TestCase):
@@ -10865,6 +11484,18 @@ class UnreferencedEntitiesOfficeholdersTest(absltest.TestCase):
         etree.fromstring(test_string), self._base_schema
     ).check()
 
+  def testUnreferencedTopLevelOfficeHolderTenureOk(self):
+    test_string = """
+    <OfficeHolderCollection>
+      <OfficeHolderTenure objectId="office-ten-id">
+      </OfficeHolderTenure>
+    </OfficeHolderCollection>
+    """
+
+    rules.UnreferencedEntitiesOfficeholders(
+        etree.fromstring(test_string), self._base_schema
+    ).check()
+
   def testExternalIdReferencedPersonOk(self):
     test_string = """
     <ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -11093,14 +11724,26 @@ class ElectionEventDatesAreSequentialTest(absltest.TestCase):
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "ElectionEvent")
 
 
-class NoSourceDirPathBeforeInitialDeliveryDateTest(absltest.TestCase):
+class SourceDirPathMustBeSetAfterInitialDeliveryDateTest(absltest.TestCase):
 
   def setUp(self):
-    super(NoSourceDirPathBeforeInitialDeliveryDateTest, self).setUp()
-    self.validator = rules.NoSourceDirPathBeforeInitialDeliveryDate(None, None)
+    super(SourceDirPathMustBeSetAfterInitialDeliveryDateTest, self).setUp()
+    self.validator = rules.SourceDirPathMustBeSetAfterInitialDeliveryDate(
+        None, None
+    )
 
   @freezegun.freeze_time("2024-08-26")
-  def testInitialDeliveryDateInPast(self):
+  def testNoInitialDeliveryDateHasSourceDirPathSucceeds(self):
+    feed_string = """
+      <Feed>
+        <SourceDirPath>test_path_1</SourceDirPath>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  @freezegun.freeze_time("2024-08-26")
+  def testInitialDeliveryDateInPastHasSourceDirPathSucceeds(self):
     feed_string = """
       <Feed>
         <SourceDirPath>test_path_1</SourceDirPath>
@@ -11118,17 +11761,7 @@ class NoSourceDirPathBeforeInitialDeliveryDateTest(absltest.TestCase):
     self.validator.check(etree.fromstring(feed_string))
 
   @freezegun.freeze_time("2024-08-26")
-  def testNoInitialDeliveryDate(self):
-    feed_string = """
-      <Feed>
-        <SourceDirPath>test_path_1</SourceDirPath>
-      </Feed>
-      """
-
-    self.validator.check(etree.fromstring(feed_string))
-
-  @freezegun.freeze_time("2024-08-26")
-  def testAllInitialDeliveryDateInFutureReturnsError(self):
+  def testAllInitialDeliveryDateInFutureHasSourceDirPathSucceeds(self):
     feed_string = """
       <Feed>
         <SourceDirPath>test_path_1</SourceDirPath>
@@ -11143,14 +11776,55 @@ class NoSourceDirPathBeforeInitialDeliveryDateTest(absltest.TestCase):
       </Feed>
       """
 
-    with self.assertRaises(loggers.ElectionWarning) as cm:
+    self.validator.check(etree.fromstring(feed_string))
+
+  @freezegun.freeze_time("2025-01-01")
+  def testNoInitialDeliveryDateNoSourceDirPathSucceeds(self):
+    feed_string = """<Feed></Feed>"""
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  @freezegun.freeze_time("2024-08-26")
+  def testAllInitialDeliveryDateInFutureNoSourceDirPathSucceeds(self):
+    feed_string = """
+      <Feed>
+        <ElectionEventCollection>
+          <ElectionEvent>
+            <InitialDeliveryDate>2027-12-01</InitialDeliveryDate>
+          </ElectionEvent>
+        </ElectionEventCollection>
+        <OfficeHolderSubFeed>
+          <InitialDeliveryDate>2027-01</InitialDeliveryDate>
+        </OfficeHolderSubFeed>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  @freezegun.freeze_time("2024-08-26")
+  def testInitialDeliveryDateInPastNoSourceDirPathFails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>fake_feed_id</FeedId>
+        <ElectionEventCollection>
+          <ElectionEvent>
+            <InitialDeliveryDate>2023-12-01</InitialDeliveryDate>
+          </ElectionEvent>
+        </ElectionEventCollection>
+        <OfficeHolderSubFeed>
+          <InitialDeliveryDate>2027-01</InitialDeliveryDate>
+        </OfficeHolderSubFeed>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(feed_string))
     self.assertEqual(
-        cm.exception.log_entry[0].message,
-        "SourceDirPath is defined but all initialDeliveryDate are in the"
-        " future.",
+        context.exception.log_entry[0].message,
+        "SourceDirPath is not set but an InitialDeliveryDate is in the past "
+        "for feed fake_feed_id.",
     )
-    self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Feed")
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
 
 class OfficeHolderSubFeedDatesAreSequentialTest(absltest.TestCase):
@@ -11399,7 +12073,7 @@ class DeprecatedPartyLeadershipSchemaTest(absltest.TestCase):
       </Party>
       """
 
-    with self.assertRaises(loggers.ElectionWarning) as cm:
+    with self.assertRaises(loggers.ElectionError) as cm:
       self.validator.check(etree.fromstring(party_string))
     self.assertEqual(
         cm.exception.log_entry[0].message,
@@ -11420,7 +12094,7 @@ class DeprecatedPartyLeadershipSchemaTest(absltest.TestCase):
       </Party>
       """
 
-    with self.assertRaises(loggers.ElectionWarning) as cm:
+    with self.assertRaises(loggers.ElectionError) as cm:
       self.validator.check(etree.fromstring(party_string))
     self.assertEqual(
         cm.exception.log_entry[0].message,
@@ -11485,6 +12159,348 @@ class GovernmentBodyExternalIdTest(absltest.TestCase):
       """
 
     self.validator.check(etree.fromstring(office_string))
+
+
+class UnsupportedOfficeSchemaTest(absltest.TestCase):
+
+  def setUp(self):
+    super(UnsupportedOfficeSchemaTest, self).setUp()
+    self.validator = rules.UnsupportedOfficeSchema(None, None)
+
+  def testOfficeWithoutUnsupportedSchemaSucceeds(self):
+    office_string = """
+      <Office objectId="office1"></Office>
+      """
+
+    self.validator.check(etree.fromstring(office_string))
+
+  def testOfficeWithJurisdictionIdFails(self):
+    office_string = """
+      <Office objectId="office1">
+        <JurisdictionId>gpunit1</JurisdictionId>
+      </Office>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(office_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Specifying JurisdictionId on Office is not yet supported.",
+    )
+
+  def testOfficeWithLevelFails(self):
+    office_string = """
+      <Office objectId="office1">
+        <Level>Country</Level>
+      </Office>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(office_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Specifying Level on Office is not yet supported.",
+    )
+
+  def testOfficeWithRoleFails(self):
+    office_string = """
+      <Office objectId="office1">
+        <Role>head of state</Role>
+      </Office>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(office_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Specifying Role on Office is not yet supported.",
+    )
+
+  def testOfficeWithMultipleSelectionMethodsFails(self):
+    office_string = """
+      <Office objectId="office1">
+        <SelectionMethod>directly-elected</SelectionMethod>
+        <SelectionMethod>indirectly-elected</SelectionMethod>
+      </Office>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(office_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Specifying multiple SelectionMethod elements on Office is not yet "
+        "supported.",
+    )
+
+  def testOfficeWithSingleSelectionMethodSucceeds(self):
+    office_string = """
+      <Office objectId="office1">
+        <SelectionMethod>directly-elected</SelectionMethod>
+      </Office>
+      """
+
+    self.validator.check(etree.fromstring(office_string))
+
+
+class UnsupportedOfficeHolderTenureSchemaTest(absltest.TestCase):
+
+  def setUp(self):
+    super(UnsupportedOfficeHolderTenureSchemaTest, self).setUp()
+    self.validator = rules.UnsupportedOfficeHolderTenureSchema(None, None)
+
+  def testElectionReportWithoutOfficeHolderTenureCollectionSucceeds(self):
+    election_report_string = """
+      <ElectionReport></ElectionReport>
+      """
+
+    self.validator.check(etree.fromstring(election_report_string))
+
+  def testElectionReportWithOfficeHolderTenureCollectionFails(self):
+    election_report_string = """
+      <ElectionReport>
+        <OfficeHolderTenureCollection></OfficeHolderTenureCollection>
+      </ElectionReport>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Specifying OfficeHolderTenureCollection on ElectionReport is not yet "
+        "supported.",
+    )
+
+
+class ElectoralCommissionCollectionExistsTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ElectoralCommissionCollectionExistsTest, self).setUp()
+    self.validator = rules.ElectoralCommissionCollectionExists(None, None)
+
+  def testElectionReportWithoutElectoralCommissionCollectionFails(self):
+    election_report_string = """
+      <ElectionReport></ElectionReport>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "ElectoralCommissionCollection should exist.",
+    )
+
+  def testElectionReportWithElectoralCommissionCollectionSucceeds(self):
+    election_report_string = """
+      <ElectionReport>
+        <ElectoralCommissionCollection></ElectoralCommissionCollection>
+      </ElectionReport>
+      """
+    self.validator.check(etree.fromstring(election_report_string))
+
+
+class VoterInformationCollectionExistsTest(absltest.TestCase):
+
+  def setUp(self):
+    super(VoterInformationCollectionExistsTest, self).setUp()
+    self.validator = rules.VoterInformationCollectionExists(None, None)
+
+  def testElectionReportWithoutVoterInformationCollectionWarns(self):
+    election_report_string = """
+      <ElectionReport></ElectionReport>
+      """
+    with self.assertRaises(loggers.ElectionWarning) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "VoterInformationCollection should exist.",
+    )
+
+  def testElectionReportWithVoterInformationCollectionSucceeds(self):
+    election_report_string = """
+      <ElectionReport>
+        <VoterInformationCollection></VoterInformationCollection>
+      </ElectionReport>
+      """
+    self.validator.check(etree.fromstring(election_report_string))
+
+
+class NoExtraElectionElementsTest(absltest.TestCase):
+  """Elections should not have inappropriate elements."""
+
+  def setUp(self):
+    super(NoExtraElectionElementsTest, self).setUp()
+    self.validator = rules.NoExtraElectionElements(None, None)
+
+  def testElectionWithoutExtraElementsSucceeds(self):
+    election_report_string = """<Election></Election>"""
+    self.validator.check(etree.fromstring(election_report_string))
+
+  def testElectionWithBallotStyleCollectionFails(self):
+    election_report_string = """
+      <Election>
+        <BallotStyleCollection></BallotStyleCollection>
+      </Election>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "BallotStyleCollection should not exist.",
+    )
+
+  def testElectionWithCandidateCollectionFails(self):
+    election_report_string = """
+      <Election>
+        <CandidateCollection></CandidateCollection>
+      </Election>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "CandidateCollection should not exist.",
+    )
+
+  def testElectionWithContestCollectionFails(self):
+    election_report_string = """
+      <Election>
+        <ContestCollection></ContestCollection>
+      </Election>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "ContestCollection should not exist.",
+    )
+
+  def testElectionWithCountStatusFails(self):
+    election_report_string = """
+      <Election>
+        <CountStatus></CountStatus>
+      </Election>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "CountStatus should not exist.",
+    )
+
+
+class WarnOnElementsNotRecommendedForElectionTest(absltest.TestCase):
+  """Elections should warn on elements that are not recommended."""
+
+  def setUp(self):
+    super(WarnOnElementsNotRecommendedForElectionTest, self).setUp()
+    self.validator = rules.WarnOnElementsNotRecommendedForElection(None, None)
+
+  def testElectionWithoutContactInformationSucceeds(self):
+    election_report_string = """<Election></Election>"""
+    self.validator.check(etree.fromstring(election_report_string))
+
+  def testElectionWithContactInformationWarns(self):
+    election_report_string = """
+      <Election>
+        <ContactInformation></ContactInformation>
+      </Election>
+      """
+    with self.assertRaises(loggers.ElectionWarning) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "ContactInformation is not recommended for Election, prefer using an"
+        " ElectionAdministration.",
+    )
+
+
+class NoExtraElectionReportCollectionsTest(absltest.TestCase):
+  """ElectionReports should not have inappropriate elements."""
+
+  def setUp(self):
+    super(NoExtraElectionReportCollectionsTest, self).setUp()
+    self.validator = rules.NoExtraElectionReportCollections(None, None)
+
+  def testElectionReportWithoutExtraElementsSucceeds(self):
+    election_report_string = """<ElectionReport></ElectionReport>"""
+    self.validator.check(etree.fromstring(election_report_string))
+
+  def testElectionReportWithCommitteeCollectionFails(self):
+    election_report_string = """
+      <ElectionReport>
+        <CommitteeCollection></CommitteeCollection>
+      </ElectionReport>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "CommitteeCollection should not exist.",
+    )
+
+  def testElectionReportWithGovernmentBodyCollectionFails(self):
+    election_report_string = """
+      <ElectionReport>
+        <GovernmentBodyCollection></GovernmentBodyCollection>
+      </ElectionReport>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "GovernmentBodyCollection should not exist.",
+    )
+
+  def testElectionReportWithOfficeCollectionFails(self):
+    election_report_string = """
+      <ElectionReport>
+        <OfficeCollection></OfficeCollection>
+      </ElectionReport>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "OfficeCollection should not exist.",
+    )
+
+  def testElectionReportWithOfficeHolderTenureCollectionFails(self):
+    election_report_string = """
+      <ElectionReport>
+        <OfficeHolderTenureCollection></OfficeHolderTenureCollection>
+      </ElectionReport>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "OfficeHolderTenureCollection should not exist.",
+    )
+
+  def testElectionReportWithPartyCollectionFails(self):
+    election_report_string = """
+      <ElectionReport>
+        <PartyCollection></PartyCollection>
+      </ElectionReport>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "PartyCollection should not exist.",
+    )
+
+  def testElectionReportWithPersonCollectionFails(self):
+    election_report_string = """
+      <ElectionReport>
+        <PersonCollection></PersonCollection>
+      </ElectionReport>
+      """
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_report_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "PersonCollection should not exist.",
+    )
 
 
 class RulesTest(absltest.TestCase):

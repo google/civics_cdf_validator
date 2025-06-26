@@ -90,9 +90,20 @@ _VALID_FEED_LONGEVITY_BY_FEED_TYPE = frozendict({
     "pre-election": ["limited", "yearly"],
 })
 
+_VALID_OFFICE_ROLE_COMBINATIONS = frozenset([
+    frozenset(["head of government", "head of state"]),
+    frozenset(["cabinet member", "general purpose officer"]),
+])
 
-def _is_executive_office(element):
-  office_roles = get_entity_info_for_value_type(element, "office-role")
+
+def _get_office_roles(element, is_post_office_split_feed=False):
+  if is_post_office_split_feed:
+    return [element.text for element in element.findall("OfficeRole")]
+  return get_entity_info_for_value_type(element, "office-role")
+
+
+def _is_executive_office(element, is_post_office_split_feed=False):
+  office_roles = _get_office_roles(element, is_post_office_split_feed)
   return not _EXECUTIVE_OFFICE_ROLES.isdisjoint(office_roles)
 
 
@@ -416,9 +427,12 @@ class ValidIDREF(base.BaseRule):
     self.element_reference_mapping = {}
 
   _REFERENCE_TYPE_OVERRIDES = {
+      # ID refs to GpUnits
       "ElectoralDistrictId": "GpUnit",
       "ElectionScopeId": "GpUnit",
       "ScopeLevel": "GpUnit",
+      "JurisdictionId": "GpUnit",
+      # ID refs to Persons
       "AuthorityId": "Person",
       "AuthorityIds": "Person",
       "PartyLeaderId": "Person",
@@ -1933,8 +1947,20 @@ class PersonHasOffice(base.ValidReferenceRule):
       if leader_id.text:
         person_reference_ids.add(leader_id.text)
 
+    office_holder_tenure_collection = root.find("OfficeHolderTenureCollection")
+    if office_holder_tenure_collection is not None:
+      for office_holder_tenure in office_holder_tenure_collection.findall(
+          "OfficeHolderTenure"
+      ):
+        id_obj = office_holder_tenure.find("OfficeHolderPersonId")
+        if id_obj is not None and id_obj.text:
+          person_reference_ids.add(id_obj.text.strip())
+
     office_collection = root.find("OfficeCollection")
-    if office_collection is not None:
+    if (
+        office_holder_tenure_collection is None
+        and office_collection is not None
+    ):
       for office in office_collection.findall("Office"):
         id_obj = office.find("OfficeHolderPersonIds")
         if id_obj is not None and id_obj.text:
@@ -2242,6 +2268,7 @@ class ValidURIAnnotation(base.BaseRule):
       "line",
       "linkedin",
       "tiktok",
+      "whatsapp",
   ])
   USAGE_TYPES = frozenset(["personal", "official", "campaign"])
   PLATFORM_ONLY_ANNOTATIONS = frozenset(
@@ -2339,17 +2366,24 @@ class OfficesHaveJurisdictionID(base.BaseRule):
     return ["Office"]
 
   def check(self, element):
-    jurisdiction_values = get_entity_info_for_value_type(
-        element, "jurisdiction-id"
-    )
+    jurisdiction_values = []
+    post_office_split_jurisdiction_element = element.find("JurisdictionId")
+    if element_has_text(post_office_split_jurisdiction_element):
+      jurisdiction_values.append(post_office_split_jurisdiction_element.text)
+    else:
+      jurisdiction_values = get_entity_info_for_value_type(
+          element, "jurisdiction-id"
+      )
+
     jurisdiction_values = [j_id for j_id in jurisdiction_values if j_id.strip()]
     if not jurisdiction_values:
       raise loggers.ElectionError.from_message(
-          "Office is missing a jurisdiction-id.", [element]
+          "Office is missing a jurisdiction ID.", [element]
       )
     if len(jurisdiction_values) > 1:
       raise loggers.ElectionError.from_message(
-          "Office has more than one jurisdiction-id.", [element]
+          "Office has more than one jurisdiction ID.",
+          [element],
       )
 
 
@@ -2405,50 +2439,72 @@ class OfficesHaveValidOfficeLevel(base.BaseRule):
     return ["Office"]
 
   def check(self, element):
-    office_level_values = [
-        ol_id.strip()
-        for ol_id in get_external_id_values(element, "office-level")
-        if ol_id.strip()
-    ]
-    if not office_level_values:
+    office_levels = []
+    post_office_split_office_level_element = element.find("Level")
+    if element_has_text(post_office_split_office_level_element):
+      office_levels.append(post_office_split_office_level_element.text)
+    else:
+      office_levels = [
+          ol_id.strip()
+          for ol_id in get_external_id_values(element, "office-level")
+          if ol_id.strip()
+      ]
+
+    if not office_levels:
       raise loggers.ElectionError.from_message(
-          "Office is missing an office-level.", [element]
+          "Office is missing an office level.",
+          [element],
       )
-    if len(office_level_values) > 1:
+    if len(office_levels) > 1:
       raise loggers.ElectionError.from_message(
-          "Office has more than one office-level.", [element]
+          "Office has more than one office level.",
+          [element],
       )
-    office_level_value = office_level_values[0]
-    if office_level_value not in office_utils.valid_office_level_values:
+    office_level = office_levels[0]
+    if office_level not in office_utils.VALID_OFFICE_LEVELS:
       raise loggers.ElectionError.from_message(
-          "Office has invalid office-level {}.".format(office_level_value),
+          f"Office has an invalid office level: '{office_level}'.",
           [element],
       )
 
 
 class OfficesHaveValidOfficeRole(base.BaseRule):
-  """Each office must have a valid office-role."""
+  """Each office must have valid office role(s)."""
 
   def elements(self):
     return ["Office"]
 
   def check(self, element):
-    office_role_values = [
-        office_role_value.strip()
-        for office_role_value in get_external_id_values(element, "office-role")
-    ]
-    if not office_role_values:
+    office_roles = [role.text for role in element.findall("Role")]
+    if not office_roles:
+      office_roles = [
+          office_role.strip()
+          for office_role in get_external_id_values(element, "office-role")
+      ]
+
+    if not office_roles:
       raise loggers.ElectionError.from_message(
-          "The office is missing an office-role.", [element]
+          "Office is missing an office role.",
+          [element],
       )
-    if len(office_role_values) > 1:
+    if len(office_roles) == 1:
+      office_role = office_roles[0]
+      if office_role not in office_utils.VALID_OFFICE_ROLES:
+        raise loggers.ElectionError.from_message(
+            f"Office has an invalid office role: '{office_role}'.",
+            [element],
+        )
+    elif len(office_roles) == 2:
+      if set(office_roles) not in _VALID_OFFICE_ROLE_COMBINATIONS:
+        raise loggers.ElectionError.from_message(
+            "Office has an invalid combination of office roles: "
+            f"{office_roles}. Valid combinations are "
+            f"{_VALID_OFFICE_ROLE_COMBINATIONS}.",
+            [element],
+        )
+    else:
       raise loggers.ElectionError.from_message(
-          "The office has more than one office-role.", [element]
-      )
-    office_role_value = office_role_values[0]
-    if office_role_value not in office_utils.valid_office_role_values:
-      raise loggers.ElectionError.from_message(
-          "The office has invalid office-role '{}'.".format(office_role_value),
+          "Office has more than two office roles.",
           [element],
       )
 
@@ -2650,7 +2706,7 @@ class ElectionDatesSpanContestDates(base.DateRule):
     if (
         election_end_date is not None
         and self.end_date is not None
-        and election_end_date.is_older_than(self.end_date) > 0
+        and election_end_date < self.end_date
         # Only compare election end date to contests that are not canceled
         and (
             contest_date_status is None
@@ -2672,7 +2728,7 @@ class ElectionDatesSpanContestDates(base.DateRule):
     if (
         election_start_date is not None
         and self.start_date is not None
-        and self.start_date.is_older_than(election_start_date) > 0
+        and self.start_date < election_start_date
     ):
       self.error_log.append(
           loggers.LogEntry(
@@ -2824,37 +2880,117 @@ class DateStatusMatches(base.DateRule):
       raise loggers.ElectionInfo.from_message(msg, [election_elem])
 
 
+class OfficeSelectionMethodMatch(base.BaseRule):
+  """Office and OfficeHolderTenure need to have matching selection methods.
+
+  Ensure that the OfficeSelectionMethod of a given OfficeHolderTenure is
+  also
+  present in the list of SelectionMethods of the Office it points to.
+  """
+
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    self.office_selection_methods = {}
+    officeholder_tenure_elements = self.get_elements_by_class(
+        election_tree, "OfficeHolderTenure"
+    )
+    office_elements = self.get_elements_by_class(election_tree, "Office")
+    if officeholder_tenure_elements:
+      for element in office_elements:
+        office_id = element.get("objectId")
+        selection_methods = {
+            selection_method.text
+            for selection_method in element.findall("SelectionMethod")
+        }
+        self.office_selection_methods[office_id] = selection_methods
+
+  def elements(self):
+    return ["OfficeHolderTenure"]
+
+  def check(self, element):
+    office_id = element.find("OfficeId").text
+    office_selection_method = element.find("OfficeSelectionMethod").text
+    if (
+        office_id not in self.office_selection_methods
+        or office_selection_method
+        not in self.office_selection_methods[office_id]
+    ):
+      raise loggers.ElectionError.from_message(
+          "OfficeSelectionMethod does not have a matching SelectionMethod"
+          " in the corresponding Office element.",
+          [element],
+      )
+
+
+class OfficeHolderTenureTermDates(base.DateRule):
+  """OfficeHolderTenure elements should contain valid term dates."""
+
+  def elements(self):
+    return ["OfficeHolderTenure"]
+
+  def check(self, element):
+    start_date = element.find("StartDate")
+    end_date = element.find("EndDate")
+    if element_has_text(start_date) and element_has_text(end_date):
+      start_date_obj = base.PartialDate.init_partial_date(start_date.text)
+      end_date_obj = base.PartialDate.init_partial_date(end_date.text)
+      if end_date_obj < start_date_obj:
+        raise loggers.ElectionError.from_message(
+            "OfficeHolderTenure element has an EndDate that is before the"
+            " StartDate.",
+            [element],
+        )
+
+
 class OfficeTermDates(base.DateRule):
   """Office elements should contain valid term dates.
 
   Offices with OfficeHolderPersonIds should have a Term declared. Given
   term should have a start date. If term also has an end date then end date
-  should come after start date.
+  should come after start date. Post Office split feed office objects should
+  not have a Term element.
   """
+
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    self.is_post_office_split_feed = False
+    officeholder_tenure_collection_element = self.get_elements_by_class(
+        election_tree, "OfficeHolderTenureCollection"
+    )
+    if officeholder_tenure_collection_element:
+      self.is_post_office_split_feed = True
 
   def elements(self):
     return ["Office"]
 
   def check(self, element):
     self.reset_instance_vars()
-    off_per_id = element.find("OfficeHolderPersonIds")
-    if element_has_text(off_per_id):
+    if self.is_post_office_split_feed:
       term = element.find("Term")
-      if term is None:
-        raise loggers.ElectionWarning.from_message(
-            "The Office is missing a Term.", [element]
+      if term is not None:
+        raise loggers.ElectionError.from_message(
+            "Office should not contain Term data in post Office split feed.",
+            [element],
         )
+      if self.error_log:
+        raise loggers.ElectionError(self.error_log)
+    else:
+      off_per_id = element.find("OfficeHolderPersonIds")
+      if element_has_text(off_per_id):
+        term = element.find("Term")
+        if term is None:
+          raise loggers.ElectionWarning.from_message(
+              "The Office is missing a Term.", [element]
+          )
 
-      self.gather_dates(term)
-      if self.start_date is None:
-        raise loggers.ElectionWarning.from_message(
-            "The Office is missing a Term > StartDate.", [element]
-        )
-      elif self.end_date is not None:
-        self.check_end_after_start()
+        self.gather_dates(term)
+        if self.start_date is None:
+          raise loggers.ElectionWarning.from_message(
+              "The Office is missing a Term > StartDate.", [element]
+          )
+        elif self.end_date is not None:
+          self.check_end_after_start()
 
-    if self.error_log:
-      raise loggers.ElectionError(self.error_log)
+      if self.error_log:
+        raise loggers.ElectionError(self.error_log)
 
 
 class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
@@ -2870,21 +3006,27 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
     info_log = []
     persons = self.get_elements_by_class(self.election_tree, "Person")
     offices = self.get_elements_by_class(self.election_tree, "Office")
+    officeholder_tenure_collection = self.get_elements_by_class(
+        self.election_tree, "OfficeHolderTenureCollection"
+    )
+    is_post_office_split_feed = bool(officeholder_tenure_collection)
     person_office_dict = dict()
     outdated_offices = []
-    for office in offices:
-      ohpid = office.find("OfficeHolderPersonIds").text
-      if ohpid in person_office_dict:
-        person_office_dict[ohpid].append(office.get("objectId"))
-      else:
-        person_office_dict[ohpid] = [office.get("objectId")]
-      term = office.find(".//Term")
-      if term is not None:
+    outdated_officeholder_tenures = []
+    outdated_officetenure_persons = dict()
+    if is_post_office_split_feed:
+      officeholder_tenures = self.get_elements_by_class(
+          self.election_tree, "OfficeHolderTenure"
+      )
+      for officeholder_tenure in officeholder_tenures:
+        office_holder_person_elem = officeholder_tenure.find(
+            "OfficeHolderPersonId"
+        )
+        person_id = office_holder_person_elem.text
         date_validator = base.DateRule(None, None)
-        limit_check = 0
-        date_validator.gather_dates(term)
-        end_date_person = date_validator.end_date
-        if end_date_person is not None:
+        date_validator.gather_dates(officeholder_tenure)
+        end_date = date_validator.end_date
+        if end_date is not None:
           sixty_days_earlier = datetime.datetime.now() + datetime.timedelta(
               days=-60
           )
@@ -2893,22 +3035,86 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
               sixty_days_earlier.month,
               sixty_days_earlier.day,
           )
-          limit_check = partial_date_sixty_days.is_older_than(end_date_person)
-          if limit_check < 0:
-            outdated_offices.append(office.get("objectId"))
-    for person in persons:
-      pid = person.get("objectId")
-      if person_office_dict.get(pid) is not None:
-        check_person_outdated = all(
-            item in outdated_offices for item in person_office_dict.get(pid)
+          if end_date < partial_date_sixty_days:
+            outdated_officeholder_tenures.append(officeholder_tenure)
+          if person_id in outdated_officetenure_persons.keys():
+            outdated_officetenure_persons[person_id].append(
+                (office_holder_person_elem, end_date)
+            )
+          else:
+            outdated_officetenure_persons[person_id] = [
+                (office_holder_person_elem, end_date)
+            ]
+      for outdated_officeholder_tenure in outdated_officeholder_tenures:
+        info_message = (
+            "The officeholder tenure end date is more than 60 days"
+            " in the past; this OfficeHolderTenure element can be removed"
+            " from the feed."
         )
-        if check_person_outdated:
-          info_message = (
-              "The officeholder mandates ended more than 60 days ago. "
-              "Therefore, you can remove the person and the related offices "
-              "from the feed."
+        info_log.append(
+            loggers.LogEntry(info_message, [outdated_officeholder_tenure])
+        )
+      for person_id, value_list in outdated_officetenure_persons.items():
+        has_recent_tenure = False
+        office_holder_person_elem = None
+        for value in value_list:
+          office_holder_person_elem = value[0]
+          end_date = value[1]
+          sixty_days_earlier = datetime.datetime.now() + datetime.timedelta(
+              days=-60
           )
-          info_log.append(loggers.LogEntry(info_message, [person]))
+          partial_date_sixty_days = base.PartialDate(
+              sixty_days_earlier.year,
+              sixty_days_earlier.month,
+              sixty_days_earlier.day,
+          )
+          if end_date > partial_date_sixty_days:
+            has_recent_tenure = True
+        if not has_recent_tenure and office_holder_person_elem is not None:
+          info_message = (
+              "All officeholder tenures ended more than 60 days ago. "
+              "Therefore, you can remove the person and the "
+              "related officeholder tenures from the feed."
+          )
+          info_log.append(
+              loggers.LogEntry(info_message, [office_holder_person_elem])
+          )
+    else:
+      for office in offices:
+        person_id = office.find("OfficeHolderPersonIds").text
+        if person_id in person_office_dict:
+          person_office_dict[person_id].append(office.get("objectId"))
+        else:
+          person_office_dict[person_id] = [office.get("objectId")]
+        term = office.find(".//Term")
+        if term is not None:
+          date_validator = base.DateRule(None, None)
+          date_validator.gather_dates(term)
+          end_date_person = date_validator.end_date
+          if end_date_person is not None:
+            sixty_days_earlier = datetime.datetime.now() + datetime.timedelta(
+                days=-60
+            )
+            partial_date_sixty_days = base.PartialDate(
+                sixty_days_earlier.year,
+                sixty_days_earlier.month,
+                sixty_days_earlier.day,
+            )
+            if end_date_person < partial_date_sixty_days:
+              outdated_offices.append(office.get("objectId"))
+      for person in persons:
+        pid = person.get("objectId")
+        if person_office_dict.get(pid) is not None:
+          check_person_outdated = all(
+              item in outdated_offices for item in person_office_dict.get(pid)
+          )
+          if check_person_outdated:
+            info_message = (
+                "The officeholder mandates ended more than 60 days ago. "
+                "Therefore, you can remove the person and the related offices "
+                "from the feed."
+            )
+            info_log.append(loggers.LogEntry(info_message, [person]))
     if info_log:
       raise loggers.ElectionInfo(info_log)
 
@@ -3284,9 +3490,6 @@ class MissingFieldsInfo(base.MissingFieldRule):
 
   def element_field_mapping(self):
     return {
-        "Office": [
-            "ElectoralDistrictId",
-        ],
     }
 
 
@@ -3343,11 +3546,21 @@ class PartySpanMultipleCountries(base.BaseRule):
 class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
   """Ensure non-executive Office elements have a government body defined."""
 
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    self.is_post_office_split_feed = False
+    officeholder_tenure_collection_element = self.get_elements_by_class(
+        election_tree, "OfficeHolderTenureCollection"
+    )
+    if officeholder_tenure_collection_element:
+      self.is_post_office_split_feed = True
+
   def elements(self):
     return ["Office"]
 
   def check(self, element):
-    if not _is_executive_office(element) and not _has_government_body(element):
+    if not _is_executive_office(
+        element, self.is_post_office_split_feed
+    ) and not _has_government_body(element):
       raise loggers.ElectionInfo.from_message(
           "Non-executive Office element is missing a government body.",
           [element],
@@ -3357,12 +3570,22 @@ class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
 class ExecutiveOfficeShouldNotHaveGovernmentBody(base.BaseRule):
   """Ensure executive Office elements do not have a government body defined."""
 
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    self.is_post_office_split_feed = False
+    officeholder_tenure_collection_element = self.get_elements_by_class(
+        election_tree, "OfficeHolderTenureCollection"
+    )
+    if officeholder_tenure_collection_element:
+      self.is_post_office_split_feed = True
+
   def elements(self):
     return ["Office"]
 
   def check(self, element):
-    if _is_executive_office(element) and _has_government_body(element):
-      office_roles = get_entity_info_for_value_type(element, "office-role")
+    if _is_executive_office(
+        element, self.is_post_office_split_feed
+    ) and _has_government_body(element):
+      office_roles = _get_office_roles(element, self.is_post_office_split_feed)
       raise loggers.ElectionError.from_message(
           f"Executive Office element (roles: {','.join(office_roles)}) has a "
           "government body. Executive offices should not have government "
@@ -3444,11 +3667,11 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
       subsequent_contest = contest_by_id[subsequent_contest_id]
       # Check that the subsequent contest has a later end date
       if subsequent_contest is not None and contest is not None:
-        end_delta = base.PartialDate.is_older_than(
-            contest_end_date_by_id[subsequent_contest_id],
-            contest_end_date_by_id[contest_id],
-        )
-        if end_delta > 0:
+        contest_end_date = contest_end_date_by_id[contest_id]
+        subsequent_contest_end_date = contest_end_date_by_id[
+            subsequent_contest_id
+        ]
+        if subsequent_contest_end_date < contest_end_date:
           error_log.append(
               loggers.LogEntry(
                   f"Contest {contest_id} references a subsequent contest with"
@@ -3765,8 +3988,7 @@ class ContestEndDateOccursBeforeSubsequentContestStartDate(base.DateRule):
       _, contest_end = dates_by_contest_id[contest_id]
       subsequent_contest_start, _ = dates_by_contest_id[subsequent_contest_id]
       if contest_end is not None and subsequent_contest_start is not None:
-        date_delta = contest_end.is_older_than(subsequent_contest_start)
-        if date_delta < 0:
+        if subsequent_contest_start < contest_end:
           self.error_log.append(
               loggers.LogEntry(
                   "Contest {} with end date {} does not occur before"
@@ -4018,8 +4240,7 @@ class ElectionEventDatesAreSequential(base.DateRule):
       full_delivery_date = base.PartialDate.init_partial_date(
           element.find("FullDeliveryDate").text
       )
-      date_delta = self.start_date.is_older_than(full_delivery_date)
-      if date_delta > 0:
+      if self.start_date < full_delivery_date:
         self.error_log.append(
             loggers.LogEntry(
                 "StartDate is older than FullDeliveryDate",
@@ -4035,8 +4256,7 @@ class ElectionEventDatesAreSequential(base.DateRule):
       full_delivery_date = base.PartialDate.init_partial_date(
           element.find("FullDeliveryDate").text
       )
-      date_delta = full_delivery_date.is_older_than(initial_delivery_date)
-      if date_delta > 0:
+      if full_delivery_date < initial_delivery_date:
         self.error_log.append(
             loggers.LogEntry(
                 "FullDeliveryDate is older than InitialDeliveryDate",
@@ -4048,37 +4268,32 @@ class ElectionEventDatesAreSequential(base.DateRule):
       raise loggers.ElectionError(self.error_log)
 
 
-class NoSourceDirPathBeforeInitialDeliveryDate(base.BaseRule):
-  """SourceDirPath should only be defined if one of the initial delivery dates is in the past."""
+class SourceDirPathMustBeSetAfterInitialDeliveryDate(base.BaseRule):
+  """SourceDirPath must be set if any InitialDeliveryDate is in the past."""
 
   def elements(self):
     return ["Feed"]
 
   def check(self, element):
-    if not element_has_text(element.find("SourceDirPath")):
+    if element_has_text(element.find("SourceDirPath")):
       return
     today = datetime.date.today()
     today_partial_date = base.PartialDate(
         year=today.year, month=today.month, day=today.day
     )
-    initial_deliveries = element.findall(".//InitialDeliveryDate")
-    if initial_deliveries:
-      for initial_delivery in initial_deliveries:
-        initial_delivery_date = (
-            base.PartialDate.init_partial_date(initial_delivery.text)
-            if element_has_text(initial_delivery)
-            else None
-        )
-        if (
-            initial_delivery_date
-            and initial_delivery_date.is_older_than(today_partial_date) > 0
-        ):
-          return
-      raise loggers.ElectionWarning.from_message(
-          "SourceDirPath is defined but all initialDeliveryDate are in the"
-          " future.",
-          [element],
+    initial_deliveries = element.findall(".//InitialDeliveryDate") or []
+    for initial_delivery in initial_deliveries:
+      initial_delivery_date = (
+          base.PartialDate.init_partial_date(initial_delivery.text)
+          if element_has_text(initial_delivery)
+          else None
       )
+      if initial_delivery_date and initial_delivery_date < today_partial_date:
+        raise loggers.ElectionError.from_message(
+            "SourceDirPath is not set but an InitialDeliveryDate is in the "
+            f"past for feed {element.find('FeedId').text}.",
+            [element],
+        )
 
 
 class OfficeHolderSubFeedDatesAreSequential(base.DateRule):
@@ -4097,8 +4312,7 @@ class OfficeHolderSubFeedDatesAreSequential(base.DateRule):
       full_delivery_date = base.PartialDate.init_partial_date(
           element.find("FullDeliveryDate").text
       )
-      date_delta = full_delivery_date.is_older_than(initial_delivery_date)
-      if date_delta > 0:
+      if full_delivery_date < initial_delivery_date:
         raise loggers.ElectionError.from_message(
             "FullDeliveryDate is older than InitialDeliveryDate",
             [element],
@@ -4120,14 +4334,14 @@ class FeedInactiveDateIsLatestDate(base.BaseRule):
         full_delivery_date = base.PartialDate.init_partial_date(
             full_delivery_date_element.text
         )
-        if feed_inactive_date.is_older_than(full_delivery_date) > 0:
+        if feed_inactive_date < full_delivery_date:
           raise loggers.ElectionError.from_message(
               "FeedInactiveDate is older than FullDeliveryDate",
               [element],
           )
       for end_date_element in element.iter("EndDate"):
         end_date = base.PartialDate.init_partial_date(end_date_element.text)
-        if feed_inactive_date.is_older_than(end_date) > 0:
+        if feed_inactive_date < end_date:
           raise loggers.ElectionError.from_message(
               "FeedInactiveDate is older than EndDate",
               [element],
@@ -4295,21 +4509,27 @@ class UnreferencedEntitiesOfficeholders(UnreferencedEntitiesBase):
   """
 
   def __init__(self, election_tree, schema_tree, **kwargs):
+    office_holder_tenure_collection = self.get_elements_by_class(
+        election_tree, "OfficeHolderTenure"
+    )
+    is_post_office_split = False
+    if office_holder_tenure_collection:
+      is_post_office_split = True
     super(UnreferencedEntitiesOfficeholders, self).__init__(
         election_tree,
         schema_tree,
-        frozenset(["Office", "Leadership"]),
+        (
+            frozenset(["OfficeHolderTenure", "Leadership"])
+            if is_post_office_split
+            else frozenset(["Office", "Leadership"])
+        ),
         frozenset(["Party"]),
         **kwargs,
     )
 
 
 class DeprecatedPartyLeadershipSchema(base.BaseRule):
-  """Warns if the deprecated party leadership schema is used.
-
-  This rule will eventually become an error once feeds are migrated to the new
-  schema.
-  """
+  """Errors if the deprecated party leadership schema is used."""
 
   def elements(self):
     return ["Party"]
@@ -4318,7 +4538,7 @@ class DeprecatedPartyLeadershipSchema(base.BaseRule):
     if len(get_external_id_values(element, "party-leader-id")) or len(
         get_external_id_values(element, "party-chair-id")
     ):
-      raise loggers.ElectionWarning.from_message(
+      raise loggers.ElectionError.from_message(
           "Specifying party leadership via external identifiers is deprecated."
           " Please use the PartyLeadership element instead."
       )
@@ -4344,6 +4564,164 @@ class GovernmentBodyExternalId(base.BaseRule):
       )
 
 
+class UnsupportedOfficeSchema(base.BaseRule):
+  """Fails if new unsupported office schema is used in the feed.
+
+  This rule will eventually be removed once the new schema is supported.
+  """
+
+  def elements(self):
+    return ["Office"]
+
+  def check(self, element):
+    if element.find("JurisdictionId") is not None:
+      raise loggers.ElectionError.from_message(
+          "Specifying JurisdictionId on Office is not yet supported."
+      )
+    if element.find("Level") is not None:
+      raise loggers.ElectionError.from_message(
+          "Specifying Level on Office is not yet supported."
+      )
+    if element.find("Role") is not None:
+      raise loggers.ElectionError.from_message(
+          "Specifying Role on Office is not yet supported."
+      )
+    if len(element.findall("SelectionMethod")) > 1:
+      raise loggers.ElectionError.from_message(
+          "Specifying multiple SelectionMethod elements on Office is not yet "
+          "supported."
+      )
+
+
+class UnsupportedOfficeHolderTenureSchema(base.BaseRule):
+  """Fails if new unsupported officeholder tenure schema is used in the feed.
+
+  This rule will eventually be removed once the new schema is supported.
+  """
+
+  def elements(self):
+    return ["ElectionReport"]
+
+  def check(self, element):
+    if element.find("OfficeHolderTenureCollection") is not None:
+      raise loggers.ElectionError.from_message(
+          "Specifying OfficeHolderTenureCollection on ElectionReport is not "
+          "yet supported."
+      )
+
+
+class ElectoralCommissionCollectionExists(base.BaseRule):
+  """ElectoralCommissionCollection should exist."""
+
+  def elements(self):
+    return ["ElectionReport"]
+
+  def check(self, element):
+    if element.find("ElectoralCommissionCollection") is None:
+      raise loggers.ElectionError.from_message(
+          "ElectoralCommissionCollection should exist."
+      )
+
+
+class VoterInformationCollectionExists(base.BaseRule):
+  """Warn if there is no VoterInformationCollection."""
+
+  def elements(self):
+    return ["ElectionReport"]
+
+  def check(self, element):
+    if element.find("VoterInformationCollection") is None:
+      raise loggers.ElectionWarning.from_message(
+          "VoterInformationCollection should exist."
+      )
+
+
+class NoExtraElectionElements(base.BaseRule):
+  """Elections for voter information feeds should not have certain elements.
+
+  BallotStyleCollection, CandidateCollection, ContestCollection, CountStatus
+  should all be excluded.
+  """
+
+  def elements(self):
+    return ["Election"]
+
+  def check(self, element):
+    if element.find("BallotStyleCollection") is not None:
+      raise loggers.ElectionError.from_message(
+          "BallotStyleCollection should not exist."
+      )
+
+    if element.find("CandidateCollection") is not None:
+      raise loggers.ElectionError.from_message(
+          "CandidateCollection should not exist."
+      )
+    if element.find("ContestCollection") is not None:
+      raise loggers.ElectionError.from_message(
+          "ContestCollection should not exist."
+      )
+
+    if element.find("CountStatus") is not None:
+      raise loggers.ElectionError.from_message("CountStatus should not exist.")
+
+
+class WarnOnElementsNotRecommendedForElection(base.BaseRule):
+  """Warn on ContactInformation on an Election for voter information feeds."""
+
+  def elements(self):
+    return ["Election"]
+
+  def check(self, element):
+    if element.find("ContactInformation") is not None:
+      raise loggers.ElectionWarning.from_message(
+          "ContactInformation is not recommended for Election, prefer using an"
+          " ElectionAdministration."
+      )
+
+
+class NoExtraElectionReportCollections(base.BaseRule):
+  """ElectionReports for voter information feeds should not have certain elements.
+
+  CommitteeCollection, GovernmentBodyCollection, OfficeCollection,
+  OfficeHolderTenureCollection, PartyCollection, PersonCollection should all be
+  excluded.
+  """
+
+  def elements(self):
+    return ["ElectionReport"]
+
+  def check(self, element):
+    if element.find("CommitteeCollection") is not None:
+      raise loggers.ElectionError.from_message(
+          "CommitteeCollection should not exist."
+      )
+
+    if element.find("GovernmentBodyCollection") is not None:
+      raise loggers.ElectionError.from_message(
+          "GovernmentBodyCollection should not exist."
+      )
+
+    if element.find("OfficeCollection") is not None:
+      raise loggers.ElectionError.from_message(
+          "OfficeCollection should not exist."
+      )
+
+    if element.find("OfficeHolderTenureCollection") is not None:
+      raise loggers.ElectionError.from_message(
+          "OfficeHolderTenureCollection should not exist."
+      )
+
+    if element.find("PartyCollection") is not None:
+      raise loggers.ElectionError.from_message(
+          "PartyCollection should not exist."
+      )
+
+    if element.find("PersonCollection") is not None:
+      raise loggers.ElectionError.from_message(
+          "PersonCollection should not exist."
+      )
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
 
@@ -4353,6 +4731,7 @@ class RuleSet(enum.Enum):
   ELECTION_DATES = 4
   ELECTION_RESULTS = 5
   METADATA = 6
+  VOTER_INFORMATION = 7
 
 
 # To add new rules, create a new class, inherit the base rule,
@@ -4398,6 +4777,8 @@ COMMON_RULES = (
     UniqueLabel,
     UniqueStableID,
     UniqueURIPerAnnotationCategory,
+    UnsupportedOfficeHolderTenureSchema,
+    UnsupportedOfficeSchema,
     ValidEnumerations,
     ValidIDREF,
     ValidJurisdictionID,
@@ -4469,6 +4850,8 @@ ELECTION_RESULTS_RULES = ELECTION_RULES + (
 OFFICEHOLDER_RULES = COMMON_RULES + (
     # go/keep-sorted start
     DateOfBirthIsInPast,
+    OfficeHolderTenureTermDates,
+    OfficeSelectionMethodMatch,
     OfficeTermDates,
     PersonHasOffice,
     ProhibitElectionData,
@@ -4501,12 +4884,22 @@ METADATA_RULES = (
     FeedInactiveDateIsLatestDate,
     FeedInactiveDateSetForNonEvergreenFeed,
     FeedTypeHasValidFeedLongevity,
-    NoSourceDirPathBeforeInitialDeliveryDate,
     OfficeHolderSubFeedDatesAreSequential,
     OptionalAndEmpty,
     Schema,
+    SourceDirPathMustBeSetAfterInitialDeliveryDate,
     SourceDirPathsAreUnique,
     UniqueLabel,
+    # go/keep-sorted end
+)
+
+VOTER_INFORMATION_RULES = COMMON_RULES + (
+    # go/keep-sorted start
+    ElectoralCommissionCollectionExists,
+    NoExtraElectionElements,
+    NoExtraElectionReportCollections,
+    VoterInformationCollectionExists,
+    WarnOnElementsNotRecommendedForElection,
     # go/keep-sorted end
 )
 
@@ -4517,5 +4910,6 @@ ALL_RULES = frozenset(
     + OFFICEHOLDER_RULES
     + COMMITTEE_RULES
     + ELECTION_DATES_RULES
+    + VOTER_INFORMATION_RULES
     + METADATA_RULES
 )

@@ -9,6 +9,7 @@
             <xs:enumeration value="officeholder" />
             <xs:enumeration value="committee" />
             <xs:enumeration value="election-results" />
+            <xs:enumeration value="voter-information" />
         </xs:restriction>
     </xs:simpleType>
     <xs:simpleType name="FeedLongevity">
