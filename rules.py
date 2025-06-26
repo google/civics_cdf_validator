@@ -2268,6 +2268,7 @@ class ValidURIAnnotation(base.BaseRule):
       "line",
       "linkedin",
       "tiktok",
+      "whatsapp",
   ])
   USAGE_TYPES = frozenset(["personal", "official", "campaign"])
   PLATFORM_ONLY_ANNOTATIONS = frozenset(

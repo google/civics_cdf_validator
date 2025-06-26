@@ -5739,7 +5739,7 @@ class ValidURIAnnotationTest(absltest.TestCase):
     root_string = """
       <ContactInformation label="ci_par_at_1">
         <Uri Annotation="personal-facebook">
-          <![CDATA[https://www.fb.com/juanjomalvinas]]>
+          <![CDATA[https://www.fb.com/example]]>
         </Uri>
       </ContactInformation>
     """
@@ -5766,7 +5766,7 @@ class ValidURIAnnotationTest(absltest.TestCase):
     root_string = """
       <ContactInformation label="ci_par_at_1">
         <Uri Annotation="personal-twitter">
-          <![CDATA[https://www.x.com/juanjomalvinas]]>
+          <![CDATA[https://www.x.com/example]]>
         </Uri>
       </ContactInformation>
     """
@@ -5788,6 +5788,16 @@ class ValidURIAnnotationTest(absltest.TestCase):
     self.assertEqual(cm.exception.log_entry[0].message,
                      ("'official-x' is not a valid annotation."))
     self.assertEqual(cm.exception.log_entry[0].elements[0].tag, "Uri")
+
+  def testWhatsappAnnotation(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="personal-whatsapp">
+          <![CDATA[https://www.whatsapp.com/example]]>
+        </Uri>
+      </ContactInformation>
+    """
+    self.valid_annotation.check(etree.fromstring(root_string))
 
 
 class OfficesHaveJurisdictionIDTest(absltest.TestCase):
