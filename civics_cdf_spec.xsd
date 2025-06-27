@@ -902,7 +902,7 @@
     </xs:complexType>
   <xs:complexType name="ElectoralCommissionWebsite">
     <xs:sequence>
-      <xs:element maxOccurs="unbounded" name="Uri" type="InternationalizedUri" />
+      <xs:element name="Uri" type="InternationalizedUri" />
       <xs:element minOccurs="0" name="IsGeoFenced" type="xs:boolean"/>
       <xs:element minOccurs="0" name="IsUserInputRequired" type="xs:boolean"/>
     </xs:sequence>
@@ -921,7 +921,7 @@
   <xs:complexType name="VoterInformationWebsite">
       <xs:sequence>
           <xs:element maxOccurs="unbounded" minOccurs="1" name="Type" type="VoterInformationWebsiteType" />
-          <xs:element maxOccurs="unbounded" minOccurs="1" name="Uri" type="InternationalizedUri" />
+          <xs:element name="Uri" type="InternationalizedUri" />
           <xs:element minOccurs="0" name="IsGeoFenced" type="xs:boolean"/>
           <xs:element minOccurs="0" name="IsUserInputRequired" type="xs:boolean"/>
       </xs:sequence>
