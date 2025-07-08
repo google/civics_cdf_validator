@@ -11953,6 +11953,46 @@ class FeedInactiveDateIsLatestDateTest(absltest.TestCase):
         cm.exception.log_entry[0].elements[0].tag, "Feed"
     )
 
+  def testCancelledElectionEventDateIsIgnored(self):
+    feed_string = """
+      <Feed>
+        <SourceDirPath>test_path_1</SourceDirPath>
+        <ElectionEventCollection>
+          <ElectionEvent>
+            <EndDate>2023-12-01</EndDate>
+            <ElectionDateStatus>canceled</ElectionDateStatus>
+          </ElectionEvent>
+        </ElectionEventCollection>
+        <FeedInactiveDate>2022-01-01</FeedInactiveDate>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def testOtherElectionDateStatusIsNotIgnored(self):
+    feed_string = """
+      <Feed>
+        <SourceDirPath>test_path_1</SourceDirPath>
+        <ElectionEventCollection>
+          <ElectionEvent>
+            <EndDate>2023-12-01</EndDate>
+            <ElectionDateStatus>postponed</ElectionDateStatus>
+          </ElectionEvent>
+        </ElectionEventCollection>
+        <FeedInactiveDate>2022-01-01</FeedInactiveDate>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "FeedInactiveDate is older than EndDate",
+    )
+    self.assertEqual(
+        cm.exception.log_entry[0].elements[0].tag, "Feed"
+    )
+
 
 class FeedHasValidCountryCodeTest(absltest.TestCase):
 

@@ -4322,6 +4322,8 @@ class OfficeHolderSubFeedDatesAreSequential(base.DateRule):
 class FeedInactiveDateIsLatestDate(base.BaseRule):
   """Partner feeds should have a FeedInactiveDate that occurs after the FullDeliveryDate and EndDate."""
 
+  ignorable_election_date_statuses = frozenset(["canceled"])
+
   def elements(self):
     return ["Feed"]
 
@@ -4339,13 +4341,22 @@ class FeedInactiveDateIsLatestDate(base.BaseRule):
               "FeedInactiveDate is older than FullDeliveryDate",
               [element],
           )
-      for end_date_element in element.iter("EndDate"):
-        end_date = base.PartialDate.init_partial_date(end_date_element.text)
-        if feed_inactive_date < end_date:
-          raise loggers.ElectionError.from_message(
-              "FeedInactiveDate is older than EndDate",
-              [element],
-          )
+      for election_event_element in element.iter("ElectionEvent"):
+        if element_has_text(
+            election_event_element.find("ElectionDateStatus")
+        ) and (
+            election_event_element.find("ElectionDateStatus").text
+            in self.ignorable_election_date_statuses
+        ):
+          continue
+        if element_has_text(election_event_element.find("EndDate")):
+          end_date_element = election_event_element.find("EndDate")
+          end_date = base.PartialDate.init_partial_date(end_date_element.text)
+          if feed_inactive_date < end_date:
+            raise loggers.ElectionError.from_message(
+                "FeedInactiveDate is older than EndDate",
+                [element],
+            )
 
 
 class FeedHasValidCountryCode(base.BaseRule):
