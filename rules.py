@@ -98,7 +98,7 @@ _VALID_OFFICE_ROLE_COMBINATIONS = frozenset([
 
 def _get_office_roles(element, is_post_office_split_feed=False):
   if is_post_office_split_feed:
-    return [element.text for element in element.findall("OfficeRole")]
+    return [element.text for element in element.findall("Role")]
   return get_entity_info_for_value_type(element, "office-role")
 
 
