@@ -42,9 +42,9 @@
             <Value>bmc0</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>
+        <InternationalizedName language="en">
           California Proposition 12, Farm Animal Confinement Initiative (2018)
-        </Name>
+        </InternationalizedName>
         <BallotText>
           <Text language="en">
             Establishes minimum requirements for confining certain farm animals. Prohibits sales of meat and egg products from animals confined in noncomplying manner. Fiscal Impact: Potential decrease in state income tax revenues from farm businesses, likely not more than several million dollars annually. State costs up to $10 million annually to enforce the measure.
@@ -79,9 +79,9 @@
         <Value>stable_el1</Value>
       </ExternalIdentifier>
     </ExternalIdentifiers>
-    <Name>
-      <Text language="en">GENERAL ELECTION</Text>
-    </Name>
+    <InternationalizedName language="en">
+      GENERAL ELECTION
+    </InternationalizedName>
     <StartDate>2018</StartDate>
     <EndDate>2025-11-05</EndDate>
     <Type>general</Type>
@@ -108,7 +108,7 @@
           <Value>51</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>United States Of America</Name>
+      <InternationalizedName language="en">United States Of America</InternationalizedName>
       <Type>country</Type>
     </GpUnit>
     <GpUnit objectId="ru_ca_1" xsi:type="ReportingUnit">
@@ -123,7 +123,7 @@
           <Value>ocd-division/country:us/state:ca</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>California</Name>
+      <InternationalizedName language="en">California</InternationalizedName>
       <Type>state</Type>
     </GpUnit>
   </GpUnitCollection>

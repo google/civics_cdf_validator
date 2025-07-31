@@ -3894,6 +3894,23 @@ class AllInternationalizedTextHaveEnVersion(base.BaseRule):
       )
 
 
+class DeprecateNonInternationalizedName(base.BaseRule):
+  """Deprecate NonInternationalized version of Name."""
+
+  def elements(self):
+    return ["Name"]
+
+  def check(self, element):
+    if element.tag == "Name":
+      raise loggers.ElectionWarning.from_message(
+          message=(
+              '"Name" element found and will be deprecated in the near future.'
+              ' Please migrate all "Name" elements to "InternationalizedName".'
+          ),
+          elements=[element],
+      )
+
+
 class ContestContainsValidStartDate(base.DateRule):
   """Contest elements should contain valid start dates.
 
@@ -4754,6 +4771,7 @@ COMMON_RULES = (
     AllInternationalizedTextHaveEnVersion,
     AllLanguages,
     BadCharactersInPersonFullName,
+    DeprecateNonInternationalizedName,
     DeprecatedPartyLeadershipSchema,
     DuplicateGpUnits,
     DuplicateID,

@@ -11,13 +11,13 @@
           <AddressLine>Washington, DC 20005</AddressLine>
           <Email>obama.library@nara.gov</Email>
           <Fax>888-7777</Fax>
-          <Name>Barack Obama Office</Name>
+          <InternationalizedName language="en">Barack Obama Office</InternationalizedName>
           <Phone>(847) 252-5700</Phone>
         </ContactInformation>
         <ContactInformation language="es">
           <AddressLine>655 Nueva York Ave, NW</AddressLine>
           <AddressLine>Washington, DC 20005</AddressLine>
-          <Name>Oficina de Barack Obama</Name>
+          <InternationalizedName language="en">Oficina de Barack Obama</InternationalizedName>
         </ContactInformation>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -453,7 +453,7 @@
             <Value>vageneral-cont-2013-us1-country-us-pres</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>President</Name>
+        <InternationalizedName language="en">President</InternationalizedName>
         <NumberElected>1</NumberElected>
         <OfficeIds>off9999a</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
@@ -478,7 +478,7 @@
             <Value>vageneral-cont-2013-us1-country-us-vicepres</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Vice President</Name>
+        <InternationalizedName language="en">Vice President</InternationalizedName>
         <NumberElected>1</NumberElected>
         <OfficeIds>off9999b</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
@@ -512,7 +512,7 @@
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <HasRotation>true</HasRotation>
-        <Name>Governor</Name>
+        <InternationalizedName language="en">Governor</InternationalizedName>
         <NumberElected>1</NumberElected>
         <OfficeIds>off0000</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
@@ -539,7 +539,7 @@
             <Value>vageneral-cont-2013-va2-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Lieutenant Governor</Name>
+        <InternationalizedName language="en">Lieutenant Governor</InternationalizedName>
         <NumberElected>1</NumberElected>
         <OfficeIds>off0001</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
@@ -564,7 +564,7 @@
             <Value>vageneral-cont-2013-va3-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Attorney General</Name>
+        <InternationalizedName language="en">Attorney General</InternationalizedName>
         <NumberElected>1</NumberElected>
         <OfficeIds>off20005</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
@@ -590,7 +590,7 @@
             <Value>vageneral-cont-2013-va4-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member House of Delegates District - 025</Name>
+        <InternationalizedName language="en">Member House of Delegates District - 025</InternationalizedName>
         <NumberElected>1</NumberElected>
         <OfficeIds>off21</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
@@ -610,7 +610,7 @@
             <Value>vageneral-cont-2013-va5-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member House of Delegates District - 057</Name>
+        <InternationalizedName language="en">Member House of Delegates District - 057</InternationalizedName>
         <NumberElected>1</NumberElected>
         <OfficeIds>off21</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
@@ -631,7 +631,7 @@
             <Value>vageneral-cont-2013-va6-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member House of Delegates District - 059</Name>
+        <InternationalizedName language="en">Member House of Delegates District - 059</InternationalizedName>
         <NumberElected>1</NumberElected>
         <OfficeIds>off21</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
@@ -658,7 +658,7 @@
             <Value>vageneral-cont-2013-va7-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member House of Delegates District - 058</Name>
+        <InternationalizedName language="en">Member House of Delegates District - 058</InternationalizedName>
         <NumberElected>1</NumberElected>
         <OfficeIds>off21</OfficeIds>
         <!-- Links to "Voter Nominated" Party -->
@@ -684,7 +684,7 @@
             <Value>vageneral-cont-2013-va8-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member Board of Supervisors - Scottsville</Name>
+        <InternationalizedName language="en">Member Board of Supervisors - Scottsville</InternationalizedName>
         <NumberElected>1</NumberElected>
         <OfficeIds>off20262</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
@@ -708,7 +708,7 @@
             <Value>vageneral-cont-2013-va9-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member Board of Supervisors - Jack Jouett</Name>
+        <InternationalizedName language="en">Member Board of Supervisors - Jack Jouett</InternationalizedName>
         <NumberElected>1</NumberElected>
         <OfficeIds>off20305</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
@@ -732,7 +732,7 @@
             <Value>vageneral-cont-2013-va10-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member Board of Supervisors - Samuel Miller</Name>
+        <InternationalizedName language="en">Member Board of Supervisors - Samuel Miller</InternationalizedName>
         <NumberElected>1</NumberElected>
         <OfficeIds>off20350</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
@@ -755,7 +755,7 @@
             <Value>vageneral-cont-2013-va11-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member Board of Supervisors - Rio</Name>
+        <InternationalizedName language="en">Member Board of Supervisors - Rio</InternationalizedName>
         <NumberElected>1</NumberElected>
         <OfficeIds>off20355</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
@@ -775,7 +775,7 @@
             <Value>vageneral-cont-2013-va12-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member School Board - Rio</Name>
+        <InternationalizedName language="en">Member School Board - Rio</InternationalizedName>
         <NumberElected>1</NumberElected>
         <OfficeIds>off20449</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
@@ -794,7 +794,7 @@
             <OtherType>stable</OtherType>
             <Value>vageneral-cont-2013-va13-country-us</Value>
           </ExternalIdentifier></ExternalIdentifiers>
-        <Name>Member School Board - Samuel Miller</Name>
+        <InternationalizedName language="en">Member School Board - Samuel Miller</InternationalizedName>
         <NumberElected>1</NumberElected>
         <OfficeIds>off20473</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
@@ -814,7 +814,7 @@
             <Value>vageneral-cont-2013-va14-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member School Board - Jack Jouett</Name>
+        <InternationalizedName language="en">Member School Board - Jack Jouett</InternationalizedName>
         <NumberElected>1</NumberElected>
         <OfficeIds>off20476</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
@@ -839,9 +839,9 @@
         <Value>va_gen_el</Value>
       </ExternalIdentifier>
     </ExternalIdentifiers>
-    <Name>
+    <InternationalizedName language="en">
       <Text language="en">2013 Virginia General Election</Text>
-    </Name>
+    </InternationalizedName>
     <StartDate>2013-11-05</StartDate>
     <EndDate>2025-11-05</EndDate>
     <Type>general</Type>
@@ -871,7 +871,7 @@
           <Value>51</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>United States Of America</Name>
+      <InternationalizedName language="en">United States Of America</InternationalizedName>
       <Type>country</Type>
     </GpUnit>
     <GpUnit objectId="ru0002" xsi:type="ReportingUnit">
@@ -893,7 +893,7 @@
           <Value>51</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>Virginia</Name>
+      <InternationalizedName language="en">Virginia</InternationalizedName>
       <Type>state</Type>
     </GpUnit>
     <GpUnit objectId="ru0001" xsi:type="ReportingUnit">
@@ -913,7 +913,7 @@
           <Value>51003</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>Albemarle County</Name>
+      <InternationalizedName language="en">Albemarle County</InternationalizedName>
       <Type>county</Type>
     </GpUnit>
     <GpUnit objectId="ru0150" xsi:type="ReportingUnit">
@@ -928,7 +928,7 @@
           <Value>ocd-division/country:us/state:va/sldl:25</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>House of Delegates District - 025</Name>
+      <InternationalizedName language="en">House of Delegates District - 025</InternationalizedName>
       <Number>25</Number>
       <Type>state-house</Type>
     </GpUnit>
@@ -944,7 +944,7 @@
           <Value>ocd-division/country:us/state:va/sldl:57</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>House of Delegates District - 057</Name>
+      <InternationalizedName language="en">House of Delegates District - 057</InternationalizedName>
       <Number>57</Number>
       <Type>state-house</Type>
     </GpUnit>
@@ -960,7 +960,7 @@
           <Value>ocd-division/country:us/state:va/sldl:58</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>House of Delegates District - 058</Name>
+      <InternationalizedName language="en">House of Delegates District - 058</InternationalizedName>
       <Number>58</Number>
       <Type>state-house</Type>
     </GpUnit>
@@ -976,7 +976,7 @@
           <Value>ocd-division/country:us/state:va/sldl:59</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>House of Delegates District - 059</Name>
+      <InternationalizedName language="en">House of Delegates District - 059</InternationalizedName>
       <Number>59</Number>
       <Type>state-house</Type>
     </GpUnit>
@@ -992,7 +992,7 @@
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:samuel_miller</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>SAMUEL MILLER DISTRICT</Name>
+      <InternationalizedName language="en">SAMUEL MILLER DISTRICT</InternationalizedName>
       <Number>3</Number>
       <Type>county-council</Type>
     </GpUnit>
@@ -1008,7 +1008,7 @@
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:jack_jouett</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>JACK JOUETT DISTRICT</Name>
+      <InternationalizedName language="en">JACK JOUETT DISTRICT</InternationalizedName>
       <Number>2</Number>
       <Type>county-council</Type>
     </GpUnit>
@@ -1024,7 +1024,7 @@
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:rio</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>RIO DISTRICT</Name>
+      <InternationalizedName language="en">RIO DISTRICT</InternationalizedName>
       <Number>1</Number>
       <Type>county-council</Type>
     </GpUnit>
@@ -1040,7 +1040,7 @@
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:scottsville</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>SCOTTSVILLE DISTRICT</Name>
+      <InternationalizedName language="en">SCOTTSVILLE DISTRICT</InternationalizedName>
       <Number>4</Number>
       <Type>county-council</Type>
     </GpUnit>
@@ -1074,9 +1074,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">President of the United States</Text>
-      </Name>
+      </InternationalizedName>
       <SelectionMethod>indirectly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -1108,9 +1108,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Vice President of the United States</Text>
-      </Name>
+      </InternationalizedName>
       <SelectionMethod>indirectly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -1122,13 +1122,13 @@
           <AddressLine>Washington, DC 20005</AddressLine>
           <Email>person@congress.gov</Email>
           <Fax>888-7777</Fax>
-          <Name>Congressional Office</Name>
+          <InternationalizedName language="en">Congressional Office</InternationalizedName>
           <Phone>999-8888</Phone>
         </ContactInformation>
         <ContactInformation language="es">
           <AddressLine>655 Nueva York Ave, NW</AddressLine>
           <AddressLine>Washington, DC 20005</AddressLine>
-          <Name>Oficina del Congreso</Name>
+          <InternationalizedName language="en">Oficina del Congreso</InternationalizedName>
         </ContactInformation>
       <ElectoralDistrictId>ru0002</ElectoralDistrictId>
       <ExternalIdentifiers>
@@ -1155,9 +1155,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Governor of Virginia</Text>
-      </Name>
+      </InternationalizedName>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -1189,9 +1189,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Lieutenant Governor of Virginia</Text>
-      </Name>
+      </InternationalizedName>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -1223,9 +1223,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Attorney General of Virginia</Text>
-      </Name>
+      </InternationalizedName>
       <SelectionMethod>indirectly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -1257,9 +1257,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Virginia House of Delegates Member</Text>
-      </Name>
+      </InternationalizedName>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -1292,9 +1292,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Member Board of Supervisors - Scottsville</Text>
-      </Name>
+      </InternationalizedName>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -1326,9 +1326,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Member Board of Supervisors - Jack Jouett</Text>
-      </Name>
+      </InternationalizedName>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -1360,9 +1360,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Member Board of Supervisors - Samuel Miller</Text>
-      </Name>
+      </InternationalizedName>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -1394,9 +1394,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Member Board of Supervisors - Rio</Text>
-      </Name>
+      </InternationalizedName>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -1429,9 +1429,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Member School Board - Rio</Text>
-      </Name>
+      </InternationalizedName>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -1463,9 +1463,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Member School Board - Samuel Miller</Text>
-      </Name>
+      </InternationalizedName>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -1497,9 +1497,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Member School Board - Jack Jouett</Text>
-      </Name>
+      </InternationalizedName>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -1524,9 +1524,9 @@
           <Value>vageneral-pty-2013-republican</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Republican</Text>
-      </Name>
+      </InternationalizedName>
       <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
     <Party objectId="par0002">
@@ -1541,9 +1541,9 @@
           <Value>vageneral-pty-2013-libertarian</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Libertarian</Text>
-      </Name>
+      </InternationalizedName>
       <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
     <Party objectId="par0003">
@@ -1558,9 +1558,9 @@
           <Value>vageneral-pty-2013-democratic</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Democratic</Text>
-      </Name>
+      </InternationalizedName>
       <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
     <Party objectId="par0004">
@@ -1575,9 +1575,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <IsIndependent>true</IsIndependent>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Independent</Text>
-      </Name>
+      </InternationalizedName>
       <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
     <Party objectId="par0005">
@@ -1591,9 +1591,9 @@
           <Value>vageneral-pty-2013-nominated</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Voter Nominated</Text>
-      </Name>
+      </InternationalizedName>
       <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
     <Party objectId="par0006">
@@ -1607,9 +1607,9 @@
           <Value>vageneral-pty-2013-none</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Party Preference: None</Text>
-      </Name>
+      </InternationalizedName>
       <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
   </PartyCollection>
@@ -1670,13 +1670,13 @@
         <AddressLine>Washington, DC 20005</AddressLine>
         <Email>obama.library@nara.gov</Email>
         <Fax>888-7777</Fax>
-        <Name>Barack Obama Office</Name>
+        <InternationalizedName language="en">Barack Obama Office</InternationalizedName>
         <Phone>(847) 252-5700</Phone>
       </ContactInformation>
       <ContactInformation language="es">
         <AddressLine>655 Nueva York Ave, NW</AddressLine>
         <AddressLine>Washington, DC 20005</AddressLine>
-        <Name>Oficina de Barack Obama</Name>
+        <InternationalizedName language="en">Oficina de Barack Obama</InternationalizedName>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>

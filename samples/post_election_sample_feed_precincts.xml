@@ -11,13 +11,13 @@
           <AddressLine>Washington, DC 20005</AddressLine>
           <Email>obama.library@nara.gov</Email>
           <Fax>888-7777</Fax>
-          <Name>Barack Obama Office</Name>
+          <InternationalizedName language="en">Barack Obama Office</InternationalizedName>
           <Phone>(847) 252-5700</Phone>
         </ContactInformation>
         <ContactInformation language="es">
           <AddressLine>655 Nueva York Ave, NW</AddressLine>
           <AddressLine>Washington, DC 20005</AddressLine>
-          <Name>Oficina de Barack Obama</Name>
+          <InternationalizedName language="en">Oficina de Barack Obama</InternationalizedName>
         </ContactInformation>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -1258,7 +1258,7 @@
             <Value>vageneral-cont-2013-us1-country-us-pres</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>President</Name>
+        <InternationalizedName language="en">President</InternationalizedName>
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -2127,7 +2127,7 @@
             <Value>vageneral-cont-2013-us1-country-us-vicepres</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Vice-President</Name>
+        <InternationalizedName language="en">Vice-President</InternationalizedName>
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -3422,7 +3422,7 @@
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <HasRotation>true</HasRotation>
-        <Name>Governor</Name>
+        <InternationalizedName language="en">Governor</InternationalizedName>
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -4291,7 +4291,7 @@
             <Value>vageneral-cont-2013-lieutenant-governor</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Lieutenant Governor</Name>
+        <InternationalizedName language="en">Lieutenant Governor</InternationalizedName>
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -5160,7 +5160,7 @@
             <Value>vageneral-cont-2013-attorney-general</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Attorney General</Name>
+        <InternationalizedName language="en">Attorney General</InternationalizedName>
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -5284,7 +5284,7 @@
             <Value>vageneral-cont-2013-va4-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member House of Delegates District - 025</Name>
+        <InternationalizedName language="en">Member House of Delegates District - 025</InternationalizedName>
         <SubUnitsReported>5</SubUnitsReported>
         <TotalSubUnits>7</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -5428,7 +5428,7 @@
             <Value>vageneral-cont-2013-va5-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member House of Delegates District - 057</Name>
+        <InternationalizedName language="en">Member House of Delegates District - 057</InternationalizedName>
         <SubUnitsReported>6</SubUnitsReported>
         <TotalSubUnits>9</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -5492,7 +5492,7 @@
             <Value>vageneral-cont-2013-va6-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member House of Delegates District - 059</Name>
+        <InternationalizedName language="en">Member House of Delegates District - 059</InternationalizedName>
         <SubUnitsReported>2</SubUnitsReported>
         <TotalSubUnits>2</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -5656,7 +5656,7 @@
             <Value>vageneral-cont-2013-va7-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member House of Delegates District - 058</Name>
+        <InternationalizedName language="en">Member House of Delegates District - 058</InternationalizedName>
         <SubUnitsReported>7</SubUnitsReported>
         <TotalSubUnits>13</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -5806,7 +5806,7 @@
             <Value>vageneral-cont-2013-va8-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member Board of Supervisors - Scottsville</Name>
+        <InternationalizedName language="en">Member Board of Supervisors - Scottsville</InternationalizedName>
         <SubUnitsReported>3</SubUnitsReported>
         <TotalSubUnits>5</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -5955,7 +5955,7 @@
             <Value>vageneral-cont-2013-va9-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member Board of Supervisors - Jack Jouett</Name>
+        <InternationalizedName language="en">Member Board of Supervisors - Jack Jouett</InternationalizedName>
         <SubUnitsReported>3</SubUnitsReported>
         <TotalSubUnits>5</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -6144,7 +6144,7 @@
             <Value>vageneral-cont-2013-va10-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member Board of Supervisors - Samuel Miller</Name>
+        <InternationalizedName language="en">Member Board of Supervisors - Samuel Miller</InternationalizedName>
         <SubUnitsReported>4</SubUnitsReported>
         <TotalSubUnits>4</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -6333,7 +6333,7 @@
             <Value>vageneral-cont-2013-va11-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member Board of Supervisors - Rio</Name>
+        <InternationalizedName language="en">Member Board of Supervisors - Rio</InternationalizedName>
         <SubUnitsReported>4</SubUnitsReported>
         <TotalSubUnits>6</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -6437,7 +6437,7 @@
             <Value>vageneral-cont-2013-va12-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member School Board - Rio</Name>
+        <InternationalizedName language="en">Member School Board - Rio</InternationalizedName>
         <SubUnitsReported>4</SubUnitsReported>
         <TotalSubUnits>6</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -6541,7 +6541,7 @@
             <Value>vageneral-cont-2013-va13-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member School Board - Samuel Miller</Name>
+        <InternationalizedName language="en">Member School Board - Samuel Miller</InternationalizedName>
         <SubUnitsReported>4</SubUnitsReported>
         <TotalSubUnits>4</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -6625,7 +6625,7 @@
             <Value>vageneral-cont-2013-va14-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Member School Board - Jack Jouett</Name>
+        <InternationalizedName language="en">Member School Board - Jack Jouett</InternationalizedName>
         <SubUnitsReported>3</SubUnitsReported>
         <TotalSubUnits>5</TotalSubUnits>
         <NumberElected>1</NumberElected>
@@ -6649,9 +6649,9 @@
         <Value>va_gen_el</Value>
       </ExternalIdentifier>
     </ExternalIdentifiers>
-    <Name>
-      <Text language="en">2013 Virginia General Election</Text>
-    </Name>
+    <InternationalizedName language="en">
+      2013 Virginia General Election
+    </InternationalizedName>
     <StartDate>2013-11-05</StartDate>
     <EndDate>2025-11-05</EndDate>
     <Type>general</Type>
@@ -6678,7 +6678,7 @@
           <Value>51</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>United States Of America</Name>
+      <InternationalizedName language="en">United States Of America</InternationalizedName>
       <Type>country</Type>
     </GpUnit>
     <GpUnit objectId="ru0002" xsi:type="ReportingUnit">
@@ -6700,7 +6700,7 @@
           <Value>51</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>Virginia</Name>
+      <InternationalizedName language="en">Virginia</InternationalizedName>
       <Type>state</Type>
     </GpUnit>
     <GpUnit objectId="ru0001" xsi:type="ReportingUnit">
@@ -6720,7 +6720,7 @@
           <Value>51003</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>Albemarle County</Name>
+      <InternationalizedName language="en">Albemarle County</InternationalizedName>
       <Type>county</Type>
     </GpUnit>
     <GpUnit objectId="ru0150" xsi:type="ReportingUnit">
@@ -6737,7 +6737,7 @@
           <Value>ocd-division/country:us/state:va/sldl:25</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>House of Delegates District - 025</Name>
+      <InternationalizedName language="en">House of Delegates District - 025</InternationalizedName>
       <Number>25</Number>
       <Type>state-house</Type>
     </GpUnit>
@@ -6755,7 +6755,7 @@
           <Value>ocd-division/country:us/state:va/sldl:57</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>House of Delegates District - 057</Name>
+      <InternationalizedName language="en">House of Delegates District - 057</InternationalizedName>
       <Number>57</Number>
       <Type>state-house</Type>
     </GpUnit>
@@ -6774,7 +6774,7 @@
           <Value>ocd-division/country:us/state:va/sldl:58</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>House of Delegates District - 058</Name>
+      <InternationalizedName language="en">House of Delegates District - 058</InternationalizedName>
       <Number>58</Number>
       <Type>state-house</Type>
     </GpUnit>
@@ -6791,7 +6791,7 @@
           <Value>ocd-division/country:us/state:va/sldl:59</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>House of Delegates District - 059</Name>
+      <InternationalizedName language="en">House of Delegates District - 059</InternationalizedName>
       <Number>59</Number>
       <Type>state-house</Type>
     </GpUnit>
@@ -6808,7 +6808,7 @@
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:samuel_miller</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>SAMUEL MILLER DISTRICT</Name>
+      <InternationalizedName language="en">SAMUEL MILLER DISTRICT</InternationalizedName>
       <Number>3</Number>
       <Type>county-council</Type>
     </GpUnit>
@@ -6826,7 +6826,7 @@
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:jack_jouett</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>JACK JOUETT DISTRICT</Name>
+      <InternationalizedName language="en">JACK JOUETT DISTRICT</InternationalizedName>
       <Number>2</Number>
       <Type>county-council</Type>
     </GpUnit>
@@ -6844,7 +6844,7 @@
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:rio</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>RIO DISTRICT</Name>
+      <InternationalizedName language="en">RIO DISTRICT</InternationalizedName>
       <Number>1</Number>
       <Type>county-council</Type>
     </GpUnit>
@@ -6862,7 +6862,7 @@
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:scottsville</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>SCOTTSVILLE DISTRICT</Name>
+      <InternationalizedName language="en">SCOTTSVILLE DISTRICT</InternationalizedName>
       <Number>4</Number>
       <Type>county-council</Type>
     </GpUnit>
@@ -6874,7 +6874,7 @@
           <Value>stable-gpu-ru_preXXXXX</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>PLACEHOLDER -- REPRESENTS REST OF STATE OF VIRGINIA</Name>
+      <InternationalizedName language="en">PLACEHOLDER -- REPRESENTS REST OF STATE OF VIRGINIA</InternationalizedName>
       <Type>precinct</Type>
     </GpUnit>
     <GpUnit objectId="ru_pre90111" xsi:type="ReportingUnit">
@@ -6885,7 +6885,7 @@
           <Value>stable-gpu-ru_pre90111</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>203 - GEORGETOWN</Name>
+      <InternationalizedName language="en">203 - GEORGETOWN</InternationalizedName>
       <Number>0203</Number>
       <Type>precinct</Type>
     </GpUnit>
@@ -6897,7 +6897,7 @@
           <Value>stable-gpu-ru_pre90139</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>103 - BRANCHLANDS</Name>
+      <InternationalizedName language="en">103 - BRANCHLANDS</InternationalizedName>
       <Number>0103</Number>
       <Type>precinct</Type>
     </GpUnit>
@@ -6909,7 +6909,7 @@
           <Value>stable-gpu-ru_pre90183</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>602 - FREE UNION</Name>
+      <InternationalizedName language="en">602 - FREE UNION</InternationalizedName>
       <Number>0602</Number>
       <Type>precinct</Type>
     </GpUnit>
@@ -6921,7 +6921,7 @@
           <Value>stable-gpu-ru_pre90348sp0000</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>201 - JACK JOUETT</Name>
+      <InternationalizedName language="en">201 - JACK JOUETT</InternationalizedName>
       <Number>0201</Number>
       <Type>split-precinct</Type>
     </GpUnit>
@@ -6933,7 +6933,7 @@
           <Value>stable-gpu-ru_pre90348sp0001</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>201 - JACK JOUETT</Name>
+      <InternationalizedName language="en">201 - JACK JOUETT</InternationalizedName>
       <Number>0201</Number>
       <Type>split-precinct</Type>
     </GpUnit>
@@ -6945,7 +6945,7 @@
           <Value>stable-gpu-ru_pre90614</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>503 - HOLLYMEAD</Name>
+      <InternationalizedName language="en">503 - HOLLYMEAD</InternationalizedName>
       <Number>0503</Number>
       <Type>precinct</Type>
     </GpUnit>
@@ -6957,7 +6957,7 @@
           <Value>stable-gpu-ru_pre90666</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>105 - DUNLORA</Name>
+      <InternationalizedName language="en">105 - DUNLORA</InternationalizedName>
       <Number>0105</Number>
       <Type>precinct</Type>
     </GpUnit>
@@ -6969,7 +6969,7 @@
           <Value>stable-gpu-ru_pre90929</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>406 - STONE ROBINSON</Name>
+      <InternationalizedName language="en">406 - STONE ROBINSON</InternationalizedName>
       <Number>0406</Number>
       <Type>precinct</Type>
     </GpUnit>
@@ -6981,7 +6981,7 @@
           <Value>stable-gpu-ru_pre90994sp0000</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>504 - FREE BRIDGE</Name>
+      <InternationalizedName language="en">504 - FREE BRIDGE</InternationalizedName>
       <Number>0504</Number>
       <Type>split-precinct</Type>
     </GpUnit>
@@ -6993,7 +6993,7 @@
           <Value>stable-gpu-ru_pre90994sp0001</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>504 - FREE BRIDGE</Name>
+      <InternationalizedName language="en">504 - FREE BRIDGE</InternationalizedName>
       <Number>0504</Number>
       <Type>split-precinct</Type>
     </GpUnit>
@@ -7005,7 +7005,7 @@
           <Value>stable-gpu-ru_pre91089sp0000</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>502 - STONY POINT</Name>
+      <InternationalizedName language="en">502 - STONY POINT</InternationalizedName>
       <Number>0502</Number>
       <Type>split-precinct</Type>
     </GpUnit>
@@ -7017,7 +7017,7 @@
           <Value>stable-gpu-ru_pre91089sp0001</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>502 - STONY POINT</Name>
+      <InternationalizedName language="en">502 - STONY POINT</InternationalizedName>
       <Number>0502</Number>
       <Type>split-precinct</Type>
     </GpUnit>
@@ -7029,7 +7029,7 @@
           <Value>stable-gpu-ru_pre91298</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>106 - NORTHSIDE</Name>
+      <InternationalizedName language="en">106 - NORTHSIDE</InternationalizedName>
       <Number>0106</Number>
       <Type>precinct</Type>
     </GpUnit>
@@ -7041,7 +7041,7 @@
           <Value>stable-gpu-ru_pre91602</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>202 - UNIVERSITY HALL</Name>
+      <InternationalizedName language="en">202 - UNIVERSITY HALL</InternationalizedName>
       <Number>0202</Number>
       <Type>precinct</Type>
     </GpUnit>
@@ -7053,7 +7053,7 @@
           <Value>stable-gpu-ru_pre91781sp0001</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>101 - WOODBROOK</Name>
+      <InternationalizedName language="en">101 - WOODBROOK</InternationalizedName>
       <Number>0101</Number>
       <Type>split-precinct</Type>
     </GpUnit>
@@ -7065,7 +7065,7 @@
           <Value>stable-gpu-ru_pre91918</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>302 - RED HILL</Name>
+      <InternationalizedName language="en">302 - RED HILL</InternationalizedName>
       <Number>0302</Number>
       <Type>precinct</Type>
     </GpUnit>
@@ -7077,7 +7077,7 @@
           <Value>stable-gpu-ru_pre91999</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>405 - CALE</Name>
+      <InternationalizedName language="en">405 - CALE</InternationalizedName>
       <Number>0405</Number>
       <Type>precinct</Type>
     </GpUnit>
@@ -7089,7 +7089,7 @@
           <Value>stable-gpu-ru_pre92065</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>305 - COUNTRY GREEN</Name>
+      <InternationalizedName language="en">305 - COUNTRY GREEN</InternationalizedName>
       <Number>0305</Number>
       <Type>precinct</Type>
     </GpUnit>
@@ -7101,7 +7101,7 @@
           <Value>stable-gpu-ru_pre92087</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>604 - BROWNSVILLE</Name>
+      <InternationalizedName language="en">604 - BROWNSVILLE</InternationalizedName>
       <Number>0604</Number>
       <Type>precinct</Type>
     </GpUnit>
@@ -7113,7 +7113,7 @@
           <Value>stable-gpu-ru_pre92140</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>501 - KESWICK</Name>
+      <InternationalizedName language="en">501 - KESWICK</InternationalizedName>
       <Number>0501</Number>
       <Type>precinct</Type>
     </GpUnit>
@@ -7125,7 +7125,7 @@
           <Value>stable-gpu-ru_pre92145</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>601 - CROZET</Name>
+      <InternationalizedName language="en">601 - CROZET</InternationalizedName>
       <Number>0601</Number>
       <Type>precinct</Type>
     </GpUnit>
@@ -7137,7 +7137,7 @@
           <Value>stable-gpu-ru_pre92171sp0000</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>401 - SCOTTSVILLE</Name>
+      <InternationalizedName language="en">401 - SCOTTSVILLE</InternationalizedName>
       <Number>0401</Number>
       <Type>split-precinct</Type>
     </GpUnit>
@@ -7149,7 +7149,7 @@
           <Value>stable-gpu-ru_pre92171sp0001</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>401 - SCOTTSVILLE</Name>
+      <InternationalizedName language="en">401 - SCOTTSVILLE</InternationalizedName>
       <Number>0401</Number>
       <Type>split-precinct</Type>
     </GpUnit>
@@ -7161,7 +7161,7 @@
           <Value>stable-gpu-ru_pre92175</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>104 - AGNOR-HURT</Name>
+      <InternationalizedName language="en">104 - AGNOR-HURT</InternationalizedName>
       <Number>0104</Number>
       <Type>precinct</Type>
     </GpUnit>
@@ -7173,7 +7173,7 @@
           <Value>stable-gpu-ru_pre92306</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>204 - BELFIELD</Name>
+      <InternationalizedName language="en">204 - BELFIELD</InternationalizedName>
       <Number>0204</Number>
       <Type>precinct</Type>
     </GpUnit>
@@ -7185,7 +7185,7 @@
           <Value>stable-gpu-ru_pre92320</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>402 - MONTICELLO</Name>
+      <InternationalizedName language="en">402 - MONTICELLO</InternationalizedName>
       <Number>0402</Number>
       <Type>precinct</Type>
     </GpUnit>
@@ -7197,7 +7197,7 @@
           <Value>stable-gpu-ru_pre92353</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>603 - EARLYSVILLE</Name>
+      <InternationalizedName language="en">603 - EARLYSVILLE</InternationalizedName>
       <Number>0603</Number>
       <Type>precinct</Type>
     </GpUnit>
@@ -7209,7 +7209,7 @@
           <Value>stable-gpu-ru_pre92360</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>301 - IVY</Name>
+      <InternationalizedName language="en">301 - IVY</InternationalizedName>
       <Number>0301</Number>
       <Type>precinct</Type>
     </GpUnit>
@@ -7221,7 +7221,7 @@
           <Value>stable-gpu-ru_pre92426</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>304 - EAST IVY</Name>
+      <InternationalizedName language="en">304 - EAST IVY</InternationalizedName>
       <Number>0304</Number>
       <Type>precinct</Type>
     </GpUnit>
@@ -7235,13 +7235,13 @@
         <AddressLine>Washington, DC 20500</AddressLine>
         <Email>comments@whitehouse.gov.</Email>
         <Fax>202-456-2461</Fax>
-        <Name>White House</Name>
+        <InternationalizedName language="en">White House</InternationalizedName>
         <Phone>1 202-456-1111</Phone>
       </ContactInformation>
       <ContactInformation language="es">
         <AddressLine>1600 Pennsylvania Ave., NW</AddressLine>
         <AddressLine>Washington, DC 20500</AddressLine>
-        <Name>casa Blanca</Name>
+        <InternationalizedName language="en">casa Blanca</InternationalizedName>
       </ContactInformation>
       <ElectoralDistrictId>ru0002</ElectoralDistrictId>
       <ExternalIdentifiers>
@@ -7268,9 +7268,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">President</Text>
-      </Name>
+      </InternationalizedName>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -7301,9 +7301,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Vice President</Text>
-      </Name>
+      </InternationalizedName>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -7334,9 +7334,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Governor</Text>
-      </Name>
+      </InternationalizedName>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -7367,9 +7367,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Lieutenant Governor</Text>
-      </Name>
+      </InternationalizedName>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -7400,9 +7400,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Attorney General</Text>
-      </Name>
+      </InternationalizedName>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -7433,9 +7433,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Virginia House of Delegates Member</Text>
-      </Name>
+      </InternationalizedName>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -7467,9 +7467,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Member Board of Supervisors - Scottsville</Text>
-      </Name>
+      </InternationalizedName>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -7500,9 +7500,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Member Board of Supervisors - Jack Jouett</Text>
-      </Name>
+      </InternationalizedName>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -7533,9 +7533,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Member Board of Supervisors - Samuel Miller</Text>
-      </Name>
+      </InternationalizedName>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -7566,9 +7566,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Member Board of Supervisors - Rio</Text>
-      </Name>
+      </InternationalizedName>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -7600,9 +7600,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Member School Board - Rio</Text>
-      </Name>
+      </InternationalizedName>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -7633,9 +7633,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Member School Board - Samuel Miller</Text>
-      </Name>
+      </InternationalizedName>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -7666,9 +7666,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Member School Board - Jack Jouett</Text>
-      </Name>
+      </InternationalizedName>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -7687,9 +7687,9 @@
           <Value>vageneral-pty-2013-republican</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Republican</Text>
-      </Name>
+      </InternationalizedName>
       <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
     <Party objectId="par0002">
@@ -7704,9 +7704,9 @@
           <Value>vageneral-pty-2013-libertarian</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Libertarian</Text>
-      </Name>
+      </InternationalizedName>
       <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
     <Party objectId="par0003">
@@ -7721,9 +7721,9 @@
           <Value>vageneral-pty-2013-democratic</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Democratic</Text>
-      </Name>
+      </InternationalizedName>
       <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
     <Party objectId="par0004">
@@ -7738,9 +7738,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <IsIndependent>true</IsIndependent>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Independent</Text>
-      </Name>
+      </InternationalizedName>
       <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
     <Party objectId="par0005">
@@ -7754,9 +7754,9 @@
           <Value>vageneral-pty-2013-nominated</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Voter Nominated</Text>
-      </Name>
+      </InternationalizedName>
       <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
     <Party objectId="par0006">
@@ -7770,9 +7770,9 @@
           <Value>vageneral-pty-2013-none</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Party Preference: None</Text>
-      </Name>
+      </InternationalizedName>
       <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
   </PartyCollection>
@@ -7833,13 +7833,13 @@
         <AddressLine>Washington, DC 20500</AddressLine>
         <Email>PRESIDENT@WHITEHOUSE.GOV</Email>
         <Fax>202-456-2461</Fax>
-        <Name>Joe Biden</Name>
+        <InternationalizedName language="en">Joe Biden</InternationalizedName>
         <Phone>1 202-456-1111</Phone>
       </ContactInformation>
       <ContactInformation language="es">
         <AddressLine>1600 Pennsylvania Ave., NW</AddressLine>
         <AddressLine>Washington, DC 20500</AddressLine>
-        <Name>Joe Biden</Name>
+        <InternationalizedName language="en">Joe Biden</InternationalizedName>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>
