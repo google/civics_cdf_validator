@@ -4376,9 +4376,9 @@ class FeedHasValidCountryCode(base.BaseRule):
         )
     else:
       feed_type = element.find("FeedType")
-      if (
-          element_has_text(feed_type)
-          and feed_type.text.lower().replace("_", "-") == "election-dates"
+      if element_has_text(feed_type) and (
+          feed_type.text.lower().replace("_", "-") == "election-dates"
+          or feed_type.text.lower().replace("_", "-") == "voter-information"
       ):
         return
       raise loggers.ElectionError.from_message(
