@@ -233,6 +233,16 @@
         <xs:enumeration value="how-to-vote-absentee" />
         <xs:enumeration value="how-to-vote-by-proxy" />
         <xs:enumeration value="voting-id-requirements" />
+        <xs:enumeration value="polling-place-hours" />
+        <xs:enumeration value="how-to-vote-early" />
+        <xs:enumeration value="polling-place-mail" />
+        <xs:enumeration value="polling-place-early" />
+        <xs:enumeration value="voting-accessibility" />
+        <xs:enumeration value="where-to-register-to-vote" />
+        <xs:enumeration value="how-to-vote-military" />
+        <xs:enumeration value="voting-dates" />
+        <xs:enumeration value="how-to-vote-online" />
+        <xs:enumeration value="ballot-tracking" />
       </xs:restriction>
     </xs:simpleType>
     <!-- ========== Elements ========== -->

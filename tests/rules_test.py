@@ -9710,7 +9710,7 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
   def testPostSplitNonExecOfficeWithoutGovernmentBodyRaisesError(self):
     office_string = """
       <Office>
-        <OfficeRole>senate</OfficeRole>
+        <Role>senate</Role>
       </Office>
     """
 
@@ -9746,7 +9746,7 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
     office_string = """
       <Office>
         <GovernmentBodyIds>   </GovernmentBodyIds>
-        <OfficeRole>senate</OfficeRole>
+        <Role>senate</Role>
       </Office>
     """
 
@@ -9787,7 +9787,7 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
             <Value>United States Senate</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <OfficeRole>senate</OfficeRole>
+        <Role>senate</Role>
       </Office>
     """
 
@@ -9823,7 +9823,7 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
             <Value>United States Senate</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <OfficeRole>senate</OfficeRole>
+        <Role>senate</Role>
       </Office>
     """
 
@@ -9849,7 +9849,7 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
     office_string = """
       <Office>
         <GovernmentBodyIds>gov_body_1</GovernmentBodyIds>
-        <OfficeRole>senate</OfficeRole>
+        <Role>senate</Role>
       </Office>
     """
 
@@ -9924,7 +9924,7 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
                 <Value>United States Senate</Value>
               </ExternalIdentifier>
             </ExternalIdentifiers>
-            <OfficeRole>{office_role}</OfficeRole>
+            <Role>{office_role}</Role>
           </Office>
         """
 
@@ -9980,7 +9980,7 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
                 <Value>United States Senate</Value>
               </ExternalIdentifier>
             </ExternalIdentifiers>
-            <OfficeRole>{office_role}</OfficeRole>
+            <Role>{office_role}</Role>
           </Office>
         """
 
@@ -10026,7 +10026,7 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
         office_string = f"""
           <Office>
             <GovernmentBodyIds>gov_body_1</GovernmentBodyIds>
-            <OfficeRole>{office_role}</OfficeRole>
+            <Role>{office_role}</Role>
           </Office>
         """
 
@@ -10059,7 +10059,7 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
   def testPostSplitExecutiveOfficeWithoutGovernmentBodyIsValid(self):
     office_string = """
       <Office>
-        <OfficeRole>head of state</OfficeRole>
+        <Role>head of state</Role>
       </Office>
     """
 
@@ -12013,6 +12013,15 @@ class FeedHasValidCountryCodeTest(absltest.TestCase):
     feed_string = """
       <Feed>
         <FeedType>election-dates</FeedType>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def testValidVoterInformation(self):
+    feed_string = """
+      <Feed>
+        <FeedType>voter-information</FeedType>
       </Feed>
       """
 
