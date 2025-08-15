@@ -3992,7 +3992,7 @@ class MissingStableIdsTest(absltest.TestCase):
     self.assertIn("Person", elements)
     self.assertIn("ReportingUnit", elements)
     self.assertIn("Committee", elements)
-    self.assertIn("PartyLeadership", elements)
+    self.assertIn("Leadership", elements)
 
   def testStableIdPresentForOffice(self):
     test_string = self.root_string.format("<Office objectId='off1'>", "stable",

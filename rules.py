@@ -1656,7 +1656,7 @@ class MissingStableIds(base.BaseRule):
         "Office",
         "Party",
         "PartyContest",
-        "PartyLeadership",
+        "Leadership",
         "Person",
         "ReportingUnit",
     ]
