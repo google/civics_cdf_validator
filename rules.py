@@ -3544,7 +3544,7 @@ class PartySpanMultipleCountries(base.BaseRule):
 
 
 class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
-  """Ensure non-executive Office elements have a government body defined."""
+  """Ensure non-Head of Government/State Office elements have a government body defined."""
 
   def __init__(self, election_tree, schema_tree, **kwargs):
     self.is_post_office_split_feed = False
@@ -3562,13 +3562,14 @@ class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
         element, self.is_post_office_split_feed
     ) and not _has_government_body(element):
       raise loggers.ElectionInfo.from_message(
-          "Non-executive Office element is missing a government body.",
+          "Non-Head of Government/State Office element is missing a government"
+          " body.",
           [element],
       )
 
 
 class ExecutiveOfficeShouldNotHaveGovernmentBody(base.BaseRule):
-  """Ensure executive Office elements do not have a government body defined."""
+  """Ensure Head of Government/State Office elements do not have a government body defined."""
 
   def __init__(self, election_tree, schema_tree, **kwargs):
     self.is_post_office_split_feed = False
@@ -3587,9 +3588,9 @@ class ExecutiveOfficeShouldNotHaveGovernmentBody(base.BaseRule):
     ) and _has_government_body(element):
       office_roles = _get_office_roles(element, self.is_post_office_split_feed)
       raise loggers.ElectionError.from_message(
-          f"Executive Office element (roles: {','.join(office_roles)}) has a "
-          "government body. Executive offices should not have government "
-          "bodies.",
+          "Head of Government/State Office element (roles:"
+          f" {','.join(office_roles)}) has a government body. Head of"
+          " Government/State offices should not have government bodies.",
           [element],
       )
 

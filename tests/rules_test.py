@@ -9703,7 +9703,8 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionInfo) as ei:
       self.gov_validator.check(etree.fromstring(office_string))
     self.assertEqual(
-        "Non-executive Office element is missing a government body.",
+        "Non-Head of Government/State Office element is missing a government"
+        " body.",
         str(ei.exception.log_entry[0].message),
     )
 
@@ -9717,7 +9718,8 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionInfo) as ei:
       self.post_office_split_validator.check(etree.fromstring(office_string))
     self.assertEqual(
-        "Non-executive Office element is missing a government body.",
+        "Non-Head of Government/State Office element is missing a government"
+        " body.",
         str(ei.exception.log_entry[0].message),
     )
 
@@ -9738,7 +9740,8 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionInfo) as ei:
       self.gov_validator.check(etree.fromstring(office_string))
     self.assertEqual(
-        "Non-executive Office element is missing a government body.",
+        "Non-Head of Government/State Office element is missing a government"
+        " body.",
         str(ei.exception.log_entry[0].message),
     )
 
@@ -9753,7 +9756,8 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionInfo) as ei:
       self.post_office_split_validator.check(etree.fromstring(office_string))
     self.assertEqual(
-        "Non-executive Office element is missing a government body.",
+        "Non-Head of Government/State Office element is missing a government"
+        " body.",
         str(ei.exception.log_entry[0].message),
     )
 
@@ -9906,9 +9910,9 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
         with self.assertRaises(loggers.ElectionError) as ee:
           self.gov_validator.check(etree.fromstring(office_string))
         self.assertEqual(
-            f"Executive Office element (roles: {office_role}) has a "
-            "government body. Executive offices should not have government "
-            "bodies.",
+            f"Head of Government/State Office element (roles: {office_role})"
+            " has a government body. Head of Government/State offices should"
+            " not have government bodies.",
             str(ee.exception.log_entry[0].message),
         )
 
@@ -9933,9 +9937,9 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
               etree.fromstring(office_string)
           )
         self.assertEqual(
-            f"Executive Office element (roles: {office_role}) has a "
-            "government body. Executive offices should not have government "
-            "bodies.",
+            f"Head of Government/State Office element (roles: {office_role})"
+            " has a government body. Head of Government/State offices should"
+            " not have government bodies.",
             str(ee.exception.log_entry[0].message),
         )
 
@@ -9962,9 +9966,9 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
         with self.assertRaises(loggers.ElectionError) as ee:
           self.gov_validator.check(etree.fromstring(office_string))
         self.assertEqual(
-            f"Executive Office element (roles: {office_role}) has a "
-            "government body. Executive offices should not have government "
-            "bodies.",
+            f"Head of Government/State Office element (roles: {office_role})"
+            " has a government body. Head of Government/State offices should"
+            " not have government bodies.",
             str(ee.exception.log_entry[0].message),
         )
 
@@ -9989,9 +9993,9 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
               etree.fromstring(office_string)
           )
         self.assertEqual(
-            f"Executive Office element (roles: {office_role}) has a "
-            "government body. Executive offices should not have government "
-            "bodies.",
+            f"Head of Government/State Office element (roles: {office_role})"
+            " has a government body. Head of Government/State offices should"
+            " not have government bodies.",
             str(ee.exception.log_entry[0].message),
         )
 
@@ -10014,9 +10018,9 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
         with self.assertRaises(loggers.ElectionError) as ee:
           self.gov_validator.check(etree.fromstring(office_string))
         self.assertEqual(
-            f"Executive Office element (roles: {office_role}) has a "
-            "government body. Executive offices should not have government "
-            "bodies.",
+            f"Head of Government/State Office element (roles: {office_role})"
+            " has a government body. Head of Government/State offices should"
+            " not have government bodies.",
             str(ee.exception.log_entry[0].message),
         )
 
@@ -10035,9 +10039,9 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
               etree.fromstring(office_string)
           )
         self.assertEqual(
-            f"Executive Office element (roles: {office_role}) has a "
-            "government body. Executive offices should not have government "
-            "bodies.",
+            f"Head of Government/State Office element (roles: {office_role})"
+            " has a government body. Head of Government/State offices should"
+            " not have government bodies.",
             str(ee.exception.log_entry[0].message),
         )
 
