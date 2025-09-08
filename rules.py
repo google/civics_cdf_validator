@@ -2631,7 +2631,8 @@ class ElectionEndDatesInThePast(base.DateRule):
             "canceled",
         ]:
           raise loggers.ElectionError.from_message(
-              "A bounded election should not have an end date in the past."
+              "A bounded election should not have an end date in the past.",
+              [element],
           )
         self.reset_instance_vars()
     for contest in self.get_elements_by_class(element, "Contest"):
