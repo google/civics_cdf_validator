@@ -11,9 +11,9 @@
         <Value>e2025ElboniaGeneral</Value>
       </ExternalIdentifier>
     </ExternalIdentifiers>
-    <Name>
-      <Text language="en">2025 Elbonian general election</Text>
-    </Name>
+    <InternationalizedName language="en">
+      2025 Elbonian general election
+    </InternationalizedName>
     <StartDate>2030-05-01</StartDate>
     <EndDate>2030-05-01</EndDate>
     <Type>general</Type>
@@ -39,9 +39,9 @@
           <Value>ec1</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Elbonia Election Commission</Text>
-      </Name>
+      </InternationalizedName>
       <ScopeGpUnitIds>ru-1</ScopeGpUnitIds>
     </ElectoralCommission>
   </ElectoralCommissionCollection>

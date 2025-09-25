@@ -11,13 +11,13 @@
           <AddressLine>Beverly Hills, CA 90210-6149</AddressLine>
           <Email>therock@studiofanmail.com</Email>
           <Fax>888-7777</Fax>
-          <Name>Dwayne Johnson</Name>
+          <InternationalizedName language="en">Dwayne Johnson</InternationalizedName>
           <Phone>(310) 620-2187</Phone>
         </ContactInformation>
         <ContactInformation language="es">
           <AddressLine>Jonesworks, Inc.9301 Wilshire Blvd.Suite 504</AddressLine>
           <AddressLine>Beverly Hills, CA 90210-6149</AddressLine>
-          <Name>Dwayne Johnson</Name>
+          <InternationalizedName language="en">Dwayne Johnson</InternationalizedName>
         </ContactInformation>
         <ExternalIdentifiers>
           <ExternalIdentifier>
@@ -75,7 +75,7 @@
             <Value>vageneral-cont-2013-va16-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <Name>Judicial Retention, Supreme Court</Name>
+        <InternationalizedName language="en">Judicial Retention, Supreme Court</InternationalizedName>
         <CandidateId>can12345</CandidateId>
         <OfficeId>off20006</OfficeId>
       </Contest>
@@ -99,9 +99,9 @@
         <Value>va_retention_el</Value>
       </ExternalIdentifier>
     </ExternalIdentifiers>
-    <Name>
+    <InternationalizedName language="en">
       <Text language="en">2013 Virginia Retention of Supreme Court Justice</Text>
-    </Name>
+    </InternationalizedName>
     <StartDate>2013-11-05</StartDate>
     <EndDate>2025-11-05</EndDate>
     <Type>general</Type>
@@ -134,7 +134,7 @@
           <Value>51</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>United States Of America</Name>
+      <InternationalizedName language="en">United States Of America</InternationalizedName>
       <Type>country</Type>
     </GpUnit>
     <GpUnit objectId="ru0002" xsi:type="ReportingUnit">
@@ -153,13 +153,13 @@
           <Value>51</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>Virginia</Name>
+      <InternationalizedName language="en">Virginia</InternationalizedName>
       <ElectionAdministration>
         <ContactInformation label="ci60000">
           <AddressLine>Washington Building First Floor</AddressLine>
           <AddressLine>1100 Bank Street</AddressLine>
           <AddressLine>Richmond, VA 23219</AddressLine>
-          <Name>State Board of Elections</Name>
+          <InternationalizedName language="en">State Board of Elections</InternationalizedName>
         </ContactInformation>
       </ElectionAdministration>
       <Type>state</Type>
@@ -174,13 +174,13 @@
           <AddressLine>Washington, DC 20005</AddressLine>
           <Email>person@congress.gov</Email>
           <Fax>888-7777</Fax>
-          <Name>Congressional Office</Name>
+          <InternationalizedName language="en">Congressional Office</InternationalizedName>
           <Phone>999-8888</Phone>
         </ContactInformation>
         <ContactInformation language="es">
           <AddressLine>655 Nueva York Ave, NW</AddressLine>
           <AddressLine>Washington, DC 20005</AddressLine>
-          <Name>Oficina del Congreso</Name>
+          <InternationalizedName language="en">Oficina del Congreso</InternationalizedName>
         </ContactInformation>
       <ElectoralDistrictId>ru0002</ElectoralDistrictId>
       <ExternalIdentifiers>
@@ -207,9 +207,9 @@
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>false</IsPartisan>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Justice of the Supreme Court of Virginia</Text>
-      </Name>
+      </InternationalizedName>
       <SelectionMethod>appointed</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -229,9 +229,9 @@
           <Value>vageneral-pty-2013-libertarian</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Libertarian</Text>
-      </Name>
+      </InternationalizedName>
       <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
     <Party objectId="par0004">
@@ -246,9 +246,9 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <IsIndependent>true</IsIndependent>
-      <Name>
+      <InternationalizedName language="en">
         <Text language="en">Independent</Text>
-      </Name>
+      </InternationalizedName>
       <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
     </Party>
   </PartyCollection>
@@ -259,13 +259,13 @@
         <AddressLine>Beverly Hills, CA 90210-6149</AddressLine>
         <Email>therock@studiofanmail.com</Email>
         <Fax>888-7777</Fax>
-        <Name>Dwayne Johnson</Name>
+        <InternationalizedName language="en">Dwayne Johnson</InternationalizedName>
         <Phone>(310) 620-2187</Phone>
       </ContactInformation>
       <ContactInformation language="es">
         <AddressLine>Jonesworks, Inc.9301 Wilshire Blvd.Suite 504</AddressLine>
         <AddressLine>Beverly Hills, CA 90210-6149</AddressLine>
-        <Name>Dwayne Johnson</Name>
+        <InternationalizedName language="en">Dwayne Johnson</InternationalizedName>
       </ContactInformation>
       <ExternalIdentifiers>
         <ExternalIdentifier>

@@ -10479,6 +10479,35 @@ class AllInternationalizedTextHaveEnVersionTest(absltest.TestCase):
     self.election_validator.check(etree.fromstring(election_string))
 
 
+class DeprecateNonInternationalizedName(absltest.TestCase):
+
+  def setUp(self):
+    super(DeprecateNonInternationalizedName, self).setUp()
+    self.election_validator = rules.DeprecateNonInternationalizedName(
+        None, None
+    )
+
+  def testNameElementPresent(self):
+    election_string = """
+      <Name>John</Name>
+    """
+    with self.assertRaises(loggers.ElectionWarning) as ee:
+      self.election_validator.check(etree.fromstring(election_string))
+    self.assertEqual(
+        ee.exception.log_entry[0].message,
+        (
+            '"Name" element found and will be deprecated in the near future.'
+            ' Please migrate all "Name" elements to "InternationalizedName".'
+        ),
+    )
+
+  def testNameElementNotPresent(self):
+    election_string = """
+      <InternationlizedName>John</InternationlizedName>
+    """
+    self.election_validator.check(etree.fromstring(election_string))
+
+
 class ContestContainsValidStartDateTest(absltest.TestCase):
 
   def setUp(self):
