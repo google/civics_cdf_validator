@@ -2309,8 +2309,11 @@ class ValidURIAnnotation(base.BaseRule):
             "URI {} is missing annotation.".format(ascii_url), [uri]
         )
 
-      # Only do platform checks if the annotation is not an image.
-      if re.search(r"candidate-image", annotation):
+      # Skip platform checks for image or office contact form annotations.
+      if (
+          re.search(r"candidate-image", annotation)
+          or annotation == "office-contact_form"
+      ):
         continue
 
       ann_elements = annotation.split("-")

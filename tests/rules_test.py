@@ -5799,6 +5799,16 @@ class ValidURIAnnotationTest(absltest.TestCase):
     """
     self.valid_annotation.check(etree.fromstring(root_string))
 
+  def testOfficeContactFormAnnotation(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="office-contact_form">
+          <![CDATA[https://www.whitehouse.gov/contact-us]]>
+        </Uri>
+      </ContactInformation>
+    """
+    self.valid_annotation.check(etree.fromstring(root_string))
+
 
 class OfficesHaveJurisdictionIDTest(absltest.TestCase):
 
