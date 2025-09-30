@@ -3555,7 +3555,10 @@ class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
     officeholder_tenure_collection_element = self.get_elements_by_class(
         election_tree, "OfficeHolderTenureCollection"
     )
-    if officeholder_tenure_collection_element:
+    role_element = self.get_elements_by_class(
+        election_tree, "Role"
+    )
+    if officeholder_tenure_collection_element or role_element:
       self.is_post_office_split_feed = True
 
   def elements(self):
@@ -3580,7 +3583,10 @@ class ExecutiveOfficeShouldNotHaveGovernmentBody(base.BaseRule):
     officeholder_tenure_collection_element = self.get_elements_by_class(
         election_tree, "OfficeHolderTenureCollection"
     )
-    if officeholder_tenure_collection_element:
+    role_element = self.get_elements_by_class(
+        election_tree, "Role"
+    )
+    if officeholder_tenure_collection_element or role_element:
       self.is_post_office_split_feed = True
 
   def elements(self):
