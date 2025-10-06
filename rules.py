@@ -118,9 +118,29 @@ def _has_government_body(element):
   return bool(governmental_body or government_body)
 
 
-def get_external_id_values(element, value_type, return_elements=False):
-  """Helper to gather all Values of external ids for a given type."""
-  external_ids = element.findall(".//ExternalIdentifier")
+def get_external_id_values(
+    element, value_type, return_elements=False, search_subelements=True
+):
+  """Helper to gather all Values of external ids for a given type.
+
+  If search_subelements is True, will search all subelements, if False, will
+  only search child elements.
+
+  Args:
+    element: element to be processed
+    value_type: external id value type
+    return_elements: Boolean if True return elements, if False return values.
+    search_subelements: Boolean to instruct the function to recursively search
+      subelements.
+
+  Returns:
+    A list of external id values or external identifier elements
+  """
+  external_ids = []
+  if search_subelements:
+    external_ids = element.findall(".//ExternalIdentifier")
+  else:
+    external_ids = element.findall("ExternalIdentifiers/ExternalIdentifier")
   values = []
   for extern_id in external_ids:
     id_type = extern_id.find("Type")
@@ -1608,26 +1628,23 @@ class UniqueStableID(base.TreeRule):
   Add an error message if stable id is not unique
   """
 
-  _TOP_LEVEL_ENTITIES = frozenset(
-      ["Party", "GpUnit", "Office", "Person", "Candidate", "Contest"]
-  )
-
   def check(self):
     error_log = []
     stable_obj_dict = dict()
     for _, element in etree.iterwalk(self.election_tree, events=("end",)):
-      if "Election" not in element.tag:
-        if element.tag in self._TOP_LEVEL_ENTITIES:
-          if "objectId" in element.attrib:
-            object_id = element.get("objectId")
-            stable_ids = get_external_id_values(element, "stable")
-            for stable_id in stable_ids:
-              if stable_id in stable_obj_dict.keys():
-                stable_obj_dict.get(stable_id).append(object_id)
-              else:
-                object_id_list = []
-                object_id_list.append(object_id)
-                stable_obj_dict[stable_id] = object_id_list
+      stable_ids = get_external_id_values(
+          element, "stable", search_subelements=False
+      )
+      if not stable_ids:
+        continue
+      elem_id = self._get_object_id_or_name(element)
+      for stable_id in stable_ids:
+        if stable_id in stable_obj_dict.keys():
+          stable_obj_dict.get(stable_id).append(elem_id)
+        else:
+          elem_id_list = []
+          elem_id_list.append(elem_id)
+          stable_obj_dict[stable_id] = elem_id_list
     for k, v in stable_obj_dict.items():
       if len(v) > 1:
         error_message = (
@@ -1636,6 +1653,15 @@ class UniqueStableID(base.TreeRule):
         error_log.append(loggers.LogEntry(error_message))
     if error_log:
       raise loggers.ElectionError(error_log)
+
+  def _get_object_id_or_name(self, element):
+    if "objectId" in element.attrib:
+      return element.get("objectId")
+    names_by_language = get_language_to_text_map(element.find("Name"))
+    if "en" in names_by_language:
+      return names_by_language["en"][0]
+    for names in names_by_language.values():
+      return names[0]
 
 
 class MissingStableIds(base.BaseRule):
@@ -1656,7 +1682,7 @@ class MissingStableIds(base.BaseRule):
         "Office",
         "Party",
         "PartyContest",
-        "PartyLeadership",
+        "Leadership",
         "Person",
         "ReportingUnit",
     ]
@@ -2309,8 +2335,11 @@ class ValidURIAnnotation(base.BaseRule):
             "URI {} is missing annotation.".format(ascii_url), [uri]
         )
 
-      # Only do platform checks if the annotation is not an image.
-      if re.search(r"candidate-image", annotation):
+      # Skip platform checks for image or office contact form annotations.
+      if (
+          re.search(r"candidate-image", annotation)
+          or annotation == "office-contact_form"
+      ):
         continue
 
       ann_elements = annotation.split("-")
@@ -2631,7 +2660,8 @@ class ElectionEndDatesInThePast(base.DateRule):
             "canceled",
         ]:
           raise loggers.ElectionError.from_message(
-              "A bounded election should not have an end date in the past."
+              "A bounded election should not have an end date in the past.",
+              [element],
           )
         self.reset_instance_vars()
     for contest in self.get_elements_by_class(element, "Contest"):
@@ -3544,14 +3574,17 @@ class PartySpanMultipleCountries(base.BaseRule):
 
 
 class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
-  """Ensure non-executive Office elements have a government body defined."""
+  """Ensure non-Head of Government/State Office elements have a government body defined."""
 
   def __init__(self, election_tree, schema_tree, **kwargs):
     self.is_post_office_split_feed = False
     officeholder_tenure_collection_element = self.get_elements_by_class(
         election_tree, "OfficeHolderTenureCollection"
     )
-    if officeholder_tenure_collection_element:
+    role_element = self.get_elements_by_class(
+        election_tree, "Role"
+    )
+    if officeholder_tenure_collection_element or role_element:
       self.is_post_office_split_feed = True
 
   def elements(self):
@@ -3562,20 +3595,24 @@ class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
         element, self.is_post_office_split_feed
     ) and not _has_government_body(element):
       raise loggers.ElectionInfo.from_message(
-          "Non-executive Office element is missing a government body.",
+          "Non-Head of Government/State Office element is missing a government"
+          " body.",
           [element],
       )
 
 
 class ExecutiveOfficeShouldNotHaveGovernmentBody(base.BaseRule):
-  """Ensure executive Office elements do not have a government body defined."""
+  """Ensure Head of Government/State Office elements do not have a government body defined."""
 
   def __init__(self, election_tree, schema_tree, **kwargs):
     self.is_post_office_split_feed = False
     officeholder_tenure_collection_element = self.get_elements_by_class(
         election_tree, "OfficeHolderTenureCollection"
     )
-    if officeholder_tenure_collection_element:
+    role_element = self.get_elements_by_class(
+        election_tree, "Role"
+    )
+    if officeholder_tenure_collection_element or role_element:
       self.is_post_office_split_feed = True
 
   def elements(self):
@@ -3587,9 +3624,9 @@ class ExecutiveOfficeShouldNotHaveGovernmentBody(base.BaseRule):
     ) and _has_government_body(element):
       office_roles = _get_office_roles(element, self.is_post_office_split_feed)
       raise loggers.ElectionError.from_message(
-          f"Executive Office element (roles: {','.join(office_roles)}) has a "
-          "government body. Executive offices should not have government "
-          "bodies.",
+          "Head of Government/State Office element (roles:"
+          f" {','.join(office_roles)}) has a government body. Head of"
+          " Government/State offices should not have government bodies.",
           [element],
       )
 

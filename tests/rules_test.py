@@ -3851,6 +3851,7 @@ class UniqueStableIDTest(absltest.TestCase):
   def setUp(self):
     super(UniqueStableIDTest, self).setUp()
     self.root_string = """
+    <ElectionReport>
       <Election objectId="el0110">
         <OfficeCollection>
           <Office objectId="off04_AS">
@@ -3858,7 +3859,7 @@ class UniqueStableIDTest(absltest.TestCase):
               <ExternalIdentifier>
               <Type>other</Type>
               <OtherType>stable</OtherType>
-              <Value>{}</Value>
+              <Value>{office_obj_off04_AS}</Value>
               </ExternalIdentifier>
             </ExternalIdentifiers>
           </Office>
@@ -3867,7 +3868,7 @@ class UniqueStableIDTest(absltest.TestCase):
               <ExternalIdentifier>
                 <Type>other</Type>
                 <OtherType>stable</OtherType>
-                <Value>{}</Value>
+                <Value>{office_obj_off04_A}</Value>
               </ExternalIdentifier>
             </ExternalIdentifiers>
           </Office>
@@ -3878,7 +3879,7 @@ class UniqueStableIDTest(absltest.TestCase):
               <ExternalIdentifier>
                 <Type>other</Type>
                 <OtherType>stable</OtherType>
-                <Value>{}</Value>
+                <Value>{candidate_obj_can1}</Value>
               </ExternalIdentifier>
             </ExternalIdentifiers>
           </Candidate>
@@ -3887,7 +3888,7 @@ class UniqueStableIDTest(absltest.TestCase):
               <ExternalIdentifier>
                 <Type>other</Type>
                 <OtherType>stable</OtherType>
-                <Value>{}</Value>
+                <Value>{candidate_obj_can2}</Value>
               </ExternalIdentifier>
             </ExternalIdentifiers>
           </Candidate>
@@ -3896,18 +3897,44 @@ class UniqueStableIDTest(absltest.TestCase):
               <ExternalIdentifier>
                 <Type>other</Type>
                 <OtherType>stable</OtherType>
-                <Value>{}</Value>
+                <Value>{candidate_obj_can3}</Value>
               </ExternalIdentifier>
             </ExternalIdentifiers>
           </Candidate>
         </CandidateCollection>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>{election_obj_el0110}</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
       </Election>
+      <Election>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>{election_obj_pangaea}</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>
+          <Text language="en">Pangaea election</Text>
+        </Name>
+      </Election>
+     </ElectionReport>
   """
 
   def testUniqueStableIDPass(self):
 
     test_string = self.root_string.format(
-        "04_AS", "04_A", "stable-can-1", "stable-can-2", "stable-can-3"
+        office_obj_off04_AS="04_AS",
+        office_obj_off04_A="04_A",
+        candidate_obj_can1="stable-can-1",
+        candidate_obj_can2="stable-can-2",
+        candidate_obj_can3="stable-can-3",
+        election_obj_el0110="election-1",
+        election_obj_pangaea="election-2",
     )
     election_tree = etree.fromstring(test_string)
     rules.UniqueStableID(election_tree, None).check()
@@ -3915,7 +3942,13 @@ class UniqueStableIDTest(absltest.TestCase):
   def testUniqueStableIDFail(self):
 
     test_string = self.root_string.format(
-        "04_AS", "04_A", "04_AS", "stable-can-2", "stable-can-3"
+        office_obj_off04_AS="04_AS",
+        office_obj_off04_A="04_A",
+        candidate_obj_can1="04_AS",
+        candidate_obj_can2="stable-can-2",
+        candidate_obj_can3="stable-can-3",
+        election_obj_el0110="election-1",
+        election_obj_pangaea="election-2",
     )
     election_tree = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as ee:
@@ -3928,7 +3961,13 @@ class UniqueStableIDTest(absltest.TestCase):
   def testUniqueStableIDFailMultipleElements(self):
 
     test_string = self.root_string.format(
-        "04_AS", "04_A", "04_AS", "04_A", "stable-can-3"
+        office_obj_off04_AS="04_AS",
+        office_obj_off04_A="04_A",
+        candidate_obj_can1="04_AS",
+        candidate_obj_can2="stable-can-2",
+        candidate_obj_can3="stable-can-3",
+        election_obj_el0110="election-1",
+        election_obj_pangaea="election-1",
     )
     election_tree = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as ee:
@@ -3938,13 +3977,20 @@ class UniqueStableIDTest(absltest.TestCase):
         ee.exception.log_entry[0].message,
     )
     self.assertEqual(
-        "Stable ID 04_A is not unique as it is mapped in ['off04_A', 'can2']",
+        "Stable ID election-1 is not unique as it is mapped in ['el0110',"
+        " 'Pangaea election']",
         ee.exception.log_entry[1].message,
     )
 
   def testUniqueStableIDFailThreeElements(self):
     test_string = self.root_string.format(
-        "04_AS", "04_A", "04_AS", "04_A", "04_A"
+        office_obj_off04_AS="04_AS",
+        office_obj_off04_A="04_A",
+        candidate_obj_can1="04_AS",
+        candidate_obj_can2="04_A",
+        candidate_obj_can3="04_A",
+        election_obj_el0110="election-1",
+        election_obj_pangaea="election-2",
     )
     election_tree = etree.fromstring(test_string)
     with self.assertRaises(loggers.ElectionError) as ee:
@@ -3992,7 +4038,7 @@ class MissingStableIdsTest(absltest.TestCase):
     self.assertIn("Person", elements)
     self.assertIn("ReportingUnit", elements)
     self.assertIn("Committee", elements)
-    self.assertIn("PartyLeadership", elements)
+    self.assertIn("Leadership", elements)
 
   def testStableIdPresentForOffice(self):
     test_string = self.root_string.format("<Office objectId='off1'>", "stable",
@@ -5794,6 +5840,16 @@ class ValidURIAnnotationTest(absltest.TestCase):
       <ContactInformation label="ci_par_at_1">
         <Uri Annotation="personal-whatsapp">
           <![CDATA[https://www.whatsapp.com/example]]>
+        </Uri>
+      </ContactInformation>
+    """
+    self.valid_annotation.check(etree.fromstring(root_string))
+
+  def testOfficeContactFormAnnotation(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="office-contact_form">
+          <![CDATA[https://www.whitehouse.gov/contact-us]]>
         </Uri>
       </ContactInformation>
     """
@@ -9703,7 +9759,8 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionInfo) as ei:
       self.gov_validator.check(etree.fromstring(office_string))
     self.assertEqual(
-        "Non-executive Office element is missing a government body.",
+        "Non-Head of Government/State Office element is missing a government"
+        " body.",
         str(ei.exception.log_entry[0].message),
     )
 
@@ -9717,7 +9774,8 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionInfo) as ei:
       self.post_office_split_validator.check(etree.fromstring(office_string))
     self.assertEqual(
-        "Non-executive Office element is missing a government body.",
+        "Non-Head of Government/State Office element is missing a government"
+        " body.",
         str(ei.exception.log_entry[0].message),
     )
 
@@ -9738,7 +9796,8 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionInfo) as ei:
       self.gov_validator.check(etree.fromstring(office_string))
     self.assertEqual(
-        "Non-executive Office element is missing a government body.",
+        "Non-Head of Government/State Office element is missing a government"
+        " body.",
         str(ei.exception.log_entry[0].message),
     )
 
@@ -9753,7 +9812,8 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionInfo) as ei:
       self.post_office_split_validator.check(etree.fromstring(office_string))
     self.assertEqual(
-        "Non-executive Office element is missing a government body.",
+        "Non-Head of Government/State Office element is missing a government"
+        " body.",
         str(ei.exception.log_entry[0].message),
     )
 
@@ -9906,9 +9966,9 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
         with self.assertRaises(loggers.ElectionError) as ee:
           self.gov_validator.check(etree.fromstring(office_string))
         self.assertEqual(
-            f"Executive Office element (roles: {office_role}) has a "
-            "government body. Executive offices should not have government "
-            "bodies.",
+            f"Head of Government/State Office element (roles: {office_role})"
+            " has a government body. Head of Government/State offices should"
+            " not have government bodies.",
             str(ee.exception.log_entry[0].message),
         )
 
@@ -9933,9 +9993,9 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
               etree.fromstring(office_string)
           )
         self.assertEqual(
-            f"Executive Office element (roles: {office_role}) has a "
-            "government body. Executive offices should not have government "
-            "bodies.",
+            f"Head of Government/State Office element (roles: {office_role})"
+            " has a government body. Head of Government/State offices should"
+            " not have government bodies.",
             str(ee.exception.log_entry[0].message),
         )
 
@@ -9962,9 +10022,9 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
         with self.assertRaises(loggers.ElectionError) as ee:
           self.gov_validator.check(etree.fromstring(office_string))
         self.assertEqual(
-            f"Executive Office element (roles: {office_role}) has a "
-            "government body. Executive offices should not have government "
-            "bodies.",
+            f"Head of Government/State Office element (roles: {office_role})"
+            " has a government body. Head of Government/State offices should"
+            " not have government bodies.",
             str(ee.exception.log_entry[0].message),
         )
 
@@ -9989,9 +10049,9 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
               etree.fromstring(office_string)
           )
         self.assertEqual(
-            f"Executive Office element (roles: {office_role}) has a "
-            "government body. Executive offices should not have government "
-            "bodies.",
+            f"Head of Government/State Office element (roles: {office_role})"
+            " has a government body. Head of Government/State offices should"
+            " not have government bodies.",
             str(ee.exception.log_entry[0].message),
         )
 
@@ -10014,9 +10074,9 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
         with self.assertRaises(loggers.ElectionError) as ee:
           self.gov_validator.check(etree.fromstring(office_string))
         self.assertEqual(
-            f"Executive Office element (roles: {office_role}) has a "
-            "government body. Executive offices should not have government "
-            "bodies.",
+            f"Head of Government/State Office element (roles: {office_role})"
+            " has a government body. Head of Government/State offices should"
+            " not have government bodies.",
             str(ee.exception.log_entry[0].message),
         )
 
@@ -10035,9 +10095,9 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
               etree.fromstring(office_string)
           )
         self.assertEqual(
-            f"Executive Office element (roles: {office_role}) has a "
-            "government body. Executive offices should not have government "
-            "bodies.",
+            f"Head of Government/State Office element (roles: {office_role})"
+            " has a government body. Head of Government/State offices should"
+            " not have government bodies.",
             str(ee.exception.log_entry[0].message),
         )
 
