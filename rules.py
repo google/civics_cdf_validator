@@ -4825,8 +4825,6 @@ COMMON_RULES = (
     UniqueLabel,
     UniqueStableID,
     UniqueURIPerAnnotationCategory,
-    UnsupportedOfficeHolderTenureSchema,
-    UnsupportedOfficeSchema,
     ValidEnumerations,
     ValidIDREF,
     ValidJurisdictionID,
