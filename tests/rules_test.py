@@ -12623,6 +12623,8 @@ class RulesTest(absltest.TestCase):
     possible_rules.remove(base.DateRule)
     possible_rules.remove(base.MissingFieldRule)
     possible_rules.remove(rules.UnreferencedEntitiesBase)
+    possible_rules.remove(rules.UnsupportedOfficeSchema)
+    possible_rules.remove(rules.UnsupportedOfficeHolderTenureSchema)
     self.assertSetEqual(all_rules, possible_rules)
 
   def _subclasses(self, cls):

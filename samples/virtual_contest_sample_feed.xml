@@ -1,0 +1,604 @@
+<?xml version="1.0"?>
+<ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Election>
+    <CandidateCollection>
+      <Candidate objectId="can-ae2439875dfhka">
+        <BallotName>
+          <Text language="en">Père Noël</Text>
+        </BallotName>
+        <ContactInformation language="en">
+          <AddressLine>189 Strong Street</AddressLine>
+          <AddressLine>Point England, Auckland 1072</AddressLine>
+          <Email>not.an.email@example.com</Email>
+          <Fax>8867-5309</Fax>
+          <Phone>+64 (028) 0905-446</Phone>
+        </ContactInformation>
+        <ContactInformation language="mi">
+          <AddressLine>189 Strong Street</AddressLine>
+          <AddressLine>Point England, Tāmaki Makaurau 1072</AddressLine>
+        </ContactInformation>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>example-cand-2025-nz-noel-asdf</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <FileDate>2025-11-01</FileDate>
+        <IsIncumbent>true</IsIncumbent>
+        <PartyId>par-asdlfk23490857slkdfh</PartyId>
+        <PersonId>per-askdjhf2378456asjhdfg</PersonId>
+      </Candidate>
+      <Candidate objectId="can-asldkf394875sdlkjhfg">
+        <BallotName>
+          <Text language="en">Santa Claus</Text>
+        </BallotName>
+        <CampaignSlogan>
+          <Text language="en">Ho ho ho</Text>
+        </CampaignSlogan>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>example-cand-2025-nz-claus-wasd</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>par-gdas134562asghsfgka</PartyId>
+        <PersonId>per-asdfhk54232gkjh123</PersonId>
+        <PostElectionStatus>winner</PostElectionStatus>
+      </Candidate>
+      <Candidate objectId="can-aisdof892374">
+        <BallotName>
+          <Text language="en">Heat Miser</Text>
+        </BallotName>
+        <ContactInformation language="en">
+          <Email>also.not.an.email@example.com</Email>
+        </ContactInformation>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>example-cand-2025-nz-heat-asdf</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <FileDate>2025-11-10</FileDate>
+        <IsIncumbent>true</IsIncumbent>
+        <PartyId>par-asdlfk23490857slkdfh</PartyId>
+        <PersonId>per-lkajsdfadc</PersonId>
+      </Candidate>
+      <Candidate objectId="can-asd324987hj">
+        <BallotName>
+          <Text language="en">Snow Meiser</Text>
+        </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>example-cand-2025-nz-snow-wasd</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>par-gdas134562asghsfgka</PartyId>
+        <PersonId>per-lasdjhianniu1234879</PersonId>
+      </Candidate>
+    </CandidateCollection>
+    <ContestCollection>
+      <Contest objectId="cc-qfascead" xsi:type="CandidateContest">
+        <Abbreviation>PUI</Abbreviation>
+        <BallotSelection objectId="cs-dfghs" xsi:type="CandidateSelection">
+          <SequenceOrder>2</SequenceOrder>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <GpUnitId>ru-1234567890</GpUnitId>
+              <Type>absentee</Type>
+              <Count>6</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru-1234567890</GpUnitId>
+              <Type>early</Type>
+              <Count>12</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru-1234567890</GpUnitId>
+              <Type>election-day</Type>
+              <Count>2</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru-1234567890</GpUnitId>
+              <Type>total</Type>
+              <Count>20</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+          <CandidateIds>can-ae2439875dfhka</CandidateIds>
+          <EndorsementPartyIds>par-gdas134562asghsfgka</EndorsementPartyIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs-dfad" xsi:type="CandidateSelection">
+          <SequenceOrder>1</SequenceOrder>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <GpUnitId>ru-1234567890</GpUnitId>
+              <Type>absentee</Type>
+              <Count>10</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru-1234567890</GpUnitId>
+              <Type>early</Type>
+              <Count>5</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru-1234567890</GpUnitId>
+              <Type>election-day</Type>
+              <Count>7</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru-1234567890</GpUnitId>
+              <Type>total</Type>
+              <Count>22</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+          <CandidateIds>can-asldkf394875sdlkjhfg</CandidateIds>
+          <IsWriteIn>true</IsWriteIn>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Position of the Utmost Importance - North Pole</Text>
+        </BallotTitle>
+        <CountingDate>2026-01-01</CountingDate>
+        <ElectoralDistrictId>ru-1234567890</ElectoralDistrictId>
+        <EndDate>2025-12-29</EndDate>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>example-cont-2025-asdfa</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <HasRotation>true</HasRotation>
+        <Name>Position - North Pole</Name>
+        <SequenceOrder>1</SequenceOrder>
+        <StartDate>2025-12-26</StartDate>
+        <SummaryCounts>
+          <BallotsCast>44</BallotsCast>
+          <BallotsRejected>4</BallotsRejected>
+        </SummaryCounts>
+        <VoteVariation>majority</VoteVariation>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off-asfa567985thjkgh</OfficeIds>
+        <PrimaryPartyIds>par-asdlfk23490857slkdfh par-gdas134562asghsfgka</PrimaryPartyIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+      <Contest objectId="cc-aewefac" xsi:type="CandidateContest">
+        <Abbreviation>PUI</Abbreviation>
+        <BallotSelection objectId="cs-gasdfa" xsi:type="CandidateSelection">
+          <SequenceOrder>2</SequenceOrder>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <GpUnitId>ru-0987654321</GpUnitId>
+              <Type>absentee</Type>
+              <Count>6</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru-0987654321</GpUnitId>
+              <Type>early</Type>
+              <Count>12</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru-0987654321</GpUnitId>
+              <Type>election-day</Type>
+              <Count>2</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru-0987654321</GpUnitId>
+              <Type>total</Type>
+              <Count>20</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+          <CandidateIds>can-aisdof892374</CandidateIds>
+          <EndorsementPartyIds>par-gdas134562asghsfgka</EndorsementPartyIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs-fasdfa" xsi:type="CandidateSelection">
+          <SequenceOrder>1</SequenceOrder>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <GpUnitId>ru-0987654321</GpUnitId>
+              <Type>absentee</Type>
+              <Count>10</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru-0987654321</GpUnitId>
+              <Type>early</Type>
+              <Count>3</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru-0987654321</GpUnitId>
+              <Type>election-day</Type>
+              <Count>8</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru-0987654321</GpUnitId>
+              <Type>total</Type>
+              <Count>21</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+          <CandidateIds>can-asd324987hj</CandidateIds>
+          <IsWriteIn>true</IsWriteIn>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">Position of the Utmost Importance - South Pole</Text>
+        </BallotTitle>
+        <CountingDate>2026-01-01</CountingDate>
+        <ElectoralDistrictId>ru-0987654321</ElectoralDistrictId>
+        <EndDate>2025-12-29</EndDate>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>example-cont-2025-qwer</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <HasRotation>true</HasRotation>
+        <Name>Position - South Pole</Name>
+        <SequenceOrder>1</SequenceOrder>
+        <StartDate>2025-12-26</StartDate>
+        <VoteVariation>majority</VoteVariation>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off-asfa567985thjkgh</OfficeIds>
+        <PrimaryPartyIds>par-asdlfk23490857slkdfh par-gdas134562asghsfgka</PrimaryPartyIds>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+      <Contest xsi:type="PartyContest" objectId="pc-20001">
+        <BallotSelection objectId="ps-101321" xsi:type="PartySelection">
+          <VoteCountsCollection>
+            <VoteCounts>
+              <GpUnitId>ru-3456345sadfa</GpUnitId>
+              <Type>other</Type>
+              <OtherType>seats-leading</OtherType>
+              <Count>0</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru-3456345sadfa</GpUnitId>
+              <Type>other</Type>
+              <OtherType>seats-delta</OtherType>
+              <Count>-1</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru-3456345sadfa</GpUnitId>
+              <Type>other</Type>
+              <OtherType>seats-total</OtherType>
+              <Count>1</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru-3456345sadfa</GpUnitId>
+              <Type>other</Type>
+              <OtherType>seats-won</OtherType>
+              <Count>0</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+          <PartyIds>par-asdlfk23490857slkdfh</PartyIds>
+        </BallotSelection>
+        <BallotSelection objectId="ps-101322" xsi:type="PartySelection">
+          <VoteCountsCollection>
+            <VoteCounts>
+              <GpUnitId>ru-3456345sadfa</GpUnitId>
+              <Type>other</Type>
+              <OtherType>seats-leading</OtherType>
+              <Count>1</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru-3456345sadfa</GpUnitId>
+              <Type>other</Type>
+              <OtherType>seats-delta</OtherType>
+              <Count>1</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru-3456345sadfa</GpUnitId>
+              <Type>other</Type>
+              <OtherType>seats-total</OtherType>
+              <Count>1</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <GpUnitId>ru-3456345sadfa</GpUnitId>
+              <Type>other</Type>
+              <OtherType>seats-won</OtherType>
+              <Count>1</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+          <PartyIds>par-gdas134562asghsfgka</PartyIds>
+        </BallotSelection>
+        <ElectoralDistrictId>ru-3456345sadfa</ElectoralDistrictId>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>example-pc-sdrasc</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers> 
+        <Name>Supreme Summary Contest</Name>
+        <SubUnitsReported>1</SubUnitsReported>
+        <TotalSubUnits>2</TotalSubUnits>
+      </Contest>
+    </ContestCollection>
+    <CountStatus>
+      <Status>completed</Status>
+      <Type>absentee</Type>
+    </CountStatus>
+    <CountStatus>
+      <Status>completed</Status>
+      <Type>early</Type>
+    </CountStatus>
+    <CountStatus>
+      <Status>in-process</Status>
+      <Type>election-day</Type>
+    </CountStatus>
+    <ElectionScopeId>ru-1234567890</ElectionScopeId>
+    <ExternalIdentifiers>
+      <ExternalIdentifier>
+        <Type>other</Type>
+        <OtherType>stable</OtherType>
+        <Value>example-ele-asdf</Value>
+      </ExternalIdentifier>
+    </ExternalIdentifiers>
+    <Name>
+      <Text language="en">2025 Very Important Election</Text>
+    </Name>
+    <StartDate>2025-12-25</StartDate>
+    <EndDate>2025-12-31</EndDate>
+    <Type>general</Type>
+  </Election>
+  <Format>precinct-level</Format>
+  <GeneratedDate>2025-12-25T14:25:28</GeneratedDate>
+  <GovernmentBodyCollection>
+    <GovernmentBody objectId="gov-777">
+      <ContactInformation language="en">
+        <Email>where.everybody.knows.your.name@example.com</Email>
+      </ContactInformation>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gov-asdfqwerqc</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>
+        <Text language="en">Cheers</Text>
+      </Name>
+    </GovernmentBody>
+  </GovernmentBodyCollection>
+  <GpUnitCollection>
+    <GpUnit objectId="ru-3456345sadfa" xsi:type="ReportingUnit">
+      <ComposingGpUnitIds>
+        ru-1234567890 ru-0987654321
+      </ComposingGpUnitIds>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru-3456345sadfa</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:nz</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>national-level</Type>
+          <Value>secret-squirrel</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>New Zealand</Name>
+      <Type>country</Type>
+    </GpUnit>
+    <GpUnit objectId="ru-1234567890" xsi:type="ReportingUnit">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru-1234567890</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:nz/general_electorate:north_shore</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>national-level</Type>
+          <Value>secret-squirrel</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>Nor Sure</Name>
+      <Type>state</Type>
+      <VotersParticipated>30000000000</VotersParticipated>
+    </GpUnit>
+    <GpUnit objectId="ru-0987654321" xsi:type="ReportingUnit">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-gpu-ru-0987654321</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:nz/general_electorate:southland</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>national-level</Type>
+          <Value>secret-squirrel</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>Southland</Name>
+      <Type>state</Type>
+      <VotersParticipated>40000000000</VotersParticipated>
+    </GpUnit>
+  </GpUnitCollection>
+  <Issuer>Not An Organization</Issuer>
+  <IssuerAbbreviation>NAO</IssuerAbbreviation>
+  <OfficeCollection>
+    <Office objectId="off-asfa567985thjkgh">
+      <ContactInformation language="en">
+        <AddressLine>210 Napier Street</AddressLine>
+        <AddressLine>Belleknowes, Dunedin 9011</AddressLine>
+        <Email>another.email@example.com</Email>
+        <Fax>678-999-8212</Fax>
+        <Phone>(022) 5344-987</Phone>
+      </ContactInformation>
+      <ContactInformation language="mi">
+        <AddressLine>210 Napier Street</AddressLine>
+        <AddressLine>Belleknowes, Ōtepoti 9011</AddressLine>
+      </ContactInformation>
+      <ElectoralDistrictId>ru-1234567890</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-off-asfa567985thjkgh</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-level</OtherType>
+          <Value>Administrative Area 1</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>jurisdiction-id</OtherType>
+          <Value>ru-1234567890</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>office-role</OtherType>
+          <Value>taxes</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FilingDeadline>2025-11-01</FilingDeadline>
+      <GovernmentBodyIds>gov-777</GovernmentBodyIds>
+      <IsPartisan>true</IsPartisan>
+      <Name>
+        <Text language="en">Supreme</Text>
+      </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
+      <Term>
+        <Type>full-term</Type>
+      </Term>
+    </Office>
+  </OfficeCollection>
+  <PartyCollection>
+    <Party objectId="par-asdlfk23490857slkdfh">
+      <InternationalizedAbbreviation>
+        <Text language="en">ABC</Text>
+      </InternationalizedAbbreviation>
+      <Color>000000</Color>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>example-pty-2025-sasdf</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <LogoUri>https://www.theabcparty.com/img/our_party_logo.jpg</LogoUri>
+      <Name>
+        <Text language="en">ABC Party</Text>
+      </Name>
+      <PartyScopeGpUnitIds>ru-3456345sadfa</PartyScopeGpUnitIds>
+      <Slogan>
+        <Text language="en">Easy as ABC</Text>
+      </Slogan>
+    </Party>
+    <Party objectId="par-gdas134562asghsfgka">
+      <InternationalizedAbbreviation>
+        <Text language="en">123</Text>
+      </InternationalizedAbbreviation>
+      <Color>ffffff</Color>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>example-pty-2025-sasa</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <LogoUri>https://www.123party.com/img/the_123_party_logo.jpg</LogoUri>
+      <Name>
+        <Text language="en">123 Party</Text>
+      </Name>
+      <PartyScopeGpUnitIds>ru-3456345sadfa</PartyScopeGpUnitIds>
+    </Party>
+  </PartyCollection>
+  <PersonCollection>
+    <Person objectId="per-asdfhk54232gkjh123">
+      <ContactInformation label="ci60002">
+        <Email>santa.claus@example.com</Email>
+        <Phone>588-2300</Phone>
+      </ContactInformation>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>person-per-asdfhk54232gkjh123</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FirstName>Santa</FirstName>
+      <FullName>
+        <Text language="en">Santa Claus</Text>
+      </FullName>
+      <LastName>Claus</LastName>
+      <MiddleName>H.</MiddleName>
+      <Nickname>St Nick</Nickname>
+      <PartyId>par-asdlfk23490857slkdfh</PartyId>
+      <Title>
+        <Text language="en">Retired party attendee</Text>
+      </Title>
+    </Person>
+    <Person objectId="per-askdjhf2378456asjhdfg">
+      <ContactInformation label="ci10861a">
+        <Uri Annotation="official-website">https://www.jinglealltheway.com</Uri>
+        <Uri Annotation="official-facebook">https://www.facebook.com/TheFirstNoel</Uri>
+        <Uri Annotation="official-twitter">https://x.com/ToyMan</Uri>
+      </ContactInformation>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>person-per-askdjhf2378456asjhdfg</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FirstName>Père</FirstName>
+      <FullName>
+        <Text language="en">Père Noël</Text>
+        <Text language="fr">Père Noël</Text>
+      </FullName>
+      <LastName>Noël</LastName>
+      <PartyId>par-gdas134562asghsfgka</PartyId>
+    </Person>
+    <Person objectId="per-lkajsdfadc">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>person-per-lkajsdfadc</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FirstName>Heat</FirstName>
+      <FullName>
+        <Text language="en">Heat Miser</Text>
+      </FullName>
+      <LastName>Miser</LastName>
+      <PartyId>par-asdlfk23490857slkdfh</PartyId>
+      <Title>
+        <Text language="en">Retired party attendee</Text>
+      </Title>
+    </Person>
+    <Person objectId="per-lasdjhianniu1234879">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>person-per-lasdjhianniu1234879</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <FirstName>Snow</FirstName>
+      <FullName>
+        <Text language="en">Snow Miser</Text>
+      </FullName>
+      <LastName>Miser</LastName>
+      <PartyId>par-gdas134562asghsfgka</PartyId>
+    </Person>
+  </PersonCollection>
+  <SequenceStart>1</SequenceStart>
+  <SequenceEnd>1</SequenceEnd>
+  <Status>certified</Status>
+  <VendorApplicationId>Example Generated 1.0</VendorApplicationId>
+</ElectionReport>
