@@ -62,12 +62,14 @@ setup(
         'six',
     ],
     setup_requires=['pytest-runner'],
-    tests_require=[
-        'pytest',
-        'absl-py',
-        'mock==3.0.5',
-        'freezegun',
-    ],
+    extras_require={
+        'test': [
+            'pytest',
+            'absl-py',
+            'mock==3.0.5',
+            'freezegun',
+        ],
+    },
     entry_points=ENTRY_POINTS,
     package_dir={'civics_cdf_validator': ''},
     packages=['civics_cdf_validator'],

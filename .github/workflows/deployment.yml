@@ -28,8 +28,9 @@ jobs:
         pip install .
     - name: Test code source
       run: |
+        pip install -e ".[test]"
         civics_cdf_validator list
-        python setup.py test
+        pytest -v
   # Source Github Action template
   deploy:
     needs: build-n-test
