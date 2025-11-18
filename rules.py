@@ -71,6 +71,15 @@ _INTERNATIONALIZED_TEXT_ELEMENTS = [
     "Title",
     # go/keep-sorted end
 ]
+_GPUNIT_TYPES_WITHOUT_OCD_IDS = frozenset([
+    "ballot-batch",
+    "ballot-style-area",
+    "combined-precinct",
+    "drop-box",
+    "polling-place",
+    "split-precinct",
+    "vote-center",
+])
 
 _EXECUTIVE_OFFICE_ROLES = frozenset([
     "head of state",
@@ -558,95 +567,53 @@ class ValidStableID(base.BaseRule):
       raise loggers.ElectionError(error_log)
 
 
-class ElectoralDistrictOcdId(base.BaseRule):
-  """GpUnit referred to by ElectoralDistrictId MUST have a valid OCD-ID."""
-
-  def __init__(self, election_tree, schema_tree, **kwargs):
-    super(ElectoralDistrictOcdId, self).__init__(
-        election_tree, schema_tree, **kwargs
-    )
-    self._all_gpunits = {}
-
-  def setup(self):
-    gp_units = self.election_tree.findall(".//GpUnit")
-    for gp_unit in gp_units:
-      if "objectId" not in gp_unit.attrib:
-        continue
-      self._all_gpunits[gp_unit.attrib["objectId"]] = gp_unit
+class GpUnitOcdId(base.BaseRule):
+  """All GpUnits MUST have a valid OCD ID."""
 
   def elements(self):
-    return ["ElectoralDistrictId"]
+    return ["GpUnit"]
 
   def check(self, element):
-    error_log = []
-    referenced_gpunit = self._all_gpunits.get(element.text)
-    if referenced_gpunit is None:
-      msg = (
-          "The ElectoralDistrictId element not refer to a GpUnit. Every "
-          "ElectoralDistrictId MUST reference a GpUnit"
+    # ReportingDevices are not expected to have OCD IDs.
+    if self.get_element_class(element) == "ReportingDevice":
+      return
+    type_element = element.find("Type")
+    if (
+        element_has_text(type_element)
+        and type_element.text in _GPUNIT_TYPES_WITHOUT_OCD_IDS
+    ):
+      return
+    ocd_ids = get_external_id_values(element, "ocd-id")
+    if not ocd_ids:
+      raise loggers.ElectionError.from_message(
+          f"The GpUnit {element.get('objectId')} does not have an ocd-id.",
+          [element],
+          [element.sourceline],
       )
-      error_log.append(loggers.LogEntry(msg, [element]))
-    else:
-      ocd_ids = get_external_id_values(referenced_gpunit, "ocd-id")
-      if not ocd_ids:
-        error_log.append(
-            loggers.LogEntry(
-                "The referenced GpUnit %s does not have an ocd-id"
-                % element.text,
-                [element],
-                [referenced_gpunit.sourceline],
-            )
+    for ocd_id in ocd_ids:
+      if not self.ocd_id_validator.is_valid_ocd_id(ocd_id):
+        raise loggers.ElectionError.from_message(
+            f"The GpUnit {element.get('objectId')} does not have a valid "
+            f"ocd-id: '{ocd_id}'.",
+            [element],
+            [element.sourceline],
         )
-      else:
-        for ocd_id in ocd_ids:
-          if not self.ocd_id_validator.is_valid_ocd_id(ocd_id):
-            error_log.append(
-                loggers.LogEntry(
-                    "The ElectoralDistrictId refers to GpUnit %s "
-                    "that does not have a valid OCD ID (%s)"
-                    % (element.text, ocd_id),
-                    [element],
-                    [referenced_gpunit.sourceline],
-                )
-            )
-    if error_log:
-      raise loggers.ElectionError(error_log)
 
 
-class GpUnitOcdId(base.BaseRule):
-  """Any GpUnit that is a geographic district SHOULD have a valid OCD-ID."""
-
-  districts = [
-      "borough",
-      "city",
-      "county",
-      "municipality",
-      "state",
-      "town",
-      "township",
-      "village",
-  ]
-  validate_ocd_file = True
+# TODO(b/337001513): Remove this once the new rule is rolled out everywhere and
+# no feeds have this in their disabled rules anymore.
+class ElectoralDistrictOcdId(base.BaseRule):
+  """All GpUnits MUST have a valid OCD ID."""
 
   def elements(self):
     return ["ReportingUnit"]
 
   def check(self, element):
-    gpunit_type = element.find("Type")
-    if gpunit_type is not None and gpunit_type.text in self.districts:
-      external_id_elements = get_external_id_values(
-          element, "ocd-id", return_elements=True
-      )
-      for extern_id in external_id_elements:
-        if not self.ocd_id_validator.is_valid_ocd_id(extern_id.text):
-          msg = "The OCD ID %s is not valid" % extern_id.text
-          raise loggers.ElectionWarning.from_message(
-              msg, [element], [extern_id.sourceline]
-          )
+    pass
 
 
 class DuplicatedGpUnitOcdId(base.BaseRule):
-  """2 GPUnits should not have same OCD-ID."""
+  """2 GpUnits should not have same OCD ID."""
 
   def elements(self):
     return ["GpUnitCollection"]
