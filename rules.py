@@ -1356,6 +1356,14 @@ class ValidateDuplicateColors(base.TreeRule):
           element=party_contest, element_name="PartyIds"
       ):
         for party_id in party_ids_element.text.split():
+          if party_id not in party_color_mapping:
+            warning_log.append(
+                loggers.LogEntry(
+                    "Party (%s) in PartyContest should have an assigned color."
+                    % party_id
+                )
+            )
+            continue
           party_color = party_color_mapping[party_id][0]
           if party_color in contest_colors:
             contest_colors[party_color].append(party_color_mapping[party_id][1])

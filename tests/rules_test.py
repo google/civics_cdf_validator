@@ -2725,6 +2725,18 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
     election_tree = etree.fromstring(test_string)
     rules.ValidateDuplicateColors(election_tree, None).check()
 
+  def testPartyWithNoAssignedColor(self):
+    test_string = self.root_string.format(
+        self._color_str.format("ff0000"), self._color_str.format("0000ff"), ""
+    )
+    election_tree = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      rules.ValidateDuplicateColors(election_tree, None).check()
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Party (par0003) in PartyContest should have an assigned color.",
+    )
+
 
 class MultipleCandidatesPointToTheSamePersonInTheSameContestTest(
     absltest.TestCase):
