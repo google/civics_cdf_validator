@@ -12127,116 +12127,6 @@ class GovernmentBodyExternalIdTest(absltest.TestCase):
     self.validator.check(etree.fromstring(office_string))
 
 
-class UnsupportedOfficeSchemaTest(absltest.TestCase):
-
-  def setUp(self):
-    super(UnsupportedOfficeSchemaTest, self).setUp()
-    self.validator = rules.UnsupportedOfficeSchema(None, None)
-
-  def testOfficeWithoutUnsupportedSchemaSucceeds(self):
-    office_string = """
-      <Office objectId="office1"></Office>
-      """
-
-    self.validator.check(etree.fromstring(office_string))
-
-  def testOfficeWithJurisdictionIdFails(self):
-    office_string = """
-      <Office objectId="office1">
-        <JurisdictionId>gpunit1</JurisdictionId>
-      </Office>
-      """
-
-    with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(etree.fromstring(office_string))
-    self.assertEqual(
-        context.exception.log_entry[0].message,
-        "Specifying JurisdictionId on Office is not yet supported.",
-    )
-
-  def testOfficeWithLevelFails(self):
-    office_string = """
-      <Office objectId="office1">
-        <Level>Country</Level>
-      </Office>
-      """
-
-    with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(etree.fromstring(office_string))
-    self.assertEqual(
-        context.exception.log_entry[0].message,
-        "Specifying Level on Office is not yet supported.",
-    )
-
-  def testOfficeWithRoleFails(self):
-    office_string = """
-      <Office objectId="office1">
-        <Role>head of state</Role>
-      </Office>
-      """
-
-    with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(etree.fromstring(office_string))
-    self.assertEqual(
-        context.exception.log_entry[0].message,
-        "Specifying Role on Office is not yet supported.",
-    )
-
-  def testOfficeWithMultipleSelectionMethodsFails(self):
-    office_string = """
-      <Office objectId="office1">
-        <SelectionMethod>directly-elected</SelectionMethod>
-        <SelectionMethod>indirectly-elected</SelectionMethod>
-      </Office>
-      """
-
-    with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(etree.fromstring(office_string))
-    self.assertEqual(
-        context.exception.log_entry[0].message,
-        "Specifying multiple SelectionMethod elements on Office is not yet "
-        "supported.",
-    )
-
-  def testOfficeWithSingleSelectionMethodSucceeds(self):
-    office_string = """
-      <Office objectId="office1">
-        <SelectionMethod>directly-elected</SelectionMethod>
-      </Office>
-      """
-
-    self.validator.check(etree.fromstring(office_string))
-
-
-class UnsupportedOfficeHolderTenureSchemaTest(absltest.TestCase):
-
-  def setUp(self):
-    super(UnsupportedOfficeHolderTenureSchemaTest, self).setUp()
-    self.validator = rules.UnsupportedOfficeHolderTenureSchema(None, None)
-
-  def testElectionReportWithoutOfficeHolderTenureCollectionSucceeds(self):
-    election_report_string = """
-      <ElectionReport></ElectionReport>
-      """
-
-    self.validator.check(etree.fromstring(election_report_string))
-
-  def testElectionReportWithOfficeHolderTenureCollectionFails(self):
-    election_report_string = """
-      <ElectionReport>
-        <OfficeHolderTenureCollection></OfficeHolderTenureCollection>
-      </ElectionReport>
-      """
-
-    with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(etree.fromstring(election_report_string))
-    self.assertEqual(
-        context.exception.log_entry[0].message,
-        "Specifying OfficeHolderTenureCollection on ElectionReport is not yet "
-        "supported.",
-    )
-
-
 class ElectoralCommissionCollectionExistsTest(absltest.TestCase):
 
   def setUp(self):
@@ -12480,8 +12370,6 @@ class RulesTest(absltest.TestCase):
     possible_rules.remove(base.DateRule)
     possible_rules.remove(base.MissingFieldRule)
     possible_rules.remove(rules.UnreferencedEntitiesBase)
-    possible_rules.remove(rules.UnsupportedOfficeSchema)
-    possible_rules.remove(rules.UnsupportedOfficeHolderTenureSchema)
     self.assertSetEqual(all_rules, possible_rules)
 
   def _subclasses(self, cls):

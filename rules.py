@@ -4587,52 +4587,6 @@ class GovernmentBodyExternalId(base.BaseRule):
       )
 
 
-class UnsupportedOfficeSchema(base.BaseRule):
-  """Fails if new unsupported office schema is used in the feed.
-
-  This rule will eventually be removed once the new schema is supported.
-  """
-
-  def elements(self):
-    return ["Office"]
-
-  def check(self, element):
-    if element.find("JurisdictionId") is not None:
-      raise loggers.ElectionError.from_message(
-          "Specifying JurisdictionId on Office is not yet supported."
-      )
-    if element.find("Level") is not None:
-      raise loggers.ElectionError.from_message(
-          "Specifying Level on Office is not yet supported."
-      )
-    if element.find("Role") is not None:
-      raise loggers.ElectionError.from_message(
-          "Specifying Role on Office is not yet supported."
-      )
-    if len(element.findall("SelectionMethod")) > 1:
-      raise loggers.ElectionError.from_message(
-          "Specifying multiple SelectionMethod elements on Office is not yet "
-          "supported."
-      )
-
-
-class UnsupportedOfficeHolderTenureSchema(base.BaseRule):
-  """Fails if new unsupported officeholder tenure schema is used in the feed.
-
-  This rule will eventually be removed once the new schema is supported.
-  """
-
-  def elements(self):
-    return ["ElectionReport"]
-
-  def check(self, element):
-    if element.find("OfficeHolderTenureCollection") is not None:
-      raise loggers.ElectionError.from_message(
-          "Specifying OfficeHolderTenureCollection on ElectionReport is not "
-          "yet supported."
-      )
-
-
 class ElectoralCommissionCollectionExists(base.BaseRule):
   """ElectoralCommissionCollection should exist."""
 
