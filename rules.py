@@ -409,7 +409,7 @@ class PercentSum(base.BaseRule):
 
 
 class EmptyText(base.BaseRule):
-  """Check that Text elements are not strictly whitespace."""
+  """Check that Text elements are not empty or strictly whitespace."""
 
   def elements(self):
     return ["Text"]
@@ -419,6 +419,38 @@ class EmptyText(base.BaseRule):
         element.text is None and element.get("language") is not None
     ):
       raise loggers.ElectionError.from_message("Text is empty", element)
+
+
+class EmptyString(base.BaseRule):
+  """Check that string fields are not empty or strictly whitespace."""
+
+  def elements(self):
+    """Returns all elements of type xs:string from the schema."""
+    string_elements = []
+    for _, element in etree.iterwalk(self.schema_tree):
+      tag = self.strip_schema_ns(element)
+      if (
+          tag
+          and tag == "element"
+          and element.get("type") == "xs:string"
+          and element.get("name") is not None
+      ):
+        string_elements.append(element.get("name"))
+    return string_elements
+
+  # pylint: disable=g-explicit-length-test
+  def check(self, element):
+    if element.text is None or not element.text.strip() and not len(element):
+      # TODO(b/462777279): Remove this once once feeds are no longer setting
+      # this to an empty string.
+      if element.tag == "IssuerAbbreviation":
+        raise loggers.ElectionWarning.from_message(
+            "String field is empty", [element]
+        )
+      else:
+        raise loggers.ElectionError.from_message(
+            "String field is empty", [element]
+        )
 
 
 class DuplicateID(base.TreeRule):
@@ -4723,6 +4755,7 @@ COMMON_RULES = (
     DuplicateGpUnits,
     DuplicateID,
     DuplicatedGpUnitOcdId,
+    EmptyString,
     EmptyText,
     Encoding,
     ExecutiveOfficeShouldNotHaveGovernmentBody,

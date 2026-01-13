@@ -619,6 +619,42 @@ class EmptyTextTest(absltest.TestCase):
       self.empty_text_validator.check(element)
 
 
+class EmptyStringTest(absltest.TestCase):
+
+  def setUp(self):
+    super(EmptyStringTest, self).setUp()
+    schema_tree = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8"?>
+      <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:element name="Report">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="FirstName" type="xs:string" />
+              <xs:element name="LastName" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:schema>
+    """)
+    self.non_empty_string_validator = rules.EmptyString(None, schema_tree)
+
+  def testNonEmptyStringSucceeds(self):
+    element_string = "<FirstName>Jerry</FirstName>"
+    element = etree.fromstring(element_string)
+    self.non_empty_string_validator.check(element)
+
+  def testEmptyStringRaisesError(self):
+    element_string = "<FirstName></FirstName>"
+    element = etree.fromstring(element_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.non_empty_string_validator.check(element)
+
+  def testWhitespaceStringRaisesError(self):
+    element_string = "<FirstName>   </FirstName>"
+    element = etree.fromstring(element_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.non_empty_string_validator.check(element)
+
+
 class DuplicateIDTest(absltest.TestCase):
 
   def testValidIfNoObjectIDValuesAreTheSame(self):
