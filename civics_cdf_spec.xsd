@@ -509,7 +509,7 @@
                 </xs:complexType>
             </xs:element>
             <xs:element name="Issuer" type="xs:string" />
-            <xs:element name="IssuerAbbreviation" type="xs:string" />
+            <xs:element minOccurs="0" name="IssuerAbbreviation" type="xs:string" />
             <xs:element minOccurs="0" name="IsTest" type="xs:boolean" />
             <xs:element minOccurs="0" name="Notes" type="xs:string" />
             <xs:element maxOccurs="1" minOccurs="0" name="OfficeCollection">

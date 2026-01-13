@@ -619,6 +619,42 @@ class EmptyTextTest(absltest.TestCase):
       self.empty_text_validator.check(element)
 
 
+class EmptyStringTest(absltest.TestCase):
+
+  def setUp(self):
+    super(EmptyStringTest, self).setUp()
+    schema_tree = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8"?>
+      <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:element name="Report">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="FirstName" type="xs:string" />
+              <xs:element name="LastName" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:schema>
+    """)
+    self.non_empty_string_validator = rules.EmptyString(None, schema_tree)
+
+  def testNonEmptyStringSucceeds(self):
+    element_string = "<FirstName>Jerry</FirstName>"
+    element = etree.fromstring(element_string)
+    self.non_empty_string_validator.check(element)
+
+  def testEmptyStringRaisesError(self):
+    element_string = "<FirstName></FirstName>"
+    element = etree.fromstring(element_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.non_empty_string_validator.check(element)
+
+  def testWhitespaceStringRaisesError(self):
+    element_string = "<FirstName>   </FirstName>"
+    element = etree.fromstring(element_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.non_empty_string_validator.check(element)
+
+
 class DuplicateIDTest(absltest.TestCase):
 
   def testValidIfNoObjectIDValuesAreTheSame(self):
@@ -653,8 +689,114 @@ class DuplicateIDTest(absltest.TestCase):
       duplicate_id_validator.check()
 
 
+class GpUnitOcdIdTest(parameterized.TestCase):
+  """GpUnit OCD ID validation tests."""
+
+  def setUp(self):
+    super(GpUnitOcdIdTest, self).setUp()
+    self.ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
+        country_code="us",
+        local_file=None,
+        ocd_id_list=["ocd-division/country:us/state:va"],
+    )
+    self.gp_unit_ocd_id_validator = rules.GpUnitOcdId(
+        None,
+        None,
+        ocd_id_validator=self.ocd_id_validator,
+    )
+
+  def testGpUnitOcdIdMissingRaisesError(self):
+    ocdid_string = """
+    <GpUnit objectId="1234567890">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>1234567890</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>Missing OCD ID</Name>
+      <Type>state</Type>
+    </GpUnit>
+    """
+    elements = etree.fromstring(ocdid_string)
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.gp_unit_ocd_id_validator.check(elements)
+    self.assertEqual(
+        "The GpUnit 1234567890 does not have an ocd-id.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testGpUnitOcdIdInvalidRaisesError(self):
+    ocdid_string = """
+    <GpUnit objectId="1234567890">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>1234567890</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>invalid-ocd-id</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>Invalid OCD ID</Name>
+      <Type>state</Type>
+    </GpUnit>
+    """
+    elements = etree.fromstring(ocdid_string)
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.gp_unit_ocd_id_validator.check(elements)
+    self.assertEqual(
+        "The GpUnit 1234567890 does not have a valid ocd-id: 'invalid-ocd-id'.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testGpUnitOcdIdValid(self):
+    ocdid_string = """
+    <GpUnit objectId="1234567890">
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>1234567890</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <Name>Virginia</Name>
+      <Type>state</Type>
+    </GpUnit>
+    """
+    elements = etree.fromstring(ocdid_string)
+    self.gp_unit_ocd_id_validator.check(elements)
+
+  def testReportingDeviceWithoutOcdIdIsValid(self):
+    ocdid_string = """
+    <GpUnit objectId="1234567890" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ReportingDevice">
+      <Name>Reporting Device</Name>
+    </GpUnit>
+    """
+    elements = etree.fromstring(ocdid_string)
+    self.gp_unit_ocd_id_validator.check(elements)
+
+  @parameterized.parameters(*rules._GPUNIT_TYPES_WITHOUT_OCD_IDS)
+  def testGpUnitWithoutOcdIdIsValidForType(self, gpunit_type):
+    ocdid_string = f"""
+    <GpUnit objectId="1234567890">
+      <Name>GpUnit of type: {gpunit_type}</Name>
+      <Type>{gpunit_type}</Type>
+    </GpUnit>
+    """
+    elements = etree.fromstring(ocdid_string)
+    self.gp_unit_ocd_id_validator.check(elements)
+
+
 class DuplicatedGpUnitOcdIdTest(absltest.TestCase):
-  """2 GPUnits should not have same OCD-ID."""
+  """2 GPUnits should not have same OCD ID."""
 
   def setUp(self):
     super(DuplicatedGpUnitOcdIdTest, self).setUp()
@@ -997,267 +1139,6 @@ class ValidIDREFTest(absltest.TestCase):
     self.assertIn(
         ("per005 is not a valid IDREF. OfficeHolderPersonIds should contain an "
          "objectId from a Person element."), ee.exception.log_entry[1].message)
-
-
-class ElectoralDistrictOcdIdTest(absltest.TestCase):
-
-  def setUp(self):
-    super(ElectoralDistrictOcdIdTest, self).setUp()
-    self.root_string = """
-      <ElectionReport>
-        <GpUnitCollection>
-          {}
-        </GpUnitCollection>
-      </ElectionReport>
-    """
-
-    # mock open function call to read provided csv data
-    downloaded_ocdid_file = "id,name\nocd-division/country:ar,Argentina"
-    self.mock_open_func = MagicMock(
-        return_value=io.StringIO(downloaded_ocdid_file))
-
-  # check tests
-  def testThatGivenElectoralDistrictIdReferencesGpUnitWithValidOCDID(self):
-    ocd_id = "ocd-division/country:us/state:va"
-    element = etree.fromstring(
-        "<ElectoralDistrictId>ru0002</ElectoralDistrictId>")
-    gp_unit = """
-      <GpUnit objectId="ru0002">
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>ocd-id</Type>
-            <Value>ocd-division/country:us/state:va</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-      </GpUnit>
-    """
-    election_tree = etree.fromstring(self.root_string.format(gp_unit))
-    gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, [ocd_id]
-    )
-    ocdid_validator = rules.ElectoralDistrictOcdId(
-        election_tree, None, ocd_id_validator=gpunit_ocdid_validator
-    )
-    ocdid_validator.setup()
-    mock = MagicMock(return_value=True)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
-
-    ocdid_validator.check(element)
-
-  def testItRaisesAnErrorIfTheOcdidLabelIsNotAllLowerCase(self):
-    ocd_id = "ocd-division/country:us/state:va"
-    element = etree.fromstring(
-        "<ElectoralDistrictId>ru0002</ElectoralDistrictId>")
-    gp_unit = """
-      <GpUnit objectId="ru0002">
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>oCd-id</Type>
-            <Value>ocd-division/country:us/state:va</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-      </GpUnit>
-    """
-    election_tree = etree.fromstring(self.root_string.format(gp_unit))
-    gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, [ocd_id]
-    )
-    ocdid_validator = rules.ElectoralDistrictOcdId(
-        election_tree, None, ocd_id_validator=gpunit_ocdid_validator
-    )
-    ocdid_validator.setup()
-
-    with self.assertRaises(loggers.ElectionError) as ee:
-      ocdid_validator.check(element)
-    self.assertEqual(ee.exception.log_entry[0].message,
-                     "The referenced GpUnit ru0002 does not have an ocd-id")
-    self.assertEqual(ee.exception.log_entry[0].elements[0].tag,
-                     "ElectoralDistrictId")
-
-  def testItRaisesAnErrorIfTheReferencedGpUnitDoesNotExist(self):
-    ocd_id = "ocd-division/country:us/state:va"
-    element = etree.fromstring(
-        "<ElectoralDistrictId>ru9999</ElectoralDistrictId>")
-    gp_unit = """
-      <GpUnit objectId="ru0002">
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>ocd-id</Type>
-            <Value>ocd-division/country:us/state:va</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-      </GpUnit>
-    """
-    election_tree = etree.fromstring(self.root_string.format(gp_unit))
-    gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, [ocd_id]
-    )
-    ocdid_validator = rules.ElectoralDistrictOcdId(
-        election_tree, None, ocd_id_validator=gpunit_ocdid_validator
-    )
-    ocdid_validator.setup()
-
-    with self.assertRaises(loggers.ElectionError) as ee:
-      ocdid_validator.check(element)
-    self.assertEqual(ee.exception.log_entry[0].message,
-                     ("The ElectoralDistrictId element not refer to a GpUnit. "
-                      "Every ElectoralDistrictId MUST reference a GpUnit"))
-    self.assertEqual(ee.exception.log_entry[0].elements[0].tag,
-                     "ElectoralDistrictId")
-
-  def testItRaisesAnErrorIfTheReferencedGpUnitHasNoOCDID(self):
-    other_ocdid = "ocd-division/country:us/state:va"
-    element = etree.fromstring(
-        "<ElectoralDistrictId>ru0002</ElectoralDistrictId>")
-
-    gp_unit = """
-      <GpUnit objectId="ru0002">
-        <ExternalIdentifiers>
-        </ExternalIdentifiers>
-      </GpUnit>
-    """
-    election_tree = etree.fromstring(self.root_string.format(gp_unit))
-    gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, [other_ocdid]
-    )
-    ocdid_validator = rules.ElectoralDistrictOcdId(
-        election_tree, None, ocd_id_validator=gpunit_ocdid_validator
-    )
-    ocdid_validator.setup()
-
-    with self.assertRaises(loggers.ElectionError) as ee:
-      ocdid_validator.check(element)
-    self.assertEqual(ee.exception.log_entry[0].message,
-                     "The referenced GpUnit ru0002 does not have an ocd-id")
-    self.assertEqual(ee.exception.log_entry[0].elements[0].tag,
-                     "ElectoralDistrictId")
-
-  def testItRaisesAnErrorIfTheReferencedOcdidIsNotValid(self):
-    ocd_id = "ocd-division/country:us/state:ma"
-    element = etree.fromstring(
-        "<ElectoralDistrictId>ru0002</ElectoralDistrictId>")
-    gp_unit = """
-      <GpUnit objectId="ru0002">
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>ocd-id</Type>
-            <Value>ocd-division/country:us/state:ma</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-      </GpUnit>
-    """
-    election_tree = etree.fromstring(self.root_string.format(gp_unit))
-    gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, [ocd_id]
-    )
-    ocdid_validator = rules.ElectoralDistrictOcdId(
-        election_tree, None, ocd_id_validator=gpunit_ocdid_validator
-    )
-    ocdid_validator.setup()
-
-    mock = MagicMock(return_value=False)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
-
-    with self.assertRaises(loggers.ElectionError) as ee:
-      ocdid_validator.check(element)
-    self.assertEqual(ee.exception.log_entry[0].message,
-                     ("The ElectoralDistrictId refers to GpUnit ru0002 that"
-                      " does not have a valid OCD ID "
-                      "(ocd-division/country:us/state:ma)"))
-    self.assertEqual(ee.exception.log_entry[0].elements[0].tag,
-                     "ElectoralDistrictId")
-
-
-class GpUnitOcdIdTest(absltest.TestCase):
-
-  def setUp(self):
-    super(GpUnitOcdIdTest, self).setUp()
-    root_string = """
-      <ElectionReport>
-        <GpUnitCollection>
-          <GpUnit/>
-          <GpUnit/>
-          <GpUnit/>
-        </GpUnitCollection>
-      </ElectionReport>
-    """
-    election_tree = etree.fromstring(root_string)
-    gpunit_ocdid_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, ["ocd-division/country:us/state:ma/county:middlesex"]
-    )
-    self.gp_unit_validator = rules.GpUnitOcdId(
-        election_tree, None, ocd_id_validator=gpunit_ocdid_validator
-    )
-
-    self.base_reporting_unit = """
-      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-        <GpUnit objectId="ru0030" xsi:type="ReportingUnit">
-          <ExternalIdentifiers>
-            <ExternalIdentifier>
-              <Type>ocd-id</Type>
-              {}
-            </ExternalIdentifier>
-          </ExternalIdentifiers>
-          <Name>Middlesex County</Name>
-          <Number>3</Number>
-          <Type>{}</Type>
-        </GpUnit>
-      </ElectionReport>
-    """
-
-  def testItOnlyChecksReportingUnitElements(self):
-    self.assertEqual(["ReportingUnit"], self.gp_unit_validator.elements())
-
-  def testItChecksTheGivenReportingUnitHasAValidOcdid(self):
-    reporting_unit = self.base_reporting_unit.format(
-        "<Value>ocd-division/country:us/state:ma/county:middlesex</Value>",
-        "county")
-    report = etree.fromstring(reporting_unit)
-
-    mock = MagicMock(return_value=True)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
-    self.gp_unit_validator.check(report.find("GpUnit"))
-
-  def testItIgnoresElementsWithNoObjectId(self):
-    reporting_unit = """
-      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-        <GpUnit xsi:type="ReportingUnit"/>
-      </ElectionReport>
-    """
-    report = etree.fromstring(reporting_unit)
-
-    self.gp_unit_validator.check(report.find("GpUnit"))
-
-  def testItIgnoresElementsWithoutProperDistrictType(self):
-    reporting_unit = self.base_reporting_unit.format(
-        "<Value>ocd-division/country:us/state:ma/county:middlesex</Value>",
-        "county-council",
-    )
-    report = etree.fromstring(reporting_unit)
-
-    mock = MagicMock(return_value=True)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
-    self.gp_unit_validator.check(report.find("GpUnit"))
-
-  def testItIgnoresElementsWithNoOcdIdValue(self):
-    reporting_unit = self.base_reporting_unit.format("", "county")
-    report = etree.fromstring(reporting_unit)
-
-    mock = MagicMock(return_value=True)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
-    self.gp_unit_validator.check(report.find("GpUnit"))
-
-  def testItRaisesAWarningIfOcdIdNotInListOfValidIds(self):
-    reporting_unit = self.base_reporting_unit.format(
-        "<Value>ocd-division/country:us/state:ny/county:nassau</Value>",
-        "county",
-    )
-    report = etree.fromstring(reporting_unit)
-
-    mock = MagicMock(return_value=False)
-    gpunit_rules.GpUnitOcdIdValidator.is_valid_ocd_id = mock
-    with self.assertRaises(loggers.ElectionWarning):
-      self.gp_unit_validator.check(report.find("GpUnit"))
 
 
 class BadCharactersInPersonFullNameTest(absltest.TestCase):
@@ -2879,6 +2760,18 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
     )
     election_tree = etree.fromstring(test_string)
     rules.ValidateDuplicateColors(election_tree, None).check()
+
+  def testPartyWithNoAssignedColor(self):
+    test_string = self.root_string.format(
+        self._color_str.format("ff0000"), self._color_str.format("0000ff"), ""
+    )
+    election_tree = etree.fromstring(test_string)
+    with self.assertRaises(loggers.ElectionWarning) as cm:
+      rules.ValidateDuplicateColors(election_tree, None).check()
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Party (par0003) in PartyContest should have an assigned color.",
+    )
 
 
 class MultipleCandidatesPointToTheSamePersonInTheSameContestTest(
@@ -12270,116 +12163,6 @@ class GovernmentBodyExternalIdTest(absltest.TestCase):
     self.validator.check(etree.fromstring(office_string))
 
 
-class UnsupportedOfficeSchemaTest(absltest.TestCase):
-
-  def setUp(self):
-    super(UnsupportedOfficeSchemaTest, self).setUp()
-    self.validator = rules.UnsupportedOfficeSchema(None, None)
-
-  def testOfficeWithoutUnsupportedSchemaSucceeds(self):
-    office_string = """
-      <Office objectId="office1"></Office>
-      """
-
-    self.validator.check(etree.fromstring(office_string))
-
-  def testOfficeWithJurisdictionIdFails(self):
-    office_string = """
-      <Office objectId="office1">
-        <JurisdictionId>gpunit1</JurisdictionId>
-      </Office>
-      """
-
-    with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(etree.fromstring(office_string))
-    self.assertEqual(
-        context.exception.log_entry[0].message,
-        "Specifying JurisdictionId on Office is not yet supported.",
-    )
-
-  def testOfficeWithLevelFails(self):
-    office_string = """
-      <Office objectId="office1">
-        <Level>Country</Level>
-      </Office>
-      """
-
-    with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(etree.fromstring(office_string))
-    self.assertEqual(
-        context.exception.log_entry[0].message,
-        "Specifying Level on Office is not yet supported.",
-    )
-
-  def testOfficeWithRoleFails(self):
-    office_string = """
-      <Office objectId="office1">
-        <Role>head of state</Role>
-      </Office>
-      """
-
-    with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(etree.fromstring(office_string))
-    self.assertEqual(
-        context.exception.log_entry[0].message,
-        "Specifying Role on Office is not yet supported.",
-    )
-
-  def testOfficeWithMultipleSelectionMethodsFails(self):
-    office_string = """
-      <Office objectId="office1">
-        <SelectionMethod>directly-elected</SelectionMethod>
-        <SelectionMethod>indirectly-elected</SelectionMethod>
-      </Office>
-      """
-
-    with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(etree.fromstring(office_string))
-    self.assertEqual(
-        context.exception.log_entry[0].message,
-        "Specifying multiple SelectionMethod elements on Office is not yet "
-        "supported.",
-    )
-
-  def testOfficeWithSingleSelectionMethodSucceeds(self):
-    office_string = """
-      <Office objectId="office1">
-        <SelectionMethod>directly-elected</SelectionMethod>
-      </Office>
-      """
-
-    self.validator.check(etree.fromstring(office_string))
-
-
-class UnsupportedOfficeHolderTenureSchemaTest(absltest.TestCase):
-
-  def setUp(self):
-    super(UnsupportedOfficeHolderTenureSchemaTest, self).setUp()
-    self.validator = rules.UnsupportedOfficeHolderTenureSchema(None, None)
-
-  def testElectionReportWithoutOfficeHolderTenureCollectionSucceeds(self):
-    election_report_string = """
-      <ElectionReport></ElectionReport>
-      """
-
-    self.validator.check(etree.fromstring(election_report_string))
-
-  def testElectionReportWithOfficeHolderTenureCollectionFails(self):
-    election_report_string = """
-      <ElectionReport>
-        <OfficeHolderTenureCollection></OfficeHolderTenureCollection>
-      </ElectionReport>
-      """
-
-    with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(etree.fromstring(election_report_string))
-    self.assertEqual(
-        context.exception.log_entry[0].message,
-        "Specifying OfficeHolderTenureCollection on ElectionReport is not yet "
-        "supported.",
-    )
-
-
 class ElectoralCommissionCollectionExistsTest(absltest.TestCase):
 
   def setUp(self):
@@ -12623,8 +12406,6 @@ class RulesTest(absltest.TestCase):
     possible_rules.remove(base.DateRule)
     possible_rules.remove(base.MissingFieldRule)
     possible_rules.remove(rules.UnreferencedEntitiesBase)
-    possible_rules.remove(rules.UnsupportedOfficeSchema)
-    possible_rules.remove(rules.UnsupportedOfficeHolderTenureSchema)
     self.assertSetEqual(all_rules, possible_rules)
 
   def _subclasses(self, cls):
