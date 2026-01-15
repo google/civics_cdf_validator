@@ -89,6 +89,7 @@ _EXECUTIVE_OFFICE_ROLES = frozenset([
     "state executive",
     "deputy state executive",
     "deputy head of government",
+    "mayor",
 ])
 
 _VALID_FEED_LONGEVITY_BY_FEED_TYPE = frozendict({
