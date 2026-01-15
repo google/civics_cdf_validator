@@ -633,18 +633,6 @@ class GpUnitOcdId(base.BaseRule):
         )
 
 
-# TODO(b/337001513): Remove this once the new rule is rolled out everywhere and
-# no feeds have this in their disabled rules anymore.
-class ElectoralDistrictOcdId(base.BaseRule):
-  """All GpUnits MUST have a valid OCD ID."""
-
-  def elements(self):
-    return ["ReportingUnit"]
-
-  def check(self, element):
-    pass
-
-
 class DuplicatedGpUnitOcdId(base.BaseRule):
   """2 GpUnits should not have same OCD ID."""
 
@@ -4826,7 +4814,6 @@ ELECTION_RULES = COMMON_RULES + (
     ElectionStartDates,
     ElectionTypesAndCandidateContestTypesAreCompatible,
     ElectionTypesAreCompatible,
-    ElectoralDistrictOcdId,
     FullTextMaxLength,
     FullTextOrBallotText,
     GpUnitsHaveSingleRoot,
