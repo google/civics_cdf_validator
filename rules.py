@@ -442,16 +442,9 @@ class EmptyString(base.BaseRule):
   # pylint: disable=g-explicit-length-test
   def check(self, element):
     if element.text is None or not element.text.strip() and not len(element):
-      # TODO(b/462777279): Remove this once once feeds are no longer setting
-      # this to an empty string.
-      if element.tag == "IssuerAbbreviation":
-        raise loggers.ElectionWarning.from_message(
-            "String field is empty", [element]
-        )
-      else:
-        raise loggers.ElectionError.from_message(
-            "String field is empty", [element]
-        )
+      raise loggers.ElectionError.from_message(
+          "String field is empty", [element]
+      )
 
 
 class DuplicateID(base.TreeRule):
