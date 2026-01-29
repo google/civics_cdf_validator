@@ -11705,9 +11705,9 @@ class SourceDirPathMustBeSetAfterInitialDeliveryDateTest(absltest.TestCase):
             <InitialDeliveryDate>2023-12-01</InitialDeliveryDate>
           </ElectionEvent>
         </ElectionEventCollection>
-        <OfficeHolderSubFeed>
+        <OfficeholderSubFeed>
           <InitialDeliveryDate>2027-01-02</InitialDeliveryDate>
-        </OfficeHolderSubFeed>
+        </OfficeholderSubFeed>
       </Feed>
       """
 
@@ -11723,9 +11723,9 @@ class SourceDirPathMustBeSetAfterInitialDeliveryDateTest(absltest.TestCase):
             <InitialDeliveryDate>2027-12-01</InitialDeliveryDate>
           </ElectionEvent>
         </ElectionEventCollection>
-        <OfficeHolderSubFeed>
+        <OfficeholderSubFeed>
           <InitialDeliveryDate>2027-01</InitialDeliveryDate>
-        </OfficeHolderSubFeed>
+        </OfficeholderSubFeed>
       </Feed>
       """
 
@@ -11746,9 +11746,9 @@ class SourceDirPathMustBeSetAfterInitialDeliveryDateTest(absltest.TestCase):
             <InitialDeliveryDate>2027-12-01</InitialDeliveryDate>
           </ElectionEvent>
         </ElectionEventCollection>
-        <OfficeHolderSubFeed>
+        <OfficeholderSubFeed>
           <InitialDeliveryDate>2027-01</InitialDeliveryDate>
-        </OfficeHolderSubFeed>
+        </OfficeholderSubFeed>
       </Feed>
       """
 
@@ -11764,9 +11764,9 @@ class SourceDirPathMustBeSetAfterInitialDeliveryDateTest(absltest.TestCase):
             <InitialDeliveryDate>2023-12-01</InitialDeliveryDate>
           </ElectionEvent>
         </ElectionEventCollection>
-        <OfficeHolderSubFeed>
+        <OfficeholderSubFeed>
           <InitialDeliveryDate>2027-01</InitialDeliveryDate>
-        </OfficeHolderSubFeed>
+        </OfficeholderSubFeed>
       </Feed>
       """
 
@@ -11780,28 +11780,28 @@ class SourceDirPathMustBeSetAfterInitialDeliveryDateTest(absltest.TestCase):
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
 
-class OfficeHolderSubFeedDatesAreSequentialTest(absltest.TestCase):
+class OfficeholderSubFeedDatesAreSequentialTest(absltest.TestCase):
 
   def setUp(self):
-    super(OfficeHolderSubFeedDatesAreSequentialTest, self).setUp()
-    self.validator = rules.OfficeHolderSubFeedDatesAreSequential(None, None)
+    super(OfficeholderSubFeedDatesAreSequentialTest, self).setUp()
+    self.validator = rules.OfficeholderSubFeedDatesAreSequential(None, None)
 
   def testSequentialInitialAndFullDeliveryDates(self):
     office_holder_sub_feed_string = """
-      <OfficeHolderSubFeed>
+      <OfficeholderSubFeed>
         <InitialDeliveryDate>2024-01-01</InitialDeliveryDate>
         <FullDeliveryDate>2024-01-02</FullDeliveryDate>
-      </OfficeHolderSubFeed>
+      </OfficeholderSubFeed>
       """
 
     self.validator.check(etree.fromstring(office_holder_sub_feed_string))
 
   def testInvalidInitialAndFullDeliveryDates(self):
     office_holder_sub_feed_string = """
-      <OfficeHolderSubFeed>
+      <OfficeholderSubFeed>
         <InitialDeliveryDate>2024-01-02</InitialDeliveryDate>
         <FullDeliveryDate>2024-01-01</FullDeliveryDate>
-      </OfficeHolderSubFeed>
+      </OfficeholderSubFeed>
       """
 
     with self.assertRaises(loggers.ElectionError) as cm:
@@ -11811,7 +11811,7 @@ class OfficeHolderSubFeedDatesAreSequentialTest(absltest.TestCase):
         "FullDeliveryDate is older than InitialDeliveryDate",
     )
     self.assertEqual(
-        cm.exception.log_entry[0].elements[0].tag, "OfficeHolderSubFeed"
+        cm.exception.log_entry[0].elements[0].tag, "OfficeholderSubFeed"
     )
 
 
@@ -11830,9 +11830,9 @@ class FeedInactiveDateIsLatestDateTest(absltest.TestCase):
             <InitialDeliveryDate>2023-12-01</InitialDeliveryDate>
           </ElectionEvent>
         </ElectionEventCollection>
-        <OfficeHolderSubFeed>
+        <OfficeholderSubFeed>
           <InitialDeliveryDate>2023-01-02</InitialDeliveryDate>
-        </OfficeHolderSubFeed>
+        </OfficeholderSubFeed>
         <FeedInactiveDate>2024-01-01</FeedInactiveDate>
       </Feed>
       """
@@ -11862,13 +11862,13 @@ class FeedInactiveDateIsLatestDateTest(absltest.TestCase):
         cm.exception.log_entry[0].elements[0].tag, "Feed"
     )
 
-  def testInvalidInactiveAndFullDeliveryDatesOfficeHolderSubFeed(self):
+  def testInvalidInactiveAndFullDeliveryDatesOfficeholderSubFeed(self):
     feed_string = """
       <Feed>
         <SourceDirPath>test_path_1</SourceDirPath>
-        <OfficeHolderSubFeed>
+        <OfficeholderSubFeed>
           <FullDeliveryDate>2023-01-02</FullDeliveryDate>
-        </OfficeHolderSubFeed>
+        </OfficeholderSubFeed>
         <FeedInactiveDate>2022-01-01</FeedInactiveDate>
       </Feed>
       """
@@ -12393,6 +12393,134 @@ class NoExtraElectionReportCollectionsTest(absltest.TestCase):
         context.exception.log_entry[0].message,
         "PersonCollection should not exist.",
     )
+
+
+class FeedElementsShouldHaveSubElementsBasedOnTypeTest(parameterized.TestCase):
+  """Feeds should have certain elements based on feed type."""
+
+  def setUp(self):
+    super(FeedElementsShouldHaveSubElementsBasedOnTypeTest, self).setUp()
+    self.validator = rules.FeedElementsShouldHaveSubElementsBasedOnType(
+        None, None
+    )
+
+  def testOfficeholderFeedWithOfficeholderSubFeedSucceeds(self):
+    feed_string = """
+      <Feed>
+        <FeedId>123</FeedId>
+        <FeedType>officeholder</FeedType>
+        <OfficeholderSubFeed></OfficeholderSubFeed>
+      </Feed>
+      """
+    self.validator.check(etree.fromstring(feed_string))
+
+  def testOfficeholderFeedWithoutOfficeholderSubFeedFails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>123</FeedId>
+        <FeedType>officeholder</FeedType>
+      </Feed>
+      """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "OfficeholderSubFeed should exist for officeholder feed 123.",
+    )
+
+  def testPreElectionFeedWithEmptyElectionEventCollectionFails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>123</FeedId>
+        <FeedType>pre-election</FeedType>
+        <ElectionEventCollection></ElectionEventCollection>
+      </Feed>
+      """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "ElectionEventCollection should have at least one ElectionEvent for"
+        " pre-election feed 123.",
+    )
+
+  def testPreElectionFeedWithElectionEventCollectionSucceeds(self):
+    feed_string = """
+      <Feed>
+        <FeedId>123</FeedId>
+        <FeedType>pre-election</FeedType>
+        <ElectionEventCollection>
+          <ElectionEvent></ElectionEvent>
+        </ElectionEventCollection>
+      </Feed>
+      """
+    self.validator.check(etree.fromstring(feed_string))
+
+  def testPreElectionFeedWithoutElectionEventCollectionFails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>123</FeedId>
+        <FeedType>pre-election</FeedType>
+      </Feed>
+      """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "ElectionEventCollection should exist for pre-election feed 123.",
+    )
+
+  def testElectionResultsFeedWithEmptyElectionEventCollectionFails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>123</FeedId>
+        <FeedType>election-results</FeedType>
+        <ElectionEventCollection></ElectionEventCollection>
+      </Feed>
+      """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "ElectionEventCollection should have at least one ElectionEvent for"
+        " election-results feed 123.",
+    )
+
+  def testElectionResultsFeedWithElectionEventCollectionSucceeds(self):
+    feed_string = """
+      <Feed>
+        <FeedId>123</FeedId>
+        <FeedType>election-results</FeedType>
+        <ElectionEventCollection>
+          <ElectionEvent></ElectionEvent>
+        </ElectionEventCollection>
+      </Feed>
+      """
+    self.validator.check(etree.fromstring(feed_string))
+
+  def testElectionResultsFeedWithoutElectionEventCollectionFails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>123</FeedId>
+        <FeedType>election-results</FeedType>
+      </Feed>
+      """
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "ElectionEventCollection should exist for election-results feed 123.",
+    )
+
+  @parameterized.parameters("committee", "election-dates", "voter-information")
+  def testOtherFeedTypeWithoutSpecificSubElementsSucceeds(self, feed_type):
+    feed_string = f"""
+      <Feed>
+        <FeedId>123</FeedId>
+        <FeedType>{feed_type}</FeedType>
+      </Feed>
+      """
+    self.validator.check(etree.fromstring(feed_string))
 
 
 class RulesTest(absltest.TestCase):

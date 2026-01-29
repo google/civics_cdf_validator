@@ -4329,7 +4329,7 @@ class SourceDirPathMustBeSetAfterInitialDeliveryDate(base.BaseRule):
         )
 
 
-class OfficeHolderSubFeedDatesAreSequential(base.DateRule):
+class OfficeholderSubFeedDatesAreSequential(base.DateRule):
   """Dates in an OfficeHolderSubFeed element should be sequential."""
 
   def elements(self):
@@ -4720,6 +4720,47 @@ class NoExtraElectionReportCollections(base.BaseRule):
       )
 
 
+class FeedElementsShouldHaveSubElementsBasedOnType(base.BaseRule):
+  """Feeds should have certain elements based on feed type.
+
+  For example, Feeds of type officeHolder should have an OfficeHolderSubFeed,
+  similarly pre-election and election-results feeds should have an
+  ElectionEventCollection. In the case of an ElectionEventCollection, at least
+  one ElectionEvent element should be present.
+  """
+
+  def elements(self):
+    return ["Feed"]
+
+  def check(self, element):
+    feed_type = element.find("FeedType")
+    feed_id = element.find("FeedId").text
+
+    if not element_has_text(feed_type):
+      return
+
+    feed_type = feed_type.text
+    if feed_type == "officeholder":
+      if element.find("OfficeholderSubFeed") is None:
+        raise loggers.ElectionError.from_message(
+            "OfficeholderSubFeed should exist for %s feed %s."
+            % (feed_type, feed_id)
+        )
+    elif feed_type == "pre-election" or feed_type == "election-results":
+      if element.find("ElectionEventCollection") is None:
+        raise loggers.ElectionError.from_message(
+            "ElectionEventCollection should exist for %s feed %s."
+            % (feed_type, feed_id)
+        )
+      if not element.find("ElectionEventCollection").findall(
+          "ElectionEvent"
+      ):
+        raise loggers.ElectionError.from_message(
+            "ElectionEventCollection should have at least one ElectionEvent"
+            " for %s feed %s." % (feed_type, feed_id)
+        )
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
 
@@ -4875,12 +4916,13 @@ METADATA_RULES = (
     # go/keep-sorted start
     ElectionEventDatesAreSequential,
     Encoding,
+    FeedElementsShouldHaveSubElementsBasedOnType,
     FeedHasValidCountryCode,
     FeedIdsAreUnique,
     FeedInactiveDateIsLatestDate,
     FeedInactiveDateSetForNonEvergreenFeed,
     FeedTypeHasValidFeedLongevity,
-    OfficeHolderSubFeedDatesAreSequential,
+    OfficeholderSubFeedDatesAreSequential,
     OptionalAndEmpty,
     Schema,
     SourceDirPathMustBeSetAfterInitialDeliveryDate,
