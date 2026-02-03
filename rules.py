@@ -1249,7 +1249,7 @@ class PersonHasUniqueFullName(base.BaseRule):
   """A Person should be defined one time in <PersonCollection>.
 
   The main purpose of this check is to spot redundant person definition.
-  If two people have the same full name and date of birhthday, a warning will
+  If two people have the same full name and date of birthday, a warning will
   be raised. So, we can check if the feed is coherent.
   """
 
