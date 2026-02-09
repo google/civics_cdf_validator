@@ -105,6 +105,31 @@ _VALID_OFFICE_ROLE_COMBINATIONS = frozenset([
     frozenset(["cabinet member", "general purpose officer"]),
 ])
 
+_URI_USAGE_TYPES = frozenset([
+    "campaign",
+    "official",
+    "personal",
+])
+_TYPED_URI_PLATFORMS = frozenset([
+    "facebook",
+    "instagram",
+    "line",
+    "linkedin",
+    "tiktok",
+    "twitter",
+    "website",
+    "whatsapp",
+    "youtube",
+])
+_UNTYPED_URI_PLATFORMS = frozenset([
+    "ballotpedia",
+    "fec",
+    "followthemoney",
+    "opensecrets",
+    "wikipedia",
+])
+_ALL_URI_PLATFORMS = _TYPED_URI_PLATFORMS | _UNTYPED_URI_PLATFORMS
+
 
 def _get_office_roles(element, is_post_office_split_feed=False):
   if is_post_office_split_feed:
@@ -2128,18 +2153,6 @@ class URIValidator(base.BaseRule):
 
     parsed_url = urlparse(url)
     discrepancies = []
-    social_media_platform = [
-        "facebook",
-        "twitter",
-        "wikipedia",
-        "instagram",
-        "youtube",
-        "website",
-        "linkedin",
-        "line",
-        "ballotpedia",
-        "tiktok",
-    ]
 
     try:
       url.encode("ascii")
@@ -2157,7 +2170,7 @@ class URIValidator(base.BaseRule):
       )
       raise loggers.ElectionError.from_message(msg, [element])
 
-    for platform in social_media_platform:
+    for platform in _ALL_URI_PLATFORMS:
       if (
           re.search(platform, parsed_url.netloc)
           and parsed_url.scheme != "https"
@@ -2281,22 +2294,6 @@ class ValidURIAnnotation(base.BaseRule):
   Throws Warnings and Errors depending on type of invalidity.
   """
 
-  TYPE_PLATFORMS = frozenset([
-      "facebook",
-      "twitter",
-      "instagram",
-      "youtube",
-      "website",
-      "line",
-      "linkedin",
-      "tiktok",
-      "whatsapp",
-  ])
-  USAGE_TYPES = frozenset(["personal", "official", "campaign"])
-  PLATFORM_ONLY_ANNOTATIONS = frozenset(
-      ["wikipedia", "ballotpedia", "opensecrets", "fec", "followthemoney"]
-  )
-
   def elements(self):
     return ["ContactInformation"]
 
@@ -2343,18 +2340,18 @@ class ValidURIAnnotation(base.BaseRule):
         platform = ann_elements[0]
         # One element would imply the annotation could be a platform
         # without a usage type, which is checked here.
-        if platform in self.TYPE_PLATFORMS:
+        if platform in _TYPED_URI_PLATFORMS:
           raise loggers.ElectionWarning.from_message(
               "Annotation '{}' missing usage type.".format(annotation), [uri]
           )
-        elif platform in self.USAGE_TYPES:
+        elif platform in _URI_USAGE_TYPES:
           raise loggers.ElectionError.from_message(
               "Annotation '{}' has usage type, missing platform.".format(
                   annotation
               ),
               [uri],
           )
-        elif platform not in self.PLATFORM_ONLY_ANNOTATIONS:
+        elif platform not in _UNTYPED_URI_PLATFORMS:
           raise loggers.ElectionError.from_message(
               "Annotation '{}' is not a valid annotation for URI {}.".format(
                   annotation, ascii_url
@@ -2366,8 +2363,8 @@ class ValidURIAnnotation(base.BaseRule):
         # must be a platform with a usage type.
         usage_type, platform = ann_elements
         if (
-            usage_type not in self.USAGE_TYPES
-            or platform not in self.TYPE_PLATFORMS
+            usage_type not in _URI_USAGE_TYPES
+            or platform not in _TYPED_URI_PLATFORMS
         ):
           raise loggers.ElectionWarning.from_message(
               "'{}' is not a valid annotation.".format(annotation), [uri]
