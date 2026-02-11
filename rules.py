@@ -89,6 +89,7 @@ _EXECUTIVE_OFFICE_ROLES = frozenset([
     "state executive",
     "deputy state executive",
     "deputy head of government",
+    "mayor",
 ])
 
 _VALID_FEED_LONGEVITY_BY_FEED_TYPE = frozendict({
@@ -103,6 +104,31 @@ _VALID_OFFICE_ROLE_COMBINATIONS = frozenset([
     frozenset(["head of government", "head of state"]),
     frozenset(["cabinet member", "general purpose officer"]),
 ])
+
+_URI_USAGE_TYPES = frozenset([
+    "campaign",
+    "official",
+    "personal",
+])
+_TYPED_URI_PLATFORMS = frozenset([
+    "facebook",
+    "instagram",
+    "line",
+    "linkedin",
+    "tiktok",
+    "twitter",
+    "website",
+    "whatsapp",
+    "youtube",
+])
+_UNTYPED_URI_PLATFORMS = frozenset([
+    "ballotpedia",
+    "fec",
+    "followthemoney",
+    "opensecrets",
+    "wikipedia",
+])
+_ALL_URI_PLATFORMS = _TYPED_URI_PLATFORMS | _UNTYPED_URI_PLATFORMS
 
 
 def _get_office_roles(element, is_post_office_split_feed=False):
@@ -630,18 +656,6 @@ class GpUnitOcdId(base.BaseRule):
             [element],
             [element.sourceline],
         )
-
-
-# TODO(b/337001513): Remove this once the new rule is rolled out everywhere and
-# no feeds have this in their disabled rules anymore.
-class ElectoralDistrictOcdId(base.BaseRule):
-  """All GpUnits MUST have a valid OCD ID."""
-
-  def elements(self):
-    return ["ReportingUnit"]
-
-  def check(self, element):
-    pass
 
 
 class DuplicatedGpUnitOcdId(base.BaseRule):
@@ -1260,7 +1274,7 @@ class PersonHasUniqueFullName(base.BaseRule):
   """A Person should be defined one time in <PersonCollection>.
 
   The main purpose of this check is to spot redundant person definition.
-  If two people have the same full name and date of birhthday, a warning will
+  If two people have the same full name and date of birthday, a warning will
   be raised. So, we can check if the feed is coherent.
   """
 
@@ -1677,22 +1691,25 @@ class MissingStableIds(base.BaseRule):
   Add an error message if stable id is missing from the object.
   """
 
+  _ELEMENTS_WITH_STABLE_IDS = [
+      "BallotMeasureContest",
+      "BallotMeasureSelection",
+      "Candidate",
+      "CandidateContest",
+      "Coalition",
+      "Committee",
+      "Election",
+      "Leadership",
+      "Office",
+      "OfficeHolderTenure",
+      "Party",
+      "PartyContest",
+      "Person",
+      "ReportingUnit",
+  ]
+
   def elements(self):
-    return [
-        "BallotMeasureContest",
-        "BallotMeasureSelection",
-        "Candidate",
-        "CandidateContest",
-        "Coalition",
-        "Committee",
-        "Election",
-        "Office",
-        "Party",
-        "PartyContest",
-        "Leadership",
-        "Person",
-        "ReportingUnit",
-    ]
+    return self._ELEMENTS_WITH_STABLE_IDS
 
   def check(self, element):
     stable_ids = []
@@ -2139,18 +2156,6 @@ class URIValidator(base.BaseRule):
 
     parsed_url = urlparse(url)
     discrepancies = []
-    social_media_platform = [
-        "facebook",
-        "twitter",
-        "wikipedia",
-        "instagram",
-        "youtube",
-        "website",
-        "linkedin",
-        "line",
-        "ballotpedia",
-        "tiktok",
-    ]
 
     try:
       url.encode("ascii")
@@ -2168,7 +2173,7 @@ class URIValidator(base.BaseRule):
       )
       raise loggers.ElectionError.from_message(msg, [element])
 
-    for platform in social_media_platform:
+    for platform in _ALL_URI_PLATFORMS:
       if (
           re.search(platform, parsed_url.netloc)
           and parsed_url.scheme != "https"
@@ -2292,22 +2297,6 @@ class ValidURIAnnotation(base.BaseRule):
   Throws Warnings and Errors depending on type of invalidity.
   """
 
-  TYPE_PLATFORMS = frozenset([
-      "facebook",
-      "twitter",
-      "instagram",
-      "youtube",
-      "website",
-      "line",
-      "linkedin",
-      "tiktok",
-      "whatsapp",
-  ])
-  USAGE_TYPES = frozenset(["personal", "official", "campaign"])
-  PLATFORM_ONLY_ANNOTATIONS = frozenset(
-      ["wikipedia", "ballotpedia", "opensecrets", "fec", "followthemoney"]
-  )
-
   def elements(self):
     return ["ContactInformation"]
 
@@ -2354,18 +2343,18 @@ class ValidURIAnnotation(base.BaseRule):
         platform = ann_elements[0]
         # One element would imply the annotation could be a platform
         # without a usage type, which is checked here.
-        if platform in self.TYPE_PLATFORMS:
+        if platform in _TYPED_URI_PLATFORMS:
           raise loggers.ElectionWarning.from_message(
               "Annotation '{}' missing usage type.".format(annotation), [uri]
           )
-        elif platform in self.USAGE_TYPES:
+        elif platform in _URI_USAGE_TYPES:
           raise loggers.ElectionError.from_message(
               "Annotation '{}' has usage type, missing platform.".format(
                   annotation
               ),
               [uri],
           )
-        elif platform not in self.PLATFORM_ONLY_ANNOTATIONS:
+        elif platform not in _UNTYPED_URI_PLATFORMS:
           raise loggers.ElectionError.from_message(
               "Annotation '{}' is not a valid annotation for URI {}.".format(
                   annotation, ascii_url
@@ -2377,8 +2366,8 @@ class ValidURIAnnotation(base.BaseRule):
         # must be a platform with a usage type.
         usage_type, platform = ann_elements
         if (
-            usage_type not in self.USAGE_TYPES
-            or platform not in self.TYPE_PLATFORMS
+            usage_type not in _URI_USAGE_TYPES
+            or platform not in _TYPED_URI_PLATFORMS
         ):
           raise loggers.ElectionWarning.from_message(
               "'{}' is not a valid annotation.".format(annotation), [uri]
@@ -4340,7 +4329,7 @@ class SourceDirPathMustBeSetAfterInitialDeliveryDate(base.BaseRule):
         )
 
 
-class OfficeHolderSubFeedDatesAreSequential(base.DateRule):
+class OfficeholderSubFeedDatesAreSequential(base.DateRule):
   """Dates in an OfficeHolderSubFeed element should be sequential."""
 
   def elements(self):
@@ -4731,6 +4720,47 @@ class NoExtraElectionReportCollections(base.BaseRule):
       )
 
 
+class FeedElementsShouldHaveSubElementsBasedOnType(base.BaseRule):
+  """Feeds should have certain elements based on feed type.
+
+  For example, Feeds of type officeHolder should have an OfficeHolderSubFeed,
+  similarly pre-election and election-results feeds should have an
+  ElectionEventCollection. In the case of an ElectionEventCollection, at least
+  one ElectionEvent element should be present.
+  """
+
+  def elements(self):
+    return ["Feed"]
+
+  def check(self, element):
+    feed_type = element.find("FeedType")
+    feed_id = element.find("FeedId").text
+
+    if not element_has_text(feed_type):
+      return
+
+    feed_type = feed_type.text
+    if feed_type == "officeholder":
+      if element.find("OfficeholderSubFeed") is None:
+        raise loggers.ElectionError.from_message(
+            "OfficeholderSubFeed should exist for %s feed %s."
+            % (feed_type, feed_id)
+        )
+    elif feed_type == "pre-election" or feed_type == "election-results":
+      if element.find("ElectionEventCollection") is None:
+        raise loggers.ElectionError.from_message(
+            "ElectionEventCollection should exist for %s feed %s."
+            % (feed_type, feed_id)
+        )
+      if not element.find("ElectionEventCollection").findall(
+          "ElectionEvent"
+      ):
+        raise loggers.ElectionError.from_message(
+            "ElectionEventCollection should have at least one ElectionEvent"
+            " for %s feed %s." % (feed_type, feed_id)
+        )
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
 
@@ -4825,7 +4855,6 @@ ELECTION_RULES = COMMON_RULES + (
     ElectionStartDates,
     ElectionTypesAndCandidateContestTypesAreCompatible,
     ElectionTypesAreCompatible,
-    ElectoralDistrictOcdId,
     FullTextMaxLength,
     FullTextOrBallotText,
     GpUnitsHaveSingleRoot,
@@ -4887,12 +4916,13 @@ METADATA_RULES = (
     # go/keep-sorted start
     ElectionEventDatesAreSequential,
     Encoding,
+    FeedElementsShouldHaveSubElementsBasedOnType,
     FeedHasValidCountryCode,
     FeedIdsAreUnique,
     FeedInactiveDateIsLatestDate,
     FeedInactiveDateSetForNonEvergreenFeed,
     FeedTypeHasValidFeedLongevity,
-    OfficeHolderSubFeedDatesAreSequential,
+    OfficeholderSubFeedDatesAreSequential,
     OptionalAndEmpty,
     Schema,
     SourceDirPathMustBeSetAfterInitialDeliveryDate,
