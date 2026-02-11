@@ -1699,11 +1699,11 @@ class MissingStableIds(base.BaseRule):
       "Coalition",
       "Committee",
       "Election",
-      "Leadership",
       "Office",
       "OfficeHolderTenure",
       "Party",
       "PartyContest",
+      "PartyLeadership",
       "Person",
       "ReportingUnit",
   ]
