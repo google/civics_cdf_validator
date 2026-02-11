@@ -3899,75 +3899,44 @@ class UniqueStableIDTest(absltest.TestCase):
     )
 
 
-class MissingStableIdsTest(absltest.TestCase):
+class MissingStableIdsTest(parameterized.TestCase):
 
   def setUp(self):
     super(MissingStableIdsTest, self).setUp()
     self.missing_ids_validator = rules.MissingStableIds(None, None)
-    self.root_string = """
-      {}
+
+  def testElementsReturnsExpectedElements(self):
+    self.assertEqual(
+        self.missing_ids_validator.elements(),
+        rules.MissingStableIds._ELEMENTS_WITH_STABLE_IDS,
+    )
+
+  @parameterized.parameters(*rules.MissingStableIds._ELEMENTS_WITH_STABLE_IDS)
+  def testStableIdPresentSucceeds(self, element_name):
+    element = etree.fromstring(f"""
+      <{element_name} objectId='obj1'>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>{}</OtherType>
-          <Value>{}</Value>
+          <OtherType>stable</OtherType>
+          <Value>stable1</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      {}
-    """
-
-  def testItShouldCheckAllElementsListedInReturnStatement(self):
-    elements = self.missing_ids_validator.elements()
-    self.assertLen(elements, 13)
-    self.assertIn("BallotMeasureContest", elements)
-    self.assertIn("BallotMeasureSelection", elements)
-    self.assertIn("Candidate", elements)
-    self.assertIn("CandidateContest", elements)
-    self.assertIn("Coalition", elements)
-    self.assertIn("Election", elements)
-    self.assertIn("Office", elements)
-    self.assertIn("Party", elements)
-    self.assertIn("PartyContest", elements)
-    self.assertIn("Person", elements)
-    self.assertIn("ReportingUnit", elements)
-    self.assertIn("Committee", elements)
-    self.assertIn("Leadership", elements)
-
-  def testStableIdPresentForOffice(self):
-    test_string = self.root_string.format("<Office objectId='off1'>", "stable",
-                                          "stable-off0", "</Office>")
-    element = etree.fromstring(test_string)
+      </{element_name}>
+    """)
     self.missing_ids_validator.check(element)
 
-  def testStableIdMissingForCandidate(self):
-    test_string = self.root_string.format("<Candidate objectId='can1'>",
-                                          "some-other-id", "some-other-value",
-                                          "</Candidate>")
-    element = etree.fromstring(test_string)
-    with self.assertRaises(loggers.ElectionError) as ee:
+  @parameterized.parameters(*rules.MissingStableIds._ELEMENTS_WITH_STABLE_IDS)
+  def testStableIdMissingFails(self, element_name):
+    element = etree.fromstring(f"""
+      <{element_name} objectId='obj1'></{element_name}>
+    """)
+    with self.assertRaises(loggers.ElectionError) as context:
       self.missing_ids_validator.check(element)
-    self.assertEqual(ee.exception.log_entry[0].message,
-                     "The element is missing a stable id")
-
-  def testStableIdEmptyTextForContest(self):
-    test_string = self.root_string.format("<Contest objectId='con1'>", "stable",
-                                          "", "</Contest>")
-    element = etree.fromstring(test_string)
-    with self.assertRaises(loggers.ElectionError) as ee:
-      self.missing_ids_validator.check(element)
-    self.assertEqual(ee.exception.log_entry[0].message,
-                     "The element is missing a stable id")
-
-  def testMissingIdentifierBlockForParty(self):
-    test_string = """
-      <Party objectId="par1">
-      </Party>
-    """
-    element = etree.fromstring(test_string)
-    with self.assertRaises(loggers.ElectionError) as ee:
-      self.missing_ids_validator.check(element)
-    self.assertEqual(ee.exception.log_entry[0].message,
-                     "The element is missing a stable id")
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "The element is missing a stable id",
+    )
 
 
 class PersonsMissingPartyDataTest(absltest.TestCase):

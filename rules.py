@@ -1691,22 +1691,25 @@ class MissingStableIds(base.BaseRule):
   Add an error message if stable id is missing from the object.
   """
 
+  _ELEMENTS_WITH_STABLE_IDS = [
+      "BallotMeasureContest",
+      "BallotMeasureSelection",
+      "Candidate",
+      "CandidateContest",
+      "Coalition",
+      "Committee",
+      "Election",
+      "Leadership",
+      "Office",
+      "OfficeHolderTenure",
+      "Party",
+      "PartyContest",
+      "Person",
+      "ReportingUnit",
+  ]
+
   def elements(self):
-    return [
-        "BallotMeasureContest",
-        "BallotMeasureSelection",
-        "Candidate",
-        "CandidateContest",
-        "Coalition",
-        "Committee",
-        "Election",
-        "Office",
-        "Party",
-        "PartyContest",
-        "Leadership",
-        "Person",
-        "ReportingUnit",
-    ]
+    return self._ELEMENTS_WITH_STABLE_IDS
 
   def check(self, element):
     stable_ids = []
