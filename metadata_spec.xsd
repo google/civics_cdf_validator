@@ -44,15 +44,16 @@
             <xs:element minOccurs="0" name="SourceDirPath" type="xs:anyURI"/>
             <xs:element minOccurs="0" name="CountryCode" type="xs:string"/>
             <xs:element minOccurs="0" name="FeedInactiveDate" type="xs:date"/>
-            <xs:element minOccurs="0" name="ElectionEventCollection">
-              <xs:complexType>
-                <xs:sequence>
-                  <xs:element maxOccurs="unbounded" minOccurs="0" name="ElectionEvent" type="ElectionEvent"/>
-                </xs:sequence>
-              </xs:complexType>
-            </xs:element>
-            <xs:element minOccurs="0" name="OfficeholderSubFeed" type="OfficeholderSubFeed"/>
+            <xs:choice>
+              <xs:element minOccurs="0" name="ElectionEventCollection" type="ElectionEventCollection"/>
+              <xs:element minOccurs="0" name="OfficeholderSubFeed" type="OfficeholderSubFeed"/>
+            </xs:choice>
         </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ElectionEventCollection">
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" minOccurs="0" name="ElectionEvent" type="ElectionEvent"/>
+      </xs:sequence>
     </xs:complexType>
     <xs:complexType name="ElectionEvent">
         <xs:sequence>
