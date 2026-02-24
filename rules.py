@@ -4330,10 +4330,10 @@ class SourceDirPathMustBeSetAfterInitialDeliveryDate(base.BaseRule):
 
 
 class OfficeholderSubFeedDatesAreSequential(base.DateRule):
-  """Dates in an OfficeHolderSubFeed element should be sequential."""
+  """Dates in an OfficeholderSubFeed element should be sequential."""
 
   def elements(self):
-    return ["OfficeHolderSubFeed"]
+    return ["OfficeholderSubFeed"]
 
   def check(self, element):
     if element_has_text(
@@ -4723,7 +4723,7 @@ class NoExtraElectionReportCollections(base.BaseRule):
 class FeedElementsShouldHaveSubElementsBasedOnType(base.BaseRule):
   """Feeds should have certain elements based on feed type.
 
-  For example, Feeds of type officeHolder should have an OfficeHolderSubFeed,
+  For example, Feeds of type officeholder should have an OfficeholderSubFeed,
   similarly pre-election and election-results feeds should have an
   ElectionEventCollection. In the case of an ElectionEventCollection, at least
   one ElectionEvent element should be present.
