@@ -22,6 +22,11 @@
   <!-- ========== Roots ========== -->
   <xs:element name="FeedDeliveryReport" type="FeedDeliveryReport"/>
   <!-- ========== Elements ========== -->
+  <xs:simpleType name="FeedSourcePathUri">
+    <xs:restriction base="xs:anyURI">
+      <xs:pattern value="(s3|s?ftp|https?)://.+"/>
+    </xs:restriction>
+  </xs:simpleType>
   <xs:complexType name="FeedDeliveryReport">
     <xs:sequence>
       <xs:element name="FeedCollection">
@@ -41,7 +46,7 @@
       <xs:element name="FeedName" type="xs:string"/>
       <xs:element name="FeedType" type="FeedType"/>
       <xs:element name="FeedLongevity" type="FeedLongevity"/>
-      <xs:element minOccurs="0" name="SourceDirPath" type="xs:anyURI"/>
+      <xs:element minOccurs="0" name="SourceDirPath" type="FeedSourcePathUri"/>
       <xs:element minOccurs="0" name="CountryCode" type="xs:string"/>
       <xs:element minOccurs="0" name="FeedInactiveDate" type="xs:date"/>
       <xs:choice>
