@@ -4908,9 +4908,7 @@ COMMITTEE_RULES = COMMON_RULES + (
     # go/keep-sorted end
 )
 
-ELECTION_DATES_RULES = (
-    COMMON_RULES + ELECTION_RULES + (UnreferencedEntitiesElectionDates,)
-)
+ELECTION_DATES_RULES = ELECTION_RULES + (UnreferencedEntitiesElectionDates,)
 
 METADATA_RULES = (
     # go/keep-sorted start
