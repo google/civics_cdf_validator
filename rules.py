@@ -2108,6 +2108,8 @@ class VoteCountTypesCoherency(base.BaseRule):
       "seats-no-election",
       "seats-total",
       "seats-delta",
+      "seats-delta-mandate",
+      "seats-delta-institutional"
   }
   # Ibid.
   CAND_VC_TYPES = {"candidate-votes"}
@@ -2138,6 +2140,63 @@ class VoteCountTypesCoherency(base.BaseRule):
             ", ".join(errors), contest_type
         )
         raise loggers.ElectionError.from_message(msg, [element])
+
+
+class VoteCountValidSeatsDeltaTypes(base.BaseRule):
+  """Ensure VoteCount seats delta types are valid."""
+
+  def elements(self):
+    return ["Contest"]
+
+  def check(self, element):
+    if element.get("type", "") == "PartyContest":
+      for ballot_selection in element.findall("BallotSelection"):
+        ballot_selection_vote_types = []
+        ballot_selection_obj_id = ballot_selection.get("objectId")
+        for vote_counts in ballot_selection.find(
+            "VoteCountsCollection"
+        ).findall("VoteCounts"):
+          vote_count_type = vote_counts.find("OtherType").text
+          ballot_selection_vote_types.append(vote_count_type)
+        if (
+            "seats-delta" in ballot_selection_vote_types
+            and "seats-delta-mandate" in ballot_selection_vote_types
+        ):
+          msg = (
+              "The VoteCount types seats-delta and seats-delta-mandate should"
+              " not coexist within the same BallotSelection (objectId={})."
+              " They represent the same data, and seats-delta is scheduled"
+              " for deprecation."
+          ).format(ballot_selection_obj_id)
+          raise loggers.ElectionWarning.from_message(msg, [element])
+        if (
+            "seats-delta-institutional" in ballot_selection_vote_types
+            and "seats-delta-mandate" not in ballot_selection_vote_types
+        ):
+          msg = (
+              "Missing required field VoteCount type seats-delta-mandate must"
+              " be included whenever VoteCount type seats-delta-institutional"
+              " is present. (BallotSelection objectId={})"
+          ).format(ballot_selection_obj_id)
+          raise loggers.ElectionError.from_message(msg, [element])
+        if "seats-delta" in ballot_selection_vote_types:
+          current_date = datetime.datetime.now()
+          deletion_date = datetime.datetime(2026, 6, 1)
+          #   If current date is before June 1st, 2026
+          if current_date < deletion_date:
+            msg = (
+                "VoteCount type seats-delta is deprecated and will be removed"
+                " on June 1, 2026. Please update your implementation to use"
+                " seats-delta-mandate. (BallotSelection objectId={})"
+            ).format(ballot_selection_obj_id)
+            raise loggers.ElectionWarning.from_message(msg, [element])
+          else:
+            msg = (
+                "VoteCount type seats-delta is deprecated and was removed on"
+                " June 1, 2026. Please update your implementation to use"
+                " seats-delta-mandate. (BallotSelection objectId={})"
+            ).format(ballot_selection_obj_id)
+            raise loggers.ElectionError.from_message(msg, [element])
 
 
 class URIValidator(base.BaseRule):
@@ -4880,6 +4939,7 @@ ELECTION_RESULTS_RULES = ELECTION_RULES + (
     PercentSum,
     ValidateDuplicateColors,
     VoteCountTypesCoherency,
+    VoteCountValidSeatsDeltaTypes,
     # go/keep-sorted end
 )
 

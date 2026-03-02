@@ -256,7 +256,7 @@
             <VoteCounts>
               <GpUnitId>ru-3456345sadfa</GpUnitId>
               <Type>other</Type>
-              <OtherType>seats-delta</OtherType>
+              <OtherType>seats-delta-mandate</OtherType>
               <Count>-1</Count>
             </VoteCounts>
             <VoteCounts>
@@ -285,7 +285,7 @@
             <VoteCounts>
               <GpUnitId>ru-3456345sadfa</GpUnitId>
               <Type>other</Type>
-              <OtherType>seats-delta</OtherType>
+              <OtherType>seats-delta-mandate</OtherType>
               <Count>1</Count>
             </VoteCounts>
             <VoteCounts>
