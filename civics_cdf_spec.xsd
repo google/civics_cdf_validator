@@ -284,7 +284,7 @@
   <xs:complexType abstract="true" name="BallotSelection">
     <xs:sequence>
       <xs:element minOccurs="0" name="SequenceOrder" type="xs:integer"/>
-      <xs:element maxOccurs="unbounded" minOccurs="0" name="VoteCountsCollection">
+      <xs:element minOccurs="0" name="VoteCountsCollection">
         <xs:complexType>
           <xs:sequence>
             <xs:element maxOccurs="unbounded" name="VoteCounts" type="VoteCounts"/>
