@@ -16,6 +16,7 @@ limitations under the License.
 
 from __future__ import print_function
 
+from collections.abc import Set
 import datetime
 import functools
 import re
@@ -92,6 +93,21 @@ class BaseRule(SchemaHandler):
 
   def setup(self):
     """Perform any rule specific setup before checking."""
+
+  def get_element_names_for_types(self, element_types: Set[str]) -> set[str]:
+    element_names = set()
+    for _, element in etree.iterwalk(self.schema_tree):
+      tag = self.strip_schema_ns(element)
+      if (
+          tag == "element"
+          and element.get("type") in element_types
+          and element.get("name") is not None
+      ):
+        element_names.add(element.get("name"))
+    return element_names
+
+  def get_element_names_for_type(self, element_type: str) -> set[str]:
+    return self.get_element_names_for_types({element_type})
 
 
 class TreeRule(BaseRule):

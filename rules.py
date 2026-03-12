@@ -34,6 +34,7 @@ from six.moves.urllib.parse import urlparse
 
 _PARTY_LEADERSHIP_TYPES = ["party-leader-id", "party-chair-id"]
 _INDEPENDENT_PARTY_NAMES = frozenset(["independent", "nonpartisan"])
+_IDREF_TYPES = frozenset(["xs:IDREF", "xs:IDREFS"])
 # The set of external identifiers that contain references to other entities.
 _IDREF_EXTERNAL_IDENTIFIERS = frozenset(
     ["jurisdiction-id"] + _PARTY_LEADERSHIP_TYPES
@@ -49,7 +50,7 @@ _CONTEST_STAGE_TYPES = frozenset([
     "official",
     "unnamed",
 ])
-_INTERNATIONALIZED_TEXT_ELEMENTS = [
+_INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE = [
     # go/keep-sorted start
     "BallotName",
     "BallotSubTitle",
@@ -451,18 +452,7 @@ class EmptyString(base.BaseRule):
   """Check that string fields are not empty or strictly whitespace."""
 
   def elements(self):
-    """Returns all elements of type xs:string from the schema."""
-    string_elements = []
-    for _, element in etree.iterwalk(self.schema_tree):
-      tag = self.strip_schema_ns(element)
-      if (
-          tag
-          and tag == "element"
-          and element.get("type") == "xs:string"
-          and element.get("name") is not None
-      ):
-        string_elements.append(element.get("name"))
-    return string_elements
+    return list(self.get_element_names_for_type("xs:string"))
 
   # pylint: disable=g-explicit-length-test
   def check(self, element):
@@ -961,15 +951,7 @@ class UniqueLabel(base.BaseRule):
     self.labels = set()
 
   def elements(self):
-    eligible_elements = []
-    for _, element in etree.iterwalk(self.schema_tree):
-      tag = self.strip_schema_ns(element)
-      if tag == "element":
-        elem_type = element.get("type")
-        if elem_type == "InternationalizedText":
-          if element.get("name") not in eligible_elements:
-            eligible_elements.append(element.get("name"))
-    return eligible_elements
+    return list(self.get_element_names_for_type("InternationalizedText"))
 
   def check(self, element):
     element_label = element.get("label")
@@ -3939,7 +3921,7 @@ class MultipleInternationalizedTextWithSameLanguageCode(base.BaseRule):
   """Checks for multiple InternationalizedText with the same language code."""
 
   def elements(self):
-    return _INTERNATIONALIZED_TEXT_ELEMENTS
+    return _INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE
 
   def check(self, element):
     language_map = get_language_to_text_map(element)
@@ -3952,22 +3934,10 @@ class MultipleInternationalizedTextWithSameLanguageCode(base.BaseRule):
 
 
 class AllInternationalizedTextHaveEnVersion(base.BaseRule):
-  """Checks for Internationalized Text Elements missing the english version."""
+  """Checks for InternationalizedText elements missing an English version."""
 
   def elements(self):
-    return [
-        "BallotName",
-        "Directions",
-        "BallotSubTitle",
-        "BallotTitle",
-        "Name",
-        "InternationalizedName",
-        "InternationalizedAbbreviation",
-        "Alias",
-        "FullName",
-        "Profession",
-        "Title",
-    ]
+    return list(self.get_element_names_for_type("InternationalizedText"))
 
   def check(self, element):
     language_map = get_language_to_text_map(element)
@@ -4518,29 +4488,14 @@ class UnreferencedEntitiesBase(base.TreeRule):
     self.top_level_entity_types = top_level_entity_types
     self.warned_entity_types = warned_entity_types
 
-  def _get_idref_elements(self):
-    """Returns the names of all XML elements in the schema of type IDREF or IDREFS."""
-
-    idref_elements = set()
-    for _, element in etree.iterwalk(self.schema_tree):
-      tag = self.strip_schema_ns(element)
-      if (
-          tag
-          and tag == "element"
-          and element.get("type") in ("xs:IDREF", "xs:IDREFS")
-      ):
-        idref_elements.add(element.get("name"))
-    return idref_elements
-
   def _gather_referenced_entities(self):
     """Create a set of all entities referenced by either IDREF(S) elements or external identifiers."""
-
-    idref_elements = self._get_idref_elements()
     referenced_entities = set()
     for external_id_type in _IDREF_EXTERNAL_IDENTIFIERS:
       referenced_entities.update(
           get_external_id_values(self.election_tree, external_id_type)
       )
+    idref_elements = self.get_element_names_for_types(_IDREF_TYPES)
     for _, element in etree.iterwalk(self.election_tree):
       tag = self.strip_schema_ns(element)
       if tag and tag in idref_elements:
