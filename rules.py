@@ -34,6 +34,7 @@ from six.moves.urllib.parse import urlparse
 
 _PARTY_LEADERSHIP_TYPES = ["party-leader-id", "party-chair-id"]
 _INDEPENDENT_PARTY_NAMES = frozenset(["independent", "nonpartisan"])
+_IDREF_TYPES = frozenset(["xs:IDREF", "xs:IDREFS"])
 # The set of external identifiers that contain references to other entities.
 _IDREF_EXTERNAL_IDENTIFIERS = frozenset(
     ["jurisdiction-id"] + _PARTY_LEADERSHIP_TYPES
@@ -49,7 +50,7 @@ _CONTEST_STAGE_TYPES = frozenset([
     "official",
     "unnamed",
 ])
-_INTERNATIONALIZED_TEXT_ELEMENTS = [
+_INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE = [
     # go/keep-sorted start
     "BallotName",
     "BallotSubTitle",
@@ -441,9 +442,7 @@ class EmptyText(base.BaseRule):
     return ["Text"]
 
   def check(self, element):
-    if (element.text is None or not element.text.strip()) or (
-        element.text is None and element.get("language") is not None
-    ):
+    if element.text is None or not element.text.strip():
       raise loggers.ElectionError.from_message("Text is empty", element)
 
 
@@ -451,32 +450,14 @@ class EmptyString(base.BaseRule):
   """Check that string fields are not empty or strictly whitespace."""
 
   def elements(self):
-    """Returns all elements of type xs:string from the schema."""
-    string_elements = []
-    for _, element in etree.iterwalk(self.schema_tree):
-      tag = self.strip_schema_ns(element)
-      if (
-          tag
-          and tag == "element"
-          and element.get("type") == "xs:string"
-          and element.get("name") is not None
-      ):
-        string_elements.append(element.get("name"))
-    return string_elements
+    return list(self.get_element_names_for_type("xs:string"))
 
   # pylint: disable=g-explicit-length-test
   def check(self, element):
     if element.text is None or not element.text.strip() and not len(element):
-      # TODO(b/462777279): Remove this once once feeds are no longer setting
-      # this to an empty string.
-      if element.tag == "IssuerAbbreviation":
-        raise loggers.ElectionWarning.from_message(
-            "String field is empty", [element]
-        )
-      else:
-        raise loggers.ElectionError.from_message(
-            "String field is empty", [element]
-        )
+      raise loggers.ElectionError.from_message(
+          "String field is empty", [element]
+      )
 
 
 class DuplicateID(base.TreeRule):
@@ -968,15 +949,7 @@ class UniqueLabel(base.BaseRule):
     self.labels = set()
 
   def elements(self):
-    eligible_elements = []
-    for _, element in etree.iterwalk(self.schema_tree):
-      tag = self.strip_schema_ns(element)
-      if tag == "element":
-        elem_type = element.get("type")
-        if elem_type == "InternationalizedText":
-          if element.get("name") not in eligible_elements:
-            eligible_elements.append(element.get("name"))
-    return eligible_elements
+    return list(self.get_element_names_for_type("InternationalizedText"))
 
   def check(self, element):
     element_label = element.get("label")
@@ -2108,6 +2081,8 @@ class VoteCountTypesCoherency(base.BaseRule):
       "seats-no-election",
       "seats-total",
       "seats-delta",
+      "seats-delta-mandate",
+      "seats-delta-institutional"
   }
   # Ibid.
   CAND_VC_TYPES = {"candidate-votes"}
@@ -2138,6 +2113,63 @@ class VoteCountTypesCoherency(base.BaseRule):
             ", ".join(errors), contest_type
         )
         raise loggers.ElectionError.from_message(msg, [element])
+
+
+class VoteCountValidSeatsDeltaTypes(base.BaseRule):
+  """Ensure VoteCount seats delta types are valid."""
+
+  def elements(self):
+    return ["Contest"]
+
+  def check(self, element):
+    if element.get("type", "") == "PartyContest":
+      for ballot_selection in element.findall("BallotSelection"):
+        ballot_selection_vote_types = []
+        ballot_selection_obj_id = ballot_selection.get("objectId")
+        for vote_counts in ballot_selection.find(
+            "VoteCountsCollection"
+        ).findall("VoteCounts"):
+          vote_count_type = vote_counts.find("OtherType").text
+          ballot_selection_vote_types.append(vote_count_type)
+        if (
+            "seats-delta" in ballot_selection_vote_types
+            and "seats-delta-mandate" in ballot_selection_vote_types
+        ):
+          msg = (
+              "The VoteCount types seats-delta and seats-delta-mandate should"
+              " not coexist within the same BallotSelection (objectId={})."
+              " They represent the same data, and seats-delta is scheduled"
+              " for deprecation."
+          ).format(ballot_selection_obj_id)
+          raise loggers.ElectionWarning.from_message(msg, [element])
+        if (
+            "seats-delta-institutional" in ballot_selection_vote_types
+            and "seats-delta-mandate" not in ballot_selection_vote_types
+        ):
+          msg = (
+              "Missing required field VoteCount type seats-delta-mandate must"
+              " be included whenever VoteCount type seats-delta-institutional"
+              " is present. (BallotSelection objectId={})"
+          ).format(ballot_selection_obj_id)
+          raise loggers.ElectionError.from_message(msg, [element])
+        if "seats-delta" in ballot_selection_vote_types:
+          current_date = datetime.datetime.now()
+          deletion_date = datetime.datetime(2026, 6, 1)
+          #   If current date is before June 1st, 2026
+          if current_date < deletion_date:
+            msg = (
+                "VoteCount type seats-delta is deprecated and will be removed"
+                " on June 1, 2026. Please update your implementation to use"
+                " seats-delta-mandate. (BallotSelection objectId={})"
+            ).format(ballot_selection_obj_id)
+            raise loggers.ElectionWarning.from_message(msg, [element])
+          else:
+            msg = (
+                "VoteCount type seats-delta is deprecated and was removed on"
+                " June 1, 2026. Please update your implementation to use"
+                " seats-delta-mandate. (BallotSelection objectId={})"
+            ).format(ballot_selection_obj_id)
+            raise loggers.ElectionError.from_message(msg, [element])
 
 
 class URIValidator(base.BaseRule):
@@ -3887,7 +3919,7 @@ class MultipleInternationalizedTextWithSameLanguageCode(base.BaseRule):
   """Checks for multiple InternationalizedText with the same language code."""
 
   def elements(self):
-    return _INTERNATIONALIZED_TEXT_ELEMENTS
+    return _INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE
 
   def check(self, element):
     language_map = get_language_to_text_map(element)
@@ -3900,22 +3932,10 @@ class MultipleInternationalizedTextWithSameLanguageCode(base.BaseRule):
 
 
 class AllInternationalizedTextHaveEnVersion(base.BaseRule):
-  """Checks for Internationalized Text Elements missing the english version."""
+  """Checks for InternationalizedText elements missing an English version."""
 
   def elements(self):
-    return [
-        "BallotName",
-        "Directions",
-        "BallotSubTitle",
-        "BallotTitle",
-        "Name",
-        "InternationalizedName",
-        "InternationalizedAbbreviation",
-        "Alias",
-        "FullName",
-        "Profession",
-        "Title",
-    ]
+    return list(self.get_element_names_for_type("InternationalizedText"))
 
   def check(self, element):
     language_map = get_language_to_text_map(element)
@@ -4330,10 +4350,10 @@ class SourceDirPathMustBeSetAfterInitialDeliveryDate(base.BaseRule):
 
 
 class OfficeholderSubFeedDatesAreSequential(base.DateRule):
-  """Dates in an OfficeHolderSubFeed element should be sequential."""
+  """Dates in an OfficeholderSubFeed element should be sequential."""
 
   def elements(self):
-    return ["OfficeHolderSubFeed"]
+    return ["OfficeholderSubFeed"]
 
   def check(self, element):
     if element_has_text(
@@ -4466,29 +4486,14 @@ class UnreferencedEntitiesBase(base.TreeRule):
     self.top_level_entity_types = top_level_entity_types
     self.warned_entity_types = warned_entity_types
 
-  def _get_idref_elements(self):
-    """Returns the names of all XML elements in the schema of type IDREF or IDREFS."""
-
-    idref_elements = set()
-    for _, element in etree.iterwalk(self.schema_tree):
-      tag = self.strip_schema_ns(element)
-      if (
-          tag
-          and tag == "element"
-          and element.get("type") in ("xs:IDREF", "xs:IDREFS")
-      ):
-        idref_elements.add(element.get("name"))
-    return idref_elements
-
   def _gather_referenced_entities(self):
     """Create a set of all entities referenced by either IDREF(S) elements or external identifiers."""
-
-    idref_elements = self._get_idref_elements()
     referenced_entities = set()
     for external_id_type in _IDREF_EXTERNAL_IDENTIFIERS:
       referenced_entities.update(
           get_external_id_values(self.election_tree, external_id_type)
       )
+    idref_elements = self.get_element_names_for_types(_IDREF_TYPES)
     for _, element in etree.iterwalk(self.election_tree):
       tag = self.strip_schema_ns(element)
       if tag and tag in idref_elements:
@@ -4723,7 +4728,7 @@ class NoExtraElectionReportCollections(base.BaseRule):
 class FeedElementsShouldHaveSubElementsBasedOnType(base.BaseRule):
   """Feeds should have certain elements based on feed type.
 
-  For example, Feeds of type officeHolder should have an OfficeHolderSubFeed,
+  For example, Feeds of type officeholder should have an OfficeholderSubFeed,
   similarly pre-election and election-results feeds should have an
   ElectionEventCollection. In the case of an ElectionEventCollection, at least
   one ElectionEvent element should be present.
@@ -4880,6 +4885,7 @@ ELECTION_RESULTS_RULES = ELECTION_RULES + (
     PercentSum,
     ValidateDuplicateColors,
     VoteCountTypesCoherency,
+    VoteCountValidSeatsDeltaTypes,
     # go/keep-sorted end
 )
 
@@ -4908,9 +4914,7 @@ COMMITTEE_RULES = COMMON_RULES + (
     # go/keep-sorted end
 )
 
-ELECTION_DATES_RULES = (
-    COMMON_RULES + ELECTION_RULES + (UnreferencedEntitiesElectionDates,)
-)
+ELECTION_DATES_RULES = ELECTION_RULES + (UnreferencedEntitiesElectionDates,)
 
 METADATA_RULES = (
     # go/keep-sorted start

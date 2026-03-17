@@ -4924,6 +4924,12 @@ class VoteCountTypesCoherencyTest(absltest.TestCase):
       <VoteCounts>
         <OtherType>seats-delta</OtherType>
       </VoteCounts>
+      <VoteCounts>
+        <OtherType>seats-delta-mandate</OtherType>
+      </VoteCounts>
+      <VoteCounts>
+        <OtherType>seats-delta-institutional</OtherType>
+      </VoteCounts>
     """
     contest = self.base_contest.format("CandidateContest", vote_counts)
 
@@ -4934,6 +4940,129 @@ class VoteCountTypesCoherencyTest(absltest.TestCase):
       self.assertIn(vc_type, cm.exception.log_entry[0].message)
     self.assertEqual(cm.exception.log_entry[0].elements[0].get("objectId"),
                      "pc1")
+
+
+class VoteCountValidSeatsDeltaTypesTest(absltest.TestCase):
+
+  def setUp(self):
+    super(VoteCountValidSeatsDeltaTypesTest, self).setUp()
+    self.vote_count_valid_seats_delta_types = (
+        rules.VoteCountValidSeatsDeltaTypes(None, None)
+    )
+    self.base_contest = """
+        <Contest objectId="pc1" type="PartyContest">
+            <BallotSelection objectId="ps1-0">
+            <VoteCountsCollection>
+                {}
+            </VoteCountsCollection>
+            </BallotSelection>
+        </Contest>
+        """
+
+  def testValidTwoDeltaTypes(self):
+    # Ensure VoteCountsCollection that contains both seats delta types is valid.
+    vote_counts = """
+      <VoteCounts>
+        <OtherType>seats-delta-mandate</OtherType>
+      </VoteCounts>
+      <VoteCounts>
+        <OtherType>seats-delta-institutional</OtherType>
+      </VoteCounts>
+    """
+    party_contest = self.base_contest.format(vote_counts)
+    self.vote_count_valid_seats_delta_types.check(
+        etree.fromstring(party_contest)
+    )
+
+  def testInvalidTwoMandateDeltaTypes(self):
+    # Ensure VoteCountsCollection that contains both mandate seats delta types
+    # is invalid.
+    vote_counts = """
+      <VoteCounts>
+        <OtherType>seats-delta</OtherType>
+      </VoteCounts>
+      <VoteCounts>
+        <OtherType>seats-delta-mandate</OtherType>
+      </VoteCounts>
+    """
+    party_contest = self.base_contest.format(vote_counts)
+
+    with self.assertRaises(loggers.ElectionWarning) as ee:
+      self.vote_count_valid_seats_delta_types.check(
+          etree.fromstring(party_contest)
+      )
+    self.assertIn(
+        "The VoteCount types seats-delta and seats-delta-mandate should"
+        " not coexist within the same BallotSelection (objectId=ps1-0)."
+        " They represent the same data, and seats-delta is scheduled"
+        " for deprecation.",
+        ee.exception.log_entry[0].message,
+    )
+
+  def testInvalidOnlyInstitutionalDeltaTypes(self):
+    # Ensure VoteCountsCollection with only institutional seats delta type is
+    # invalid.
+    vote_counts = """
+      <VoteCounts>
+        <OtherType>seats-delta-institutional</OtherType>
+      </VoteCounts>
+    """
+    party_contest = self.base_contest.format(vote_counts)
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.vote_count_valid_seats_delta_types.check(
+          etree.fromstring(party_contest)
+      )
+    self.assertIn(
+        "Missing required field VoteCount type seats-delta-mandate must"
+        " be included whenever VoteCount type seats-delta-institutional"
+        " is present. (BallotSelection objectId=ps1-0)",
+        ee.exception.log_entry[0].message,
+    )
+
+  @freezegun.freeze_time("2026-02-25")
+  def testInfoDeprecatedDeltaType(self):
+    # Ensure VoteCountsCollection with seats-delta type before June 1st, 2026
+    # raises an Info message.
+    vote_counts = """
+      <VoteCounts>
+        <OtherType>seats-delta</OtherType>
+      </VoteCounts>
+    """
+    party_contest = self.base_contest.format(vote_counts)
+
+    with self.assertRaises(loggers.ElectionWarning) as ee:
+      self.vote_count_valid_seats_delta_types.check(
+          etree.fromstring(party_contest)
+      )
+    self.assertIn(
+        "VoteCount type seats-delta is deprecated and will be removed"
+        " on June 1, 2026. Please update your implementation to use"
+        " seats-delta-mandate. (BallotSelection objectId=ps1-0)",
+        ee.exception.log_entry[0].message,
+    )
+
+  @freezegun.freeze_time("2026-06-01")
+  def testErrorDeprecatedDeltaType(self):
+    # Ensure VoteCountsCollection that contains seats-delta type on and after
+    # June 1st, 2026 throws an Error.
+    vote_counts = """
+      <VoteCounts>
+        <OtherType>seats-delta</OtherType>
+      </VoteCounts>
+    """
+    party_contest = self.base_contest.format(vote_counts)
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.vote_count_valid_seats_delta_types.check(
+          etree.fromstring(party_contest)
+      )
+    self.assertIn(
+        "VoteCount type seats-delta is deprecated and was removed on"
+        " June 1, 2026. Please update your implementation to use"
+        " seats-delta-mandate. (BallotSelection objectId=ps1-0)",
+        ee.exception.log_entry[0].message,
+    )
 
 
 class URIValidatorTest(absltest.TestCase):
