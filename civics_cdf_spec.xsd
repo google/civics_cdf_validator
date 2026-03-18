@@ -343,6 +343,7 @@
         <xs:sequence>
           <xs:element name="CandidateIds" type="xs:IDREFS"/>
           <xs:element minOccurs="0" name="EndorsementPartyIds" type="xs:IDREFS"/>
+          <xs:element minOccurs="0" name="IncludedInAggregation" type="xs:boolean"/>
           <xs:element minOccurs="0" name="IsWriteIn" type="xs:boolean"/>
         </xs:sequence>
       </xs:extension>
@@ -385,9 +386,11 @@
   <xs:complexType abstract="true" name="Contest">
     <xs:sequence>
       <xs:element minOccurs="0" name="Abbreviation" type="xs:string"/>
+      <xs:element minOccurs="0" name="AggregateBallotSelection" type="SpecialBallotSelection"/>
       <xs:element maxOccurs="unbounded" minOccurs="0" name="BallotSelection" type="BallotSelection"/>
       <xs:element minOccurs="0" name="BallotSubTitle" type="InternationalizedText"/>
       <xs:element minOccurs="0" name="BallotTitle" type="InternationalizedText"/>
+      <xs:element minOccurs="0" name="BlankBallotSelection" type="SpecialBallotSelection"/>
       <xs:element minOccurs="0" name="ComposingContestIds" type="xs:IDREFS"/>
       <xs:element maxOccurs="1" minOccurs="0" name="ContestDateStatus" type="DateStatus"/>
       <xs:element maxOccurs="unbounded" minOccurs="0" name="CountStatus" type="CountStatus"/>
@@ -401,6 +404,8 @@
       <xs:element minOccurs="0" name="IsNotable" type="xs:boolean"/>
       <xs:element minOccurs="0" name="LatestPollsClose" type="xs:dateTime"/>
       <xs:element name="Name" type="xs:string"/>
+      <xs:element minOccurs="0" name="NoneOfTheAboveBallotSelection" type="SpecialBallotSelection"/>
+      <xs:element minOccurs="0" name="NullBallotSelection" type="SpecialBallotSelection"/>
       <xs:element maxOccurs="1" minOccurs="0" name="Seat" type="xs:string"/>
       <xs:element minOccurs="0" name="SequenceOrder" type="xs:integer"/>
       <xs:element maxOccurs="1" minOccurs="0" name="StartDate" type="PartialDate"/>
@@ -719,6 +724,7 @@
     <xs:complexContent>
       <xs:extension base="BallotSelection">
         <xs:sequence>
+          <xs:element minOccurs="0" name="IncludedInAggregation" type="xs:boolean"/>
           <xs:element name="PartyIds" type="xs:IDREFS"/>
         </xs:sequence>
       </xs:extension>
@@ -817,6 +823,17 @@
       <xs:element name="Coordinates" type="xs:string"/>
       <xs:element name="Format" type="GeoSpatialFormat"/>
     </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="SpecialBallotSelection">
+    <xs:complexContent>
+      <xs:extension base="BallotSelection">
+        <xs:sequence>
+          <xs:element name="CountedInTotal" type="xs:boolean"/>
+          <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers"/>
+          <xs:element name="Selection" type="InternationalizedText"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="SummaryCounts">
     <xs:complexContent>
