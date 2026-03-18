@@ -728,6 +728,7 @@
       <xs:element minOccurs="0" name="FirstName" type="xs:string"/>
       <xs:element minOccurs="0" name="FullName" type="InternationalizedText"/>
       <xs:element minOccurs="0" name="Gender" type="xs:string"/>
+      <xs:element maxOccurs="unbounded" minOccurs="0" name="ImageUri" type="AnnotatedUri"/>
       <xs:element minOccurs="0" name="LastName" type="xs:string"/>
       <xs:element maxOccurs="unbounded" minOccurs="0" name="MiddleName" type="xs:string"/>
       <xs:element minOccurs="0" name="Nickname" type="xs:string"/>
