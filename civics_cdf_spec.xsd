@@ -314,7 +314,10 @@
       <xs:element minOccurs="0" name="IsIncumbent" type="xs:boolean"/>
       <xs:element minOccurs="0" name="IsNotable" type="xs:boolean"/>
       <xs:element minOccurs="0" name="IsTopTicket" type="xs:boolean"/>
-      <xs:element maxOccurs="unbounded" minOccurs="0" name="PartyId" type="xs:IDREF"/>
+      <xs:choice>
+        <xs:element maxOccurs="unbounded" minOccurs="0" name="PartyId" type="xs:IDREF"/>
+        <xs:element minOccurs="0" name="PartyLabel" type="InternationalizedText"/>
+      </xs:choice>
       <xs:element minOccurs="0" name="PersonId" type="xs:IDREF"/>
       <xs:element minOccurs="0" name="PostElectionStatus" type="CandidatePostElectionStatus"/>
       <xs:element minOccurs="0" name="PreElectionStatus" type="CandidatePreElectionStatus"/>
