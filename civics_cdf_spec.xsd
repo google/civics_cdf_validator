@@ -253,6 +253,12 @@
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
+  <xs:complexType name="Attribution">
+    <xs:sequence>
+      <xs:element name="DataSourceId" type="xs:IDREF"/>
+      <xs:element maxOccurs="unbounded" minOccurs="0" name="Attribution" type="Attribution"/>
+    </xs:sequence>
+  </xs:complexType>
   <xs:complexType name="BallotMeasureContest">
     <xs:complexContent>
       <xs:extension base="Contest">
@@ -436,6 +442,13 @@
       <xs:element minOccurs="0" name="OtherType" type="xs:string"/>
     </xs:sequence>
   </xs:complexType>
+  <xs:complexType name="DataSource">
+    <xs:sequence>
+      <xs:element name="DisplayName" type="InternationalizedText"/>
+      <xs:element maxOccurs="unbounded" name="Uri" type="InternationalizedUri"/>
+    </xs:sequence>
+    <xs:attribute name="objectId" type="xs:ID" use="required"/>
+  </xs:complexType>
   <xs:complexType name="Device">
     <xs:sequence>
       <xs:element minOccurs="0" name="Manufacturer" type="xs:string"/>
@@ -494,6 +507,13 @@
         <xs:complexType>
           <xs:sequence>
             <xs:element maxOccurs="unbounded" minOccurs="0" name="Committee" type="Committee"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element minOccurs="0" name="DataSourceCollection">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element maxOccurs="unbounded" name="DataSource" type="DataSource"/>
           </xs:sequence>
         </xs:complexType>
       </xs:element>
