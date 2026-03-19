@@ -4869,21 +4869,16 @@ ELECTION_RULES = COMMON_RULES + (
     MultipleCandidatesPointToTheSamePersonInTheSameContest,
     MultipleInternationalizedTextWithSameLanguageCode,
     OfficeHasjurisdictionSameAsElectoralDistrict,
+    PartiesHaveValidColors,
     PartisanPrimary,
     PartisanPrimaryHeuristic,
+    PercentSum,
     ProperBallotSelection,
     SelfDeclaredCandidateMethod,
     SingularPartySelection,
     SubsequentContestIdIsValidRelatedContest,
-    ValidateInfoUriAnnotation,
-    # go/keep-sorted end
-)
-
-ELECTION_RESULTS_RULES = ELECTION_RULES + (
-    # go/keep-sorted start
-    PartiesHaveValidColors,
-    PercentSum,
     ValidateDuplicateColors,
+    ValidateInfoUriAnnotation,
     VoteCountTypesCoherency,
     VoteCountValidSeatsDeltaTypes,
     # go/keep-sorted end
@@ -4948,7 +4943,6 @@ VOTER_INFORMATION_RULES = COMMON_RULES + (
 ALL_RULES = frozenset(
     COMMON_RULES
     + ELECTION_RULES
-    + ELECTION_RESULTS_RULES
     + OFFICEHOLDER_RULES
     + COMMITTEE_RULES
     + ELECTION_DATES_RULES

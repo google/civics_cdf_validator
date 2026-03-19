@@ -249,26 +249,26 @@ def filter_all_rules_using_user_arg(rules_allowlist, rule_set, rules_blocklist):
     rule_names = rules_allowlist
   else:
     if rule_set == rules.RuleSet.ELECTION:
-      rule_names = [x.__name__ for x in rules.ELECTION_RULES]
-    elif rule_set == rules.RuleSet.OFFICEHOLDER:
-      rule_names = [x.__name__ for x in rules.OFFICEHOLDER_RULES]
-    elif rule_set == rules.RuleSet.COMMITTEE:
-      rule_names = [x.__name__ for x in rules.COMMITTEE_RULES]
-    elif rule_set == rules.RuleSet.ELECTION_DATES:
-      rule_names = [x.__name__ for x in rules.ELECTION_DATES_RULES]
+      rule_names = [rule.__name__ for rule in rules.ELECTION_RULES]
     elif rule_set == rules.RuleSet.ELECTION_RESULTS:
-      rule_names = [x.__name__ for x in rules.ELECTION_RESULTS_RULES]
+      rule_names = [rule.__name__ for rule in rules.ELECTION_RULES]
+    elif rule_set == rules.RuleSet.OFFICEHOLDER:
+      rule_names = [rule.__name__ for rule in rules.OFFICEHOLDER_RULES]
+    elif rule_set == rules.RuleSet.COMMITTEE:
+      rule_names = [rule.__name__ for rule in rules.COMMITTEE_RULES]
+    elif rule_set == rules.RuleSet.ELECTION_DATES:
+      rule_names = [rule.__name__ for rule in rules.ELECTION_DATES_RULES]
     elif rule_set == rules.RuleSet.METADATA:
-      rule_names = [x.__name__ for x in rules.METADATA_RULES]
+      rule_names = [rule.__name__ for rule in rules.METADATA_RULES]
     elif rule_set == rules.RuleSet.VOTER_INFORMATION:
-      rule_names = [x.__name__ for x in rules.VOTER_INFORMATION_RULES]
+      rule_names = [rule.__name__ for rule in rules.VOTER_INFORMATION_RULES]
     else:
       raise AssertionError("Invalid rule_set: " + rule_set)
     if rules_blocklist:
       rule_names = set(rule_names) - set(rules_blocklist)
 
   rule_classes_to_check = [
-      x for x in rules.ALL_RULES if x.__name__ in rule_names
+      rule for rule in rules.ALL_RULES if rule.__name__ in rule_names
   ]
   return rule_classes_to_check
 
