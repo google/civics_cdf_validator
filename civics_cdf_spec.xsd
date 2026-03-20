@@ -727,7 +727,10 @@
         <xs:element minOccurs="0" name="InternationalizedAbbreviation" type="InternationalizedText"/>
       </xs:choice>
       <xs:element minOccurs="0" name="Alias" type="InternationalizedText"/>
-      <xs:element minOccurs="0" name="Color" type="HtmlColorString"/>
+      <xs:choice>
+        <xs:element minOccurs="0" name="Color" type="HtmlColorString"/>
+        <xs:element minOccurs="0" name="Colors" type="PartyColors"/>
+      </xs:choice>
       <xs:element minOccurs="0" name="ContactInformation" type="ContactInformation"/>
       <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers"/>
       <xs:element minOccurs="0" name="IsIndependent" type="xs:boolean"/>
@@ -739,6 +742,13 @@
       <xs:element minOccurs="0" name="Slogan" type="InternationalizedText"/>
     </xs:sequence>
     <xs:attribute name="objectId" type="xs:ID" use="required"/>
+  </xs:complexType>
+  <xs:complexType name="PartyColors">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="DarkThemeColor" type="HtmlColorString"/>
+      <xs:element minOccurs="0" name="LightThemeColor" type="HtmlColorString"/>
+      <xs:element maxOccurs="unbounded" minOccurs="0" name="OfficialColor" type="HtmlColorString"/>
+    </xs:sequence>
   </xs:complexType>
   <xs:complexType name="PartyContest">
     <xs:complexContent>
