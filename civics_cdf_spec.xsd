@@ -143,6 +143,16 @@
       <xs:enumeration value="other"/>
     </xs:restriction>
   </xs:simpleType>
+  <xs:simpleType name="ResultsReportingStageType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="no-results"/>
+      <xs:enumeration value="exit-polls"/>
+      <xs:enumeration value="estimates"/>
+      <xs:enumeration value="projections"/>
+      <xs:enumeration value="preliminary"/>
+      <xs:enumeration value="official"/>
+    </xs:restriction>
+  </xs:simpleType>
   <xs:simpleType name="ResultsStatus">
     <xs:restriction base="xs:string">
       <xs:enumeration value="certified"/>
@@ -401,6 +411,7 @@
       <xs:element maxOccurs="1" minOccurs="0" name="ContestDateStatus" type="DateStatus"/>
       <xs:element maxOccurs="unbounded" minOccurs="0" name="CountStatus" type="CountStatus"/>
       <xs:element maxOccurs="1" minOccurs="0" name="CountingDate" type="PartialDate"/>
+      <xs:element minOccurs="0" name="CurrentResultsReportingStage" type="ResultsReportingStageType"/>
       <xs:element minOccurs="0" name="EarliestPollsClose" type="xs:dateTime"/>
       <xs:element name="ElectoralDistrictId" type="xs:IDREF"/>
       <xs:element maxOccurs="1" minOccurs="0" name="EndDate" type="PartialDate"/>
@@ -423,6 +434,13 @@
       <xs:element minOccurs="0" name="OtherVoteVariation" type="xs:string"/>
       <xs:element minOccurs="0" name="ResultsEmbargoEnd" type="xs:dateTime"/>
       <xs:element minOccurs="0" name="ResultsExpected" type="xs:dateTime"/>
+      <xs:element minOccurs="0" name="ResultsReportingStageCollection">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element maxOccurs="unbounded" name="ResultsReportingStage" type="ResultsReportingStage"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
     </xs:sequence>
     <xs:attribute name="objectId" type="xs:ID" use="required"/>
   </xs:complexType>
@@ -810,6 +828,15 @@
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ResultsReportingStage">
+    <xs:sequence>
+      <xs:element name="StageType" type="ResultsReportingStageType"/>
+      <xs:element name="Description" type="InternationalizedText"/>
+      <xs:element maxOccurs="unbounded" name="Attribution" type="Attribution"/>
+      <xs:element name="ExpectedStartDateTime" type="xs:dateTime"/>
+      <xs:element minOccurs="0" name="ActualStartDateTime" type="xs:dateTime"/>
+    </xs:sequence>
   </xs:complexType>
   <xs:complexType name="RetentionContest">
     <xs:complexContent>
