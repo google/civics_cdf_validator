@@ -47,8 +47,10 @@
       <xs:element name="FeedType" type="FeedType"/>
       <xs:element name="FeedLongevity" type="FeedLongevity"/>
       <xs:element minOccurs="0" name="SourceDirPath" type="FeedSourcePathUri"/>
+      <xs:element minOccurs="0" name="SqsQueueName" type="xs:string"/>
       <xs:element minOccurs="0" name="CountryCode" type="xs:string"/>
       <xs:element minOccurs="0" name="FeedInactiveDate" type="xs:date"/>
+      <xs:element minOccurs="0" name="IsTest" type="xs:boolean"/>
       <xs:choice>
         <xs:element minOccurs="0" name="ElectionEventCollection" type="ElectionEventCollection"/>
         <xs:element minOccurs="0" name="OfficeholderSubFeed" type="OfficeholderSubFeed"/>
