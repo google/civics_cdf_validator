@@ -64,6 +64,7 @@ _INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE = [
     "InternationalizedAbbreviation",
     "InternationalizedName",
     "Name",
+    "PartyLabel",
     "PassageThreshold",
     "ProStatement",
     "Profession",
