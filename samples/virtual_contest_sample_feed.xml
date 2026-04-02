@@ -142,6 +142,7 @@
           <Text language="en">Position of the Utmost Importance - North Pole</Text>
         </BallotTitle>
         <CountingDate>2026-01-01</CountingDate>
+        <CurrentResultsReportingStage>preliminary</CurrentResultsReportingStage>
         <ElectoralDistrictId>ru-1234567890</ElectoralDistrictId>
         <EndDate>2025-12-29</EndDate>
         <ExternalIdentifiers>
@@ -225,6 +226,7 @@
           <Text language="en">Position of the Utmost Importance - South Pole</Text>
         </BallotTitle>
         <CountingDate>2026-01-01</CountingDate>
+        <CurrentResultsReportingStage>preliminary</CurrentResultsReportingStage>
         <ElectoralDistrictId>ru-0987654321</ElectoralDistrictId>
         <EndDate>2025-12-29</EndDate>
         <ExternalIdentifiers>
@@ -343,7 +345,7 @@
     <EndDate>2025-12-31</EndDate>
     <Type>general</Type>
   </Election>
-  <Format>precinct-level</Format>
+  <Format>summary-contest</Format>
   <GeneratedDate>2025-12-25T14:25:28</GeneratedDate>
   <GovernmentBodyCollection>
     <GovernmentBody objectId="gov-777">
