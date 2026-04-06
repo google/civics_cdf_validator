@@ -6,7 +6,7 @@
       <FeedName>Sample Feed 1</FeedName>
       <FeedType>pre-election</FeedType>
       <FeedLongevity>limited</FeedLongevity>
-      <SourceDirPath>//sample/path1</SourceDirPath>
+      <SourceDirPath>https://sample/path1</SourceDirPath>
       <CountryCode>US</CountryCode>
       <FeedInactiveDate>2023-12-31</FeedInactiveDate>
       <ElectionEventCollection>
@@ -50,7 +50,7 @@
       <FeedName>Sample Feed 2</FeedName>
       <FeedType>pre-election</FeedType>
       <FeedLongevity>limited</FeedLongevity>
-      <SourceDirPath>//sample/path2</SourceDirPath>
+      <SourceDirPath>https://sample/path2</SourceDirPath>
       <CountryCode>IN</CountryCode>
       <FeedInactiveDate>2024-06-15</FeedInactiveDate>
       <ElectionEventCollection>

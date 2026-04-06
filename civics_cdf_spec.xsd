@@ -143,6 +143,16 @@
       <xs:enumeration value="other"/>
     </xs:restriction>
   </xs:simpleType>
+  <xs:simpleType name="ResultsReportingStageType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="no-results"/>
+      <xs:enumeration value="exit-polls"/>
+      <xs:enumeration value="estimates"/>
+      <xs:enumeration value="projections"/>
+      <xs:enumeration value="preliminary"/>
+      <xs:enumeration value="official"/>
+    </xs:restriction>
+  </xs:simpleType>
   <xs:simpleType name="ResultsStatus">
     <xs:restriction base="xs:string">
       <xs:enumeration value="certified"/>
@@ -253,6 +263,12 @@
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
+  <xs:complexType name="Attribution">
+    <xs:sequence>
+      <xs:element name="DataSourceId" type="xs:IDREF"/>
+      <xs:element maxOccurs="unbounded" minOccurs="0" name="Attribution" type="Attribution"/>
+    </xs:sequence>
+  </xs:complexType>
   <xs:complexType name="BallotMeasureContest">
     <xs:complexContent>
       <xs:extension base="Contest">
@@ -312,8 +328,12 @@
       <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers"/>
       <xs:element minOccurs="0" name="FileDate" type="PartialDate"/>
       <xs:element minOccurs="0" name="IsIncumbent" type="xs:boolean"/>
+      <xs:element minOccurs="0" name="IsNotable" type="xs:boolean"/>
       <xs:element minOccurs="0" name="IsTopTicket" type="xs:boolean"/>
-      <xs:element maxOccurs="unbounded" minOccurs="0" name="PartyId" type="xs:IDREF"/>
+      <xs:choice>
+        <xs:element maxOccurs="unbounded" minOccurs="0" name="PartyId" type="xs:IDREF"/>
+        <xs:element minOccurs="0" name="PartyLabel" type="InternationalizedText"/>
+      </xs:choice>
       <xs:element minOccurs="0" name="PersonId" type="xs:IDREF"/>
       <xs:element minOccurs="0" name="PostElectionStatus" type="CandidatePostElectionStatus"/>
       <xs:element minOccurs="0" name="PreElectionStatus" type="CandidatePreElectionStatus"/>
@@ -339,6 +359,7 @@
         <xs:sequence>
           <xs:element name="CandidateIds" type="xs:IDREFS"/>
           <xs:element minOccurs="0" name="EndorsementPartyIds" type="xs:IDREFS"/>
+          <xs:element minOccurs="0" name="IncludedInAggregation" type="xs:boolean"/>
           <xs:element minOccurs="0" name="IsWriteIn" type="xs:boolean"/>
         </xs:sequence>
       </xs:extension>
@@ -381,19 +402,27 @@
   <xs:complexType abstract="true" name="Contest">
     <xs:sequence>
       <xs:element minOccurs="0" name="Abbreviation" type="xs:string"/>
+      <xs:element minOccurs="0" name="AggregateBallotSelection" type="SpecialBallotSelection"/>
       <xs:element maxOccurs="unbounded" minOccurs="0" name="BallotSelection" type="BallotSelection"/>
       <xs:element minOccurs="0" name="BallotSubTitle" type="InternationalizedText"/>
       <xs:element minOccurs="0" name="BallotTitle" type="InternationalizedText"/>
+      <xs:element minOccurs="0" name="BlankBallotSelection" type="SpecialBallotSelection"/>
       <xs:element minOccurs="0" name="ComposingContestIds" type="xs:IDREFS"/>
       <xs:element maxOccurs="1" minOccurs="0" name="ContestDateStatus" type="DateStatus"/>
       <xs:element maxOccurs="unbounded" minOccurs="0" name="CountStatus" type="CountStatus"/>
       <xs:element maxOccurs="1" minOccurs="0" name="CountingDate" type="PartialDate"/>
+      <xs:element minOccurs="0" name="CurrentResultsReportingStage" type="ResultsReportingStageType"/>
+      <xs:element minOccurs="0" name="EarliestPollsClose" type="xs:dateTime"/>
       <xs:element name="ElectoralDistrictId" type="xs:IDREF"/>
       <xs:element maxOccurs="1" minOccurs="0" name="EndDate" type="PartialDate"/>
       <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers"/>
       <xs:element maxOccurs="1" minOccurs="0" name="FilingDeadline" type="PartialDate"/>
       <xs:element minOccurs="0" name="HasRotation" type="xs:boolean"/>
+      <xs:element minOccurs="0" name="IsNotable" type="xs:boolean"/>
+      <xs:element minOccurs="0" name="LatestPollsClose" type="xs:dateTime"/>
       <xs:element name="Name" type="xs:string"/>
+      <xs:element minOccurs="0" name="NoneOfTheAboveBallotSelection" type="SpecialBallotSelection"/>
+      <xs:element minOccurs="0" name="NullBallotSelection" type="SpecialBallotSelection"/>
       <xs:element maxOccurs="1" minOccurs="0" name="Seat" type="xs:string"/>
       <xs:element minOccurs="0" name="SequenceOrder" type="xs:integer"/>
       <xs:element maxOccurs="1" minOccurs="0" name="StartDate" type="PartialDate"/>
@@ -403,6 +432,15 @@
       <xs:element minOccurs="0" name="TotalSubUnits" type="xs:integer"/>
       <xs:element minOccurs="0" name="VoteVariation" type="VoteVariation"/>
       <xs:element minOccurs="0" name="OtherVoteVariation" type="xs:string"/>
+      <xs:element minOccurs="0" name="ResultsEmbargoEnd" type="xs:dateTime"/>
+      <xs:element minOccurs="0" name="ResultsExpected" type="xs:dateTime"/>
+      <xs:element minOccurs="0" name="ResultsReportingStageCollection">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element maxOccurs="unbounded" name="ResultsReportingStage" type="ResultsReportingStage"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
     </xs:sequence>
     <xs:attribute name="objectId" type="xs:ID" use="required"/>
   </xs:complexType>
@@ -421,6 +459,13 @@
       <xs:element minOccurs="0" name="Type" type="CountItemType"/>
       <xs:element minOccurs="0" name="OtherType" type="xs:string"/>
     </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DataSource">
+    <xs:sequence>
+      <xs:element name="DisplayName" type="InternationalizedText"/>
+      <xs:element maxOccurs="unbounded" name="Uri" type="InternationalizedUri"/>
+    </xs:sequence>
+    <xs:attribute name="objectId" type="xs:ID" use="required"/>
   </xs:complexType>
   <xs:complexType name="Device">
     <xs:sequence>
@@ -480,6 +525,13 @@
         <xs:complexType>
           <xs:sequence>
             <xs:element maxOccurs="unbounded" minOccurs="0" name="Committee" type="Committee"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element minOccurs="0" name="DataSourceCollection">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element maxOccurs="unbounded" name="DataSource" type="DataSource"/>
           </xs:sequence>
         </xs:complexType>
       </xs:element>
@@ -675,10 +727,14 @@
         <xs:element minOccurs="0" name="InternationalizedAbbreviation" type="InternationalizedText"/>
       </xs:choice>
       <xs:element minOccurs="0" name="Alias" type="InternationalizedText"/>
-      <xs:element minOccurs="0" name="Color" type="HtmlColorString"/>
+      <xs:choice>
+        <xs:element minOccurs="0" name="Color" type="HtmlColorString"/>
+        <xs:element minOccurs="0" name="Colors" type="PartyColors"/>
+      </xs:choice>
       <xs:element minOccurs="0" name="ContactInformation" type="ContactInformation"/>
       <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers"/>
       <xs:element minOccurs="0" name="IsIndependent" type="xs:boolean"/>
+      <xs:element minOccurs="0" name="IsNotable" type="xs:boolean"/>
       <xs:element maxOccurs="unbounded" minOccurs="0" name="Leadership" type="PartyLeadership"/>
       <xs:element minOccurs="0" name="LogoUri" type="AnnotatedUri"/>
       <xs:element name="Name" type="InternationalizedText"/>
@@ -686,6 +742,13 @@
       <xs:element minOccurs="0" name="Slogan" type="InternationalizedText"/>
     </xs:sequence>
     <xs:attribute name="objectId" type="xs:ID" use="required"/>
+  </xs:complexType>
+  <xs:complexType name="PartyColors">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="DarkThemeColor" type="HtmlColorString"/>
+      <xs:element minOccurs="0" name="LightThemeColor" type="HtmlColorString"/>
+      <xs:element maxOccurs="unbounded" minOccurs="0" name="OfficialColor" type="HtmlColorString"/>
+    </xs:sequence>
   </xs:complexType>
   <xs:complexType name="PartyContest">
     <xs:complexContent>
@@ -709,6 +772,7 @@
     <xs:complexContent>
       <xs:extension base="BallotSelection">
         <xs:sequence>
+          <xs:element minOccurs="0" name="IncludedInAggregation" type="xs:boolean"/>
           <xs:element name="PartyIds" type="xs:IDREFS"/>
         </xs:sequence>
       </xs:extension>
@@ -722,6 +786,7 @@
       <xs:element minOccurs="0" name="FirstName" type="xs:string"/>
       <xs:element minOccurs="0" name="FullName" type="InternationalizedText"/>
       <xs:element minOccurs="0" name="Gender" type="xs:string"/>
+      <xs:element maxOccurs="unbounded" minOccurs="0" name="ImageUri" type="AnnotatedUri"/>
       <xs:element minOccurs="0" name="LastName" type="xs:string"/>
       <xs:element maxOccurs="unbounded" minOccurs="0" name="MiddleName" type="xs:string"/>
       <xs:element minOccurs="0" name="Nickname" type="xs:string"/>
@@ -774,6 +839,15 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
+  <xs:complexType name="ResultsReportingStage">
+    <xs:sequence>
+      <xs:element name="StageType" type="ResultsReportingStageType"/>
+      <xs:element name="Description" type="InternationalizedText"/>
+      <xs:element maxOccurs="unbounded" name="Attribution" type="Attribution"/>
+      <xs:element name="ExpectedStartDateTime" type="xs:dateTime"/>
+      <xs:element minOccurs="0" name="ActualStartDateTime" type="xs:dateTime"/>
+    </xs:sequence>
+  </xs:complexType>
   <xs:complexType name="RetentionContest">
     <xs:complexContent>
       <xs:extension base="BallotMeasureContest">
@@ -806,6 +880,17 @@
       <xs:element name="Coordinates" type="xs:string"/>
       <xs:element name="Format" type="GeoSpatialFormat"/>
     </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="SpecialBallotSelection">
+    <xs:complexContent>
+      <xs:extension base="BallotSelection">
+        <xs:sequence>
+          <xs:element name="CountedInTotal" type="xs:boolean"/>
+          <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers"/>
+          <xs:element name="Selection" type="InternationalizedText"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="SummaryCounts">
     <xs:complexContent>
