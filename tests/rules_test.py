@@ -5020,9 +5020,9 @@ class VoteCountValidSeatsDeltaTypesTest(absltest.TestCase):
         ee.exception.log_entry[0].message,
     )
 
-  @freezegun.freeze_time("2026-02-25")
+  @freezegun.freeze_time("2026-06-30")
   def testInfoDeprecatedDeltaType(self):
-    # Ensure VoteCountsCollection with seats-delta type before June 1st, 2026
+    # Ensure VoteCountsCollection with seats-delta type before July 1st, 2026
     # raises an Info message.
     vote_counts = """
       <VoteCounts>
@@ -5037,15 +5037,15 @@ class VoteCountValidSeatsDeltaTypesTest(absltest.TestCase):
       )
     self.assertIn(
         "VoteCount type seats-delta is deprecated and will be removed"
-        " on June 1, 2026. Please update your implementation to use"
+        " on July 1, 2026. Please update your implementation to use"
         " seats-delta-mandate. (BallotSelection objectId=ps1-0)",
         ee.exception.log_entry[0].message,
     )
 
-  @freezegun.freeze_time("2026-06-01")
+  @freezegun.freeze_time("2026-07-01")
   def testErrorDeprecatedDeltaType(self):
     # Ensure VoteCountsCollection that contains seats-delta type on and after
-    # June 1st, 2026 throws an Error.
+    # July 1st, 2026 throws an Error.
     vote_counts = """
       <VoteCounts>
         <OtherType>seats-delta</OtherType>
@@ -5059,7 +5059,7 @@ class VoteCountValidSeatsDeltaTypesTest(absltest.TestCase):
       )
     self.assertIn(
         "VoteCount type seats-delta is deprecated and was removed on"
-        " June 1, 2026. Please update your implementation to use"
+        " July 1, 2026. Please update your implementation to use"
         " seats-delta-mandate. (BallotSelection objectId=ps1-0)",
         ee.exception.log_entry[0].message,
     )

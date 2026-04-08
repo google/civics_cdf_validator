@@ -2155,19 +2155,19 @@ class VoteCountValidSeatsDeltaTypes(base.BaseRule):
           raise loggers.ElectionError.from_message(msg, [element])
         if "seats-delta" in ballot_selection_vote_types:
           current_date = datetime.datetime.now()
-          deletion_date = datetime.datetime(2026, 6, 1)
-          #   If current date is before June 1st, 2026
+          deletion_date = datetime.datetime(2026, 7, 1)
+          #   If current date is before July 1st, 2026
           if current_date < deletion_date:
             msg = (
                 "VoteCount type seats-delta is deprecated and will be removed"
-                " on June 1, 2026. Please update your implementation to use"
+                " on July 1, 2026. Please update your implementation to use"
                 " seats-delta-mandate. (BallotSelection objectId={})"
             ).format(ballot_selection_obj_id)
             raise loggers.ElectionWarning.from_message(msg, [element])
           else:
             msg = (
                 "VoteCount type seats-delta is deprecated and was removed on"
-                " June 1, 2026. Please update your implementation to use"
+                " July 1, 2026. Please update your implementation to use"
                 " seats-delta-mandate. (BallotSelection objectId={})"
             ).format(ballot_selection_obj_id)
             raise loggers.ElectionError.from_message(msg, [element])
