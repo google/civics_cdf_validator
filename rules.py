@@ -97,7 +97,7 @@ _EXECUTIVE_OFFICE_ROLES = frozenset([
 _VALID_FEED_LONGEVITY_BY_FEED_TYPE = frozendict({
     "committee": ["evergreen"],
     "election-dates": ["evergreen"],
-    "election-results": ["limited", "yearly"],
+    "election-results": ["limited"],
     "officeholder": ["evergreen"],
     "pre-election": ["limited", "yearly"],
 })
