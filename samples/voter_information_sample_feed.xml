@@ -18,7 +18,6 @@
     <EndDate>2030-05-01</EndDate>
     <Type>general</Type>
   </Election>
-
   <ElectoralCommissionCollection>
     <ElectoralCommission objectId="ec1">
       <ContactInformation label="ci">
@@ -98,7 +97,6 @@
       </VoterInformationWebsite>
       <ScopeGpUnitIds>ru-1</ScopeGpUnitIds>
     </VoterInformation>
-
     <!-- Voter Information scoped to a specific election. -->
     <VoterInformation objectId="vi2">
       <ExternalIdentifiers>

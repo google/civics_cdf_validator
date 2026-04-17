@@ -79,13 +79,13 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <GovernmentBodyIds>gov0</GovernmentBodyIds>
-      <JurisdictionId>ru-gpu0</JurisdictionId>
-      <OfficeLevel>Country</OfficeLevel>
-      <OfficeRole>president</OfficeRole>
+      <JurisdictionId>ru-gpu2</JurisdictionId>
+      <Level>Country</Level>
       <Name>
         <Text language="en">United States Senator</Text>
       </Name>
       <OfficeHolderPersonIds>per0</OfficeHolderPersonIds>
+      <Role>upper house</Role>
       <SelectionMethod>directly-elected</SelectionMethod>
     </Office>
     <Office objectId="off1">
@@ -109,28 +109,58 @@
           <Value>stable-off1</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <JurisdictionId>ru-gpu1</JurisdictionId>
-      <OfficeLevel>Country</OfficeLevel>
-      <OfficeRole>vice president</OfficeRole>
+      <JurisdictionId>ru-gpu2</JurisdictionId>
+      <Level>Country</Level>
       <Name>
         <Text language="en">United States Vice President</Text>
       </Name>
       <OfficeHolderPersonIds>per1</OfficeHolderPersonIds>
+      <Role>deputy head of government</Role>
       <SelectionMethod>directly-elected</SelectionMethod>
     </Office>
   </OfficeCollection>
   <OfficeHolderTenureCollection>
     <OfficeHolderTenure objectId="offten0">
-      <ElectoralDistrictId>ru-united-states</ElectoralDistrictId>
+      <ElectoralDistrictId>ru-gpu0</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-offten0</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <OfficeHolderPersonId>per1</OfficeHolderPersonId>
       <OfficeId>off0</OfficeId>
       <OfficeSelectionMethod>directly-elected</OfficeSelectionMethod>
+      <StartDate>2019-01-01</StartDate>
     </OfficeHolderTenure>
     <OfficeHolderTenure objectId="offten1">
-      <ElectoralDistrictId>ru-united-states</ElectoralDistrictId>
+      <ElectoralDistrictId>ru-gpu0</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-offten1</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
       <OfficeHolderPersonId>per1</OfficeHolderPersonId>
       <OfficeId>off1</OfficeId>
       <OfficeSelectionMethod>directly-elected</OfficeSelectionMethod>
+      <StartDate>2019-01-01</StartDate>
+    </OfficeHolderTenure>
+    <OfficeHolderTenure objectId="offten2">
+      <ElectoralDistrictId>ru-gpu1</ElectoralDistrictId>
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>stable-offten2</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+      <OfficeHolderPersonId>per0</OfficeHolderPersonId>
+      <OfficeId>off0</OfficeId>
+      <OfficeSelectionMethod>directly-elected</OfficeSelectionMethod>
+      <StartDate>2019-01-01</StartDate>
     </OfficeHolderTenure>
   </OfficeHolderTenureCollection>
   <PartyCollection>
