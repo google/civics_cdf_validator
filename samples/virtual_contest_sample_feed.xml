@@ -312,10 +312,11 @@
             <OtherType>stable</OtherType>
             <Value>example-pc-sdrasc</Value>
           </ExternalIdentifier>
-        </ExternalIdentifiers> 
+        </ExternalIdentifiers>
         <Name>Supreme Summary Contest</Name>
         <SubUnitsReported>1</SubUnitsReported>
         <TotalSubUnits>2</TotalSubUnits>
+        <OfficeIds>off-asfa567985thjkgh</OfficeIds>
       </Contest>
     </ContestCollection>
     <CountStatus>

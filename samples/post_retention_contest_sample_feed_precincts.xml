@@ -965,9 +965,7 @@
       <Type>country</Type>
     </GpUnit>
     <GpUnit objectId="ru0002" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>
-        ru0311 ru0001 ru0150 ru0076 ru0107 ru_preXXXXX
-      </ComposingGpUnitIds>
+      <ComposingGpUnitIds>ru0001</ComposingGpUnitIds>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -987,7 +985,7 @@
       <Type>state</Type>
     </GpUnit>
     <GpUnit objectId="ru0001" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru0030 ru0081 ru0054 ru0103</ComposingGpUnitIds>
+      <ComposingGpUnitIds>ru0311 ru0150 ru0076 ru0107 ru_preXXXXX</ComposingGpUnitIds>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1007,8 +1005,7 @@
       <Type>county</Type>
     </GpUnit>
     <GpUnit objectId="ru0150" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90348sp0000 ru_pre90348sp0001 ru_pre92087 ru_pre92145 ru_pre92306
-      ru_pre92360 ru_pre92426</ComposingGpUnitIds>
+      <ComposingGpUnitIds>ru0030 ru_pre92087 ru_pre92145</ComposingGpUnitIds>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1025,8 +1022,7 @@
       <Type>state-house</Type>
     </GpUnit>
     <GpUnit objectId="ru0311" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90111 ru_pre90139 ru_pre90666 ru_pre90994sp0000 ru_pre91602
-      ru_pre91781sp0001 ru_pre91999 ru_pre92175</ComposingGpUnitIds>
+      <ComposingGpUnitIds>ru0081 ru0054 ru_pre90994sp0000</ComposingGpUnitIds>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1043,9 +1039,7 @@
       <Type>state-house</Type>
     </GpUnit>
     <GpUnit objectId="ru0076" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre90183 ru_pre90614 ru_pre90929 ru_pre90994sp0001 ru_pre91089sp0000
-      ru_pre91089sp0001 ru_pre91298 ru_pre92140 ru_pre92171sp0000 ru_pre92171sp0001
-      ru_pre92320 ru_pre92353</ComposingGpUnitIds>
+      <ComposingGpUnitIds>ru0103 ru_pre90183 ru_pre90614 ru_pre90994sp0001 ru_pre91089sp0000 ru_pre91089sp0001 ru_pre92140 ru_pre92353</ComposingGpUnitIds>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1062,7 +1056,6 @@
       <Type>state-house</Type>
     </GpUnit>
     <GpUnit objectId="ru0107" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru_pre91918 ru_pre92065</ComposingGpUnitIds>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>

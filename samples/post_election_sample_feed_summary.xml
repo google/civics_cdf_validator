@@ -142,48 +142,6 @@
         <PartyId>par0001</PartyId>
         <PersonId>per10967</PersonId>
       </Candidate>
-      <Candidate objectId="can10964">
-        <BallotName>
-          <Text language="en">Mark D. Obenshain</Text>
-        </BallotName>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-obenshain</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <PartyId>par0001</PartyId>
-        <PersonId>per10964</PersonId>
-      </Candidate>
-      <Candidate objectId="can10965">
-        <BallotName>
-          <Text language="en">Mark R. Herring</Text>
-        </BallotName>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-herring</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <PartyId>par0003</PartyId>
-        <PersonId>per10965</PersonId>
-      </Candidate>
-      <Candidate objectId="can14444">
-        <BallotName>
-          <Text language="en">Cleo E. Powell</Text>
-        </BallotName>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-powell</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <PartyId>par0003</PartyId>
-        <PersonId>per14444</PersonId>
-      </Candidate>
       <Candidate objectId="can10422">
         <BallotName>
           <Text language="en">R. Steven /Steve/ Landes</Text>
@@ -696,75 +654,6 @@
         <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
         <OfficeIds>off0001</OfficeIds>
-        <VotesAllowed>1</VotesAllowed>
-      </Contest>
-      <Contest objectId="cc20005" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs10964" xsi:type="CandidateSelection">
-          <VoteCountsCollection>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>absentee</Type>
-              <Count>563</Count>
-            </VoteCounts>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>early</Type>
-              <Count>3623</Count>
-            </VoteCounts>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>election-day</Type>
-              <Count>8516</Count>
-            </VoteCounts>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>total</Type>
-              <Count>12702</Count>
-            </VoteCounts>
-          </VoteCountsCollection>
-          <CandidateIds>can10964</CandidateIds>
-        </BallotSelection>
-        <BallotSelection objectId="cs10965" xsi:type="CandidateSelection">
-          <VoteCountsCollection>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>absentee</Type>
-              <Count>2748</Count>
-            </VoteCounts>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>early</Type>
-              <Count>4047</Count>
-            </VoteCounts>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>election-day</Type>
-              <Count>5069</Count>
-            </VoteCounts>
-            <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
-              <Type>total</Type>
-              <Count>11864</Count>
-            </VoteCounts>
-          </VoteCountsCollection>
-          <CandidateIds>can10965</CandidateIds>
-        </BallotSelection>
-        <BallotTitle>
-          <Text language="en">Attorney General</Text>
-        </BallotTitle>
-        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-va3-country-us</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <Name>Attorney General</Name>
-        <SubUnitsReported>21</SubUnitsReported>
-        <TotalSubUnits>31</TotalSubUnits>
-        <NumberElected>1</NumberElected>
-        <OfficeIds>off20005</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc20024" xsi:type="CandidateContest">
@@ -1288,7 +1177,7 @@
               <Count>27864</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10215 can14444</CandidateIds>
+          <CandidateIds>can10215</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">Member School Board - Samuel Miller</Text>
@@ -1378,6 +1267,23 @@
   </Election>
   <Format>summary-contest</Format>
   <GeneratedDate>2013-11-05T14:25:28</GeneratedDate>
+  <GovernmentBodyCollection>
+    <GovernmentBody objectId="gb1">
+      <Name>
+        <Text language="en">Virginia House of Delegates</Text>
+      </Name>
+    </GovernmentBody>
+    <GovernmentBody objectId="gb2">
+      <Name>
+        <Text language="en">Board of Supervisors</Text>
+      </Name>
+    </GovernmentBody>
+    <GovernmentBody objectId="gb3">
+      <Name>
+        <Text language="en">School Board</Text>
+      </Name>
+    </GovernmentBody>
+  </GovernmentBodyCollection>
   <GpUnitCollection>
     <GpUnit objectId="ru000us" xsi:type="ReportingUnit">
       <ComposingGpUnitIds>
@@ -1398,7 +1304,9 @@
           <Value>51</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>United States Of America</Name>
+      <InternationalizedName>
+        <Text language="en">United States Of America</Text>
+      </InternationalizedName>
       <Type>country</Type>
     </GpUnit>
     <GpUnit objectId="ru0002" xsi:type="ReportingUnit">
@@ -1420,7 +1328,9 @@
           <Value>51</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>Virginia</Name>
+      <InternationalizedName>
+        <Text language="en">Virginia</Text>
+      </InternationalizedName>
       <Type>state</Type>
     </GpUnit>
     <GpUnit objectId="ru0001" xsi:type="ReportingUnit">
@@ -1440,7 +1350,9 @@
           <Value>51003</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>Albemarle County</Name>
+      <InternationalizedName>
+        <Text language="en">Albemarle County</Text>
+      </InternationalizedName>
       <Type>county</Type>
     </GpUnit>
     <GpUnit objectId="ru0150" xsi:type="ReportingUnit">
@@ -1617,6 +1529,7 @@
       <Name>
         <Text language="en">President</Text>
       </Name>
+      <SelectionMethod>indirectly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1650,6 +1563,7 @@
       <Name>
         <Text language="en">Vice President</Text>
       </Name>
+      <SelectionMethod>indirectly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1683,6 +1597,7 @@
       <Name>
         <Text language="en">Governor</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1716,39 +1631,7 @@
       <Name>
         <Text language="en">Lieutenant Governor</Text>
       </Name>
-      <Term>
-        <Type>full-term</Type>
-      </Term>
-    </Office>
-    <Office objectId="off20005">
-      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
-      <ExternalIdentifiers>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>stable</OtherType>
-          <Value>stable-off20005</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>jurisdiction-id</OtherType>
-          <Value>ru0002</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>attorney general</Value>
-        </ExternalIdentifier>
-      </ExternalIdentifiers>
-      <FilingDeadline>2013-01-01</FilingDeadline>
-      <IsPartisan>true</IsPartisan>
-      <Name>
-        <Text language="en">Attorney General</Text>
-      </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1778,10 +1661,12 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
+      <GovernmentBodyIds>gb1</GovernmentBodyIds>
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">Virginia House of Delegates Member</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1812,10 +1697,12 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
+      <GovernmentBodyIds>gb2</GovernmentBodyIds>
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">Member Board of Supervisors - Scottsville</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1845,10 +1732,12 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
+      <GovernmentBodyIds>gb2</GovernmentBodyIds>
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">Member Board of Supervisors - Jack Jouett</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1878,10 +1767,12 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
+      <GovernmentBodyIds>gb2</GovernmentBodyIds>
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">Member Board of Supervisors - Samuel Miller</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1911,10 +1802,12 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
+      <GovernmentBodyIds>gb2</GovernmentBodyIds>
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">Member Board of Supervisors - Rio</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1945,10 +1838,12 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
+      <GovernmentBodyIds>gb3</GovernmentBodyIds>
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">Member School Board - Rio</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -1978,10 +1873,12 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
+      <GovernmentBodyIds>gb3</GovernmentBodyIds>
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">Member School Board - Samuel Miller</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -2011,10 +1908,12 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
+      <GovernmentBodyIds>gb3</GovernmentBodyIds>
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">Member School Board - Jack Jouett</Text>
       </Name>
+      <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
       </Term>
@@ -2400,22 +2299,6 @@
       <LastName>Herring</LastName>
       <MiddleName>R.</MiddleName>
       <PartyId>par0005</PartyId>
-    </Person>
-    <Person objectId="per14444">
-      <ExternalIdentifiers>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>stable</OtherType>
-          <Value>person-per14444</Value>
-        </ExternalIdentifier>
-      </ExternalIdentifiers>
-      <FirstName>Cleo</FirstName>
-      <FullName>
-        <Text language="en">Cleo Powell</Text>
-      </FullName>
-      <LastName>Powell</LastName>
-      <MiddleName>E.</MiddleName>
-      <PartyId>par0002</PartyId>
     </Person>
     <Person objectId="per10422">
       <ContactInformation label="ci10422">

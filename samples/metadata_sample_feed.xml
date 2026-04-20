@@ -2,22 +2,24 @@
 <FeedDeliveryReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <FeedCollection>
     <Feed>
-      <FeedId>sample-feed-1</FeedId>
-      <FeedName>Sample Feed 1</FeedName>
+      <FeedId>sample-feed-yearly-pre-election</FeedId>
+      <FeedName>Sample Yearly Pre-Election Feed</FeedName>
       <FeedType>pre-election</FeedType>
-      <FeedLongevity>limited</FeedLongevity>
-      <SourceDirPath>https://sample/path1</SourceDirPath>
+      <FeedLongevity>yearly</FeedLongevity>
+      <SourceDirPath>https://sample/yearly-pre-election.xml</SourceDirPath>
       <CountryCode>US</CountryCode>
       <FeedInactiveDate>2023-12-31</FeedInactiveDate>
       <ElectionEventCollection>
         <ElectionEvent>
-          <DebugName>Debug Name</DebugName>
+          <DebugName>US General Election</DebugName>
           <OfficeScopeCollection>
             <OfficeScope>
-              <DebugName>Scope of US general election</DebugName>
+              <DebugName>Scope of US General Election</DebugName>
               <OfficeLevel>Country</OfficeLevel>
               <JurisdictionOcdId>ocd-division/country:us</JurisdictionOcdId>
-              <OfficeRoles>president</OfficeRoles>
+              <OfficeRoles>head of state</OfficeRoles>
+              <OfficeRoles>head of government</OfficeRoles>
+              <OfficeRoles>deputy head of government</OfficeRoles>
               <OfficeRoles>lower house</OfficeRoles>
               <OfficeRoles>upper house</OfficeRoles>
             </OfficeScope>
@@ -46,11 +48,11 @@
       </ElectionEventCollection>
     </Feed>
     <Feed>
-      <FeedId>sample-feed-2</FeedId>
-      <FeedName>Sample Feed 2</FeedName>
+      <FeedId>sample-feed-limited-pre-election</FeedId>
+      <FeedName>Sample Limited Pre-Election Feed</FeedName>
       <FeedType>pre-election</FeedType>
       <FeedLongevity>limited</FeedLongevity>
-      <SourceDirPath>https://sample/path2</SourceDirPath>
+      <SourceDirPath>https://sample/limited-pre-election.xml</SourceDirPath>
       <CountryCode>IN</CountryCode>
       <FeedInactiveDate>2024-06-15</FeedInactiveDate>
       <ElectionEventCollection>
@@ -124,6 +126,104 @@
           <EndDate>2024-04-26</EndDate>
         </ElectionEvent>
       </ElectionEventCollection>
+    </Feed>
+    <Feed>
+      <FeedId>sample-feed-results</FeedId>
+      <FeedName>Sample Election Results Feed</FeedName>
+      <FeedType>election-results</FeedType>
+      <FeedLongevity>limited</FeedLongevity>
+      <SourceDirPath>s3://sample/results.xml</SourceDirPath>
+      <SqsQueueName>sample-feed-results</SqsQueueName>
+      <CountryCode>US</CountryCode>
+      <FeedInactiveDate>2024-12-31</FeedInactiveDate>
+      <ElectionEventCollection>
+        <ElectionEvent>
+          <DebugName>Sample Results Event</DebugName>
+          <OfficeScopeCollection>
+            <OfficeScope>
+              <DebugName>Scope of Results Event</DebugName>
+              <OfficeLevel>Country</OfficeLevel>
+              <JurisdictionOcdId>ocd-division/country:us</JurisdictionOcdId>
+              <OfficeRoles>head of state</OfficeRoles>
+              <OfficeRoles>head of government</OfficeRoles>
+              <OfficeRoles>deputy head of government</OfficeRoles>
+              <OfficeRoles>lower house</OfficeRoles>
+              <OfficeRoles>upper house</OfficeRoles>
+            </OfficeScope>
+          </OfficeScopeCollection>
+          <ElectionType>general</ElectionType>
+          <ElectionDateType>scheduled</ElectionDateType>
+          <ElectionDateStatus>confirmed</ElectionDateStatus>
+          <InitialDeliveryDate>2024-11-05</InitialDeliveryDate>
+          <FullDeliveryDate>2024-11-05</FullDeliveryDate>
+          <StartDate>2024-11-05</StartDate>
+          <EndDate>2024-11-05</EndDate>
+        </ElectionEvent>
+      </ElectionEventCollection>
+    </Feed>
+    <Feed>
+      <FeedId>sample-feed-results-test</FeedId>
+      <FeedName>Sample Test Election Results</FeedName>
+      <FeedType>election-results</FeedType>
+      <FeedLongevity>limited</FeedLongevity>
+      <SourceDirPath>s3://sample/results-test.xml</SourceDirPath>
+      <SqsQueueName>sample-feed-results-test</SqsQueueName>
+      <CountryCode>US</CountryCode>
+      <FeedInactiveDate>2024-12-31</FeedInactiveDate>
+      <IsTest>true</IsTest>
+      <ElectionEventCollection>
+        <ElectionEvent>
+          <DebugName>Sample Results Event</DebugName>
+          <ElectionType>general</ElectionType>
+          <ElectionDateType>scheduled</ElectionDateType>
+          <ElectionDateStatus>confirmed</ElectionDateStatus>
+          <InitialDeliveryDate>2024-11-05</InitialDeliveryDate>
+          <FullDeliveryDate>2024-11-05</FullDeliveryDate>
+          <StartDate>2024-11-05</StartDate>
+          <EndDate>2024-11-05</EndDate>
+        </ElectionEvent>
+      </ElectionEventCollection>
+    </Feed>
+    <Feed>
+      <FeedId>sample-feed-officeholders</FeedId>
+      <FeedName>Sample Officeholders Feed</FeedName>
+      <FeedType>officeholder</FeedType>
+      <FeedLongevity>evergreen</FeedLongevity>
+      <SourceDirPath>http://sample/officeholders.xml</SourceDirPath>
+      <CountryCode>US</CountryCode>
+      <OfficeholderSubFeed>
+        <DebugName>Sample Officeholders</DebugName>
+        <OfficeScopeCollection>
+          <OfficeScope>
+            <DebugName>Scope of Officeholders</DebugName>
+            <OfficeLevel>Country</OfficeLevel>
+            <JurisdictionOcdId>ocd-division/country:us</JurisdictionOcdId>
+              <OfficeRoles>head of state</OfficeRoles>
+              <OfficeRoles>head of government</OfficeRoles>
+              <OfficeRoles>deputy head of government</OfficeRoles>
+              <OfficeRoles>lower house</OfficeRoles>
+              <OfficeRoles>upper house</OfficeRoles>
+          </OfficeScope>
+        </OfficeScopeCollection>
+        <InitialDeliveryDate>2024-01-01</InitialDeliveryDate>
+        <FullDeliveryDate>2024-01-15</FullDeliveryDate>
+        <ExpectedOfficeholders>500</ExpectedOfficeholders>
+      </OfficeholderSubFeed>
+    </Feed>
+    <Feed>
+      <FeedId>sample-feed-election-dates</FeedId>
+      <FeedName>Sample Election Dates Feed</FeedName>
+      <FeedType>election-dates</FeedType>
+      <FeedLongevity>evergreen</FeedLongevity>
+      <SourceDirPath>ftp://sample/dates.xml</SourceDirPath>
+      <CountryCode>US</CountryCode>
+    </Feed>
+    <Feed>
+      <FeedId>sample-feed-voter-info</FeedId>
+      <FeedName>Sample Voter Info Feed</FeedName>
+      <FeedType>voter-information</FeedType>
+      <FeedLongevity>evergreen</FeedLongevity>
+      <SourceDirPath>sftp://sample/voter-info.xml</SourceDirPath>
     </Feed>
   </FeedCollection>
   <PartnerTag>Sample Partner</PartnerTag>
