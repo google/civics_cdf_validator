@@ -3491,6 +3491,62 @@ class ImproperCandidateContest(base.TreeRule):
       raise loggers.ElectionWarning(warning_log)
 
 
+class WinnerCountLimit(base.BaseRule):
+  """Number of winners must be less than or equal to NumberElected."""
+
+  def setup(self):
+    self.candidate_post_election_status_by_object_id = (
+        self._get_candidate_post_election_status_by_object_id()
+    )
+
+  def _get_candidate_post_election_status_by_object_id(self):
+    candidate_post_election_status_by_object_id = {}
+    candidates = self.get_elements_by_class(
+        self.election_tree, "CandidateCollection//Candidate"
+    )
+    for candidate in candidates:
+      object_id = candidate.get("objectId")
+      post_election_status = candidate.find("PostElectionStatus")
+      if object_id and element_has_text(post_election_status):
+        candidate_post_election_status_by_object_id[object_id] = (
+            post_election_status.text.strip()
+        )
+    return candidate_post_election_status_by_object_id
+
+  def elements(self):
+    return ["CandidateContest"]
+
+  def check(self, element):
+    number_elected_element = element.find("NumberElected")
+    number_elected = (
+        int(number_elected_element.text)
+        if element_has_text(number_elected_element)
+        else 1
+    )
+
+    candidate_ids_elements = element.findall("BallotSelection//CandidateIds")
+    candidate_ids = set()
+    for candidate_ids_element in candidate_ids_elements:
+      if element_has_text(candidate_ids_element):
+        candidate_ids.update(candidate_ids_element.text.split())
+
+    winner_count = 0
+    for candidate_id in candidate_ids:
+      status = self.candidate_post_election_status_by_object_id.get(
+          candidate_id
+      )
+      if status in {"winner", "projected-winner"}:
+        winner_count += 1
+
+    if winner_count > number_elected:
+      raise loggers.ElectionError.from_message(
+          f"Contest {element.get('objectId')} has {winner_count} candidates"
+          " with PostElectionStatus of 'winner' or 'projected-winner',"
+          f" which exceeds NumberElected: {number_elected}.",
+          [element],
+      )
+
+
 class MissingFieldsError(base.MissingFieldRule):
   """Check for missing fields for given entity types and field names.
 
@@ -4882,6 +4938,7 @@ ELECTION_RULES = COMMON_RULES + (
     ValidateInfoUriAnnotation,
     VoteCountTypesCoherency,
     VoteCountValidSeatsDeltaTypes,
+    WinnerCountLimit,
     # go/keep-sorted end
 )
 
