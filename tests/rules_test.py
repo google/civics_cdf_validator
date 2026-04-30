@@ -9447,6 +9447,179 @@ class ImproperCandidateContestTest(absltest.TestCase):
                      ew.exception.log_entry[0].message)
 
 
+class WinnerCountLimitTest(absltest.TestCase):
+
+  def testPassesWhenWinnerCountEqualsNumberElected(self):
+    election_string = """
+      <ElectionReport>
+        <Election>
+          <CandidateCollection>
+            <Candidate objectId="can1">
+              <PostElectionStatus>winner</PostElectionStatus>
+            </Candidate>
+            <Candidate objectId="can2">
+              <PostElectionStatus>projected-winner</PostElectionStatus>
+            </Candidate>
+          </CandidateCollection>
+          <ContestCollection>
+            <Contest objectId="cc1" type="CandidateContest">
+              <NumberElected>2</NumberElected>
+              <BallotSelection objectId="bs1" type="CandidateSelection">
+                <CandidateIds>can1</CandidateIds>
+              </BallotSelection>
+              <BallotSelection objectId="bs2" type="CandidateSelection">
+                <CandidateIds>can2</CandidateIds>
+              </BallotSelection>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    election_tree = etree.fromstring(election_string)
+    rule = rules.WinnerCountLimit(election_tree, None)
+    rule.setup()
+
+    rule.check(election_tree.find(".//Contest"))
+
+  def testRaisesErrorWhenWinnerCountExceedsNumberElected(self):
+    election_string = """
+      <ElectionReport>
+        <Election>
+          <CandidateCollection>
+            <Candidate objectId="can1">
+              <PostElectionStatus>winner</PostElectionStatus>
+            </Candidate>
+            <Candidate objectId="can2">
+              <PostElectionStatus>projected-winner</PostElectionStatus>
+            </Candidate>
+          </CandidateCollection>
+          <ContestCollection>
+            <Contest objectId="cc1" type="CandidateContest">
+              <NumberElected>1</NumberElected>
+              <BallotSelection objectId="bs1" type="CandidateSelection">
+                <CandidateIds>can1</CandidateIds>
+              </BallotSelection>
+              <BallotSelection objectId="bs2" type="CandidateSelection">
+                <CandidateIds>can2</CandidateIds>
+              </BallotSelection>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    election_tree = etree.fromstring(election_string)
+    rule = rules.WinnerCountLimit(election_tree, None)
+    rule.setup()
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      rule.check(election_tree.find(".//Contest"))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Contest cc1 has 2 candidates with PostElectionStatus of 'winner' or"
+        " 'projected-winner', which exceeds NumberElected: 1.",
+    )
+
+  def testPassesWhenNumberElectedIsMissing(self):
+    election_string = """
+      <ElectionReport>
+        <Election>
+          <CandidateCollection>
+            <Candidate objectId="can1">
+              <PostElectionStatus>winner</PostElectionStatus>
+            </Candidate>
+          </CandidateCollection>
+          <ContestCollection>
+            <Contest objectId="cc1" type="CandidateContest">
+              <BallotSelection objectId="bs1" type="CandidateSelection">
+                <CandidateIds>can1</CandidateIds>
+              </BallotSelection>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    election_tree = etree.fromstring(election_string)
+    rule = rules.WinnerCountLimit(election_tree, None)
+    rule.setup()
+
+    rule.check(election_tree.find(".//Contest"))
+
+  def testFailsWhenNumberElectedIsMissingAndWinnerCountExceedsDefault(self):
+    election_string = """
+      <ElectionReport>
+        <Election>
+          <CandidateCollection>
+            <Candidate objectId="can1">
+              <PostElectionStatus>winner</PostElectionStatus>
+            </Candidate>
+            <Candidate objectId="can2">
+              <PostElectionStatus>projected-winner</PostElectionStatus>
+            </Candidate>
+          </CandidateCollection>
+          <ContestCollection>
+            <Contest objectId="cc1" type="CandidateContest">
+              <BallotSelection objectId="bs1" type="CandidateSelection">
+                <CandidateIds>can1</CandidateIds>
+              </BallotSelection>
+              <BallotSelection objectId="bs2" type="CandidateSelection">
+                <CandidateIds>can2</CandidateIds>
+              </BallotSelection>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    election_tree = etree.fromstring(election_string)
+    rule = rules.WinnerCountLimit(election_tree, None)
+    rule.setup()
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      rule.check(election_tree.find(".//Contest"))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Contest cc1 has 2 candidates with PostElectionStatus of 'winner' or"
+        " 'projected-winner', which exceeds NumberElected: 1.",
+    )
+
+  def testIgnoresNonWinnerStatuses(self):
+    election_string = """
+      <ElectionReport>
+        <Election>
+          <CandidateCollection>
+            <Candidate objectId="can1">
+              <PostElectionStatus>advanced-to-runoff</PostElectionStatus>
+            </Candidate>
+            <Candidate objectId="can2">
+              <PostElectionStatus>withdrawn</PostElectionStatus>
+            </Candidate>
+            <Candidate objectId="can3">
+              <PostElectionStatus>winner</PostElectionStatus>
+            </Candidate>
+          </CandidateCollection>
+          <ContestCollection>
+            <Contest objectId="cc1" type="CandidateContest">
+              <NumberElected>1</NumberElected>
+              <BallotSelection objectId="bs1" type="CandidateSelection">
+                <CandidateIds>can1</CandidateIds>
+              </BallotSelection>
+              <BallotSelection objectId="bs2" type="CandidateSelection">
+                <CandidateIds>can2</CandidateIds>
+              </BallotSelection>
+              <BallotSelection objectId="bs3" type="CandidateSelection">
+                <CandidateIds>can3</CandidateIds>
+              </BallotSelection>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    election_tree = etree.fromstring(election_string)
+    rule = rules.WinnerCountLimit(election_tree, None)
+    rule.setup()
+
+    rule.check(election_tree.find(".//Contest"))
+
+
 class MissingFieldsErrorTest(absltest.TestCase):
 
   def setUp(self):
