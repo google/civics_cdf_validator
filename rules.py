@@ -4915,6 +4915,8 @@ ELECTION_DATES_RULES = ELECTION_RULES + (UnreferencedEntitiesElectionDates,)
 METADATA_RULES = (
     # go/keep-sorted start
     ElectionEventDatesAreSequential,
+    EmptyString,
+    EmptyText,
     Encoding,
     FeedElementsShouldHaveSubElementsBasedOnType,
     FeedHasValidCountryCode,
