@@ -5635,9 +5635,6 @@ class ValidURIAnnotationTest(absltest.TestCase):
         <Uri Annotation="followthemoney">
           <![CDATA[https://www.followthemoney.org]]>
         </Uri>
-        <Uri Annotation="candidate-image">
-          <![CDATA[https://www.parlament.gv.at/test.jpg]]>
-        </Uri>
       </ContactInformation>
     """
     self.valid_annotation.check(etree.fromstring(root_string))
@@ -5845,6 +5842,173 @@ class ValidURIAnnotationTest(absltest.TestCase):
       </ContactInformation>
     """
     self.valid_annotation.check(etree.fromstring(root_string))
+
+  def testCandidateImageInContactInformationWarning(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="candidate-image">
+          <![CDATA[https://www.parlament.gv.at/test.jpg]]>
+        </Uri>
+      </ContactInformation>
+    """
+
+    with self.assertRaises(loggers.ElectionWarning) as context:
+      self.valid_annotation.check(etree.fromstring(root_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "'candidate-image' is not a valid annotation.",
+    )
+
+
+class OnlyOneCandidateImagePerPersonTest(absltest.TestCase):
+
+  def setUp(self):
+    super(OnlyOneCandidateImagePerPersonTest, self).setUp()
+    self.validator = rules.OnlyOneCandidateImagePerPerson(None, None)
+
+  def testValidPersonOneCandidateImage(self):
+    root_string = """
+      <Person objectId="per1">
+        <ImageUri Annotation="candidate-image">https://fake.com/1.jpg</ImageUri>
+        <ImageUri Annotation="other-image">https://fake.com/2.jpg</ImageUri>
+      </Person>
+    """
+
+    self.validator.check(etree.fromstring(root_string))
+
+  def testInvalidPersonMultipleCandidateImages(self):
+    root_string = """
+      <Person objectId="per1">
+        <ImageUri Annotation="candidate-image">https://fake.com/1.jpg</ImageUri>
+        <ImageUri Annotation="candidate-image">https://fake.com/2.jpg</ImageUri>
+      </Person>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as cm:
+      self.validator.check(etree.fromstring(root_string))
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Person has 2 ImageUri fields annotated as 'candidate-image'."
+        " Must have at most one.",
+    )
+
+
+class UniqueCandidateImageUrisTest(absltest.TestCase):
+
+  def testValidUniqueCandidateImageUris(self):
+    root_string = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per1">
+            <ImageUri Annotation="candidate-image">https://fake.com/1.jpg</ImageUri>
+          </Person>
+          <Person objectId="per2">
+            <ImageUri Annotation="candidate-image">https://fake.com/2.jpg</ImageUri>
+          </Person>
+        </PersonCollection>
+      </ElectionReport>
+    """
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    validator = rules.UniqueCandidateImageUris(election_tree, None)
+
+    validator.check()
+
+  def testInvalidDuplicateCandidateImageUris(self):
+    root_string = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per1">
+            <ImageUri Annotation="candidate-image">https://fake.com/1.jpg</ImageUri>
+          </Person>
+          <Person objectId="per2">
+            <ImageUri Annotation="candidate-image">https://fake.com/1.jpg</ImageUri>
+          </Person>
+        </PersonCollection>
+      </ElectionReport>
+    """
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    validator = rules.UniqueCandidateImageUris(election_tree, None)
+
+    with self.assertRaises(loggers.ElectionError) as cm:
+      validator.check()
+    self.assertEqual(
+        cm.exception.log_entry[0].message,
+        "Candidate image URI 'https://fake.com/1.jpg' is shared by multiple"
+        " people: [per1, per2].",
+    )
+
+  def testIgnoresImageUrisWithoutCandidateImageAnnotation(self):
+    root_string = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per1">
+            <ImageUri Annotation="other-image">https://fake.com/1.jpg</ImageUri>
+          </Person>
+          <Person objectId="per2">
+            <ImageUri Annotation="other-image">https://fake.com/1.jpg</ImageUri>
+          </Person>
+        </PersonCollection>
+      </ElectionReport>
+    """
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    validator = rules.UniqueCandidateImageUris(election_tree, None)
+
+    validator.check()
+
+  def testIgnoresEmptyImageUri(self):
+    root_string = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per1">
+            <ImageUri Annotation="candidate-image"></ImageUri>
+          </Person>
+          <Person objectId="per2">
+            <ImageUri Annotation="candidate-image"></ImageUri>
+          </Person>
+        </PersonCollection>
+      </ElectionReport>
+    """
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    validator = rules.UniqueCandidateImageUris(election_tree, None)
+
+    validator.check()
+
+  def testIgnoresWhitespaceImageUri(self):
+    root_string = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per1">
+            <ImageUri Annotation="candidate-image">   </ImageUri>
+          </Person>
+          <Person objectId="per2">
+            <ImageUri Annotation="candidate-image">   </ImageUri>
+          </Person>
+        </PersonCollection>
+      </ElectionReport>
+    """
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    validator = rules.UniqueCandidateImageUris(election_tree, None)
+
+    validator.check()
+
+  def testElectionReportWithNoPersonCollectionIsValid(self):
+    root_string = "<ElectionReport></ElectionReport>"
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    validator = rules.UniqueCandidateImageUris(election_tree, None)
+
+    validator.check()
+
+  def testElectionReportWithEmptyPersonCollectionIsValid(self):
+    root_string = """
+      <ElectionReport>
+        <PersonCollection>
+        </PersonCollection>
+      </ElectionReport>
+    """
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    validator = rules.UniqueCandidateImageUris(election_tree, None)
+
+    validator.check()
 
 
 class OfficesHaveJurisdictionIDTest(absltest.TestCase):

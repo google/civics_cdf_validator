@@ -1714,6 +1714,65 @@ class PersonsMissingPartyData(base.BaseRule):
       )
 
 
+class OnlyOneCandidateImagePerPerson(base.BaseRule):
+  """Ensure only one candidate-image is provided per Person."""
+
+  def elements(self):
+    return ["Person"]
+
+  def check(self, element):
+    image_uris = element.findall("ImageUri")
+    candidate_images = []
+    for image_uri in image_uris:
+      annotation = image_uri.get("Annotation", "").strip()
+      if annotation == "candidate-image":
+        candidate_images.append(image_uri)
+
+    if len(candidate_images) > 1:
+      raise loggers.ElectionError.from_message(
+          "Person has {} ImageUri fields annotated as 'candidate-image'."
+          " Must have at most one.".format(len(candidate_images)),
+          candidate_images,
+      )
+
+
+class UniqueCandidateImageUris(base.TreeRule):
+  """Check that candidate-image URIs are unique to a person."""
+
+  def check(self):
+    root = self.election_tree.getroot()
+    if root is None:
+      return
+
+    persons_by_candidate_image_uri = collections.defaultdict(list)
+    person_collection = root.find("PersonCollection")
+    if person_collection is None:
+      return
+    for person in person_collection.findall("Person"):
+      for image_uri_element in person.findall("ImageUri"):
+        if not element_has_text(image_uri_element):
+          continue
+        annotation = image_uri_element.get("Annotation", "").strip()
+        if annotation == "candidate-image":
+          image_uri = image_uri_element.text.strip()
+          if image_uri:
+            persons_by_candidate_image_uri[image_uri].append(person)
+
+    error_log = []
+    for image_uri, persons in persons_by_candidate_image_uri.items():
+      if len(persons) > 1:
+        person_ids = sorted(person.get("objectId") for person in persons)
+        error_log.append(
+            loggers.LogEntry(
+                f"Candidate image URI '{image_uri}' is shared by multiple"
+                f" people: [{', '.join(person_ids)}].",
+                persons,
+            )
+        )
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
 class AllCaps(base.BaseRule):
   """Name elements should not be in all uppercase.
 
@@ -2364,11 +2423,8 @@ class ValidURIAnnotation(base.BaseRule):
             "URI {} is missing annotation.".format(ascii_url), [uri]
         )
 
-      # Skip platform checks for image or office contact form annotations.
-      if (
-          re.search(r"candidate-image", annotation)
-          or annotation == "office-contact_form"
-      ):
+      # Skip platform checks for office contact form annotations.
+      if annotation == "office-contact_form":
         continue
 
       ann_elements = annotation.split("-")
@@ -4811,6 +4867,7 @@ COMMON_RULES = (
     OfficesHaveJurisdictionID,
     OfficesHaveValidOfficeLevel,
     OfficesHaveValidOfficeRole,
+    OnlyOneCandidateImagePerPerson,
     OptionalAndEmpty,
     OtherType,
     PartyLeadershipMustExist,
@@ -4820,6 +4877,7 @@ COMMON_RULES = (
     PersonsMissingPartyData,
     Schema,
     URIValidator,
+    UniqueCandidateImageUris,
     UniqueLabel,
     UniqueStableID,
     UniqueURIPerAnnotationCategory,
