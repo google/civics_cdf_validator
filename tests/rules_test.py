@@ -2730,48 +2730,165 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
         </PartyCollection>
       </ElectionReport>
     """
-    self._color_str = "<Color>{}</Color>"
+    self._color_template = "<Color>{}</Color>"
+    self._colors_template = """
+      <Colors>
+        <DarkThemeColor>{dark_theme_color}</DarkThemeColor>
+        <LightThemeColor>{light_theme_color}</LightThemeColor>
+      </Colors>
+    """
 
-  def testContestWithPartiesHaveDuplicateColors(self):
+  def testContestWithPartyWithNoColor(self):
     test_string = self.root_string.format(
-        self._color_str.format("ff0000"),
-        self._color_str.format("ff0000"),
-        self._color_str.format("ff0000"),
+        self._color_template.format("ff0000"),
+        self._color_template.format("0000ff"),
+        "",
     )
     election_tree = etree.fromstring(test_string)
-    with self.assertRaises(loggers.ElectionWarning) as cm:
+
+    with self.assertRaises(loggers.ElectionWarning) as context:
       rules.ValidateDuplicateColors(election_tree, None).check()
     self.assertEqual(
-        cm.exception.log_entry[0].message, "Parties have the same color ff0000."
+        context.exception.log_entry[0].message,
+        "Party (par0003) in PartyContest should have either Color or"
+        " Colors.DarkThemeColor and Colors.LightThemeColor set.",
     )
-    self.assertLen(cm.exception.log_entry[0].elements, 2)
-    duplicated_parties = [
-        cm.exception.log_entry[0].elements[0].get("objectId"),
-        cm.exception.log_entry[0].elements[1].get("objectId"),
-    ]
-    self.assertIn("par0001", duplicated_parties)
-    self.assertIn("par0002", duplicated_parties)
 
-  def testPartiesHaveUniqueColorsPerContest(self):
+  def testContestWithPartyWithDarkThemeColorButNoLightThemeColor(self):
     test_string = self.root_string.format(
-        self._color_str.format("ff0000"),
-        self._color_str.format("0000ff"),
-        self._color_str.format("ff0000"),
+        self._color_template.format("ff0000"),
+        self._color_template.format("0000ff"),
+        "<Colors><DarkThemeColor>000000</DarkThemeColor></Colors>",
     )
     election_tree = etree.fromstring(test_string)
+
+    with self.assertRaises(loggers.ElectionWarning) as context:
+      rules.ValidateDuplicateColors(election_tree, None).check()
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Party (par0003) in PartyContest should have either Color or"
+        " Colors.DarkThemeColor and Colors.LightThemeColor set.",
+    )
+
+  def testContestWithPartyWithLightThemeColorButNoDarkThemeColor(self):
+    test_string = self.root_string.format(
+        self._color_template.format("ff0000"),
+        self._color_template.format("0000ff"),
+        "<Colors><LightThemeColor>000000</LightThemeColor></Colors>",
+    )
+    election_tree = etree.fromstring(test_string)
+
+    with self.assertRaises(loggers.ElectionWarning) as context:
+      rules.ValidateDuplicateColors(election_tree, None).check()
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Party (par0003) in PartyContest should have either Color or"
+        " Colors.DarkThemeColor and Colors.LightThemeColor set.",
+    )
+
+  def testContestWithPartiesWithDuplicateColors(self):
+    test_string = self.root_string.format(
+        self._color_template.format("ff0000"),
+        self._color_template.format("ff0000"),
+        self._color_template.format("ff0000"),
+    )
+    election_tree = etree.fromstring(test_string)
+
+    with self.assertRaises(loggers.ElectionWarning) as context:
+      rules.ValidateDuplicateColors(election_tree, None).check()
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Parties have the same Color ff0000.",
+    )
+    self.assertLen(context.exception.log_entry[0].elements, 2)
+    duplicated_parties = [
+        context.exception.log_entry[0].elements[0].get("objectId"),
+        context.exception.log_entry[0].elements[1].get("objectId"),
+    ]
+    self.assertEqual(duplicated_parties, ["par0001", "par0002"])
+
+  def testContestWithPartiesWithUniqueColors(self):
+    test_string = self.root_string.format(
+        self._color_template.format("ff0000"),
+        self._color_template.format("0000ff"),
+        self._color_template.format("ff0000"),
+    )
+    election_tree = etree.fromstring(test_string)
+
     rules.ValidateDuplicateColors(election_tree, None).check()
 
-  def testPartyWithNoAssignedColor(self):
+  def testContestWithPartiesWithDuplicateDarkThemeColors(self):
     test_string = self.root_string.format(
-        self._color_str.format("ff0000"), self._color_str.format("0000ff"), ""
+        self._colors_template.format(
+            dark_theme_color="ff0000",
+            light_theme_color="0000ff",
+        ),
+        self._colors_template.format(
+            dark_theme_color="FF0000",
+            light_theme_color="00ff00",
+        ),
+        self._color_template.format("000000"),
     )
     election_tree = etree.fromstring(test_string)
-    with self.assertRaises(loggers.ElectionWarning) as cm:
+
+    with self.assertRaises(loggers.ElectionWarning) as context:
       rules.ValidateDuplicateColors(election_tree, None).check()
     self.assertEqual(
-        cm.exception.log_entry[0].message,
-        "Party (par0003) in PartyContest should have an assigned color.",
+        context.exception.log_entry[0].message,
+        "Parties have the same DarkThemeColor ff0000.",
     )
+    self.assertLen(context.exception.log_entry[0].elements, 2)
+    duplicated_parties = [
+        context.exception.log_entry[0].elements[0].get("objectId"),
+        context.exception.log_entry[0].elements[1].get("objectId"),
+    ]
+    self.assertEqual(duplicated_parties, ["par0001", "par0002"])
+
+  def testContestWithPartiesWithDuplicateLightThemeColors(self):
+    test_string = self.root_string.format(
+        self._colors_template.format(
+            dark_theme_color="0000ff",
+            light_theme_color="ff0000",
+        ),
+        self._colors_template.format(
+            dark_theme_color="00ff00",
+            light_theme_color="FF0000",
+        ),
+        self._color_template.format("000000"),
+    )
+    election_tree = etree.fromstring(test_string)
+
+    with self.assertRaises(loggers.ElectionWarning) as context:
+      rules.ValidateDuplicateColors(election_tree, None).check()
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Parties have the same LightThemeColor ff0000.",
+    )
+    self.assertLen(context.exception.log_entry[0].elements, 2)
+    duplicated_parties = [
+        context.exception.log_entry[0].elements[0].get("objectId"),
+        context.exception.log_entry[0].elements[1].get("objectId"),
+    ]
+    self.assertEqual(duplicated_parties, ["par0001", "par0002"])
+
+  def testContestWithPartiesWithUniqueDarkAndLightThemeColors(self):
+    test_string = self.root_string.format(
+        self._colors_template.format(
+            dark_theme_color="000000",
+            light_theme_color="111111",
+        ),
+        self._colors_template.format(
+            dark_theme_color="222222",
+            light_theme_color="333333",
+        ),
+        self._colors_template.format(
+            dark_theme_color="444444",
+            light_theme_color="555555",
+        ),
+    )
+    election_tree = etree.fromstring(test_string)
+
+    rules.ValidateDuplicateColors(election_tree, None).check()
 
 
 class MultipleCandidatesPointToTheSamePersonInTheSameContestTest(

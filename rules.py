@@ -1365,42 +1365,70 @@ class ValidateDuplicateColors(base.TreeRule):
   """
 
   def check(self):
-    party_color_mapping = {}
+    party_colors_by_id = {}
+    party_objects = {}
     for party in self.get_elements_by_class(self.election_tree, "Party"):
+      party_id = party.get("objectId")
+      party_objects[party_id] = party
+      party_colors_by_id[party_id] = {}
       color_element = party.find("Color")
-      if color_element is None or not color_element.text:
-        continue
-      party_color_mapping[party.get("objectId")] = (color_element.text, party)
+      if element_has_text(color_element):
+        party_colors_by_id[party_id]["Color"] = color_element.text.lower()
+      colors_element = party.find("Colors")
+      if colors_element is not None:
+        for color_field in ("DarkThemeColor", "LightThemeColor"):
+          sub_color_element = colors_element.find(color_field)
+          if element_has_text(sub_color_element):
+            party_colors_by_id[party_id][
+                color_field
+            ] = sub_color_element.text.lower()
 
     warning_log = []
     for party_contest in self.get_elements_by_class(
         element=self.election_tree, element_name="PartyContest"
     ):
-      contest_colors = {}
+      contest_colors = {
+          "Color": collections.defaultdict(list),
+          "DarkThemeColor": collections.defaultdict(list),
+          "LightThemeColor": collections.defaultdict(list),
+      }
       for party_ids_element in self.get_elements_by_class(
           element=party_contest, element_name="PartyIds"
       ):
         for party_id in party_ids_element.text.split():
-          if party_id not in party_color_mapping:
+          if party_id not in party_colors_by_id:
+            continue
+          party_colors = party_colors_by_id[party_id]
+          party_element = party_objects[party_id]
+
+          has_party_colors = "Color" in party_colors or (
+              "DarkThemeColor" in party_colors
+              and "LightThemeColor" in party_colors
+          )
+          if not has_party_colors:
             warning_log.append(
                 loggers.LogEntry(
-                    "Party (%s) in PartyContest should have an assigned color."
-                    % party_id
+                    f"Party ({party_id}) in PartyContest should have either"
+                    " Color or Colors.DarkThemeColor and Colors.LightThemeColor"
+                    " set.",
+                    [party_element],
                 )
             )
-            continue
-          party_color = party_color_mapping[party_id][0]
-          if party_color in contest_colors:
-            contest_colors[party_color].append(party_color_mapping[party_id][1])
-          else:
-            contest_colors[party_color] = [party_color_mapping[party_id][1]]
-      for color, parties in contest_colors.items():
-        if len(parties) > 1:
-          warning_log.append(
-              loggers.LogEntry(
-                  "Parties have the same color %s." % color, parties
-              )
-          )
+
+          for color_field in ("Color", "DarkThemeColor", "LightThemeColor"):
+            if color_field in party_colors:
+              color_val = party_colors[color_field]
+              contest_colors[color_field][color_val].append(party_element)
+
+      for color_field in ("Color", "DarkThemeColor", "LightThemeColor"):
+        for color, parties in contest_colors[color_field].items():
+          if len(parties) > 1:
+            warning_log.append(
+                loggers.LogEntry(
+                    f"Parties have the same {color_field} {color}.",
+                    parties,
+                )
+            )
     if warning_log:
       raise loggers.ElectionWarning(warning_log)
 
