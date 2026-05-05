@@ -1213,42 +1213,6 @@ class SingularPartySelection(base.BaseRule):
       )
 
 
-class PartiesHaveValidColors(base.BaseRule):
-  """Each Party should have a valid hex integer less than 16^6, without a leading '#'.
-
-  A Party object that has no Color or an invalid Color should be picked up
-  within this class and returned to the user as a warning.
-  """
-
-  def elements(self):
-    return ["Party"]
-
-  def check(self, element):
-    colors = element.findall("Color")
-    if not colors:
-      return
-    if len(colors) > 1:
-      raise loggers.ElectionWarning.from_message(
-          "The Party has more than one color.", [element]
-      )
-    color_val = colors[0].text
-    if not color_val:
-      raise loggers.ElectionWarning.from_message(
-          "Color tag is missing a value.", [colors[0]]
-      )
-    try:
-      int(color_val, 16)
-    except ValueError:
-      raise loggers.ElectionWarning.from_message(
-          "%s is not a valid hex color." % color_val,
-          [colors[0]],
-      )
-    if not re.match("^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", color_val):
-      raise loggers.ElectionWarning.from_message(
-          "%s should be a hexadecimal less than 16^6." % color_val, [colors[0]]
-      )
-
-
 class PersonHasUniqueFullName(base.BaseRule):
   """A Person should be defined one time in <PersonCollection>.
 
@@ -5017,7 +4981,6 @@ ELECTION_RULES = COMMON_RULES + (
     MultipleCandidatesPointToTheSamePersonInTheSameContest,
     MultipleInternationalizedTextWithSameLanguageCode,
     OfficeHasjurisdictionSameAsElectoralDistrict,
-    PartiesHaveValidColors,
     PartisanPrimary,
     PartisanPrimaryHeuristic,
     PercentSum,
