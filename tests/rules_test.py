@@ -11607,6 +11607,178 @@ class ValidatePollsCloseDatetimesTest(absltest.TestCase):
     self.validator.check(etree.fromstring(contest_string))
 
 
+class ValidateResultsExpectedTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ValidateResultsExpectedTest, self).setUp()
+    self.validator = rules.ValidateResultsExpected(None, None)
+
+  def testMissingResultsExpected(self):
+    contest_string = """
+      <Contest objectId="con1">
+        <ResultsReportingStageCollection>
+          <ResultsReportingStage>
+            <StageType>preliminary</StageType>
+            <ExpectedStartDateTime>2023-11-07T20:00:00Z</ExpectedStartDateTime>
+          </ResultsReportingStage>
+        </ResultsReportingStageCollection>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest_string))
+
+  def testMissingStageCollection(self):
+    contest_string = """
+      <Contest objectId="con1">
+        <ResultsExpected>2023-11-07T22:00:00Z</ResultsExpected>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest_string))
+
+  def testMissingStageExpectedStartDateTime(self):
+    contest_string = """
+      <Contest objectId="con1">
+        <ResultsExpected>2023-11-07T22:00:00Z</ResultsExpected>
+        <ResultsReportingStageCollection>
+          <ResultsReportingStage>
+            <StageType>preliminary</StageType>
+          </ResultsReportingStage>
+        </ResultsReportingStageCollection>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest_string))
+
+  def testInvalidDatetime(self):
+    contest_string = """
+      <Contest objectId="con1">
+        <ResultsExpected>invalid-date</ResultsExpected>
+      </Contest>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as ee:
+      self.validator.check(etree.fromstring(contest_string))
+    self.assertEqual(
+        ee.exception.log_entry[0].message,
+        "Invalid ResultsExpected datetime format in Contest con1: Invalid"
+        " isoformat string: 'invalid-date'",
+    )
+
+  def testOnlyNoResultsStages(self):
+    contest_string = """
+      <Contest objectId="con1">
+        <ResultsExpected>2023-11-07T18:00:00Z</ResultsExpected>
+        <ResultsReportingStageCollection>
+          <ResultsReportingStage>
+            <StageType>no-results</StageType>
+            <ExpectedStartDateTime>2023-11-07T20:00:00Z</ExpectedStartDateTime>
+          </ResultsReportingStage>
+        </ResultsReportingStageCollection>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest_string))
+
+  def testResultsExpectedAfterEarliestStage(self):
+    contest_string = """
+      <Contest objectId="con1">
+        <ResultsExpected>2023-11-07T22:00:00Z</ResultsExpected>
+        <ResultsReportingStageCollection>
+          <ResultsReportingStage>
+            <StageType>no-results</StageType>
+            <ExpectedStartDateTime>2023-11-07T18:00:00Z</ExpectedStartDateTime>
+          </ResultsReportingStage>
+          <ResultsReportingStage>
+            <StageType>preliminary</StageType>
+            <ExpectedStartDateTime>2023-11-07T20:00:00Z</ExpectedStartDateTime>
+          </ResultsReportingStage>
+          <ResultsReportingStage>
+            <StageType>official</StageType>
+            <ExpectedStartDateTime>2023-11-15T10:00:00Z</ExpectedStartDateTime>
+          </ResultsReportingStage>
+        </ResultsReportingStageCollection>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest_string))
+
+  def testResultsExpectedEqualsEarliestStage(self):
+    contest_string = """
+      <Contest objectId="con1">
+        <ResultsExpected>2023-11-07T20:00:00Z</ResultsExpected>
+        <ResultsReportingStageCollection>
+          <ResultsReportingStage>
+            <StageType>no-results</StageType>
+            <ExpectedStartDateTime>2023-11-07T18:00:00Z</ExpectedStartDateTime>
+          </ResultsReportingStage>
+          <ResultsReportingStage>
+            <StageType>preliminary</StageType>
+            <ExpectedStartDateTime>2023-11-07T20:00:00Z</ExpectedStartDateTime>
+          </ResultsReportingStage>
+          <ResultsReportingStage>
+            <StageType>official</StageType>
+            <ExpectedStartDateTime>2023-11-15T10:00:00Z</ExpectedStartDateTime>
+          </ResultsReportingStage>
+        </ResultsReportingStageCollection>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest_string))
+
+  def testResultsExpectedBeforeEarliestStage(self):
+    contest_string = """
+      <Contest objectId="con1">
+        <ResultsExpected>2023-11-07T19:00:00Z</ResultsExpected>
+        <ResultsReportingStageCollection>
+          <ResultsReportingStage>
+            <StageType>no-results</StageType>
+            <ExpectedStartDateTime>2023-11-07T18:00:00Z</ExpectedStartDateTime>
+          </ResultsReportingStage>
+          <ResultsReportingStage>
+            <StageType>preliminary</StageType>
+            <ExpectedStartDateTime>2023-11-07T20:00:00Z</ExpectedStartDateTime>
+          </ResultsReportingStage>
+          <ResultsReportingStage>
+            <StageType>official</StageType>
+            <ExpectedStartDateTime>2023-11-15T10:00:00Z</ExpectedStartDateTime>
+          </ResultsReportingStage>
+        </ResultsReportingStageCollection>
+      </Contest>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(contest_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "ResultsExpected (2023-11-07T19:00:00Z) must not be before the"
+        " ExpectedStartDateTime (2023-11-07T20:00:00Z) of the earliest"
+        " ResultsReportingStage for Contest con1.",
+    )
+
+  def testInvalidStageDatetime(self):
+    contest_string = """
+      <Contest objectId="con1">
+        <ResultsExpected>2023-11-07T20:00:00Z</ResultsExpected>
+        <ResultsReportingStageCollection>
+          <ResultsReportingStage>
+            <StageType>preliminary</StageType>
+            <ExpectedStartDateTime>invalid-date</ExpectedStartDateTime>
+          </ResultsReportingStage>
+        </ResultsReportingStageCollection>
+      </Contest>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(contest_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Invalid ExpectedStartDateTime datetime format for the"
+        " 'preliminary' ResultsReportingStage in Contest con1:"
+        " Invalid isoformat string: 'invalid-date'",
+    )
+
+
 class CommitteeClassificationEndDateOccursAfterStartDateTest(absltest.TestCase):
 
   def setUp(self):

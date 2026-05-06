@@ -4238,6 +4238,73 @@ class ValidatePollsCloseDatetimes(base.BaseRule):
       )
 
 
+class ValidateResultsExpected(base.BaseRule):
+  """Checks that ResultsExpected is not before the first ResultsReportingStage.
+
+  The ResultsExpected datetime must not be before the ExpectedStartDateTime
+  of the earliest ResultsReportingStage excluding the no-results stage.
+  """
+
+  def elements(self):
+    return ["Contest"]
+
+  def check(self, element):
+    results_expected_element = element.find("ResultsExpected")
+    if not element_has_text(results_expected_element):
+      return
+
+    results_expected_text = results_expected_element.text.strip()
+
+    try:
+      results_expected = datetime.datetime.fromisoformat(results_expected_text)
+    except ValueError as e:
+      raise loggers.ElectionError.from_message(
+          "Invalid ResultsExpected datetime format in Contest"
+          f" {element.get('objectId')}: {e}",
+          [element],
+      )
+
+    stage_collection = element.find("ResultsReportingStageCollection")
+    if stage_collection is None:
+      return
+
+    earliest_start = None
+    earliest_start_text = None
+    for stage in stage_collection.findall("ResultsReportingStage"):
+      stage_type_element = stage.find("StageType")
+      if (
+          element_has_text(stage_type_element)
+          and stage_type_element.text.strip() == "no-results"
+      ):
+        continue
+
+      start_element = stage.find("ExpectedStartDateTime")
+      if not element_has_text(start_element):
+        continue
+
+      start_text = start_element.text.strip()
+      try:
+        start = datetime.datetime.fromisoformat(start_text)
+        if earliest_start is None or start < earliest_start:
+          earliest_start = start
+          earliest_start_text = start_text
+      except ValueError as e:
+        raise loggers.ElectionError.from_message(
+            "Invalid ExpectedStartDateTime datetime format for the"
+            f" '{stage_type_element.text.strip()}' ResultsReportingStage in"
+            f" Contest {element.get('objectId')}: {e}",
+            [element],
+        )
+
+    if earliest_start and results_expected < earliest_start:
+      raise loggers.ElectionError.from_message(
+          f"ResultsExpected ({results_expected_text}) must not be before the"
+          f" ExpectedStartDateTime ({earliest_start_text}) of the earliest"
+          f" ResultsReportingStage for Contest {element.get('objectId')}.",
+          [element],
+      )
+
+
 class CandidateContestTypesAreCompatible(base.BaseRule):
   """CandidateContest Type values cannot have both a general and primary type."""
 
@@ -5032,6 +5099,7 @@ ELECTION_RULES = COMMON_RULES + (
     ValidateDuplicateColors,
     ValidateInfoUriAnnotation,
     ValidatePollsCloseDatetimes,
+    ValidateResultsExpected,
     VoteCountTypesCoherency,
     VoteCountValidSeatsDeltaTypes,
     WinnerCountLimit,
