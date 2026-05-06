@@ -5058,6 +5058,42 @@ class RuleSet(enum.Enum):
   VOTER_INFORMATION = 7
 
 
+class ValidateSpecialBallotSelectionCountedInTotal(base.BaseRule):
+  """Enforces constraints on CountedInTotal for SpecialBallotSelections.
+
+  More specifically, BlankBallotSelection, NullBallotSelection, and
+  NoneOfTheAboveSelection must have an explicit value for CountedInTotal, and
+  AggregateBallotSelection must not have this set.
+  """
+
+  def elements(self):
+    return [
+        "BlankBallotSelection",
+        "NullBallotSelection",
+        "NoneOfTheAboveBallotSelection",
+        "AggregateBallotSelection",
+    ]
+
+  def check(self, element):
+    counted_in_total = element.find("CountedInTotal")
+    tag = element.tag
+
+    if tag in (
+        "BlankBallotSelection",
+        "NullBallotSelection",
+        "NoneOfTheAboveBallotSelection",
+    ) and not element_has_text(counted_in_total):
+      raise loggers.ElectionError.from_message(
+          f"{tag} must have an explicit value for CountedInTotal.",
+          [element],
+      )
+    elif tag == "AggregateBallotSelection" and counted_in_total is not None:
+      raise loggers.ElectionError.from_message(
+          "AggregateBallotSelection must not have CountedInTotal set.",
+          [element],
+      )
+
+
 # To add new rules, create a new class, inherit the base rule,
 # and add it to the correct rule list.
 COMMON_RULES = (
@@ -5163,6 +5199,7 @@ ELECTION_RULES = COMMON_RULES + (
     ValidatePollsCloseDatetimes,
     ValidateResultsEmbargoEnd,
     ValidateResultsExpected,
+    ValidateSpecialBallotSelectionCountedInTotal,
     VoteCountTypesCoherency,
     VoteCountValidSeatsDeltaTypes,
     WinnerCountLimit,

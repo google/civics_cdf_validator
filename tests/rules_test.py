@@ -13436,6 +13436,75 @@ class FeedElementsShouldHaveSubElementsBasedOnTypeTest(parameterized.TestCase):
     self.validator.check(etree.fromstring(feed_string))
 
 
+class ValidateSpecialBallotSelectionCountedInTotalTest(parameterized.TestCase):
+
+  def setUp(self):
+    super(ValidateSpecialBallotSelectionCountedInTotalTest, self).setUp()
+    self.validator = rules.ValidateSpecialBallotSelectionCountedInTotal(
+        None,
+        None,
+    )
+
+  @parameterized.parameters(
+      ("BlankBallotSelection", "true"),
+      ("BlankBallotSelection", "false"),
+      ("NullBallotSelection", "true"),
+      ("NullBallotSelection", "false"),
+      ("NoneOfTheAboveBallotSelection", "true"),
+      ("NoneOfTheAboveBallotSelection", "false"),
+  )
+  def testSpecialBallotSelectionsWithCountedInTotalSucceeds(
+      self,
+      tag,
+      counted_in_total,
+  ):
+    element_string = f"""
+      <{tag}>
+        <CountedInTotal>{counted_in_total}</CountedInTotal>
+      </{tag}>
+    """
+
+    self.validator.check(etree.fromstring(element_string))
+
+  @parameterized.parameters(
+      "BlankBallotSelection",
+      "NullBallotSelection",
+      "NoneOfTheAboveBallotSelection",
+  )
+  def testSpecialBallotSelectionsMissingCountedInTotalFails(self, tag):
+    element_string = f"<{tag}></{tag}>"
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(element_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        f"{tag} must have an explicit value for CountedInTotal.",
+    )
+
+  def testAggregateBallotSelectionWithoutCountedInTotalSucceeds(self):
+    element_string = "<AggregateBallotSelection></AggregateBallotSelection>"
+
+    self.validator.check(etree.fromstring(element_string))
+
+  @parameterized.parameters("true", "false")
+  def testAggregateBallotSelectionWithCountedInTotalFails(
+      self,
+      counted_in_total,
+  ):
+    element_string = f"""
+      <AggregateBallotSelection>
+        <CountedInTotal>{counted_in_total}</CountedInTotal>
+      </AggregateBallotSelection>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(element_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "AggregateBallotSelection must not have CountedInTotal set.",
+    )
+
+
 class RulesTest(absltest.TestCase):
 
   def testAllRulesIncluded(self):
