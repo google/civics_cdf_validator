@@ -4197,6 +4197,47 @@ class ContestStartDateContainsCorrespondingEndDate(base.DateRule):
       )
 
 
+class ValidatePollsCloseDatetimes(base.BaseRule):
+  """Checks that LatestPollsClose is not before EarliestPollsClose."""
+
+  def elements(self):
+    return ["Contest"]
+
+  def check(self, element):
+    earliest_polls_close_element = element.find("EarliestPollsClose")
+    latest_polls_close_element = element.find("LatestPollsClose")
+
+    if not element_has_text(
+        earliest_polls_close_element
+    ) or not element_has_text(latest_polls_close_element):
+      return
+
+    earliest_polls_close_text = earliest_polls_close_element.text.strip()
+    latest_polls_close_text = latest_polls_close_element.text.strip()
+
+    try:
+      earliest_polls_close = datetime.datetime.fromisoformat(
+          earliest_polls_close_text
+      )
+      latest_polls_close = datetime.datetime.fromisoformat(
+          latest_polls_close_text
+      )
+
+      if latest_polls_close < earliest_polls_close:
+        raise loggers.ElectionError.from_message(
+            f"LatestPollsClose ({latest_polls_close_text}) must not be before"
+            f" EarliestPollsClose ({earliest_polls_close_text}) for Contest"
+            f" {element.get('objectId')}.",
+            [element],
+        )
+    except ValueError as e:
+      raise loggers.ElectionError.from_message(
+          "Invalid PollsClose datetime format in Contest"
+          f" {element.get('objectId')}: {e}",
+          [element],
+      )
+
+
 class CandidateContestTypesAreCompatible(base.BaseRule):
   """CandidateContest Type values cannot have both a general and primary type."""
 
@@ -4990,6 +5031,7 @@ ELECTION_RULES = COMMON_RULES + (
     SubsequentContestIdIsValidRelatedContest,
     ValidateDuplicateColors,
     ValidateInfoUriAnnotation,
+    ValidatePollsCloseDatetimes,
     VoteCountTypesCoherency,
     VoteCountValidSeatsDeltaTypes,
     WinnerCountLimit,

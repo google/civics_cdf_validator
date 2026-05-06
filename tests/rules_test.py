@@ -11484,6 +11484,129 @@ class CandidateContestTypesAreCompatibleTest(absltest.TestCase):
     self.contest_validator.check(contest_element)
 
 
+class ValidatePollsCloseDatetimesTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ValidatePollsCloseDatetimesTest, self).setUp()
+    self.validator = rules.ValidatePollsCloseDatetimes(None, None)
+
+  def testLatestAfterEarliest(self):
+    contest_string = """
+      <Contest objectId="con1">
+        <EarliestPollsClose>2023-11-07T18:00:00Z</EarliestPollsClose>
+        <LatestPollsClose>2023-11-07T20:00:00Z</LatestPollsClose>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest_string))
+
+  def testLatestEqualsEarliest(self):
+    contest_string = """
+      <Contest objectId="con1">
+        <EarliestPollsClose>2023-11-07T18:00:00Z</EarliestPollsClose>
+        <LatestPollsClose>2023-11-07T18:00:00Z</LatestPollsClose>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest_string))
+
+  def testLatestBeforeEarliest(self):
+    contest_string = """
+      <Contest objectId="con1">
+        <EarliestPollsClose>2023-11-07T20:00:00Z</EarliestPollsClose>
+        <LatestPollsClose>2023-11-07T18:00:00Z</LatestPollsClose>
+      </Contest>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(contest_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "LatestPollsClose (2023-11-07T18:00:00Z) must not be before"
+        " EarliestPollsClose (2023-11-07T20:00:00Z) for Contest con1.",
+    )
+
+  def testMissingLatest(self):
+    contest_string = """
+      <Contest objectId="con1">
+        <EarliestPollsClose>2023-11-07T18:00:00Z</EarliestPollsClose>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest_string))
+
+  def testMissingEarliest(self):
+    contest_string = """
+      <Contest objectId="con1">
+        <LatestPollsClose>2023-11-07T20:00:00Z</LatestPollsClose>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest_string))
+
+  def testInvalidEarliestDatetime(self):
+    contest_string = """
+      <Contest objectId="con1">
+        <EarliestPollsClose>invalid-date</EarliestPollsClose>
+        <LatestPollsClose>2023-11-07T20:00:00Z</LatestPollsClose>
+      </Contest>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(contest_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Invalid PollsClose datetime format in Contest con1: Invalid isoformat"
+        " string: 'invalid-date'",
+    )
+
+  def testInvalidLatestDatetime(self):
+    contest_string = """
+      <Contest objectId="con1">
+        <EarliestPollsClose>2023-11-07T18:00:00Z</EarliestPollsClose>
+        <LatestPollsClose>invalid-date</LatestPollsClose>
+      </Contest>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(contest_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Invalid PollsClose datetime format in Contest con1: Invalid isoformat"
+        " string: 'invalid-date'",
+    )
+
+  def testValidDatetimesWithNoTimezone(self):
+    contest_string = """
+      <Contest objectId="con1">
+        <EarliestPollsClose>2023-11-07T18:00:00</EarliestPollsClose>
+        <LatestPollsClose>2023-11-07T20:00:00</LatestPollsClose>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest_string))
+
+  def testValidDatetimesWithTimezoneOffset(self):
+    contest_string = """
+      <Contest objectId="con1">
+        <EarliestPollsClose>2023-11-07T18:00:00-05:00</EarliestPollsClose>
+        <LatestPollsClose>2023-11-07T20:00:00-05:00</LatestPollsClose>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest_string))
+
+  def testValidDatetimesWithSpace(self):
+    contest_string = """
+      <Contest objectId="con1">
+        <EarliestPollsClose> 2023-11-07T18:00:00Z </EarliestPollsClose>
+        <LatestPollsClose> 2023-11-07T20:00:00Z </LatestPollsClose>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest_string))
+
+
 class CommitteeClassificationEndDateOccursAfterStartDateTest(absltest.TestCase):
 
   def setUp(self):
