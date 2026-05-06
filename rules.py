@@ -4305,6 +4305,68 @@ class ValidateResultsExpected(base.BaseRule):
       )
 
 
+class ValidateResultsEmbargoEnd(base.BaseRule):
+  """Checks that ResultsEmbargoEnd is not after the official ResultsReportingStage start."""
+
+  def elements(self):
+    return ["Contest"]
+
+  def check(self, element):
+    results_embargo_end_element = element.find("ResultsEmbargoEnd")
+    if not element_has_text(results_embargo_end_element):
+      return
+
+    results_embargo_end_text = results_embargo_end_element.text.strip()
+
+    try:
+      results_embargo_end = datetime.datetime.fromisoformat(
+          results_embargo_end_text
+      )
+    except ValueError as e:
+      raise loggers.ElectionError.from_message(
+          "Invalid ResultsEmbargoEnd datetime format in Contest"
+          f" {element.get('objectId')}: {e}",
+          [element],
+      )
+
+    stage_collection = element.find("ResultsReportingStageCollection")
+    if stage_collection is None:
+      return
+
+    official_start = None
+    official_start_text = None
+    for stage in stage_collection.findall("ResultsReportingStage"):
+      stage_type_element = stage.find("StageType")
+      if (
+          element_has_text(stage_type_element)
+          and stage_type_element.text.strip() == "official"
+      ):
+        start_element = stage.find("ExpectedStartDateTime")
+        if not element_has_text(start_element):
+          continue
+
+        start_text = start_element.text.strip()
+        try:
+          official_start = datetime.datetime.fromisoformat(start_text)
+          official_start_text = start_text
+          break
+        except ValueError as e:
+          raise loggers.ElectionError.from_message(
+              "Invalid ExpectedStartDateTime datetime format for the"
+              " 'official' ResultsReportingStage in Contest"
+              f" {element.get('objectId')}: {e}",
+              [element],
+          )
+
+    if official_start and official_start < results_embargo_end:
+      raise loggers.ElectionError.from_message(
+          f"ResultsEmbargoEnd ({results_embargo_end_text}) must not be after"
+          f" the ExpectedStartDateTime ({official_start_text}) of the official"
+          f" ResultsReportingStage for Contest {element.get('objectId')}.",
+          [element],
+      )
+
+
 class CandidateContestTypesAreCompatible(base.BaseRule):
   """CandidateContest Type values cannot have both a general and primary type."""
 
@@ -5099,6 +5161,7 @@ ELECTION_RULES = COMMON_RULES + (
     ValidateDuplicateColors,
     ValidateInfoUriAnnotation,
     ValidatePollsCloseDatetimes,
+    ValidateResultsEmbargoEnd,
     ValidateResultsExpected,
     VoteCountTypesCoherency,
     VoteCountValidSeatsDeltaTypes,
