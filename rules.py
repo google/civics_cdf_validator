@@ -58,6 +58,7 @@ _INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE = [
     "BallotTitle",
     "ConStatement",
     "Directions",
+    "DisplayName",
     "EffectOfAbstain",
     "FullName",
     "FullText",
@@ -2139,7 +2140,7 @@ class VoteCountTypesCoherency(base.BaseRule):
       "seats-total",
       "seats-delta",
       "seats-delta-mandate",
-      "seats-delta-institutional"
+      "seats-delta-institutional",
   }
   # Ibid.
   CAND_VC_TYPES = {"candidate-votes"}
@@ -2526,7 +2527,8 @@ class OfficeHasjurisdictionSameAsElectoralDistrict(base.BaseRule):
 
   def check(self, element):
     jurisdiction_values = get_entity_info_for_value_type(
-        element, "jurisdiction-id")
+        element, "jurisdiction-id"
+    )
     jurisdiction_values = [
         j_id.strip() for j_id in jurisdiction_values if j_id.strip()
     ]
@@ -3657,8 +3659,7 @@ class MissingFieldsInfo(base.MissingFieldRule):
     return 0
 
   def element_field_mapping(self):
-    return {
-    }
+    return {}
 
 
 class PartySpanMultipleCountries(base.BaseRule):
@@ -3719,9 +3720,7 @@ class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
     officeholder_tenure_collection_element = self.get_elements_by_class(
         election_tree, "OfficeHolderTenureCollection"
     )
-    role_element = self.get_elements_by_class(
-        election_tree, "Role"
-    )
+    role_element = self.get_elements_by_class(election_tree, "Role")
     if officeholder_tenure_collection_element or role_element:
       self.is_post_office_split_feed = True
 
@@ -3747,9 +3746,7 @@ class ExecutiveOfficeShouldNotHaveGovernmentBody(base.BaseRule):
     officeholder_tenure_collection_element = self.get_elements_by_class(
         election_tree, "OfficeHolderTenureCollection"
     )
-    role_element = self.get_elements_by_class(
-        election_tree, "Role"
-    )
+    role_element = self.get_elements_by_class(election_tree, "Role")
     if officeholder_tenure_collection_element or role_element:
       self.is_post_office_split_feed = True
 
@@ -5037,13 +5034,143 @@ class FeedElementsShouldHaveSubElementsBasedOnType(base.BaseRule):
             "ElectionEventCollection should exist for %s feed %s."
             % (feed_type, feed_id)
         )
-      if not element.find("ElectionEventCollection").findall(
-          "ElectionEvent"
-      ):
+      if not element.find("ElectionEventCollection").findall("ElectionEvent"):
         raise loggers.ElectionError.from_message(
             "ElectionEventCollection should have at least one ElectionEvent"
             " for %s feed %s." % (feed_type, feed_id)
         )
+
+
+class NotEmptyUniqueDataSourceUris(base.BaseRule):
+  """Checks that DataSource entities have globally unique URIs and they are not empty."""
+
+  def elements(self):
+    return ["DataSourceCollection"]
+
+  def check(self, element):
+    data_source_ids_by_uri = collections.defaultdict(set)
+    error_log = []
+
+    for data_source in element.findall("DataSource"):
+      datasource_id = data_source.get("objectId")
+      for uri_element in data_source.findall("Uri"):
+        if not element_has_text(uri_element):
+          error_log.append(
+              loggers.LogEntry(
+                  "DataSource {} has an empty Uri.".format(datasource_id),
+                  [data_source],
+              )
+          )
+          continue
+        uri = uri_element.text.strip()
+        data_source_ids_by_uri[uri].add(data_source)
+
+    for uri, data_sources in data_source_ids_by_uri.items():
+      if len(data_sources) <= 1:
+        continue
+      sorted_data_sources = sorted(
+          data_sources, key=lambda ds: ds.get("objectId")
+      )
+      data_source_ids = [
+          data_source.get("objectId") for data_source in sorted_data_sources
+      ]
+      error_log.append(
+          loggers.LogEntry(
+              "DataSource entities {} have duplicate Uri '{}'.".format(
+                  ", ".join(data_source_ids), uri
+              ),
+              sorted_data_sources,
+          )
+      )
+
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
+class UniqueDataSourceLanguages(base.BaseRule):
+  """Checks that Uri elements have unique languages within a DataSource."""
+
+  def elements(self):
+    return ["DataSourceCollection"]
+
+  def check(self, element):
+    error_log = []
+
+    for data_source in element.findall("DataSource"):
+      data_source_id = data_source.get("objectId")
+      seen_uri_languages = set()
+      for uri_element in data_source.findall("Uri"):
+        language = uri_element.get("language")
+        if not language:
+          error_log.append(
+              loggers.LogEntry(
+                  "DataSource {} has a Uri element without a language.".format(
+                      data_source_id
+                  ),
+                  [uri_element],
+              )
+          )
+          continue
+        language = language.strip()
+        if language in seen_uri_languages:
+          error_log.append(
+              loggers.LogEntry(
+                  "DataSource {} has multiple Uri elements with the same"
+                  " language '{}'.".format(data_source_id, language),
+                  [element],
+              )
+          )
+        else:
+          seen_uri_languages.add(language)
+
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
+class UniqueDataSourceDisplayNames(base.BaseRule):
+  """Checks that DataSource entities have globally unique DisplayNames."""
+
+  def elements(self):
+    return ["DataSourceCollection"]
+
+  def check(self, element):
+    data_source_ids_by_name = collections.defaultdict(set)
+    error_log = []
+
+    for data_source in element.findall("DataSource"):
+      data_source_id = data_source.get("objectId")
+      display_name_element = data_source.find("DisplayName")
+      for text_element in display_name_element.findall("Text"):
+        if not element_has_text(text_element):
+          error_log.append(
+              loggers.LogEntry(
+                  "DataSource {} has a DisplayName element without"
+                  " text.".format(data_source_id),
+                  [data_source],
+              )
+          )
+          continue
+        name_text = text_element.text.strip()
+        data_source_ids_by_name[name_text].add(data_source)
+
+    for name_text, data_sources in data_source_ids_by_name.items():
+      if len(data_sources) <= 1:
+        continue
+      sorted_data_sources = sorted(
+          data_sources, key=lambda ds: ds.get("objectId")
+      )
+      datasource_ids = [ds.get("objectId") for ds in sorted_data_sources]
+      error_log.append(
+          loggers.LogEntry(
+              "DataSource entities {} have duplicate DisplayName '{}'.".format(
+                  ", ".join(datasource_ids), name_text
+              ),
+              sorted_data_sources,
+          )
+      )
+
+    if error_log:
+      raise loggers.ElectionError(error_log)
 
 
 class RuleSet(enum.Enum):
@@ -5186,6 +5313,7 @@ ELECTION_RULES = COMMON_RULES + (
     MissingPartyNameTranslation,
     MultipleCandidatesPointToTheSamePersonInTheSameContest,
     MultipleInternationalizedTextWithSameLanguageCode,
+    NotEmptyUniqueDataSourceUris,
     OfficeHasjurisdictionSameAsElectoralDistrict,
     PartisanPrimary,
     PartisanPrimaryHeuristic,
@@ -5194,6 +5322,8 @@ ELECTION_RULES = COMMON_RULES + (
     SelfDeclaredCandidateMethod,
     SingularPartySelection,
     SubsequentContestIdIsValidRelatedContest,
+    UniqueDataSourceDisplayNames,
+    UniqueDataSourceLanguages,
     ValidateDuplicateColors,
     ValidateInfoUriAnnotation,
     ValidatePollsCloseDatetimes,
