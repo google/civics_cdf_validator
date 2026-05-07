@@ -14387,6 +14387,468 @@ class ValidateSpecialBallotSelectionCountedInTotalTest(parameterized.TestCase):
     )
 
 
+class ValidateIncludeInAggregationBallotSelectionsTest(parameterized.TestCase):
+
+  def setUp(self):
+    super(ValidateIncludeInAggregationBallotSelectionsTest, self).setUp()
+    self.validator = rules.ValidateIncludeInAggregationBallotSelections(
+        None, None
+    )
+
+  @parameterized.parameters(
+      ("CandidateContest", "CandidateSelection"),
+      ("PartyContest", "PartySelection"),
+  )
+  def testNoIncludedInAggregationSelectionsSucceeds(
+      self, contest_type, selection_tag
+  ):
+    contest = f"""
+      <Contest objectId="con0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="{contest_type}">
+        <{selection_tag} objectId="sel0">
+          <IncludedInAggregation>false</IncludedInAggregation>
+        </{selection_tag}>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest))
+
+  @parameterized.parameters(
+      ("CandidateContest", "CandidateSelection"),
+      ("PartyContest", "PartySelection"),
+  )
+  def testMissingAggregateBallotSelectionFails(
+      self, contest_type, selection_tag
+  ):
+    contest = f"""
+      <Contest objectId="con0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="{contest_type}">
+        <{selection_tag} objectId="sel0">
+          <IncludedInAggregation>true</IncludedInAggregation>
+        </{selection_tag}>
+      </Contest>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(contest))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Contest con0 has selections marked as IncludedInAggregation but is"
+        " missing AggregateBallotSelection.",
+    )
+
+  @parameterized.parameters(
+      ("CandidateContest", "CandidateSelection"),
+      ("PartyContest", "PartySelection"),
+  )
+  def testMissingVoteCountsCollectionInAggregateFails(
+      self, contest_type, selection_tag
+  ):
+    contest = f"""
+      <Contest objectId="con0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="{contest_type}">
+        <AggregateBallotSelection>
+          <Selection>
+            <Text language="en">Aggregate</Text>
+          </Selection>
+        </AggregateBallotSelection>
+        <{selection_tag} objectId="sel0">
+          <IncludedInAggregation>true</IncludedInAggregation>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>total</Type>
+              <Count>10</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </{selection_tag}>
+      </Contest>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(contest))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "In Contest con0, the sum of vote counts (10.0) for selections marked"
+        " as IncludedInAggregation exceeds the vote count (0.0) for the"
+        " AggregateBallotSelection for vote count type='total' (GpUnit: '').",
+    )
+
+  @parameterized.parameters(
+      ("CandidateContest", "CandidateSelection"),
+      ("PartyContest", "PartySelection"),
+  )
+  def testMissingCountElementSucceeds(self, contest_type, selection_tag):
+    contest = f"""
+      <Contest objectId="con0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="{contest_type}">
+        <AggregateBallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>total</Type>
+              <Count>10</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </AggregateBallotSelection>
+        <{selection_tag} objectId="sel0">
+          <IncludedInAggregation>true</IncludedInAggregation>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>total</Type>
+            </VoteCounts>
+            <VoteCounts>
+              <Type>total</Type>
+              <Count>5</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </{selection_tag}>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest))
+
+  @parameterized.parameters(
+      ("CandidateContest", "CandidateSelection"),
+      ("PartyContest", "PartySelection"),
+  )
+  def testSumEqualsAggregateCountSucceeds(self, contest_type, selection_tag):
+    contest = f"""
+      <Contest objectId="con0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="{contest_type}">
+        <AggregateBallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>total</Type>
+              <Count>100</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </AggregateBallotSelection>
+        <{selection_tag} objectId="sel0">
+          <IncludedInAggregation>true</IncludedInAggregation>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>total</Type>
+              <Count>60</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </{selection_tag}>
+        <{selection_tag} objectId="sel1">
+          <IncludedInAggregation>true</IncludedInAggregation>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>total</Type>
+              <Count>40</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </{selection_tag}>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest))
+
+  @parameterized.parameters(
+      ("CandidateContest", "CandidateSelection"),
+      ("PartyContest", "PartySelection"),
+  )
+  def testSumEqualsAggregateCountForOtherTypeSucceeds(
+      self, contest_type, selection_tag
+  ):
+    contest = f"""
+      <Contest objectId="con0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="{contest_type}">
+        <AggregateBallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>other</Type>
+              <OtherType>seats-won</OtherType>
+              <Count>100</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </AggregateBallotSelection>
+        <{selection_tag} objectId="sel0">
+          <IncludedInAggregation>true</IncludedInAggregation>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>other</Type>
+              <OtherType>seats-won</OtherType>
+              <Count>60</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </{selection_tag}>
+        <{selection_tag} objectId="sel1">
+          <IncludedInAggregation>true</IncludedInAggregation>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>other</Type>
+              <OtherType>seats-won</OtherType>
+              <Count>40</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </{selection_tag}>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest))
+
+  @parameterized.parameters(
+      ("CandidateContest", "CandidateSelection"),
+      ("PartyContest", "PartySelection"),
+  )
+  def testSumLessThanAggregateCountSucceeds(self, contest_type, selection_tag):
+    contest = f"""
+      <Contest objectId="con0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="{contest_type}">
+        <AggregateBallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>total</Type>
+              <Count>100</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </AggregateBallotSelection>
+        <{selection_tag} objectId="sel0">
+          <IncludedInAggregation>true</IncludedInAggregation>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>total</Type>
+              <Count>50</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </{selection_tag}>
+        <{selection_tag} objectId="sel1">
+          <IncludedInAggregation>true</IncludedInAggregation>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>total</Type>
+              <Count>40</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </{selection_tag}>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest))
+
+  @parameterized.parameters(
+      ("CandidateContest", "CandidateSelection"),
+      ("PartyContest", "PartySelection"),
+  )
+  def testSumLessThanAggregateCountForOtherTypeSucceeds(
+      self, contest_type, selection_tag
+  ):
+    contest = f"""
+      <Contest objectId="con0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="{contest_type}">
+        <AggregateBallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>other</Type>
+              <OtherType>seats-won</OtherType>
+              <Count>100</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </AggregateBallotSelection>
+        <{selection_tag} objectId="sel0">
+          <IncludedInAggregation>true</IncludedInAggregation>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>other</Type>
+              <OtherType>seats-won</OtherType>
+              <Count>50</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </{selection_tag}>
+        <{selection_tag} objectId="sel1">
+          <IncludedInAggregation>true</IncludedInAggregation>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>other</Type>
+              <OtherType>seats-won</OtherType>
+              <Count>40</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </{selection_tag}>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest))
+
+  @parameterized.parameters(
+      ("CandidateContest", "CandidateSelection"),
+      ("PartyContest", "PartySelection"),
+  )
+  def testSumExceedsAggregateCountFails(self, contest_type, selection_tag):
+    contest = f"""
+      <Contest objectId="con0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="{contest_type}">
+        <AggregateBallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>total</Type>
+              <Count>100</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </AggregateBallotSelection>
+        <{selection_tag} objectId="sel0">
+          <IncludedInAggregation>true</IncludedInAggregation>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>total</Type>
+              <Count>60</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </{selection_tag}>
+        <{selection_tag} objectId="sel1">
+          <IncludedInAggregation>true</IncludedInAggregation>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>total</Type>
+              <Count>50</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </{selection_tag}>
+      </Contest>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(contest))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "In Contest con0, the sum of vote counts (110.0) for selections marked"
+        " as IncludedInAggregation exceeds the vote count (100.0) for the"
+        " AggregateBallotSelection for vote count type='total' (GpUnit: '').",
+    )
+
+  @parameterized.parameters(
+      ("CandidateContest", "CandidateSelection"),
+      ("PartyContest", "PartySelection"),
+  )
+  def testSumExceedsAggregateCountWithOtherTypeFails(
+      self, contest_type, selection_tag
+  ):
+    contest = f"""
+      <Contest objectId="con0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="{contest_type}">
+        <AggregateBallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>other</Type>
+              <OtherType>total-percent</OtherType>
+              <Count>100</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </AggregateBallotSelection>
+        <{selection_tag} objectId="sel0">
+          <IncludedInAggregation>true</IncludedInAggregation>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>other</Type>
+              <OtherType>total-percent</OtherType>
+              <Count>60</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </{selection_tag}>
+        <{selection_tag} objectId="sel1">
+          <IncludedInAggregation>true</IncludedInAggregation>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>other</Type>
+              <OtherType>total-percent</OtherType>
+              <Count>50</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </{selection_tag}>
+      </Contest>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(contest))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "In Contest con0, the sum of vote counts (110.0) for selections marked"
+        " as IncludedInAggregation exceeds the vote count (100.0) for the"
+        " AggregateBallotSelection for vote count type='total-percent' "
+        "(GpUnit: '').",
+    )
+
+  @parameterized.parameters(
+      ("CandidateContest", "CandidateSelection"),
+      ("PartyContest", "PartySelection"),
+  )
+  def testSumEqualsAggregateCountWithBreakdownByTypeAndGpUnitSucceeds(
+      self, contest_type, selection_tag
+  ):
+    contest = f"""
+      <Contest objectId="con0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="{contest_type}">
+        <AggregateBallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>total</Type>
+              <GpUnitId>gp0</GpUnitId>
+              <Count>100</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <Type>total</Type>
+              <GpUnitId>gp1</GpUnitId>
+              <Count>100</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <Type>early</Type>
+              <GpUnitId>gp0</GpUnitId>
+              <Count>100</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <Type>early</Type>
+              <GpUnitId>gp1</GpUnitId>
+              <Count>100</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </AggregateBallotSelection>
+        <{selection_tag} objectId="sel0">
+          <IncludedInAggregation>true</IncludedInAggregation>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>total</Type>
+              <GpUnitId>gp0</GpUnitId>
+              <Count>90</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <Type>total</Type>
+              <GpUnitId>gp1</GpUnitId>
+              <Count>80</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <Type>early</Type>
+              <GpUnitId>gp0</GpUnitId>
+              <Count>70</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <Type>early</Type>
+              <GpUnitId>gp1</GpUnitId>
+              <Count>60</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </{selection_tag}>
+        <{selection_tag} objectId="sel1">
+          <IncludedInAggregation>true</IncludedInAggregation>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>total</Type>
+              <GpUnitId>gp0</GpUnitId>
+              <Count>10</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <Type>total</Type>
+              <GpUnitId>gp1</GpUnitId>
+              <Count>20</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <Type>early</Type>
+              <GpUnitId>gp0</GpUnitId>
+              <Count>30</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <Type>early</Type>
+              <GpUnitId>gp1</GpUnitId>
+              <Count>40</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </{selection_tag}>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest))
+
+
 class RulesTest(absltest.TestCase):
 
   def testAllRulesIncluded(self):

@@ -32,6 +32,8 @@ import networkx
 import pycountry
 from six.moves.urllib.parse import urlparse
 
+
+_XML_TRUE_VALUES = frozenset(["true", "1"])
 _PARTY_LEADERSHIP_TYPES = ["party-leader-id", "party-chair-id"]
 _INDEPENDENT_PARTY_NAMES = frozenset(["independent", "nonpartisan"])
 _IDREF_TYPES = frozenset(["xs:IDREF", "xs:IDREFS"])
@@ -284,6 +286,20 @@ def country_code_is_valid(country_code):
       country_code.lower() == "eu"
       or pycountry.countries.get(alpha_2=country_code.upper()) is not None
   )
+
+
+def _get_type_or_other_type(element):
+  type_element = element.find("Type")
+  other_type_element = element.find("OtherType")
+  type_text = (
+      type_element.text.strip() if element_has_text(type_element) else ""
+  )
+  other_type_text = (
+      other_type_element.text.strip()
+      if element_has_text(other_type_element)
+      else ""
+  )
+  return other_type_text if type_text == "other" else type_text
 
 
 class Schema(base.TreeRule):
@@ -5316,6 +5332,108 @@ class ValidateSpecialBallotSelectionCountedInTotal(base.BaseRule):
       )
 
 
+class ValidateIncludeInAggregationBallotSelections(base.BaseRule):
+  """Validates BallotSelections with IncludedInAggregation.
+
+  Checks that the sum of all vote counts for a BallotSelection with
+  IncludedInAggregation must not be > the total vote counts for the
+  AggregateBallotSelection on that same Contest for the same vote count type.
+  Also requires that if IncludedInAggregation is set on any BallotSelection then
+  the AggregateBallotSelection must also be present on that Contest.
+  """
+
+  def elements(self):
+    return ["CandidateContest", "PartyContest"]
+
+  def _gather_vote_counts(self, element):
+    """Gathers vote counts from a selection element grouped by type."""
+    count_by_type_and_gp_unit = collections.defaultdict(float)
+    vote_counts_collection = element.find("VoteCountsCollection")
+    if vote_counts_collection is None:
+      return count_by_type_and_gp_unit
+
+    for vote_counts in vote_counts_collection.findall("VoteCounts"):
+      count_element = vote_counts.find("Count")
+      if not element_has_text(count_element):
+        continue
+      count = float(count_element.text)
+
+      vote_count_type = _get_type_or_other_type(vote_counts)
+      gp_unit_id_element = vote_counts.find("GpUnitId")
+      gp_unit_id = (
+          gp_unit_id_element.text.strip()
+          if element_has_text(gp_unit_id_element)
+          else ""
+      )
+
+      type_and_gp_unit = (vote_count_type, gp_unit_id)
+      count_by_type_and_gp_unit[type_and_gp_unit] += count
+
+    return count_by_type_and_gp_unit
+
+  def check(self, element):
+    contest_id = element.get("objectId")
+
+    candidate_selections = self.get_elements_by_class(
+        element, "CandidateSelection"
+    )
+    party_selections = self.get_elements_by_class(element, "PartySelection")
+    all_selections = candidate_selections + party_selections
+
+    included_selections = []
+    for selection in all_selections:
+      included_in_aggregation_element = selection.find("IncludedInAggregation")
+      if (
+          element_has_text(included_in_aggregation_element)
+          and included_in_aggregation_element.text in _XML_TRUE_VALUES
+      ):
+        included_selections.append(selection)
+    if not included_selections:
+      return
+
+    aggregate_selection = element.find("AggregateBallotSelection")
+    if aggregate_selection is None:
+      raise loggers.ElectionError.from_message(
+          f"Contest {contest_id} has selections marked as IncludedInAggregation"
+          " but is missing AggregateBallotSelection.",
+          [element],
+      )
+
+    aggregate_count_by_type_and_gp_unit = self._gather_vote_counts(
+        aggregate_selection
+    )
+
+    selections_count_sum_by_type_and_gp_unit = collections.defaultdict(float)
+    for selection in included_selections:
+      for (
+          type_and_gp_unit,
+          count,
+      ) in self._gather_vote_counts(selection).items():
+        selections_count_sum_by_type_and_gp_unit[type_and_gp_unit] += count
+
+    error_log = []
+    for (
+        type_and_gp_unit,
+        total_count,
+    ) in selections_count_sum_by_type_and_gp_unit.items():
+      aggregate_count = aggregate_count_by_type_and_gp_unit[type_and_gp_unit]
+      if total_count > aggregate_count:
+        resolved_type, gp_unit_id = type_and_gp_unit
+        error_log.append(
+            loggers.LogEntry(
+                f"In Contest {contest_id}, the sum of vote counts"
+                f" ({total_count}) for selections marked as"
+                " IncludedInAggregation exceeds the vote count"
+                f" ({aggregate_count}) for the AggregateBallotSelection for"
+                f" vote count type='{resolved_type}' (GpUnit: '{gp_unit_id}').",
+                [element],
+            )
+        )
+
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
 # To add new rules, create a new class, inherit the base rule,
 # and add it to the correct rule list.
 COMMON_RULES = (
@@ -5422,6 +5540,7 @@ ELECTION_RULES = COMMON_RULES + (
     UniqueDataSourceDisplayNames,
     UniqueDataSourceLanguages,
     ValidateDuplicateColors,
+    ValidateIncludeInAggregationBallotSelections,
     ValidateInfoUriAnnotation,
     ValidatePollsCloseDatetimes,
     ValidateResultsEmbargoEnd,
