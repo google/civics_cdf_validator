@@ -5173,6 +5173,43 @@ class UniqueDataSourceDisplayNames(base.BaseRule):
       raise loggers.ElectionError(error_log)
 
 
+def _get_attribution_depth(element):
+  """Helper to recursively get the maximum depth of an Attribution tree."""
+  children = element.findall("Attribution")
+  if not children:
+    return 1
+  return 1 + max(_get_attribution_depth(child) for child in children)
+
+
+class AttributionDepthLimit(base.BaseRule):
+  """Checks that each top-level Attribution in a ResultsReportingStage has at most three levels of depth."""
+
+  def elements(self):
+    return ["ResultsReportingStage"]
+
+  def check(self, element):
+    error_log = []
+    # This findall query is non-recursive and only returns direct children.
+    for attribution in element.findall("Attribution"):
+      depth = _get_attribution_depth(attribution)
+      if depth > 3:
+        data_source_id_element = attribution.find("DataSourceId")
+        data_source_id = (
+            data_source_id_element.text.strip()
+            if element_has_text(data_source_id_element)
+            else ""
+        )
+        error_log.append(
+            loggers.LogEntry(
+                f"Attribution starting with DataSourceId '{data_source_id}'"
+                f" has a depth of {depth}, exceeding the limit of 3.",
+                [attribution],
+            )
+        )
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
 class RuleSet(enum.Enum):
   """Names for sets of rules used to validate a particular feed type."""
 
@@ -5281,6 +5318,7 @@ COMMON_RULES = (
 
 ELECTION_RULES = COMMON_RULES + (
     # go/keep-sorted start
+    AttributionDepthLimit,
     BallotTitle,
     CandidateContestTypesAreCompatible,
     CandidatesReferencedInRelatedContests,

@@ -14064,6 +14064,76 @@ class UniqueDataSourceLanguagesTest(absltest.TestCase):
     )
 
 
+class LimitAttributionRecursionTest(absltest.TestCase):
+
+  def setUp(self):
+    super(LimitAttributionRecursionTest, self).setUp()
+    self.validator = rules.AttributionDepthLimit(None, None)
+
+  def test_nesting_depth_one_succeeds(self):
+    xml_string = """
+      <ResultsReportingStage>
+        <StageType>preliminary</StageType>
+        <Description><Text language="en">Stage</Text></Description>
+        <ExpectedStartDateTime>2023-11-07T20:00:00Z</ExpectedStartDateTime>
+        <Attribution>
+          <DataSourceId>ds1</DataSourceId>
+        </Attribution>
+      </ResultsReportingStage>
+    """
+
+    self.validator.check(etree.fromstring(xml_string))
+
+  def test_nesting_depth_three_succeeds(self):
+    xml_string = """
+      <ResultsReportingStage>
+        <StageType>preliminary</StageType>
+        <Description><Text language="en">Stage</Text></Description>
+        <ExpectedStartDateTime>2023-11-07T20:00:00Z</ExpectedStartDateTime>
+        <Attribution>
+          <DataSourceId>ds1</DataSourceId>
+          <Attribution>
+            <DataSourceId>ds2</DataSourceId>
+            <Attribution>
+              <DataSourceId>ds3</DataSourceId>
+            </Attribution>
+          </Attribution>
+        </Attribution>
+      </ResultsReportingStage>
+    """
+
+    self.validator.check(etree.fromstring(xml_string))
+
+  def test_nesting_depth_four_fails_with_depth_limit_error(self):
+    xml_string = """
+      <ResultsReportingStage>
+        <StageType>preliminary</StageType>
+        <Description><Text language="en">Stage</Text></Description>
+        <ExpectedStartDateTime>2023-11-07T20:00:00Z</ExpectedStartDateTime>
+        <Attribution>
+          <DataSourceId>ds1</DataSourceId>
+          <Attribution>
+            <DataSourceId>ds2</DataSourceId>
+            <Attribution>
+              <DataSourceId>ds3</DataSourceId>
+              <Attribution>
+                <DataSourceId>ds4</DataSourceId>
+              </Attribution>
+            </Attribution>
+          </Attribution>
+        </Attribution>
+      </ResultsReportingStage>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(xml_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Attribution starting with DataSourceId 'ds1' has a depth of 4,"
+        " exceeding the limit of 3.",
+    )
+
+
 class ValidateSpecialBallotSelectionCountedInTotalTest(parameterized.TestCase):
 
   def setUp(self):
