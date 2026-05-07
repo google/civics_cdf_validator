@@ -14134,6 +14134,190 @@ class LimitAttributionRecursionTest(absltest.TestCase):
     )
 
 
+class AttributionCyclesValidationTest(absltest.TestCase):
+
+  def test_check_succeeds_for_attribution_graph_without_cycles(self):
+    xml_string = """
+      <ElectionReport>
+        <ResultsReportingStageCollection>
+          <ResultsReportingStage>
+            <Attribution>
+              <DataSourceId>ds1</DataSourceId>
+              <Attribution>
+                <DataSourceId>ds2</DataSourceId>
+              </Attribution>
+            </Attribution>
+          </ResultsReportingStage>
+        </ResultsReportingStageCollection>
+      </ElectionReport>
+    """
+    tree = etree.fromstring(xml_string)
+
+    validator = rules.AttributionContainsNoCycles(tree, None)
+
+    validator.check()
+
+  def test_check_fails_for_direct_cycle(self):
+    xml_string = """
+      <ElectionReport>
+        <ResultsReportingStageCollection>
+          <ResultsReportingStage>
+            <Attribution>
+              <DataSourceId>ds1</DataSourceId>
+              <Attribution>
+                <DataSourceId>ds1</DataSourceId>
+              </Attribution>
+            </Attribution>
+          </ResultsReportingStage>
+        </ResultsReportingStageCollection>
+      </ElectionReport>
+    """
+    tree = etree.fromstring(xml_string)
+
+    validator = rules.AttributionContainsNoCycles(tree, None)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      validator.check()
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Cycle detected in Attribution: ds1 -> ds1",
+    )
+
+  def test_check_fails_for_indirect_cycle(self):
+    xml_string = """
+      <ElectionReport>
+        <ResultsReportingStageCollection>
+          <ResultsReportingStage>
+            <Attribution>
+              <DataSourceId>ds1</DataSourceId>
+              <Attribution>
+                <DataSourceId>ds2</DataSourceId>
+                <Attribution>
+                  <DataSourceId>ds1</DataSourceId>
+                </Attribution>
+              </Attribution>
+            </Attribution>
+          </ResultsReportingStage>
+        </ResultsReportingStageCollection>
+      </ElectionReport>
+    """
+    tree = etree.fromstring(xml_string)
+
+    validator = rules.AttributionContainsNoCycles(tree, None)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      validator.check()
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Cycle detected in Attribution: ds1 -> ds2 -> ds1",
+    )
+
+  def test_check_fails_for_cycle_across_multiple_attributions(self):
+    xml_string = """
+      <ElectionReport>
+        <ResultsReportingStageCollection>
+          <ResultsReportingStage>
+            <Attribution>
+              <DataSourceId>ds1</DataSourceId>
+              <Attribution>
+                <DataSourceId>ds2</DataSourceId>
+              </Attribution>
+            </Attribution>
+            <Attribution>
+              <DataSourceId>ds2</DataSourceId>
+              <Attribution>
+                <DataSourceId>ds1</DataSourceId>
+              </Attribution>
+            </Attribution>
+          </ResultsReportingStage>
+        </ResultsReportingStageCollection>
+      </ElectionReport>
+    """
+    tree = etree.fromstring(xml_string)
+
+    validator = rules.AttributionContainsNoCycles(tree, None)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      validator.check()
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Cycle detected in Attribution: ds1 -> ds2 -> ds1",
+    )
+
+  def test_check_fails_for_three_node_cycle(self):
+    xml_string = """
+      <ElectionReport>
+        <ResultsReportingStageCollection>
+          <ResultsReportingStage>
+            <Attribution>
+              <DataSourceId>ds1</DataSourceId>
+              <Attribution>
+                <DataSourceId>ds2</DataSourceId>
+                <Attribution>
+                  <DataSourceId>ds3</DataSourceId>
+                  <Attribution>
+                    <DataSourceId>ds1</DataSourceId>
+                  </Attribution>
+                </Attribution>
+              </Attribution>
+            </Attribution>
+          </ResultsReportingStage>
+        </ResultsReportingStageCollection>
+      </ElectionReport>
+    """
+    tree = etree.fromstring(xml_string)
+
+    validator = rules.AttributionContainsNoCycles(tree, None)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      validator.check()
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Cycle detected in Attribution: ds1 -> ds2 -> ds3 -> ds1",
+    )
+
+  def test_check_fails_for_multiple_cycles_with_shared_node(self):
+    xml_string = """
+      <ElectionReport>
+        <ResultsReportingStageCollection>
+          <ResultsReportingStage>
+            <Attribution>
+              <DataSourceId>ds1</DataSourceId>
+              <Attribution>
+                <DataSourceId>ds2</DataSourceId>
+                <Attribution>
+                  <DataSourceId>ds1</DataSourceId>
+                </Attribution>
+              </Attribution>
+              <Attribution>
+                <DataSourceId>ds3</DataSourceId>
+                <Attribution>
+                  <DataSourceId>ds1</DataSourceId>
+                </Attribution>
+              </Attribution>
+            </Attribution>
+          </ResultsReportingStage>
+        </ResultsReportingStageCollection>
+      </ElectionReport>
+    """
+    tree = etree.fromstring(xml_string)
+
+    validator = rules.AttributionContainsNoCycles(tree, None)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      validator.check()
+
+    self.assertLen(context.exception.log_entry, 2)
+    messages = {entry.message for entry in context.exception.log_entry}
+    self.assertEqual(
+        messages,
+        {
+            "Cycle detected in Attribution: ds1 -> ds2 -> ds1",
+            "Cycle detected in Attribution: ds1 -> ds3 -> ds1",
+        },
+    )
+
+
 class ValidateSpecialBallotSelectionCountedInTotalTest(parameterized.TestCase):
 
   def setUp(self):

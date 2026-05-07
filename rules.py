@@ -5181,6 +5181,12 @@ def _get_attribution_depth(element):
   return 1 + max(_get_attribution_depth(child) for child in children)
 
 
+def _get_datasource_id(element):
+  """Helper to safely extract and strip the text of the DataSourceId child."""
+  ds_element = element.find("DataSourceId")
+  return ds_element.text.strip() if element_has_text(ds_element) else ""
+
+
 class AttributionDepthLimit(base.BaseRule):
   """Checks that each top-level Attribution in a ResultsReportingStage has at most three levels of depth."""
 
@@ -5193,12 +5199,7 @@ class AttributionDepthLimit(base.BaseRule):
     for attribution in element.findall("Attribution"):
       depth = _get_attribution_depth(attribution)
       if depth > 3:
-        data_source_id_element = attribution.find("DataSourceId")
-        data_source_id = (
-            data_source_id_element.text.strip()
-            if element_has_text(data_source_id_element)
-            else ""
-        )
+        data_source_id = _get_datasource_id(attribution)
         error_log.append(
             loggers.LogEntry(
                 f"Attribution starting with DataSourceId '{data_source_id}'"
@@ -5208,6 +5209,63 @@ class AttributionDepthLimit(base.BaseRule):
         )
     if error_log:
       raise loggers.ElectionError(error_log)
+
+
+def _canonicalize_cycle(cycle):
+  """Canonicalizes a cycle by rotating it to start with the min element."""
+  if not cycle:
+    return []
+  min_node = min(cycle)
+  min_idx = cycle.index(min_node)
+  return cycle[min_idx:] + cycle[:min_idx]
+
+
+class AttributionContainsNoCycles(base.TreeRule):
+  """Checks that there are no cycles between Attribution elements."""
+
+  def check(self):
+    graph = networkx.DiGraph()
+
+    attributions = self.get_elements_by_class(self.election_tree, "Attribution")
+    for attribution in attributions:
+      data_source = _get_datasource_id(attribution)
+      if not data_source:
+        continue
+      graph.add_node(data_source)
+      for child in attribution.findall("Attribution"):
+        child_data_source = _get_datasource_id(child)
+        if child_data_source:
+          graph.add_edge(data_source, child_data_source)
+
+    # Find all nodes in the graph that are part of a cycle based on directed
+    # paths.
+    nodes_in_a_cycle = set()
+    for component in networkx.strongly_connected_components(graph):
+      # If the component has multiple nodes, it must be a cycle.
+      if len(component) > 1:
+        nodes_in_a_cycle.update(component)
+        continue
+      # Only include single-node components if they have a self-loop.
+      (node,) = component
+      if graph.has_edge(node, node):
+        nodes_in_a_cycle.add(node)
+
+    if not nodes_in_a_cycle:
+      return
+
+    error_log = []
+    # Optimize performance for large graphs by excluding non-cyclic nodes.
+    all_cycles_subgraph = graph.subgraph(sorted(nodes_in_a_cycle))
+    for cycle in networkx.simple_cycles(all_cycles_subgraph):
+      canonical = _canonicalize_cycle(cycle)
+      # Append the starting node to the end to represent a closed loop.
+      error_log.append(
+          loggers.LogEntry(
+              f"Cycle detected in Attribution: {' -> '.join(canonical)} ->"
+              f" {canonical[0]}"
+          )
+      )
+    raise loggers.ElectionError(error_log)
 
 
 class RuleSet(enum.Enum):
@@ -5318,6 +5376,7 @@ COMMON_RULES = (
 
 ELECTION_RULES = COMMON_RULES + (
     # go/keep-sorted start
+    AttributionContainsNoCycles,
     AttributionDepthLimit,
     BallotTitle,
     CandidateContestTypesAreCompatible,
