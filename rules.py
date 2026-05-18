@@ -4572,6 +4572,27 @@ class SourceDirPathsAreUnique(base.BaseRule):
       raise loggers.ElectionError(error_log)
 
 
+class SqsQueueNameRequiresS3SourceDirPath(base.BaseRule):
+  """If SqsQueueName is set, SourceDirPath must also be set and must be an s3 path."""
+
+  def elements(self):
+    return ["Feed"]
+
+  def check(self, element):
+    sqs_queue_name = element.find("SqsQueueName")
+    if not element_has_text(sqs_queue_name):
+      return
+    source_dir_path = element.find("SourceDirPath")
+    if not element_has_text(
+        source_dir_path
+    ) or not source_dir_path.text.strip().lower().startswith("s3://"):
+      raise loggers.ElectionError.from_message(
+          "If SqsQueueName is set, SourceDirPath must also be set and must be"
+          " an s3 path for feed {}.".format(element.find("FeedId").text),
+          [element],
+      )
+
+
 class ElectionEventDatesAreSequential(base.DateRule):
   """Dates in an ElectionEvent element should be sequential."""
 
@@ -5596,6 +5617,7 @@ METADATA_RULES = (
     Schema,
     SourceDirPathMustBeSetAfterInitialDeliveryDate,
     SourceDirPathsAreUnique,
+    SqsQueueNameRequiresS3SourceDirPath,
     UniqueLabel,
     # go/keep-sorted end
 )

@@ -13122,6 +13122,69 @@ class SourceDirPathsAreUniqueTest(absltest.TestCase):
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
 
+class SqsQueueNameRequiresS3SourceDirPathTest(absltest.TestCase):
+
+  def setUp(self):
+    super(SqsQueueNameRequiresS3SourceDirPathTest, self).setUp()
+    self.validator = rules.SqsQueueNameRequiresS3SourceDirPath(None, None)
+
+  def testNoSqsQueueNameSucceeds(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SourceDirPath>https://example.com/feed</SourceDirPath>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def testSqsQueueNameWithS3SourceDirPathSucceeds(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SourceDirPath>s3://my-bucket/feed</SourceDirPath>
+        <SqsQueueName>my-queue</SqsQueueName>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def testSqsQueueNameMissingSourceDirPathFails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>my-queue</SqsQueueName>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        "If SqsQueueName is set, SourceDirPath must also be set and must be an"
+        " s3 path for feed test-feed.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def testSqsQueueNameNonS3SourceDirPathFails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SourceDirPath>https://example.com/feed</SourceDirPath>
+        <SqsQueueName>my-queue</SqsQueueName>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        "If SqsQueueName is set, SourceDirPath must also be set and must be an"
+        " s3 path for feed test-feed.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+
 class ElectionEventDatesAreSequentialTest(absltest.TestCase):
 
   def setUp(self):
