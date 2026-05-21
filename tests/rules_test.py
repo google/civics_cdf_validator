@@ -12517,6 +12517,112 @@ class ValidateResultsEmbargoEndTest(absltest.TestCase):
     )
 
 
+class ResultsReportingStagesMustHaveUniqueTypeTest(absltest.TestCase):
+
+  def setUp(self):
+    super(ResultsReportingStagesMustHaveUniqueTypeTest, self).setUp()
+    self.validator = rules.ResultsReportingStagesMustHaveUniqueType(None, None)
+
+  def testEmptyCollectionSucceeds(self):
+    collection_string = """
+      <ResultsReportingStageCollection>
+      </ResultsReportingStageCollection>
+    """
+
+    self.validator.check(etree.fromstring(collection_string))
+
+  def testUniqueStageTypesSucceeds(self):
+    collection_string = """
+      <ResultsReportingStageCollection>
+        <ResultsReportingStage>
+          <StageType>preliminary</StageType>
+        </ResultsReportingStage>
+        <ResultsReportingStage>
+          <StageType>official</StageType>
+        </ResultsReportingStage>
+      </ResultsReportingStageCollection>
+    """
+
+    self.validator.check(etree.fromstring(collection_string))
+
+  def testDuplicateStageTypesFails(self):
+    collection_string = """
+      <ResultsReportingStageCollection>
+        <ResultsReportingStage>
+          <StageType>preliminary</StageType>
+        </ResultsReportingStage>
+        <ResultsReportingStage>
+          <StageType>preliminary</StageType>
+        </ResultsReportingStage>
+        <ResultsReportingStage>
+          <StageType>preliminary</StageType>
+        </ResultsReportingStage>
+      </ResultsReportingStageCollection>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(collection_string))
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Duplicate ResultsReportingStage StageType 'preliminary' found in the"
+        " same ResultsReportingStageCollection.",
+    )
+    self.assertLen(context.exception.log_entry[0].elements, 3)
+
+  def testMultipleDuplicateStageTypesFails(self):
+    collection_string = """
+      <ResultsReportingStageCollection>
+        <ResultsReportingStage>
+          <StageType>preliminary</StageType>
+        </ResultsReportingStage>
+        <ResultsReportingStage>
+          <StageType>preliminary</StageType>
+        </ResultsReportingStage>
+        <ResultsReportingStage>
+          <StageType>preliminary</StageType>
+        </ResultsReportingStage>
+        <ResultsReportingStage>
+          <StageType>official</StageType>
+        </ResultsReportingStage>
+        <ResultsReportingStage>
+          <StageType>official</StageType>
+        </ResultsReportingStage>
+      </ResultsReportingStageCollection>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(collection_string))
+    self.assertLen(context.exception.log_entry, 2)
+
+  def testMissingStageTypeSucceeds(self):
+    collection_string = """
+      <ResultsReportingStageCollection>
+        <ResultsReportingStage>
+        </ResultsReportingStage>
+        <ResultsReportingStage>
+          <StageType>preliminary</StageType>
+        </ResultsReportingStage>
+      </ResultsReportingStageCollection>
+    """
+
+    self.validator.check(etree.fromstring(collection_string))
+
+  def testEmptyStageTypeSucceeds(self):
+    collection_string = """
+      <ResultsReportingStageCollection>
+        <ResultsReportingStage>
+          <StageType> </StageType>
+        </ResultsReportingStage>
+        <ResultsReportingStage>
+          <StageType>preliminary</StageType>
+        </ResultsReportingStage>
+      </ResultsReportingStageCollection>
+    """
+
+    self.validator.check(etree.fromstring(collection_string))
+
+
 class CommitteeClassificationEndDateOccursAfterStartDateTest(absltest.TestCase):
 
   def setUp(self):

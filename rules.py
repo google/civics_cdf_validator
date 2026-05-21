@@ -4380,6 +4380,34 @@ class ValidateResultsEmbargoEnd(base.BaseRule):
       )
 
 
+class ResultsReportingStagesMustHaveUniqueType(base.BaseRule):
+  """Checks that each ResultsReportingStage has a unique StageType per Contest."""
+
+  def elements(self):
+    return ["ResultsReportingStageCollection"]
+
+  def check(self, element):
+    stages_by_type = collections.defaultdict(list)
+    for stage in element.findall("ResultsReportingStage"):
+      stage_type_element = stage.find("StageType")
+      if element_has_text(stage_type_element):
+        stage_type = stage_type_element.text.strip()
+        stages_by_type[stage_type].append(stage)
+
+    errors = []
+    for stage_type, stages in stages_by_type.items():
+      if len(stages) > 1:
+        errors.append(
+            loggers.LogEntry(
+                f"Duplicate ResultsReportingStage StageType '{stage_type}'"
+                " found in the same ResultsReportingStageCollection.",
+                stages,
+            )
+        )
+    if errors:
+      raise loggers.ElectionError(errors)
+
+
 class CandidateContestTypesAreCompatible(base.BaseRule):
   """CandidateContest Type values cannot have both a general and primary type."""
 
@@ -5555,6 +5583,7 @@ ELECTION_RULES = COMMON_RULES + (
     PartisanPrimaryHeuristic,
     PercentSum,
     ProperBallotSelection,
+    ResultsReportingStagesMustHaveUniqueType,
     SelfDeclaredCandidateMethod,
     SingularPartySelection,
     SubsequentContestIdIsValidRelatedContest,
