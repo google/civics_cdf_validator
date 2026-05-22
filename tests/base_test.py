@@ -21,30 +21,38 @@ _TEST_CA_OCD_ID_2 = "ocd-division/country:ca/cd:1207/district:0"
 
 class ValidReferenceRuleTest(absltest.TestCase):
 
-  def testItExtendsTreeRule(self):
+  def test_extends_tree_rule_returns_true(self):
     self.assertTrue(issubclass(base.ValidReferenceRule, base.TreeRule))
 
-  def testMockGatherValidReference(self):
-    return set(["id-1", "id-2"])
+  def _mock_gather_valid_reference(self):
+    return {"id-1", "id-2"}
 
-  def testMockGatherInvalidReference(self):
-    return set(["id-1", "id-5", "id-6"])
+  def _mock_gather_invalid_reference(self):
+    return {"id-1", "id-5", "id-6"}
 
-  def testMockGatherDefined(self):
-    return set(["id-1", "id-2", "id-3", "id-4"])
+  def _mock_gather_defined(self):
+    return {"id-1", "id-2", "id-3", "id-4"}
 
-  @patch.object(base.ValidReferenceRule, "_gather_reference_values",
-                testMockGatherValidReference)
-  @patch.object(base.ValidReferenceRule, "_gather_defined_values",
-                testMockGatherDefined)
-  def testMakesSureEachReferenceIDIsValid(self):
+  @patch.object(
+      base.ValidReferenceRule,
+      "_gather_reference_values",
+      _mock_gather_valid_reference,
+  )
+  @patch.object(
+      base.ValidReferenceRule, "_gather_defined_values", _mock_gather_defined
+  )
+  def test_valid_references_succeeds(self):
     base.ValidReferenceRule(None, None).check()
 
-  @patch.object(base.ValidReferenceRule, "_gather_reference_values",
-                testMockGatherInvalidReference)
-  @patch.object(base.ValidReferenceRule, "_gather_defined_values",
-                testMockGatherDefined)
-  def testRaisesAnErrorIfAValueDoesNotReferenceADefinedValue(self):
+  @patch.object(
+      base.ValidReferenceRule,
+      "_gather_reference_values",
+      _mock_gather_invalid_reference,
+  )
+  @patch.object(
+      base.ValidReferenceRule, "_gather_defined_values", _mock_gather_defined
+  )
+  def test_invalid_reference_fails(self):
     with self.assertRaises(loggers.ElectionError) as ee:
       base.ValidReferenceRule(None, None).check()
     self.assertIn("id-5", ee.exception.log_entry[0].message)
@@ -68,7 +76,7 @@ class DateRuleTest(absltest.TestCase):
     """
 
   # reset_instance_vars test
-  def testResetsInstanceVarsToInitialState(self):
+  def test_reset_instance_vars_resets_state(self):
     start_elem = etree.fromstring("<StartDate>2020-01-01</StartDate>")
     end_elem = etree.fromstring("<EndDate>2020-01-03</EndDate>")
     start_date = self.today + datetime.timedelta(days=1)
@@ -108,7 +116,7 @@ class DateRuleTest(absltest.TestCase):
         validator_with_values.error_log, fresh_validator.error_log)
 
   # gather_dates tests
-  def testSetStartAndEndDatesAsInstanceVariables(self):
+  def test_gather_dates_sets_start_and_end_dates(self):
     start_date = "2021-12-20"
     end_date = "2021-12-22"
     election_string = self.election_string.format(
@@ -122,7 +130,7 @@ class DateRuleTest(absltest.TestCase):
     self.assertEqual(2021, self.date_validator.end_date.year)
     self.assertEqual(22, self.date_validator.end_date.day)
 
-  def testRaisesErrorForInvalidDateFormatsInvalidDay(self):
+  def test_invalid_date_formats_raises_error(self):
     start_date_invalid = "2022-01-32"
     end_date_invalid = "05-29"
 
@@ -138,7 +146,7 @@ class DateRuleTest(absltest.TestCase):
         "The EndDate text should be of the formats: "
         "yyyy-mm-dd, or yyyy, or yyyy-mm", ee.exception.log_entry[1].message)
 
-  def testDoesNotAssignDatesIfElementsNotFound(self):
+  def test_gather_dates_missing_elements_remains_none(self):
     election_string = "<Election></Election>"
     self.date_validator.gather_dates(etree.fromstring(election_string))
     self.assertIsNone(None, self.date_validator.start_date)
@@ -147,14 +155,14 @@ class DateRuleTest(absltest.TestCase):
     self.assertIsNone(None, self.date_validator.end_elem)
 
   # check_for_date_not_in_past tests
-  def testProvidedDateIsNotInThePast(self):
+  def test_future_date_does_not_log_error(self):
     tomorrow = self.today + datetime.timedelta(days=1)
     future_date = base.PartialDate(tomorrow.year, tomorrow.month, tomorrow.day)
     self.date_validator.check_for_date_not_in_past(future_date, None)
 
     self.assertEmpty(self.date_validator.error_log)
 
-  def testAddsToErrorLogIfDateInPast(self):
+  def test_past_date_logs_error(self):
     past_date = base.PartialDate(2012, 1)
     date_elem = etree.fromstring("<StartDate>2012-01</StartDate>")
     self.date_validator.check_for_date_not_in_past(past_date, date_elem)
@@ -166,7 +174,7 @@ class DateRuleTest(absltest.TestCase):
 
   # check_for_date_in_past tests
   @freezegun.freeze_time("2023-01-01")
-  def testProvidedDateIsInThePast(self):
+  def test_past_date_does_not_log_error(self):
     date_elem = etree.fromstring("<DateOfBirth>1975-01-01</DateOfBirth>")
     date = base.PartialDate.init_partial_date(date_elem.text)
 
@@ -174,7 +182,7 @@ class DateRuleTest(absltest.TestCase):
     self.assertEmpty(self.date_validator.error_log)
 
   @freezegun.freeze_time("2023-01-01")
-  def testAddsToErrorLogIfDateNotInPast(self):
+  def test_future_date_logs_error(self):
     date_elem = etree.fromstring("<DateOfBirth>2100-01-01</DateOfBirth>")
     date = base.PartialDate.init_partial_date(date_elem.text)
 
@@ -186,7 +194,7 @@ class DateRuleTest(absltest.TestCase):
     )
 
   # check_end_after_start tests
-  def testEndDateComesAfterStartDate(self):
+  def test_end_after_start_does_not_log_error(self):
     self.date_validator.start_date = self.today_partial_date
     self.date_validator.end_date = self.date_validator.start_date
     self.date_validator.end_date.day = self.date_validator.start_date.day + 1
@@ -194,7 +202,7 @@ class DateRuleTest(absltest.TestCase):
 
     self.assertEmpty(self.date_validator.error_log)
 
-  def testAddsToErrorLogIfEndDateMonthIsBeforeStartDate(self):
+  def test_end_before_start_logs_error(self):
     start_date_year_month = "2021-09"
     end_date_year_month = "2021-01"
     election_string = self.election_string.format(start_date_year_month,
@@ -210,111 +218,117 @@ class DateRuleTest(absltest.TestCase):
 
 class PartialDateTest(absltest.TestCase):
 
-  def testShouldCheckYear(self):
+  def test_init_year_sets_year(self):
     partial_date_validator = base.PartialDate.init_partial_date("2021")
     self.assertEqual(2021, partial_date_validator.year)
     self.assertIsNone(partial_date_validator.month)
     self.assertIsNone(partial_date_validator.day)
 
-  def testShouldCheckYearMonth(self):
+  def test_init_year_month_sets_year_and_month(self):
     partial_date_validator = base.PartialDate.init_partial_date("2021-04")
     self.assertEqual(2021, partial_date_validator.year)
     self.assertEqual(4, partial_date_validator.month)
     self.assertIsNone(partial_date_validator.day)
 
-  def testShouldCheckDayMonthYear(self):
+  def test_init_full_date_sets_all_attributes(self):
     partial_date_validator = base.PartialDate.init_partial_date("2021-10-19")
     self.assertEqual(19, partial_date_validator.day)
     self.assertEqual(10, partial_date_validator.month)
     self.assertEqual(2021, partial_date_validator.year)
 
-  def testReturnsNoneInvalidDay(self):
+  def test_init_invalid_day_returns_none(self):
     partial_date = base.PartialDate.init_partial_date("2022-2-30")
     self.assertIsNone(partial_date)
 
-  def testLessThanYearOnly(self):
+  def test_less_than_year_only_returns_true(self):
     self.assertLess(base.PartialDate(2020), base.PartialDate(2021))
 
-  def testLessThanYearMonth(self):
+  def test_less_than_year_month_returns_true(self):
     self.assertLess(base.PartialDate(2020, 1), base.PartialDate(2020, 2))
 
-  def testLessThanCompleteDate(self):
+  def test_less_than_complete_date_returns_true(self):
     self.assertLess(base.PartialDate(2020, 1, 1), base.PartialDate(2020, 1, 2))
 
-  def testGreaterThanYearOnly(self):
+  def test_greater_than_year_only_returns_true(self):
     self.assertGreater(base.PartialDate(2021), base.PartialDate(2020))
 
-  def testGreaterThanYearMonth(self):
+  def test_greater_than_year_month_returns_true(self):
     self.assertGreater(base.PartialDate(2020, 2), base.PartialDate(2020, 1))
 
-  def testGreaterThanCompleteDate(self):
+  def test_greater_than_complete_date_returns_true(self):
     self.assertGreater(
         base.PartialDate(2020, 1, 2), base.PartialDate(2020, 1, 1)
     )
 
-  def testEqualToYearOnly(self):
+  def test_equal_to_year_only_returns_true(self):
     self.assertEqual(base.PartialDate(2020), base.PartialDate(2020))
 
-  def testEqualToYearMonth(self):
+  def test_equal_to_year_month_returns_true(self):
     self.assertEqual(base.PartialDate(2020, 1), base.PartialDate(2020, 1))
 
-  def testEqualToCompleteDate(self):
+  def test_equal_to_complete_date_returns_true(self):
     self.assertEqual(base.PartialDate(2020, 1, 1), base.PartialDate(2020, 1, 1))
 
-  def testShouldCheckIsOlderThan(self):
+  def test_is_older_than_returns_difference_in_months(self):
     partial_date_older = base.PartialDate(2021, 3, 12)
     partial_date_younger = base.PartialDate(2021, 11, 2)
     self.assertEqual(
         8,
         partial_date_older.is_older_than(partial_date_younger))
 
-  def testShouldCheckYearDateIsOlderThanCompleteDate(self):
+  def test_year_only_is_older_than_complete_date_returns_difference_in_years(
+      self,
+  ):
     partial_date_year = base.PartialDate(2020, None, None)
     complete_date = base.PartialDate(2021, 12, 21)
     self.assertEqual(1, partial_date_year.is_older_than(complete_date))
 
-  def testShouldCheckMonthForCompleteAndPartialDate(self):
+  def test_complete_date_is_older_than_partial_date_returns_difference_in_months(
+      self,
+  ):
     complete_start_date = base.PartialDate(2021, 6, 30)
     partial_end_date = base.PartialDate(2021, 11, None)
     self.assertEqual(
         5, complete_start_date.is_older_than(partial_end_date))
 
-  def testShouldCheckYearForCompleteAndPartialDate(self):
+  def test_year_only_is_older_than_partial_date_returns_difference_in_years(
+      self,
+  ):
     year_only_start_date = base.PartialDate(2020, None, None)
     partial_end_date = base.PartialDate(2021, 11, None)
     self.assertEqual(
         1, year_only_start_date.is_older_than(partial_end_date))
 
-  def testShouldCheckIsOnlyYearTrue(self):
+  def test_is_only_year_date_returns_true(self):
     partial_date_year = base.PartialDate(2021, None, None)
     self.assertTrue(partial_date_year.is_only_year_date())
 
-  def testShouldCheckIsOnlyYearFalseForCompleteDate(self):
+  def test_is_only_year_date_complete_date_returns_false(self):
     complete_date = base.PartialDate(2021, 11, 2)
     self.assertFalse(complete_date.is_only_year_date())
 
-  def testShouldCheckIsOnlyYearFalseForYearMonth(self):
+  def test_is_only_year_date_year_month_returns_false(self):
     partial_date_year_month = base.PartialDate(2021, 12, None)
     self.assertFalse(partial_date_year_month.is_only_year_date())
 
-  def testShouldCheckIsOnlyYearMonthTrue(self):
+  def test_is_month_date_returns_true(self):
     partial_date_year_month = base.PartialDate(2021, 11, None)
     self.assertTrue(
         partial_date_year_month.is_month_date())
 
-  def testShouldCheckIsOnlyYearMonthFalseYear(self):
+  def test_is_month_date_year_only_returns_false(self):
     partial_date_year = base.PartialDate(2021, None, None)
     self.assertFalse(partial_date_year.is_month_date())
 
-  def testShouldCheckIsOnlyYearMonthFalseDay(self):
+  def test_is_month_date_complete_date_returns_false(self):
     partial_date_day = base.PartialDate(2021, 11, 2)
     self.assertFalse(partial_date_day.is_month_date())
 
-  def testReturnsNoneInvalidMonth(self):
+  def test_init_invalid_month_returns_none(self):
     partial_date = base.PartialDate.init_partial_date("2022-32-24")
     self.assertIsNone(partial_date)
 
-  def testReturnsNoneInvalidYear(self):
+  def test_init_invalid_year_returns_none(self):
     partial_date = base.PartialDate.init_partial_date("20313")
     self.assertIsNone(partial_date)
 
@@ -326,32 +340,32 @@ class MissingFieldRuleTest(absltest.TestCase):
     self.validator = base.MissingFieldRule(None, None)
 
   # get_severity test
-  def testShouldReturnSeverityLevelOfException(self):
+  def test_get_severity_raises_not_implemented_error(self):
     with self.assertRaises(NotImplementedError):
       self.validator.get_severity()
 
   # element_field_mapping test
-  def testShouldReturnADictOfEntitiesToRequiredFields(self):
+  def test_element_field_mapping_raises_not_implemented_error(self):
     with self.assertRaises(NotImplementedError):
       self.validator.element_field_mapping()
 
   # setup tests
-  def testSetsExceptionWhenSeverityProperlySet_Info(self):
+  def test_setup_info_severity_sets_election_info(self):
     self.validator.get_severity = MagicMock(return_value=0)
     self.validator.setup()
     self.assertEqual(loggers.ElectionInfo, self.validator.exception)
 
-  def testSetsExceptionWhenSeverityProperlySet_Warning(self):
+  def test_setup_warning_severity_sets_election_warning(self):
     self.validator.get_severity = MagicMock(return_value=1)
     self.validator.setup()
     self.assertEqual(loggers.ElectionWarning, self.validator.exception)
 
-  def testSetsExceptionWhenSeverityProperlySet_Error(self):
+  def test_setup_error_severity_sets_election_error(self):
     self.validator.get_severity = MagicMock(return_value=2)
     self.validator.setup()
     self.assertEqual(loggers.ElectionError, self.validator.exception)
 
-  def testRaisesExceptionWhenGivenInvalidSeverity(self):
+  def test_setup_invalid_severity_raises_exception(self):
     self.validator.get_severity = MagicMock(return_value=-1)
     with self.assertRaises(Exception):
       self.validator.setup()
@@ -361,7 +375,7 @@ class MissingFieldRuleTest(absltest.TestCase):
       self.validator.setup()
 
   # elements test
-  def testElementsReturnsKeysFromFieldMapping(self):
+  def test_elements_returns_mapping_keys(self):
     elements = {
         "Person": ["PartyId", "CandidateId"],
         "Office": ["Term//StartDate"],
@@ -373,7 +387,7 @@ class MissingFieldRuleTest(absltest.TestCase):
       self.assertIn(registered_element, elements.keys())
 
   # check tests
-  def testRequiredFieldIsPresent(self):
+  def test_required_field_present_succeeds(self):
     person = """
       <Person>
         <FullName>
@@ -388,7 +402,7 @@ class MissingFieldRuleTest(absltest.TestCase):
     self.validator.check(etree.fromstring(person))
 
   # check tests
-  def testRaisesExceptionIfFieldIsMissing_Error(self):
+  def test_missing_field_fails(self):
     person = """
       <Person objectId="123">
       </Person>
@@ -406,7 +420,7 @@ class MissingFieldRuleTest(absltest.TestCase):
     self.assertEqual(ee.exception.log_entry[0].elements[0].get("objectId"),
                      "123")
 
-  def testRaisesExceptionIfFieldIsMissing_Warning(self):
+  def test_missing_field_warns(self):
     person = """
       <Person objectId="123">
       </Person>
@@ -424,7 +438,7 @@ class MissingFieldRuleTest(absltest.TestCase):
     self.assertEqual(ew.exception.log_entry[0].elements[0].get("objectId"),
                      "123")
 
-  def testRaisesExceptionIfFieldIsMissing_Info(self):
+  def test_missing_field_raises_info(self):
     person = """
       <Person objectId="123">
       </Person>
@@ -442,7 +456,7 @@ class MissingFieldRuleTest(absltest.TestCase):
     self.assertEqual(ei.exception.log_entry[0].elements[0].get("objectId"),
                      "123")
 
-  def testRaisesExceptionIfFieldIsEmpty(self):
+  def test_empty_field_fails(self):
     person = """
       <Person objectId="123">
         <FullName>
@@ -463,7 +477,7 @@ class MissingFieldRuleTest(absltest.TestCase):
     self.assertEqual(ee.exception.log_entry[0].elements[0].get("objectId"),
                      "123")
 
-  def testRaisesExceptionIfFieldIsWhiteSpace(self):
+  def test_whitespace_field_fails(self):
     person = """
       <Person objectId="123">
         <FullName>
@@ -484,7 +498,7 @@ class MissingFieldRuleTest(absltest.TestCase):
     self.assertEqual(ee.exception.log_entry[0].elements[0].get("objectId"),
                      "123")
 
-  def testHandlesMultipleFieldsPerEntity(self):
+  def test_multiple_missing_fields_fails(self):
     person = """
       <Person objectId="123">
       </Person>
@@ -588,7 +602,7 @@ class RulesRegistryTest(absltest.TestCase):
     """
     self.registry.election_tree = etree.fromstring(root_string)
 
-  def testCountAndPrintEntityStats(self):
+  def test_count_stats_prints_expected_output(self):
     if sys.version_info.major < 3:
       out = io.BytesIO()
     else:
@@ -622,7 +636,7 @@ class RulesRegistryTest(absltest.TestCase):
           "{:<30s}{:^8s}{:>15s}".format(attr, str(count), str(missing_in)),
           output)
 
-  def testMultipleInstancesValidateTheCorrectOcdIds(self):
+  def test_multiple_instances_restrict_validation_to_configured_ocd_ids(self):
     us_ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
         "us", None, [_TEST_US_OCD_ID_1, _TEST_US_OCD_ID_2]
     )
