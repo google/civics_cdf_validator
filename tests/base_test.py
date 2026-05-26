@@ -64,7 +64,7 @@ class DateRuleTest(absltest.TestCase):
   def setUp(self):
     super(DateRuleTest, self).setUp()
     self.date_validator = base.DateRule(None, None)
-    self.today = datetime.datetime.now().date()
+    self.today = datetime.datetime.now(datetime.timezone.utc).date()
     self.today_partial_date = base.PartialDate(self.today.year,
                                                self.today.month, self.today.day)
 

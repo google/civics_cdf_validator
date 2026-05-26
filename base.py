@@ -225,7 +225,7 @@ class DateRule(BaseRule):
 
   def is_date_in_past(self, date):
     """Check if a date is in the past."""
-    today = datetime.datetime.utcnow()
+    today = datetime.datetime.now(datetime.timezone.utc)
     today_partial_date = PartialDate(today.year, today.month, today.day)
     delta = date.is_older_than(today_partial_date)
     return delta > 0

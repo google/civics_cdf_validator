@@ -7719,7 +7719,7 @@ class ElectionStartDatesTest(absltest.TestCase):
   def setUp(self):
     super(ElectionStartDatesTest, self).setUp()
     self.validator = rules.ElectionStartDates(None, None)
-    self.today = datetime.datetime.now().date()
+    self.today = datetime.datetime.now(datetime.timezone.utc).date()
     self.election_string = """
     <Election>
       <StartDate>{}</StartDate>
@@ -7762,7 +7762,7 @@ class ElectionEndDatesInThePastTest(absltest.TestCase):
   def setUp(self):
     super(ElectionEndDatesInThePastTest, self).setUp()
     self.validator = rules.ElectionEndDatesInThePast(None, None)
-    self.today = datetime.datetime.now().date()
+    self.today = datetime.datetime.now(datetime.timezone.utc).date()
     self.election_string = """
     <Election>
       <StartDate>{}</StartDate>
@@ -7889,7 +7889,7 @@ class ElectionEndDatesOccurAfterStartDatesTest(absltest.TestCase):
   def setUp(self):
     super(ElectionEndDatesOccurAfterStartDatesTest, self).setUp()
     self.validator = rules.ElectionEndDatesOccurAfterStartDates(None, None)
-    self.today = datetime.datetime.now().date()
+    self.today = datetime.datetime.now(datetime.timezone.utc).date()
     self.election_string = """
     <Election>
       <StartDate>{}</StartDate>
@@ -7934,7 +7934,7 @@ class ValidPartyLeadershipDatesTest(absltest.TestCase):
   def setUp(self):
     super(ValidPartyLeadershipDatesTest, self).setUp()
     self.validator = rules.ValidPartyLeadershipDates(None, None)
-    self.today = datetime.datetime.now().date()
+    self.today = datetime.datetime.now(datetime.timezone.utc).date()
     self.party_leadership_string = """
     <PartyLeadership>
       <StartDate>{}</StartDate>
@@ -9082,7 +9082,7 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
         </Term>
       </Office>
     """
-    today = datetime.datetime.now().date()
+    today = datetime.datetime.now(datetime.timezone.utc).date()
     tomorrow = today + datetime.timedelta(days=1)
     yesterday = today - datetime.timedelta(days=1)
     office_one = etree.fromstring(office_string.format(today))
@@ -9100,7 +9100,7 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
         <EndDate>{}</EndDate>
       </Office>
     """
-    today = datetime.datetime.now().date()
+    today = datetime.datetime.now(datetime.timezone.utc).date()
     office_one = etree.fromstring(office_string.format(today))
     offices = [office_one]
 
@@ -11737,7 +11737,7 @@ class ContestContainsValidStartDateTest(absltest.TestCase):
   def setUp(self):
     super(ContestContainsValidStartDateTest, self).setUp()
     self.validator = rules.ContestContainsValidStartDate(None, None)
-    self.today_date = datetime.datetime.now()
+    self.today_date = datetime.datetime.now(datetime.timezone.utc)
 
   def test_contest_with_no_start_date_succeeds(self):
     contest_string = """
@@ -11809,7 +11809,7 @@ class ContestContainsValidEndDateTest(absltest.TestCase):
   def setUp(self):
     super(ContestContainsValidEndDateTest, self).setUp()
     self.validator = rules.ContestContainsValidEndDate(None, None)
-    self.today_date = datetime.datetime.now()
+    self.today_date = datetime.datetime.now(datetime.timezone.utc)
 
   def test_contest_with_no_end_date_succeeds(self):
     contest_string = """
@@ -11881,7 +11881,7 @@ class ContestEndDateOccursAfterStartDateTest(absltest.TestCase):
   def setUp(self):
     super(ContestEndDateOccursAfterStartDateTest, self).setUp()
     self.validator = rules.ContestEndDateOccursAfterStartDate(None, None)
-    self.today_date = datetime.datetime.now()
+    self.today_date = datetime.datetime.now(datetime.timezone.utc)
 
   def test_contest_with_no_dates_succeeds(self):
     contest_string = """
@@ -12852,7 +12852,7 @@ class CommitteeClassificationEndDateOccursAfterStartDateTest(absltest.TestCase):
     self.validator = rules.CommitteeClassificationEndDateOccursAfterStartDate(
         None, None
     )
-    self.today_date = datetime.datetime.now()
+    self.today_date = datetime.datetime.now(datetime.timezone.utc)
 
   def test_committee_classification_with_no_dates_succeeds(self):
     committee_string = """
