@@ -8,13 +8,13 @@ from lxml import etree
 
 class ParentHierarchyObjectIdStrTest(absltest.TestCase):
 
-  def testParentHierarchyIsEmpty(self):
+  def test_no_parent_hierarchy_returns_tag(self):
     uri = "<Uri>www.facebook.com/michael_scott</Uri>"
     uri_element = etree.fromstring(uri)
     actual_value = loggers.get_parent_hierarchy_object_id_str(uri_element)
     self.assertEqual("Uri", actual_value)
 
-  def testParentHierarchyStopWhenObjectIdIsdefined(self):
+  def test_hierarchy_stops_at_object_id(self):
     election_feed = """
       <ElectionReport>
         <PersonCollection>
@@ -34,7 +34,7 @@ class ParentHierarchyObjectIdStrTest(absltest.TestCase):
     actual_value = loggers.get_parent_hierarchy_object_id_str(uri_element)
     self.assertEqual("Person:per1 > ContactInformation > Uri", actual_value)
 
-  def testParentHierarchyToTheTopIfNoObjectIdIsdefined(self):
+  def test_hierarchy_goes_to_root_when_no_object_id(self):
     election_feed = """
       <ElectionReport>
         <Election>

@@ -45,126 +45,126 @@ def generate_temp_file_path(filepath: str) -> str:
 
 class GpUnitOcdIdValidatorTest(absltest.TestCase):
 
-  def testIsValidCountryCodeWithInvalidCountry_returnsFalse(self):
+  def test_is_valid_country_code_invalid_country_returns_false(self):
     ocd_value = "ocd-division/country:usa"
     self.assertFalse(
         gpunit_rules.GpUnitOcdIdValidator.is_valid_country_code(ocd_value)
     )
 
-  def testIsValidCountryCodeWithValidCountry_returnsTrue(self):
+  def test_is_valid_country_code_valid_country_returns_true(self):
     ocd_value = "ocd-division/country:us"
     self.assertTrue(
         gpunit_rules.GpUnitOcdIdValidator.is_valid_country_code(ocd_value)
     )
 
-  def testIsValidCountryCodeWithWrongPattern_returnsFalse(self):
+  def test_is_valid_country_code_wrong_pattern_returns_false(self):
     ocd_value = "ocd-division/wrong_id_pattern"
     self.assertFalse(
         gpunit_rules.GpUnitOcdIdValidator.is_valid_country_code(ocd_value)
     )
 
-  def testIsValidCountryCodeWithRegion_returnsTrue(self):
+  def test_is_valid_country_code_region_returns_true(self):
     ocd_value = "ocd-division/region:la"
     self.assertTrue(
         gpunit_rules.GpUnitOcdIdValidator.is_valid_country_code(ocd_value)
     )
 
-  def testIsValidOcdIdWithWrongPattern_returnsFalse(self):
+  def test_is_valid_ocd_id_wrong_pattern_returns_false(self):
     ocd_value = "regionalwahlkreis:burgenland_sued"
     ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, set([ocd_value])
+        "us", None, {ocd_value}
     )
 
     self.assertFalse(ocd_id_validator.is_valid_ocd_id(ocd_value))
 
-  def testIsValidOcdIdWithInvalidCharacter_returnsFalse(self):
+  def test_is_valid_ocd_id_invalid_character_returns_false(self):
     ocd_value = "ocd-division/country:la/regionalwahlkreis:burgenland*d"
     ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, set([ocd_value])
+        "us", None, {ocd_value}
     )
 
     self.assertFalse(ocd_id_validator.is_valid_ocd_id(ocd_value))
 
-  def testIsValidOcdIdWIthMissingOcdId_returnsFalse(self):
+  def test_is_valid_ocd_id_missing_id_returns_false(self):
     ocd_value = "ocd-division/country:la/regionalwahlkreis:kärnten_west"
     non_existant_ocd_id = (
         "ocd-division/country:la/regionalwahlkreis:burgenland_süd"
     )
     ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, set([ocd_value])
+        "us", None, {ocd_value}
     )
 
     self.assertFalse(ocd_id_validator.is_valid_ocd_id(non_existant_ocd_id))
 
-  def testIsValidOcdIdWithValidId_returnsTrue(self):
+  def test_is_valid_ocd_id_valid_id_returns_true(self):
     ocd_value = "ocd-division/country:la/regionalwahlkreis:burgenland_süd"
     ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, set([ocd_value])
+        "us", None, {ocd_value}
     )
 
     self.assertTrue(ocd_id_validator.is_valid_ocd_id(ocd_value))
 
-  def testIsValidOcdIdWithValidCountryId_returnsTrue(self):
+  def test_is_valid_ocd_id_valid_country_returns_true(self):
     ocd_value = "ocd-division/country:la"
     ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, set([ocd_value])
+        "us", None, {ocd_value}
     )
 
     self.assertTrue(ocd_id_validator.is_valid_ocd_id(ocd_value))
 
-  def testIsValidOcdIdWithInvalidCountryId_returnsFalse(self):
+  def test_is_valid_ocd_id_invalid_country_returns_false(self):
     ocd_value = "ocd-division/country:lan"
     ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, set([ocd_value])
+        "us", None, {ocd_value}
     )
 
     self.assertFalse(ocd_id_validator.is_valid_ocd_id(ocd_value))
 
-  def testIsValidOcdIdWithRegionId_returnsTrue(self):
+  def test_is_valid_ocd_id_region_returns_true(self):
     ocd_value = "ocd-division/region:la"
     ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, set([ocd_value])
+        "us", None, {ocd_value}
     )
     self.assertTrue(ocd_id_validator.is_valid_ocd_id(ocd_value))
 
-  def testIsValidOcdIdWithStateId_returnsTrue(self):
+  def test_is_valid_ocd_id_state_returns_true(self):
     ocd_value = "ocd-division/country:us/state:la"
     ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
-        "us", None, set([ocd_value])
+        "us", None, {ocd_value}
     )
     self.assertTrue(ocd_id_validator.is_valid_ocd_id(ocd_value))
 
-  def testIsCountryOrRegionOcdIdWithNonString_returnsFalse(self):
+  def test_is_country_or_region_ocd_id_non_string_returns_false(self):
     ocd_value = 1
     self.assertFalse(
         gpunit_rules.GpUnitOcdIdValidator.is_country_or_region_ocd_id(ocd_value)
     )
 
-  def testIsCountryOrRegionOcdIdWithWrongPattern_returnsFalse(self):
+  def test_is_country_or_region_ocd_id_wrong_pattern_returns_false(self):
     ocd_value = "ocd-division/country:la/regionalwahlkreis:burgenland_süd"
     self.assertFalse(
         gpunit_rules.GpUnitOcdIdValidator.is_country_or_region_ocd_id(ocd_value)
     )
 
-  def testIsCountryOrRegionOcdIdWithCountryId_returnsTrue(self):
+  def test_is_country_or_region_ocd_id_country_returns_true(self):
     ocd_value = "ocd-division/country:la"
     self.assertTrue(
         gpunit_rules.GpUnitOcdIdValidator.is_country_or_region_ocd_id(ocd_value)
     )
 
-  def testIsCountryOrRegionOcdIdWithRegionId_returnsTrue(self):
+  def test_is_country_or_region_ocd_id_region_returns_true(self):
     ocd_value = "ocd-division/region:eu"
     self.assertTrue(
         gpunit_rules.GpUnitOcdIdValidator.is_country_or_region_ocd_id(ocd_value)
     )
 
-  def testIsCountryOrRegionOcdIdWithRegionId_returnsFalse(self):
+  def test_is_country_or_region_ocd_id_us_region_returns_false(self):
     ocd_value = "ocd-division/region:us"
     self.assertFalse(
         gpunit_rules.GpUnitOcdIdValidator.is_country_or_region_ocd_id(ocd_value)
     )
 
-  def testInitializeOcdIdsFromList(self):
+  def test_initialize_from_list_sets_ocd_ids(self):
     list_of_ids = ["ocd-division/country:la"]
     local_file = io.StringIO("id,\nocd-division/country:us,\n")
     ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
@@ -178,14 +178,14 @@ class GpUnitOcdIdValidatorTest(absltest.TestCase):
 
 class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
 
-  def testOcdIdsExtractor_setsDefaultValues(self):
+  def test_extractor_init_sets_default_values(self):
     extractor = gpunit_rules.OcdIdsExtractor()
 
     self.assertIsNone(extractor.country_code)
     self.assertIsNone(extractor.local_file)
 
-  def testOcdIdsExtractor_SetOCDsToResultOfGetOcdData(self):
-    expected_ocd_ids = set(["ocdid1", "ocdid2"])
+  def test_extract_returns_ocd_ids(self):
+    expected_ocd_ids = {"ocdid1", "ocdid2"}
     mock = MagicMock(return_value=expected_ocd_ids)
     extractor = gpunit_rules.OcdIdsExtractor()
     extractor._get_ocd_data = mock
@@ -198,13 +198,13 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
 
   @parameterized.named_parameters([
       (
-          "_returnsExpected",
+          "_returns_expected",
           "id\nocd-division/country:us\n",
-          set(["ocd-division/country:us"]),
+          {"ocd-division/country:us"},
       ),
-      ("_returnsEmpty", "name,sameAsNote\nUnited States,Other note\n", set()),
+      ("_returns_empty", "name,sameAsNote\nUnited States,Other note\n", set()),
   ])
-  def testReadCsv(self, csv_data, expected):
+  def test_read_csv_returns_expected_set(self, csv_data, expected):
     config = generate_config(_US_COUNTRY_CODE)
     extractor = gpunit_rules.OcdIdsExtractor(
         country_code=_US_COUNTRY_CODE,
@@ -220,7 +220,7 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
     )
     self.assertEqual(actual, expected)
 
-  def testDownloadData_downloadsDataFromGithub(self):
+  def test_download_data_downloads_from_github(self):
     extractor = gpunit_rules.OcdIdsExtractor(
         country_code=_US_COUNTRY_CODE,
         local_file=None,
@@ -246,12 +246,12 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
 
   @parameterized.named_parameters([
       (
-          "_forSingularCountry",
+          "_for_singular_country",
           _US_COUNTRY_CODE,
           [generate_config(_US_COUNTRY_CODE)],
       ),
       (
-          "_forEuSupranaturalOrganization",
+          "_for_eu_supranational_organization",
           _EU_COUNTRY_CODE,
           [
               generate_config(country)
@@ -259,7 +259,7 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
           ],
       ),
   ])
-  def testGenerateConfigs(self, country_code, expected):
+  def test_generate_configs_returns_expected(self, country_code, expected):
     extractor = gpunit_rules.OcdIdsExtractor(
         country_code=country_code,
         local_file=None,
@@ -269,7 +269,7 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
 
     self.assertEqual(expected, actual)
 
-  def testCheckCacheFreshnessWithNonExistentCacheFile_returnsExpected(self):
+  def test_check_cache_freshness_missing_file_returns_config(self):
     extractor = gpunit_rules.OcdIdsExtractor(
         country_code=_US_COUNTRY_CODE,
         local_file=None,
@@ -285,17 +285,19 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
 
   @parameterized.named_parameters([
       (
-          "_freshCacheFile",
+          "_fresh_cache_file",
           15,
           [],
       ),
       (
-          "_staleCacheFile",
+          "_stale_cache_file",
           75,
           [generate_config(_US_COUNTRY_CODE)],
       ),
   ])
-  def testCheckCacheFreshness(self, rewind_in_minutes, expected):
+  def test_check_cache_freshness_returns_expected(
+      self, rewind_in_minutes, expected
+  ):
     extractor = gpunit_rules.OcdIdsExtractor(
         country_code=_US_COUNTRY_CODE,
         local_file=None,
@@ -315,7 +317,7 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
     mock_os_path_getmtime.assert_called_once_with(config.local_filepath)
     self.assertEqual(actual, expected)
 
-  def testCreateCacheWithExistingCacheDirectory_doesNotCreateCache(self):
+  def test_create_cache_directory_exists_does_not_create(self):
     extractor = gpunit_rules.OcdIdsExtractor(
         country_code=_US_COUNTRY_CODE,
         local_file=None,
@@ -331,7 +333,7 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
     mock_os_path_exists.assert_called_once_with(_CACHE_DIRECTORY)
     mock_os_makedirs.assert_not_called()
 
-  def testCreateCacheWithNonExistentCacheDirectory_createsCache(self):
+  def test_create_cache_directory_missing_creates(self):
     extractor = gpunit_rules.OcdIdsExtractor(
         country_code=_US_COUNTRY_CODE,
         local_file=None,
@@ -347,7 +349,7 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
     mock_os_path_exists.assert_called_once_with(_CACHE_DIRECTORY)
     mock_os_makedirs.assert_called_once_with(_CACHE_DIRECTORY)
 
-  def testGetOcdDataWithLocalFile_returnsExpected(self):
+  def test_get_ocd_data_with_local_file_returns_expected(self):
     local_filepath = "://file/path"
     extractor = gpunit_rules.OcdIdsExtractor(
         country_code=_US_COUNTRY_CODE,
@@ -367,9 +369,9 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
     mock_io_open.assert_called_once_with(
         local_filepath, encoding="utf-8", mode="r"
     )
-    self.assertEqual(actual, set(["ocd-division/country:us"]))
+    self.assertEqual(actual, {"ocd-division/country:us"})
 
-  def testGetOcdDataWithNonExistingCacheDirectory_returnsExpected(self):
+  def test_get_ocd_data_missing_cache_directory_returns_expected(self):
     extractor = gpunit_rules.OcdIdsExtractor(
         country_code=_EU_COUNTRY_CODE,
         local_file=None,

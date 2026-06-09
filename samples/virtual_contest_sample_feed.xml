@@ -163,7 +163,6 @@
         <VoteVariation>majority</VoteVariation>
         <NumberElected>1</NumberElected>
         <OfficeIds>off-asfa567985thjkgh</OfficeIds>
-        <PrimaryPartyIds>par-asdlfk23490857slkdfh par-gdas134562asghsfgka</PrimaryPartyIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest objectId="cc-aewefac" xsi:type="CandidateContest">
@@ -193,7 +192,6 @@
             </VoteCounts>
           </VoteCountsCollection>
           <CandidateIds>can-aisdof892374</CandidateIds>
-          <EndorsementPartyIds>par-gdas134562asghsfgka</EndorsementPartyIds>
         </BallotSelection>
         <BallotSelection objectId="cs-fasdfa" xsi:type="CandidateSelection">
           <SequenceOrder>1</SequenceOrder>
@@ -243,7 +241,6 @@
         <VoteVariation>majority</VoteVariation>
         <NumberElected>1</NumberElected>
         <OfficeIds>off-asfa567985thjkgh</OfficeIds>
-        <PrimaryPartyIds>par-asdlfk23490857slkdfh par-gdas134562asghsfgka</PrimaryPartyIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
       <Contest xsi:type="PartyContest" objectId="pc-20001">
@@ -305,6 +302,7 @@
           </VoteCountsCollection>
           <PartyIds>par-gdas134562asghsfgka</PartyIds>
         </BallotSelection>
+        <ComposingContestIds>cc-qfascead cc-aewefac</ComposingContestIds>
         <ElectoralDistrictId>ru-3456345sadfa</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>

@@ -32,6 +32,8 @@ import networkx
 import pycountry
 from six.moves.urllib.parse import urlparse
 
+
+_XML_TRUE_VALUES = frozenset(["true", "1"])
 _PARTY_LEADERSHIP_TYPES = ["party-leader-id", "party-chair-id"]
 _INDEPENDENT_PARTY_NAMES = frozenset(["independent", "nonpartisan"])
 _IDREF_TYPES = frozenset(["xs:IDREF", "xs:IDREFS"])
@@ -58,6 +60,7 @@ _INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE = [
     "BallotTitle",
     "ConStatement",
     "Directions",
+    "DisplayName",
     "EffectOfAbstain",
     "FullName",
     "FullText",
@@ -131,6 +134,11 @@ _UNTYPED_URI_PLATFORMS = frozenset([
     "wikipedia",
 ])
 _ALL_URI_PLATFORMS = _TYPED_URI_PLATFORMS | _UNTYPED_URI_PLATFORMS
+
+_WINNER_POST_ELECTION_STATUSES = frozenset([
+    "winner",
+    "projected-winner",
+])
 
 
 def _get_office_roles(element, is_post_office_split_feed=False):
@@ -278,6 +286,20 @@ def country_code_is_valid(country_code):
       country_code.lower() == "eu"
       or pycountry.countries.get(alpha_2=country_code.upper()) is not None
   )
+
+
+def _get_type_or_other_type(element):
+  type_element = element.find("Type")
+  other_type_element = element.find("OtherType")
+  type_text = (
+      type_element.text.strip() if element_has_text(type_element) else ""
+  )
+  other_type_text = (
+      other_type_element.text.strip()
+      if element_has_text(other_type_element)
+      else ""
+  )
+  return other_type_text if type_text == "other" else type_text
 
 
 class Schema(base.TreeRule):
@@ -1208,42 +1230,6 @@ class SingularPartySelection(base.BaseRule):
       )
 
 
-class PartiesHaveValidColors(base.BaseRule):
-  """Each Party should have a valid hex integer less than 16^6, without a leading '#'.
-
-  A Party object that has no Color or an invalid Color should be picked up
-  within this class and returned to the user as a warning.
-  """
-
-  def elements(self):
-    return ["Party"]
-
-  def check(self, element):
-    colors = element.findall("Color")
-    if not colors:
-      return
-    if len(colors) > 1:
-      raise loggers.ElectionWarning.from_message(
-          "The Party has more than one color.", [element]
-      )
-    color_val = colors[0].text
-    if not color_val:
-      raise loggers.ElectionWarning.from_message(
-          "Color tag is missing a value.", [colors[0]]
-      )
-    try:
-      int(color_val, 16)
-    except ValueError:
-      raise loggers.ElectionWarning.from_message(
-          "%s is not a valid hex color." % color_val,
-          [colors[0]],
-      )
-    if not re.match("^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", color_val):
-      raise loggers.ElectionWarning.from_message(
-          "%s should be a hexadecimal less than 16^6." % color_val, [colors[0]]
-      )
-
-
 class PersonHasUniqueFullName(base.BaseRule):
   """A Person should be defined one time in <PersonCollection>.
 
@@ -1360,42 +1346,70 @@ class ValidateDuplicateColors(base.TreeRule):
   """
 
   def check(self):
-    party_color_mapping = {}
+    party_colors_by_id = {}
+    party_objects = {}
     for party in self.get_elements_by_class(self.election_tree, "Party"):
+      party_id = party.get("objectId")
+      party_objects[party_id] = party
+      party_colors_by_id[party_id] = {}
       color_element = party.find("Color")
-      if color_element is None or not color_element.text:
-        continue
-      party_color_mapping[party.get("objectId")] = (color_element.text, party)
+      if element_has_text(color_element):
+        party_colors_by_id[party_id]["Color"] = color_element.text.lower()
+      colors_element = party.find("Colors")
+      if colors_element is not None:
+        for color_field in ("DarkThemeColor", "LightThemeColor"):
+          sub_color_element = colors_element.find(color_field)
+          if element_has_text(sub_color_element):
+            party_colors_by_id[party_id][
+                color_field
+            ] = sub_color_element.text.lower()
 
     warning_log = []
     for party_contest in self.get_elements_by_class(
         element=self.election_tree, element_name="PartyContest"
     ):
-      contest_colors = {}
+      contest_colors = {
+          "Color": collections.defaultdict(list),
+          "DarkThemeColor": collections.defaultdict(list),
+          "LightThemeColor": collections.defaultdict(list),
+      }
       for party_ids_element in self.get_elements_by_class(
           element=party_contest, element_name="PartyIds"
       ):
         for party_id in party_ids_element.text.split():
-          if party_id not in party_color_mapping:
+          if party_id not in party_colors_by_id:
+            continue
+          party_colors = party_colors_by_id[party_id]
+          party_element = party_objects[party_id]
+
+          has_party_colors = "Color" in party_colors or (
+              "DarkThemeColor" in party_colors
+              and "LightThemeColor" in party_colors
+          )
+          if not has_party_colors:
             warning_log.append(
                 loggers.LogEntry(
-                    "Party (%s) in PartyContest should have an assigned color."
-                    % party_id
+                    f"Party ({party_id}) in PartyContest should have either"
+                    " Color or Colors.DarkThemeColor and Colors.LightThemeColor"
+                    " set.",
+                    [party_element],
                 )
             )
-            continue
-          party_color = party_color_mapping[party_id][0]
-          if party_color in contest_colors:
-            contest_colors[party_color].append(party_color_mapping[party_id][1])
-          else:
-            contest_colors[party_color] = [party_color_mapping[party_id][1]]
-      for color, parties in contest_colors.items():
-        if len(parties) > 1:
-          warning_log.append(
-              loggers.LogEntry(
-                  "Parties have the same color %s." % color, parties
-              )
-          )
+
+          for color_field in ("Color", "DarkThemeColor", "LightThemeColor"):
+            if color_field in party_colors:
+              color_val = party_colors[color_field]
+              contest_colors[color_field][color_val].append(party_element)
+
+      for color_field in ("Color", "DarkThemeColor", "LightThemeColor"):
+        for color, parties in contest_colors[color_field].items():
+          if len(parties) > 1:
+            warning_log.append(
+                loggers.LogEntry(
+                    f"Parties have the same {color_field} {color}.",
+                    parties,
+                )
+            )
     if warning_log:
       raise loggers.ElectionWarning(warning_log)
 
@@ -1712,6 +1726,65 @@ class PersonsMissingPartyData(base.BaseRule):
       raise loggers.ElectionWarning.from_message(
           "The person is missing party data", [element]
       )
+
+
+class OnlyOneCandidateImagePerPerson(base.BaseRule):
+  """Ensure only one candidate-image is provided per Person."""
+
+  def elements(self):
+    return ["Person"]
+
+  def check(self, element):
+    image_uris = element.findall("ImageUri")
+    candidate_images = []
+    for image_uri in image_uris:
+      annotation = image_uri.get("Annotation", "").strip()
+      if annotation == "candidate-image":
+        candidate_images.append(image_uri)
+
+    if len(candidate_images) > 1:
+      raise loggers.ElectionError.from_message(
+          "Person has {} ImageUri fields annotated as 'candidate-image'."
+          " Must have at most one.".format(len(candidate_images)),
+          candidate_images,
+      )
+
+
+class UniqueCandidateImageUris(base.TreeRule):
+  """Check that candidate-image URIs are unique to a person."""
+
+  def check(self):
+    root = self.election_tree.getroot()
+    if root is None:
+      return
+
+    persons_by_candidate_image_uri = collections.defaultdict(list)
+    person_collection = root.find("PersonCollection")
+    if person_collection is None:
+      return
+    for person in person_collection.findall("Person"):
+      for image_uri_element in person.findall("ImageUri"):
+        if not element_has_text(image_uri_element):
+          continue
+        annotation = image_uri_element.get("Annotation", "").strip()
+        if annotation == "candidate-image":
+          image_uri = image_uri_element.text.strip()
+          if image_uri:
+            persons_by_candidate_image_uri[image_uri].append(person)
+
+    error_log = []
+    for image_uri, persons in persons_by_candidate_image_uri.items():
+      if len(persons) > 1:
+        person_ids = sorted(person.get("objectId") for person in persons)
+        error_log.append(
+            loggers.LogEntry(
+                f"Candidate image URI '{image_uri}' is shared by multiple"
+                f" people: [{', '.join(person_ids)}].",
+                persons,
+            )
+        )
+    if error_log:
+      raise loggers.ElectionError(error_log)
 
 
 class AllCaps(base.BaseRule):
@@ -2083,7 +2156,7 @@ class VoteCountTypesCoherency(base.BaseRule):
       "seats-total",
       "seats-delta",
       "seats-delta-mandate",
-      "seats-delta-institutional"
+      "seats-delta-institutional",
   }
   # Ibid.
   CAND_VC_TYPES = {"candidate-votes"}
@@ -2364,11 +2437,8 @@ class ValidURIAnnotation(base.BaseRule):
             "URI {} is missing annotation.".format(ascii_url), [uri]
         )
 
-      # Skip platform checks for image or office contact form annotations.
-      if (
-          re.search(r"candidate-image", annotation)
-          or annotation == "office-contact_form"
-      ):
+      # Skip platform checks for office contact form annotations.
+      if annotation == "office-contact_form":
         continue
 
       ann_elements = annotation.split("-")
@@ -2473,7 +2543,8 @@ class OfficeHasjurisdictionSameAsElectoralDistrict(base.BaseRule):
 
   def check(self, element):
     jurisdiction_values = get_entity_info_for_value_type(
-        element, "jurisdiction-id")
+        element, "jurisdiction-id"
+    )
     jurisdiction_values = [
         j_id.strip() for j_id in jurisdiction_values if j_id.strip()
     ]
@@ -3491,6 +3562,62 @@ class ImproperCandidateContest(base.TreeRule):
       raise loggers.ElectionWarning(warning_log)
 
 
+class WinnerCountLimit(base.BaseRule):
+  """Number of winners must be less than or equal to NumberElected."""
+
+  def setup(self):
+    self.candidate_post_election_status_by_object_id = (
+        self._get_candidate_post_election_status_by_object_id()
+    )
+
+  def _get_candidate_post_election_status_by_object_id(self):
+    candidate_post_election_status_by_object_id = {}
+    candidates = self.get_elements_by_class(
+        self.election_tree, "CandidateCollection//Candidate"
+    )
+    for candidate in candidates:
+      object_id = candidate.get("objectId")
+      post_election_status = candidate.find("PostElectionStatus")
+      if object_id and element_has_text(post_election_status):
+        candidate_post_election_status_by_object_id[object_id] = (
+            post_election_status.text.strip()
+        )
+    return candidate_post_election_status_by_object_id
+
+  def elements(self):
+    return ["CandidateContest"]
+
+  def check(self, element):
+    number_elected_element = element.find("NumberElected")
+    number_elected = (
+        int(number_elected_element.text)
+        if element_has_text(number_elected_element)
+        else 1
+    )
+
+    candidate_ids_elements = element.findall("BallotSelection//CandidateIds")
+    candidate_ids = set()
+    for candidate_ids_element in candidate_ids_elements:
+      if element_has_text(candidate_ids_element):
+        candidate_ids.update(candidate_ids_element.text.split())
+
+    winner_count = 0
+    for candidate_id in candidate_ids:
+      status = self.candidate_post_election_status_by_object_id.get(
+          candidate_id
+      )
+      if status in _WINNER_POST_ELECTION_STATUSES:
+        winner_count += 1
+
+    if winner_count > number_elected:
+      raise loggers.ElectionError.from_message(
+          f"Contest {element.get('objectId')} has {winner_count} candidates"
+          " with PostElectionStatus of 'winner' or 'projected-winner',"
+          f" which exceeds NumberElected: {number_elected}.",
+          [element],
+      )
+
+
 class MissingFieldsError(base.MissingFieldRule):
   """Check for missing fields for given entity types and field names.
 
@@ -3548,8 +3675,7 @@ class MissingFieldsInfo(base.MissingFieldRule):
     return 0
 
   def element_field_mapping(self):
-    return {
-    }
+    return {}
 
 
 class PartySpanMultipleCountries(base.BaseRule):
@@ -3610,9 +3736,7 @@ class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
     officeholder_tenure_collection_element = self.get_elements_by_class(
         election_tree, "OfficeHolderTenureCollection"
     )
-    role_element = self.get_elements_by_class(
-        election_tree, "Role"
-    )
+    role_element = self.get_elements_by_class(election_tree, "Role")
     if officeholder_tenure_collection_element or role_element:
       self.is_post_office_split_feed = True
 
@@ -3638,9 +3762,7 @@ class ExecutiveOfficeShouldNotHaveGovernmentBody(base.BaseRule):
     officeholder_tenure_collection_element = self.get_elements_by_class(
         election_tree, "OfficeHolderTenureCollection"
     )
-    role_element = self.get_elements_by_class(
-        election_tree, "Role"
-    )
+    role_element = self.get_elements_by_class(election_tree, "Role")
     if officeholder_tenure_collection_element or role_element:
       self.is_post_office_split_feed = True
 
@@ -4088,6 +4210,204 @@ class ContestStartDateContainsCorrespondingEndDate(base.DateRule):
       )
 
 
+class ValidatePollsCloseDatetimes(base.BaseRule):
+  """Checks that LatestPollsClose is not before EarliestPollsClose."""
+
+  def elements(self):
+    return ["Contest"]
+
+  def check(self, element):
+    earliest_polls_close_element = element.find("EarliestPollsClose")
+    latest_polls_close_element = element.find("LatestPollsClose")
+
+    if not element_has_text(
+        earliest_polls_close_element
+    ) or not element_has_text(latest_polls_close_element):
+      return
+
+    earliest_polls_close_text = earliest_polls_close_element.text.strip()
+    latest_polls_close_text = latest_polls_close_element.text.strip()
+
+    try:
+      earliest_polls_close = datetime.datetime.fromisoformat(
+          earliest_polls_close_text
+      )
+      latest_polls_close = datetime.datetime.fromisoformat(
+          latest_polls_close_text
+      )
+
+      if latest_polls_close < earliest_polls_close:
+        raise loggers.ElectionError.from_message(
+            f"LatestPollsClose ({latest_polls_close_text}) must not be before"
+            f" EarliestPollsClose ({earliest_polls_close_text}) for Contest"
+            f" {element.get('objectId')}.",
+            [element],
+        )
+    except ValueError as e:
+      raise loggers.ElectionError.from_message(
+          "Invalid PollsClose datetime format in Contest"
+          f" {element.get('objectId')}: {e}",
+          [element],
+      )
+
+
+class ValidateResultsExpected(base.BaseRule):
+  """Checks that ResultsExpected is not before the first ResultsReportingStage.
+
+  The ResultsExpected datetime must not be before the ExpectedStartDateTime
+  of the earliest ResultsReportingStage excluding the no-results stage.
+  """
+
+  def elements(self):
+    return ["Contest"]
+
+  def check(self, element):
+    results_expected_element = element.find("ResultsExpected")
+    if not element_has_text(results_expected_element):
+      return
+
+    results_expected_text = results_expected_element.text.strip()
+
+    try:
+      results_expected = datetime.datetime.fromisoformat(results_expected_text)
+    except ValueError as e:
+      raise loggers.ElectionError.from_message(
+          "Invalid ResultsExpected datetime format in Contest"
+          f" {element.get('objectId')}: {e}",
+          [element],
+      )
+
+    stage_collection = element.find("ResultsReportingStageCollection")
+    if stage_collection is None:
+      return
+
+    earliest_start = None
+    earliest_start_text = None
+    for stage in stage_collection.findall("ResultsReportingStage"):
+      stage_type_element = stage.find("StageType")
+      if (
+          element_has_text(stage_type_element)
+          and stage_type_element.text.strip() == "no-results"
+      ):
+        continue
+
+      start_element = stage.find("ExpectedStartDateTime")
+      if not element_has_text(start_element):
+        continue
+
+      start_text = start_element.text.strip()
+      try:
+        start = datetime.datetime.fromisoformat(start_text)
+        if earliest_start is None or start < earliest_start:
+          earliest_start = start
+          earliest_start_text = start_text
+      except ValueError as e:
+        raise loggers.ElectionError.from_message(
+            "Invalid ExpectedStartDateTime datetime format for the"
+            f" '{stage_type_element.text.strip()}' ResultsReportingStage in"
+            f" Contest {element.get('objectId')}: {e}",
+            [element],
+        )
+
+    if earliest_start and results_expected < earliest_start:
+      raise loggers.ElectionError.from_message(
+          f"ResultsExpected ({results_expected_text}) must not be before the"
+          f" ExpectedStartDateTime ({earliest_start_text}) of the earliest"
+          f" ResultsReportingStage for Contest {element.get('objectId')}.",
+          [element],
+      )
+
+
+class ValidateResultsEmbargoEnd(base.BaseRule):
+  """Checks that ResultsEmbargoEnd is not after the official ResultsReportingStage start."""
+
+  def elements(self):
+    return ["Contest"]
+
+  def check(self, element):
+    results_embargo_end_element = element.find("ResultsEmbargoEnd")
+    if not element_has_text(results_embargo_end_element):
+      return
+
+    results_embargo_end_text = results_embargo_end_element.text.strip()
+
+    try:
+      results_embargo_end = datetime.datetime.fromisoformat(
+          results_embargo_end_text
+      )
+    except ValueError as e:
+      raise loggers.ElectionError.from_message(
+          "Invalid ResultsEmbargoEnd datetime format in Contest"
+          f" {element.get('objectId')}: {e}",
+          [element],
+      )
+
+    stage_collection = element.find("ResultsReportingStageCollection")
+    if stage_collection is None:
+      return
+
+    official_start = None
+    official_start_text = None
+    for stage in stage_collection.findall("ResultsReportingStage"):
+      stage_type_element = stage.find("StageType")
+      if (
+          element_has_text(stage_type_element)
+          and stage_type_element.text.strip() == "official"
+      ):
+        start_element = stage.find("ExpectedStartDateTime")
+        if not element_has_text(start_element):
+          continue
+
+        start_text = start_element.text.strip()
+        try:
+          official_start = datetime.datetime.fromisoformat(start_text)
+          official_start_text = start_text
+          break
+        except ValueError as e:
+          raise loggers.ElectionError.from_message(
+              "Invalid ExpectedStartDateTime datetime format for the"
+              " 'official' ResultsReportingStage in Contest"
+              f" {element.get('objectId')}: {e}",
+              [element],
+          )
+
+    if official_start and official_start < results_embargo_end:
+      raise loggers.ElectionError.from_message(
+          f"ResultsEmbargoEnd ({results_embargo_end_text}) must not be after"
+          f" the ExpectedStartDateTime ({official_start_text}) of the official"
+          f" ResultsReportingStage for Contest {element.get('objectId')}.",
+          [element],
+      )
+
+
+class ResultsReportingStagesMustHaveUniqueType(base.BaseRule):
+  """Checks that each ResultsReportingStage has a unique StageType per Contest."""
+
+  def elements(self):
+    return ["ResultsReportingStageCollection"]
+
+  def check(self, element):
+    stages_by_type = collections.defaultdict(list)
+    for stage in element.findall("ResultsReportingStage"):
+      stage_type_element = stage.find("StageType")
+      if element_has_text(stage_type_element):
+        stage_type = stage_type_element.text.strip()
+        stages_by_type[stage_type].append(stage)
+
+    errors = []
+    for stage_type, stages in stages_by_type.items():
+      if len(stages) > 1:
+        errors.append(
+            loggers.LogEntry(
+                f"Duplicate ResultsReportingStage StageType '{stage_type}'"
+                " found in the same ResultsReportingStageCollection.",
+                stages,
+            )
+        )
+    if errors:
+      raise loggers.ElectionError(errors)
+
+
 class CandidateContestTypesAreCompatible(base.BaseRule):
   """CandidateContest Type values cannot have both a general and primary type."""
 
@@ -4278,6 +4598,27 @@ class SourceDirPathsAreUnique(base.BaseRule):
 
     if error_log:
       raise loggers.ElectionError(error_log)
+
+
+class SqsQueueNameRequiresS3SourceDirPath(base.BaseRule):
+  """If SqsQueueName is set, SourceDirPath must also be set and must be an s3 path."""
+
+  def elements(self):
+    return ["Feed"]
+
+  def check(self, element):
+    sqs_queue_name = element.find("SqsQueueName")
+    if not element_has_text(sqs_queue_name):
+      return
+    source_dir_path = element.find("SourceDirPath")
+    if not element_has_text(
+        source_dir_path
+    ) or not source_dir_path.text.strip().lower().startswith("s3://"):
+      raise loggers.ElectionError.from_message(
+          "If SqsQueueName is set, SourceDirPath must also be set and must be"
+          " an s3 path for feed {}.".format(element.find("FeedId").text),
+          [element],
+      )
 
 
 class ElectionEventDatesAreSequential(base.DateRule):
@@ -4758,13 +5099,238 @@ class FeedElementsShouldHaveSubElementsBasedOnType(base.BaseRule):
             "ElectionEventCollection should exist for %s feed %s."
             % (feed_type, feed_id)
         )
-      if not element.find("ElectionEventCollection").findall(
-          "ElectionEvent"
-      ):
+      if not element.find("ElectionEventCollection").findall("ElectionEvent"):
         raise loggers.ElectionError.from_message(
             "ElectionEventCollection should have at least one ElectionEvent"
             " for %s feed %s." % (feed_type, feed_id)
         )
+
+
+class NotEmptyUniqueDataSourceUris(base.BaseRule):
+  """Checks that DataSource entities have globally unique URIs and they are not empty."""
+
+  def elements(self):
+    return ["DataSourceCollection"]
+
+  def check(self, element):
+    data_source_ids_by_uri = collections.defaultdict(set)
+    error_log = []
+
+    for data_source in element.findall("DataSource"):
+      datasource_id = data_source.get("objectId")
+      for uri_element in data_source.findall("Uri"):
+        if not element_has_text(uri_element):
+          error_log.append(
+              loggers.LogEntry(
+                  "DataSource {} has an empty Uri.".format(datasource_id),
+                  [data_source],
+              )
+          )
+          continue
+        uri = uri_element.text.strip()
+        data_source_ids_by_uri[uri].add(data_source)
+
+    for uri, data_sources in data_source_ids_by_uri.items():
+      if len(data_sources) <= 1:
+        continue
+      sorted_data_sources = sorted(
+          data_sources, key=lambda ds: ds.get("objectId")
+      )
+      data_source_ids = [
+          data_source.get("objectId") for data_source in sorted_data_sources
+      ]
+      error_log.append(
+          loggers.LogEntry(
+              "DataSource entities {} have duplicate Uri '{}'.".format(
+                  ", ".join(data_source_ids), uri
+              ),
+              sorted_data_sources,
+          )
+      )
+
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
+class UniqueDataSourceLanguages(base.BaseRule):
+  """Checks that Uri elements have unique languages within a DataSource."""
+
+  def elements(self):
+    return ["DataSourceCollection"]
+
+  def check(self, element):
+    error_log = []
+
+    for data_source in element.findall("DataSource"):
+      data_source_id = data_source.get("objectId")
+      seen_uri_languages = set()
+      for uri_element in data_source.findall("Uri"):
+        language = uri_element.get("language")
+        if not language:
+          error_log.append(
+              loggers.LogEntry(
+                  "DataSource {} has a Uri element without a language.".format(
+                      data_source_id
+                  ),
+                  [uri_element],
+              )
+          )
+          continue
+        language = language.strip()
+        if language in seen_uri_languages:
+          error_log.append(
+              loggers.LogEntry(
+                  "DataSource {} has multiple Uri elements with the same"
+                  " language '{}'.".format(data_source_id, language),
+                  [element],
+              )
+          )
+        else:
+          seen_uri_languages.add(language)
+
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
+class UniqueDataSourceDisplayNames(base.BaseRule):
+  """Checks that DataSource entities have globally unique DisplayNames."""
+
+  def elements(self):
+    return ["DataSourceCollection"]
+
+  def check(self, element):
+    data_source_ids_by_name = collections.defaultdict(set)
+    error_log = []
+
+    for data_source in element.findall("DataSource"):
+      data_source_id = data_source.get("objectId")
+      display_name_element = data_source.find("DisplayName")
+      for text_element in display_name_element.findall("Text"):
+        if not element_has_text(text_element):
+          error_log.append(
+              loggers.LogEntry(
+                  "DataSource {} has a DisplayName element without"
+                  " text.".format(data_source_id),
+                  [data_source],
+              )
+          )
+          continue
+        name_text = text_element.text.strip()
+        data_source_ids_by_name[name_text].add(data_source)
+
+    for name_text, data_sources in data_source_ids_by_name.items():
+      if len(data_sources) <= 1:
+        continue
+      sorted_data_sources = sorted(
+          data_sources, key=lambda ds: ds.get("objectId")
+      )
+      datasource_ids = [ds.get("objectId") for ds in sorted_data_sources]
+      error_log.append(
+          loggers.LogEntry(
+              "DataSource entities {} have duplicate DisplayName '{}'.".format(
+                  ", ".join(datasource_ids), name_text
+              ),
+              sorted_data_sources,
+          )
+      )
+
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
+def _get_attribution_depth(element):
+  """Helper to recursively get the maximum depth of an Attribution tree."""
+  children = element.findall("Attribution")
+  if not children:
+    return 1
+  return 1 + max(_get_attribution_depth(child) for child in children)
+
+
+def _get_datasource_id(element):
+  """Helper to safely extract and strip the text of the DataSourceId child."""
+  ds_element = element.find("DataSourceId")
+  return ds_element.text.strip() if element_has_text(ds_element) else ""
+
+
+class AttributionDepthLimit(base.BaseRule):
+  """Checks that each top-level Attribution in a ResultsReportingStage has at most three levels of depth."""
+
+  def elements(self):
+    return ["ResultsReportingStage"]
+
+  def check(self, element):
+    error_log = []
+    # This findall query is non-recursive and only returns direct children.
+    for attribution in element.findall("Attribution"):
+      depth = _get_attribution_depth(attribution)
+      if depth > 3:
+        data_source_id = _get_datasource_id(attribution)
+        error_log.append(
+            loggers.LogEntry(
+                f"Attribution starting with DataSourceId '{data_source_id}'"
+                f" has a depth of {depth}, exceeding the limit of 3.",
+                [attribution],
+            )
+        )
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
+def _canonicalize_cycle(cycle):
+  """Canonicalizes a cycle by rotating it to start with the min element."""
+  if not cycle:
+    return []
+  min_node = min(cycle)
+  min_idx = cycle.index(min_node)
+  return cycle[min_idx:] + cycle[:min_idx]
+
+
+class AttributionContainsNoCycles(base.TreeRule):
+  """Checks that there are no cycles between Attribution elements."""
+
+  def check(self):
+    graph = networkx.DiGraph()
+
+    attributions = self.get_elements_by_class(self.election_tree, "Attribution")
+    for attribution in attributions:
+      data_source = _get_datasource_id(attribution)
+      if not data_source:
+        continue
+      graph.add_node(data_source)
+      for child in attribution.findall("Attribution"):
+        child_data_source = _get_datasource_id(child)
+        if child_data_source:
+          graph.add_edge(data_source, child_data_source)
+
+    # Find all nodes in the graph that are part of a cycle based on directed
+    # paths.
+    nodes_in_a_cycle = set()
+    for component in networkx.strongly_connected_components(graph):
+      # If the component has multiple nodes, it must be a cycle.
+      if len(component) > 1:
+        nodes_in_a_cycle.update(component)
+        continue
+      # Only include single-node components if they have a self-loop.
+      (node,) = component
+      if graph.has_edge(node, node):
+        nodes_in_a_cycle.add(node)
+
+    if not nodes_in_a_cycle:
+      return
+
+    error_log = []
+    # Optimize performance for large graphs by excluding non-cyclic nodes.
+    all_cycles_subgraph = graph.subgraph(sorted(nodes_in_a_cycle))
+    for cycle in networkx.simple_cycles(all_cycles_subgraph):
+      canonical = _canonicalize_cycle(cycle)
+      # Append the starting node to the end to represent a closed loop.
+      error_log.append(
+          loggers.LogEntry(
+              f"Cycle detected in Attribution: {' -> '.join(canonical)} ->"
+              f" {canonical[0]}"
+          )
+      )
+    raise loggers.ElectionError(error_log)
 
 
 class RuleSet(enum.Enum):
@@ -4777,6 +5343,144 @@ class RuleSet(enum.Enum):
   ELECTION_RESULTS = 5
   METADATA = 6
   VOTER_INFORMATION = 7
+
+
+class ValidateSpecialBallotSelectionCountedInTotal(base.BaseRule):
+  """Enforces constraints on CountedInTotal for SpecialBallotSelections.
+
+  More specifically, BlankBallotSelection, NullBallotSelection, and
+  NoneOfTheAboveSelection must have an explicit value for CountedInTotal, and
+  AggregateBallotSelection must not have this set.
+  """
+
+  def elements(self):
+    return [
+        "BlankBallotSelection",
+        "NullBallotSelection",
+        "NoneOfTheAboveBallotSelection",
+        "AggregateBallotSelection",
+    ]
+
+  def check(self, element):
+    counted_in_total = element.find("CountedInTotal")
+    tag = element.tag
+
+    if tag in (
+        "BlankBallotSelection",
+        "NullBallotSelection",
+        "NoneOfTheAboveBallotSelection",
+    ) and not element_has_text(counted_in_total):
+      raise loggers.ElectionError.from_message(
+          f"{tag} must have an explicit value for CountedInTotal.",
+          [element],
+      )
+    elif tag == "AggregateBallotSelection" and counted_in_total is not None:
+      raise loggers.ElectionError.from_message(
+          "AggregateBallotSelection must not have CountedInTotal set.",
+          [element],
+      )
+
+
+class ValidateIncludeInAggregationBallotSelections(base.BaseRule):
+  """Validates BallotSelections with IncludedInAggregation.
+
+  Checks that the sum of all vote counts for a BallotSelection with
+  IncludedInAggregation must not be > the total vote counts for the
+  AggregateBallotSelection on that same Contest for the same vote count type.
+  Also requires that if IncludedInAggregation is set on any BallotSelection then
+  the AggregateBallotSelection must also be present on that Contest.
+  """
+
+  def elements(self):
+    return ["CandidateContest", "PartyContest"]
+
+  def _gather_vote_counts(self, element):
+    """Gathers vote counts from a selection element grouped by type."""
+    count_by_type_and_gp_unit = collections.defaultdict(float)
+    vote_counts_collection = element.find("VoteCountsCollection")
+    if vote_counts_collection is None:
+      return count_by_type_and_gp_unit
+
+    for vote_counts in vote_counts_collection.findall("VoteCounts"):
+      count_element = vote_counts.find("Count")
+      if not element_has_text(count_element):
+        continue
+      count = float(count_element.text)
+
+      vote_count_type = _get_type_or_other_type(vote_counts)
+      gp_unit_id_element = vote_counts.find("GpUnitId")
+      gp_unit_id = (
+          gp_unit_id_element.text.strip()
+          if element_has_text(gp_unit_id_element)
+          else ""
+      )
+
+      type_and_gp_unit = (vote_count_type, gp_unit_id)
+      count_by_type_and_gp_unit[type_and_gp_unit] += count
+
+    return count_by_type_and_gp_unit
+
+  def check(self, element):
+    contest_id = element.get("objectId")
+
+    candidate_selections = self.get_elements_by_class(
+        element, "CandidateSelection"
+    )
+    party_selections = self.get_elements_by_class(element, "PartySelection")
+    all_selections = candidate_selections + party_selections
+
+    included_selections = []
+    for selection in all_selections:
+      included_in_aggregation_element = selection.find("IncludedInAggregation")
+      if (
+          element_has_text(included_in_aggregation_element)
+          and included_in_aggregation_element.text in _XML_TRUE_VALUES
+      ):
+        included_selections.append(selection)
+    if not included_selections:
+      return
+
+    aggregate_selection = element.find("AggregateBallotSelection")
+    if aggregate_selection is None:
+      raise loggers.ElectionError.from_message(
+          f"Contest {contest_id} has selections marked as IncludedInAggregation"
+          " but is missing AggregateBallotSelection.",
+          [element],
+      )
+
+    aggregate_count_by_type_and_gp_unit = self._gather_vote_counts(
+        aggregate_selection
+    )
+
+    selections_count_sum_by_type_and_gp_unit = collections.defaultdict(float)
+    for selection in included_selections:
+      for (
+          type_and_gp_unit,
+          count,
+      ) in self._gather_vote_counts(selection).items():
+        selections_count_sum_by_type_and_gp_unit[type_and_gp_unit] += count
+
+    error_log = []
+    for (
+        type_and_gp_unit,
+        total_count,
+    ) in selections_count_sum_by_type_and_gp_unit.items():
+      aggregate_count = aggregate_count_by_type_and_gp_unit[type_and_gp_unit]
+      if total_count > aggregate_count:
+        resolved_type, gp_unit_id = type_and_gp_unit
+        error_log.append(
+            loggers.LogEntry(
+                f"In Contest {contest_id}, the sum of vote counts"
+                f" ({total_count}) for selections marked as"
+                " IncludedInAggregation exceeds the vote count"
+                f" ({aggregate_count}) for the AggregateBallotSelection for"
+                f" vote count type='{resolved_type}' (GpUnit: '{gp_unit_id}').",
+                [element],
+            )
+        )
+
+    if error_log:
+      raise loggers.ElectionError(error_log)
 
 
 # To add new rules, create a new class, inherit the base rule,
@@ -4811,6 +5515,7 @@ COMMON_RULES = (
     OfficesHaveJurisdictionID,
     OfficesHaveValidOfficeLevel,
     OfficesHaveValidOfficeRole,
+    OnlyOneCandidateImagePerPerson,
     OptionalAndEmpty,
     OtherType,
     PartyLeadershipMustExist,
@@ -4820,6 +5525,7 @@ COMMON_RULES = (
     PersonsMissingPartyData,
     Schema,
     URIValidator,
+    UniqueCandidateImageUris,
     UniqueLabel,
     UniqueStableID,
     UniqueURIPerAnnotationCategory,
@@ -4837,6 +5543,8 @@ COMMON_RULES = (
 
 ELECTION_RULES = COMMON_RULES + (
     # go/keep-sorted start
+    AttributionContainsNoCycles,
+    AttributionDepthLimit,
     BallotTitle,
     CandidateContestTypesAreCompatible,
     CandidatesReferencedInRelatedContests,
@@ -4869,19 +5577,28 @@ ELECTION_RULES = COMMON_RULES + (
     MissingPartyNameTranslation,
     MultipleCandidatesPointToTheSamePersonInTheSameContest,
     MultipleInternationalizedTextWithSameLanguageCode,
+    NotEmptyUniqueDataSourceUris,
     OfficeHasjurisdictionSameAsElectoralDistrict,
-    PartiesHaveValidColors,
     PartisanPrimary,
     PartisanPrimaryHeuristic,
     PercentSum,
     ProperBallotSelection,
+    ResultsReportingStagesMustHaveUniqueType,
     SelfDeclaredCandidateMethod,
     SingularPartySelection,
     SubsequentContestIdIsValidRelatedContest,
+    UniqueDataSourceDisplayNames,
+    UniqueDataSourceLanguages,
     ValidateDuplicateColors,
+    ValidateIncludeInAggregationBallotSelections,
     ValidateInfoUriAnnotation,
+    ValidatePollsCloseDatetimes,
+    ValidateResultsEmbargoEnd,
+    ValidateResultsExpected,
+    ValidateSpecialBallotSelectionCountedInTotal,
     VoteCountTypesCoherency,
     VoteCountValidSeatsDeltaTypes,
+    WinnerCountLimit,
     # go/keep-sorted end
 )
 
@@ -4915,6 +5632,8 @@ ELECTION_DATES_RULES = ELECTION_RULES + (UnreferencedEntitiesElectionDates,)
 METADATA_RULES = (
     # go/keep-sorted start
     ElectionEventDatesAreSequential,
+    EmptyString,
+    EmptyText,
     Encoding,
     FeedElementsShouldHaveSubElementsBasedOnType,
     FeedHasValidCountryCode,
@@ -4927,6 +5646,7 @@ METADATA_RULES = (
     Schema,
     SourceDirPathMustBeSetAfterInitialDeliveryDate,
     SourceDirPathsAreUnique,
+    SqsQueueNameRequiresS3SourceDirPath,
     UniqueLabel,
     # go/keep-sorted end
 )
