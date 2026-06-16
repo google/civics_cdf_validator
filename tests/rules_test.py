@@ -14025,7 +14025,7 @@ class GovernmentBodyExternalIdTest(absltest.TestCase):
       </Office>
       """
 
-    with self.assertRaises(loggers.ElectionWarning) as context:
+    with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(government_body_string))
     self.assertEqual(
         context.exception.log_entry[0].message,
@@ -14046,7 +14046,7 @@ class GovernmentBodyExternalIdTest(absltest.TestCase):
       </Office>
       """
 
-    with self.assertRaises(loggers.ElectionWarning) as context:
+    with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(government_body_string))
     self.assertEqual(
         context.exception.log_entry[0].message,
