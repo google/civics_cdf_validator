@@ -153,14 +153,7 @@ def _is_executive_office(element, is_post_office_split_feed=False):
 
 
 def _has_government_body(element):
-  if element_has_text(element.find("GovernmentBodyIds")):
-    return True
-  governmental_body = get_entity_info_for_value_type(
-      element,
-      "governmental-body",
-  )
-  government_body = get_entity_info_for_value_type(element, "government-body")
-  return bool(governmental_body or government_body)
+  return element_has_text(element.find("GovernmentBodyIds"))
 
 
 def get_external_id_values(
@@ -4935,22 +4928,6 @@ class DeprecatedPartyLeadershipSchema(base.BaseRule):
       )
 
 
-class GovernmentBodyExternalId(base.BaseRule):
-  """Errors if the government body is set using an external identifier instead of the GovernmentBody element."""
-
-  def elements(self):
-    return ["ExternalIdentifiers"]
-
-  def check(self, element):
-    if get_external_id_values(
-        element, "government-body"
-    ) or get_external_id_values(element, "governmental-body"):
-      raise loggers.ElectionError.from_message(
-          "Specifying government body via external identifiers is deprecated."
-          " Please use the top level GovernmentBody element instead."
-      )
-
-
 class ElectoralCommissionCollectionExists(base.BaseRule):
   """ElectoralCommissionCollection should exist."""
 
@@ -5495,7 +5472,6 @@ COMMON_RULES = (
     EmptyText,
     Encoding,
     ExecutiveOfficeShouldNotHaveGovernmentBody,
-    GovernmentBodyExternalId,
     GpUnitOcdId,
     GpUnitsCyclesRefsValidation,
     GpUnitsHaveInternationalizedName,
