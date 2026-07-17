@@ -456,8 +456,8 @@ class LanguageCodeTest(absltest.TestCase):
     super(LanguageCodeTest, self).setUp()
     self.validator = rules.LanguageCode(None, None)
 
-  def test_text_elements_succeeds(self):
-    self.assertEqual(self.validator.elements(), ["Text"])
+  def test_target_elements_succeeds(self):
+    self.assertEqual(self.validator.elements(), ["Text", "Uri"])
 
   def test_elements_without_language_attribute_succeeds(self):
     element_string = """
@@ -487,6 +487,40 @@ class LanguageCodeTest(absltest.TestCase):
   def test_invalid_language_attributes_empty_fails(self):
     empty_string = """
       <Text language="">BoomShakalaka</Text>
+    """
+    empty_element = etree.fromstring(empty_string)
+
+    with self.assertRaises(loggers.ElectionError):
+      self.validator.check(empty_element)
+
+  def test_uri_without_language_attribute_succeeds(self):
+    element_string = """
+      <Uri>http://example.com</Uri>
+    """
+    uri_element = etree.fromstring(element_string)
+
+    self.validator.check(uri_element)
+
+  def test_uri_with_valid_language_attribute_succeeds(self):
+    element_string = """
+      <Uri language="es">http://example.com/es</Uri>
+    """
+    uri_element = etree.fromstring(element_string)
+
+    self.validator.check(uri_element)
+
+  def test_uri_with_invalid_language_attributes_fails(self):
+    invalid_string = """
+      <Uri language="zzz">http://example.com</Uri>
+    """
+    invalid_element = etree.fromstring(invalid_string)
+
+    with self.assertRaises(loggers.ElectionError):
+      self.validator.check(invalid_element)
+
+  def test_uri_with_empty_language_attributes_fails(self):
+    empty_string = """
+      <Uri language="">http://example.com</Uri>
     """
     empty_element = etree.fromstring(empty_string)
 

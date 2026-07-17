@@ -408,10 +408,10 @@ class HungarianStyleNotation(base.BaseRule):
 
 
 class LanguageCode(base.BaseRule):
-  """Check that Text elements have a valid language code."""
+  """Check that Text and Uri elements have a valid language code."""
 
   def elements(self):
-    return ["Text"]
+    return ["Text", "Uri"]
 
   def check(self, element):
     if "language" not in element.attrib:
