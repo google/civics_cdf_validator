@@ -4775,6 +4775,29 @@ class FeedHasValidCountryCode(base.BaseRule):
       )
 
 
+class FeedInactiveDateNotOlderThanOneYear(base.BaseRule):
+  """Feeds should not have a FeedInactiveDate older than 1 year."""
+
+  def elements(self):
+    return ["Feed"]
+
+  def check(self, element):
+    feed_inactive_date_element = element.find("FeedInactiveDate")
+    if not element_has_text(feed_inactive_date_element):
+      return
+    feed_inactive_date = datetime.date.fromisoformat(
+        feed_inactive_date_element.text
+    )
+    one_year_ago = datetime.date.today() - datetime.timedelta(days=365)
+    if feed_inactive_date < one_year_ago:
+      feed_id_element = element.find("FeedId")
+      raise loggers.ElectionError.from_message(
+          f"FeedInactiveDate '{feed_inactive_date_element.text}' is older than"
+          f" 1 year for feed '{feed_id_element.text}'.",
+          [element],
+      )
+
+
 class FeedInactiveDateSetForNonEvergreenFeed(base.BaseRule):
   """All non-evergreen feeds should have a FeedInactiveDate set."""
 
@@ -5611,6 +5634,7 @@ METADATA_RULES = (
     FeedHasValidCountryCode,
     FeedIdsAreUnique,
     FeedInactiveDateIsLatestDate,
+    FeedInactiveDateNotOlderThanOneYear,
     FeedInactiveDateSetForNonEvergreenFeed,
     FeedTypeHasValidFeedLongevity,
     OfficeholderSubFeedDatesAreSequential,
