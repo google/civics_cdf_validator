@@ -4013,6 +4013,130 @@ class DuplicateContestNamesTest(absltest.TestCase):
       self.validator.check(election_tree)
 
 
+class DuplicateBallotTitleSeatPairTest(absltest.TestCase):
+
+  def setUp(self):
+    super(DuplicateBallotTitleSeatPairTest, self).setUp()
+    self.duplicate_validator = rules.DuplicateBallotTitleSeatPair(None, None)
+    self._base_report = """
+          <ContestCollection>
+            <Contest objectId="cc0001">
+              {}
+            </Contest>
+            <Contest objectId="cc0002">
+              {}
+            </Contest>
+            <Contest objectId="cc0003">
+              {}
+            </Contest>
+          </ContestCollection>
+    """
+
+  def testEveryBallotTitleSeatPairIsUniqueBySeat(self):
+    seat1 = """
+        <BallotTitle>
+            <Text language="en">Ballot Title same</Text>
+        </BallotTitle>
+        <Seat>seat different1</Seat>
+    """
+    seat2 = """
+        <BallotTitle>
+            <Text language="en">Ballot Title same</Text>
+        </BallotTitle>
+        <Seat>seat different2</Seat>
+    """
+    seat3 = """
+        <BallotTitle>
+            <Text language="en">Ballot Title same</Text>
+        </BallotTitle>
+        <Seat>seat different3</Seat>
+    """
+    root_string = self._base_report.format(seat1, seat2, seat3)
+    election_tree = etree.fromstring(root_string)
+    self.duplicate_validator.check(election_tree)
+
+  def testEveryBallotTitleSeatPairIsUniqueByBallotTitle(self):
+    seat1 = """
+        <BallotTitle>
+            <Text language="en">Ballot Title different1</Text>
+        </BallotTitle>
+        <Seat>seat same</Seat>
+    """
+    seat2 = """
+        <BallotTitle>
+            <Text language="en">Ballot Title different2</Text>
+        </BallotTitle>
+        <Seat>seat same</Seat>
+    """
+    seat3 = """
+        <BallotTitle>
+            <Text language="en">Ballot Title different3</Text>
+        </BallotTitle>
+        <Seat>seat same</Seat>
+    """
+    root_string = self._base_report.format(seat1, seat2, seat3)
+    election_tree = etree.fromstring(root_string)
+    self.duplicate_validator.check(election_tree)
+
+  def testRaisesAnErrorIfBallotTitleSeatPairIsDuplicated(self):
+    seat1 = """
+        <BallotTitle>
+            <Text language="en">Ballot Title same</Text>
+        </BallotTitle>
+        <Seat>seat1</Seat>
+    """
+    seat2 = """
+        <BallotTitle>
+            <Text language="en">Ballot Title same</Text>
+        </BallotTitle>
+        <Seat>duplicate seat</Seat>
+    """
+    seat_dupelicate = """
+        <BallotTitle>
+            <Text language="en">Ballot Title same</Text>
+        </BallotTitle>
+        <Seat>duplicate seat</Seat>
+    """
+    root_string = self._base_report.format(seat1, seat2, seat_dupelicate)
+    election_tree = etree.fromstring(root_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.duplicate_validator.check(election_tree)
+
+  def testEmptyBallotTitleAndSeatIsValid(self):
+    seat1 = """
+        <BallotTitle>
+            <Text language="en">Ballot Title same</Text>
+        </BallotTitle>
+        <Seat>seat1</Seat>
+    """
+    seat2 = """
+
+    """
+    seat3 = """
+
+    """
+    root_string = self._base_report.format(seat1, seat2, seat3)
+    election_tree = etree.fromstring(root_string)
+    self.duplicate_validator.check(election_tree)
+
+  def testEmptyBallotTitleButDuplicateSeatIsValid(self):
+    seat1 = """
+        <BallotTitle>
+            <Text language="en">Ballot Title same</Text>
+        </BallotTitle>
+        <Seat>seat1</Seat>
+    """
+    seat2 = """
+        <Seat>duplicate seat</Seat>
+    """
+    seat3 = """
+        <Seat>duplicate seat</Seat>
+    """
+    root_string = self._base_report.format(seat1, seat2, seat3)
+    election_tree = etree.fromstring(root_string)
+    self.duplicate_validator.check(election_tree)
+
+
 class ValidStableIDTest(absltest.TestCase):
 
   def setUp(self):

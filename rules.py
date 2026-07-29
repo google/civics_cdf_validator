@@ -1631,6 +1631,50 @@ class DuplicateContestNames(base.BaseRule):
       raise loggers.ElectionError(error_log)
 
 
+class DuplicateBallotTitleSeatPair(base.BaseRule):
+  """Checks that each English (BallotTitle, Seat) combination is unique.
+
+  Adds Warning/Error if duplicate English (BallotTitle, Seat) combinations are
+  found.
+  """
+
+  def elements(self):
+    return ["ContestCollection"]
+
+  def check(self, element):
+    error_log = []
+    contest_elements = element.findall("Contest")
+    contests_by_title_and_seat = collections.defaultdict(list)
+
+    for contest in contest_elements:
+      ballot_title_element = get_language_to_text_map(
+          contest.find("BallotTitle")
+      )
+      english_title = ballot_title_element.get("en")
+      seat_element = contest.find("Seat")
+
+      ballot_title = english_title[0].strip() if english_title else ""
+      seat = seat_element.text.strip() if element_has_text(seat_element) else ""
+
+      if not ballot_title:
+        continue
+
+      ballot_title_and_seat = (ballot_title, seat)
+      contests_by_title_and_seat[ballot_title_and_seat].append(contest)
+
+    for ballot_title_and_seat, contests in contests_by_title_and_seat.items():
+      if len(contests) > 1:
+        ballot_title, seat = ballot_title_and_seat
+        error_message = (
+            "Multiple Contests found with the same BallotTitle"
+            f" ('{ballot_title}') and Seat ('{seat}')."
+        )
+        error_log.append(loggers.LogEntry(error_message, contests))
+
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
 class UniqueStableID(base.TreeRule):
   """Check that every stableID is unique.
 
@@ -5538,6 +5582,7 @@ ELECTION_RULES = COMMON_RULES + (
     ContestStartDateContainsCorrespondingEndDate,
     CorrectCandidateSelectionCount,
     DateStatusMatches,
+    DuplicateBallotTitleSeatPair,
     DuplicateContestNames,
     DuplicatedPartyAbbreviation,
     DuplicatedPartyName,
