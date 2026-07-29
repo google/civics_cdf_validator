@@ -13577,11 +13577,11 @@ class FeedInactiveDateIsLatestDateTest(absltest.TestCase):
         <SourceDirPath>test_path_1</SourceDirPath>
         <ElectionEventCollection>
           <ElectionEvent>
-            <InitialDeliveryDate>2023-12-01</InitialDeliveryDate>
+            <FullDeliveryDate>2023-12-01</FullDeliveryDate>
           </ElectionEvent>
         </ElectionEventCollection>
         <OfficeholderSubFeed>
-          <InitialDeliveryDate>2023-01-02</InitialDeliveryDate>
+          <FullDeliveryDate>2023-01-02</FullDeliveryDate>
         </OfficeholderSubFeed>
         <FeedInactiveDate>2024-01-01</FeedInactiveDate>
       </Feed>
@@ -13689,6 +13689,23 @@ class FeedInactiveDateIsLatestDateTest(absltest.TestCase):
         "FeedInactiveDate is older than EndDate",
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def test_is_test_feed_older_inactive_date_succeeds(self):
+    feed_string = """
+      <Feed>
+        <SourceDirPath>test_path_1</SourceDirPath>
+        <IsTest>true</IsTest>
+        <ElectionEventCollection>
+          <ElectionEvent>
+            <EndDate>2023-12-01</EndDate>
+            <FullDeliveryDate>2023-12-01</FullDeliveryDate>
+          </ElectionEvent>
+        </ElectionEventCollection>
+        <FeedInactiveDate>2022-01-01</FeedInactiveDate>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
 
 
 class FeedHasValidCountryCodeTest(absltest.TestCase):

@@ -141,6 +141,13 @@ _WINNER_POST_ELECTION_STATUSES = frozenset([
 ])
 
 
+def _is_xml_true(element):
+  return (
+      element_has_text(element)
+      and element.text.strip().lower() in _XML_TRUE_VALUES
+  )
+
+
 def _get_office_roles(element, is_post_office_split_feed=False):
   if is_post_office_split_feed:
     return [element.text for element in element.findall("Role")]
@@ -4716,6 +4723,10 @@ class FeedInactiveDateIsLatestDate(base.BaseRule):
     return ["Feed"]
 
   def check(self, element):
+    # Skip this rule for test feeds.
+    if _is_xml_true(element.find("IsTest")):
+      return
+
     if element_has_text(element.find("FeedInactiveDate")):
       feed_inactive_date = base.PartialDate.init_partial_date(
           element.find("FeedInactiveDate").text
@@ -5404,11 +5415,7 @@ class ValidateIncludeInAggregationBallotSelections(base.BaseRule):
 
     included_selections = []
     for selection in all_selections:
-      included_in_aggregation_element = selection.find("IncludedInAggregation")
-      if (
-          element_has_text(included_in_aggregation_element)
-          and included_in_aggregation_element.text in _XML_TRUE_VALUES
-      ):
+      if _is_xml_true(selection.find("IncludedInAggregation")):
         included_selections.append(selection)
     if not included_selections:
       return
