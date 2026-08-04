@@ -456,8 +456,8 @@ class LanguageCodeTest(absltest.TestCase):
     super(LanguageCodeTest, self).setUp()
     self.validator = rules.LanguageCode(None, None)
 
-  def test_text_elements_succeeds(self):
-    self.assertEqual(self.validator.elements(), ["Text"])
+  def test_target_elements_succeeds(self):
+    self.assertEqual(self.validator.elements(), ["Text", "Uri"])
 
   def test_elements_without_language_attribute_succeeds(self):
     element_string = """
@@ -487,6 +487,40 @@ class LanguageCodeTest(absltest.TestCase):
   def test_invalid_language_attributes_empty_fails(self):
     empty_string = """
       <Text language="">BoomShakalaka</Text>
+    """
+    empty_element = etree.fromstring(empty_string)
+
+    with self.assertRaises(loggers.ElectionError):
+      self.validator.check(empty_element)
+
+  def test_uri_without_language_attribute_succeeds(self):
+    element_string = """
+      <Uri>http://example.com</Uri>
+    """
+    uri_element = etree.fromstring(element_string)
+
+    self.validator.check(uri_element)
+
+  def test_uri_with_valid_language_attribute_succeeds(self):
+    element_string = """
+      <Uri language="es">http://example.com/es</Uri>
+    """
+    uri_element = etree.fromstring(element_string)
+
+    self.validator.check(uri_element)
+
+  def test_uri_with_invalid_language_attributes_fails(self):
+    invalid_string = """
+      <Uri language="zzz">http://example.com</Uri>
+    """
+    invalid_element = etree.fromstring(invalid_string)
+
+    with self.assertRaises(loggers.ElectionError):
+      self.validator.check(invalid_element)
+
+  def test_uri_with_empty_language_attributes_fails(self):
+    empty_string = """
+      <Uri language="">http://example.com</Uri>
     """
     empty_element = etree.fromstring(empty_string)
 
@@ -3977,6 +4011,130 @@ class DuplicateContestNamesTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionError):
       self.validator.check(election_tree)
+
+
+class DuplicateBallotTitleSeatPairTest(absltest.TestCase):
+
+  def setUp(self):
+    super(DuplicateBallotTitleSeatPairTest, self).setUp()
+    self.duplicate_validator = rules.DuplicateBallotTitleSeatPair(None, None)
+    self._base_report = """
+          <ContestCollection>
+            <Contest objectId="cc0001">
+              {}
+            </Contest>
+            <Contest objectId="cc0002">
+              {}
+            </Contest>
+            <Contest objectId="cc0003">
+              {}
+            </Contest>
+          </ContestCollection>
+    """
+
+  def testEveryBallotTitleSeatPairIsUniqueBySeat(self):
+    seat1 = """
+        <BallotTitle>
+            <Text language="en">Ballot Title same</Text>
+        </BallotTitle>
+        <Seat>seat different1</Seat>
+    """
+    seat2 = """
+        <BallotTitle>
+            <Text language="en">Ballot Title same</Text>
+        </BallotTitle>
+        <Seat>seat different2</Seat>
+    """
+    seat3 = """
+        <BallotTitle>
+            <Text language="en">Ballot Title same</Text>
+        </BallotTitle>
+        <Seat>seat different3</Seat>
+    """
+    root_string = self._base_report.format(seat1, seat2, seat3)
+    election_tree = etree.fromstring(root_string)
+    self.duplicate_validator.check(election_tree)
+
+  def testEveryBallotTitleSeatPairIsUniqueByBallotTitle(self):
+    seat1 = """
+        <BallotTitle>
+            <Text language="en">Ballot Title different1</Text>
+        </BallotTitle>
+        <Seat>seat same</Seat>
+    """
+    seat2 = """
+        <BallotTitle>
+            <Text language="en">Ballot Title different2</Text>
+        </BallotTitle>
+        <Seat>seat same</Seat>
+    """
+    seat3 = """
+        <BallotTitle>
+            <Text language="en">Ballot Title different3</Text>
+        </BallotTitle>
+        <Seat>seat same</Seat>
+    """
+    root_string = self._base_report.format(seat1, seat2, seat3)
+    election_tree = etree.fromstring(root_string)
+    self.duplicate_validator.check(election_tree)
+
+  def testRaisesAnErrorIfBallotTitleSeatPairIsDuplicated(self):
+    seat1 = """
+        <BallotTitle>
+            <Text language="en">Ballot Title same</Text>
+        </BallotTitle>
+        <Seat>seat1</Seat>
+    """
+    seat2 = """
+        <BallotTitle>
+            <Text language="en">Ballot Title same</Text>
+        </BallotTitle>
+        <Seat>duplicate seat</Seat>
+    """
+    seat_dupelicate = """
+        <BallotTitle>
+            <Text language="en">Ballot Title same</Text>
+        </BallotTitle>
+        <Seat>duplicate seat</Seat>
+    """
+    root_string = self._base_report.format(seat1, seat2, seat_dupelicate)
+    election_tree = etree.fromstring(root_string)
+    with self.assertRaises(loggers.ElectionError):
+      self.duplicate_validator.check(election_tree)
+
+  def testEmptyBallotTitleAndSeatIsValid(self):
+    seat1 = """
+        <BallotTitle>
+            <Text language="en">Ballot Title same</Text>
+        </BallotTitle>
+        <Seat>seat1</Seat>
+    """
+    seat2 = """
+
+    """
+    seat3 = """
+
+    """
+    root_string = self._base_report.format(seat1, seat2, seat3)
+    election_tree = etree.fromstring(root_string)
+    self.duplicate_validator.check(election_tree)
+
+  def testEmptyBallotTitleButDuplicateSeatIsValid(self):
+    seat1 = """
+        <BallotTitle>
+            <Text language="en">Ballot Title same</Text>
+        </BallotTitle>
+        <Seat>seat1</Seat>
+    """
+    seat2 = """
+        <Seat>duplicate seat</Seat>
+    """
+    seat3 = """
+        <Seat>duplicate seat</Seat>
+    """
+    root_string = self._base_report.format(seat1, seat2, seat3)
+    election_tree = etree.fromstring(root_string)
+    self.duplicate_validator.check(election_tree)
 
 
 class ValidStableIDTest(absltest.TestCase):
@@ -10993,82 +11151,6 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
         " body.",
     )
 
-  def test_non_exec_office_with_government_body_is_valid_succeeds(self):
-    office_string = """
-      <Office>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>office-role</OtherType>
-            <Value>senate</Value>
-          </ExternalIdentifier>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>government-body</OtherType>
-            <Value>United States Senate</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-      </Office>
-    """
-
-    self.gov_validator.check(etree.fromstring(office_string))
-
-  def test_post_split_non_exec_office_with_government_body_is_valid_succeeds(
-      self,
-  ):
-    office_string = """
-      <Office>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>government-body</OtherType>
-            <Value>United States Senate</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <Role>senate</Role>
-      </Office>
-    """
-
-    self.post_office_split_validator.check(etree.fromstring(office_string))
-
-  def test_non_exec_office_with_governmental_body_is_valid_succeeds(self):
-    office_string = """
-      <Office>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>office-role</OtherType>
-            <Value>senate</Value>
-          </ExternalIdentifier>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>governmental-body</OtherType>
-            <Value>United States Senate</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-      </Office>
-    """
-
-    self.gov_validator.check(etree.fromstring(office_string))
-
-  def test_post_split_non_exec_office_with_governmental_body_is_valid_succeeds(
-      self,
-  ):
-    office_string = """
-      <Office>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>governmental-body</OtherType>
-            <Value>United States Senate</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <Role>senate</Role>
-      </Office>
-    """
-
-    self.post_office_split_validator.check(etree.fromstring(office_string))
-
   def test_non_exec_office_with_government_body_ids_is_valid_succeeds(self):
     office_string = """
       <Office>
@@ -11124,120 +11206,6 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
             None,
         )
     )
-
-  def test_executive_office_with_government_body_fails(self):
-    for office_role in rules._EXECUTIVE_OFFICE_ROLES:
-      with self.subTest(office_role=office_role):
-        office_string = f"""
-          <Office>
-            <ExternalIdentifiers>
-              <ExternalIdentifier>
-                <Type>other</Type>
-                <OtherType>office-role</OtherType>
-                <Value>{office_role}</Value>
-              </ExternalIdentifier>
-              <ExternalIdentifier>
-                <Type>other</Type>
-                <OtherType>government-body</OtherType>
-                <Value>United States Senate</Value>
-              </ExternalIdentifier>
-            </ExternalIdentifiers>
-          </Office>
-        """
-
-        with self.assertRaises(loggers.ElectionError) as context:
-          self.gov_validator.check(etree.fromstring(office_string))
-        self.assertEqual(
-            context.exception.log_entry[0].message,
-            f"Head of Government/State Office element (roles: {office_role})"
-            " has a government body. Head of Government/State offices should"
-            " not have government bodies.",
-        )
-
-  def test_post_split_executive_office_with_government_body_fails(self):
-    for office_role in rules._EXECUTIVE_OFFICE_ROLES:
-      with self.subTest(office_role=office_role):
-        office_string = f"""
-          <Office>
-            <ExternalIdentifiers>
-              <ExternalIdentifier>
-                <Type>other</Type>
-                <OtherType>government-body</OtherType>
-                <Value>United States Senate</Value>
-              </ExternalIdentifier>
-            </ExternalIdentifiers>
-            <Role>{office_role}</Role>
-          </Office>
-        """
-
-        with self.assertRaises(loggers.ElectionError) as context:
-          self.post_office_split_validator.check(
-              etree.fromstring(office_string)
-          )
-        self.assertEqual(
-            context.exception.log_entry[0].message,
-            f"Head of Government/State Office element (roles: {office_role})"
-            " has a government body. Head of Government/State offices should"
-            " not have government bodies.",
-        )
-
-  def test_executive_office_with_governmental_body_fails(self):
-    for office_role in rules._EXECUTIVE_OFFICE_ROLES:
-      with self.subTest(office_role=office_role):
-        office_string = f"""
-          <Office>
-            <ExternalIdentifiers>
-              <ExternalIdentifier>
-                <Type>other</Type>
-                <OtherType>office-role</OtherType>
-                <Value>{office_role}</Value>
-              </ExternalIdentifier>
-              <ExternalIdentifier>
-                <Type>other</Type>
-                <OtherType>governmental-body</OtherType>
-                <Value>United States Senate</Value>
-              </ExternalIdentifier>
-            </ExternalIdentifiers>
-          </Office>
-        """
-
-        with self.assertRaises(loggers.ElectionError) as context:
-          self.gov_validator.check(etree.fromstring(office_string))
-        self.assertEqual(
-            context.exception.log_entry[0].message,
-            f"Head of Government/State Office element (roles: {office_role})"
-            " has a government body. Head of Government/State offices should"
-            " not have government bodies.",
-        )
-
-  def test_post_split_executive_office_with_governmental_body_fails(
-      self,
-  ):
-    for office_role in rules._EXECUTIVE_OFFICE_ROLES:
-      with self.subTest(office_role=office_role):
-        office_string = f"""
-          <Office>
-            <ExternalIdentifiers>
-              <ExternalIdentifier>
-                <Type>other</Type>
-                <OtherType>governmental-body</OtherType>
-                <Value>United States Senate</Value>
-              </ExternalIdentifier>
-            </ExternalIdentifiers>
-            <Role>{office_role}</Role>
-          </Office>
-        """
-
-        with self.assertRaises(loggers.ElectionError) as context:
-          self.post_office_split_validator.check(
-              etree.fromstring(office_string)
-          )
-        self.assertEqual(
-            context.exception.log_entry[0].message,
-            f"Head of Government/State Office element (roles: {office_role})"
-            " has a government body. Head of Government/State offices should"
-            " not have government bodies.",
-        )
 
   def test_executive_office_with_government_body_ids_fails(self):
     for office_role in rules._EXECUTIVE_OFFICE_ROLES:
@@ -13733,11 +13701,11 @@ class FeedInactiveDateIsLatestDateTest(absltest.TestCase):
         <SourceDirPath>test_path_1</SourceDirPath>
         <ElectionEventCollection>
           <ElectionEvent>
-            <InitialDeliveryDate>2023-12-01</InitialDeliveryDate>
+            <FullDeliveryDate>2023-12-01</FullDeliveryDate>
           </ElectionEvent>
         </ElectionEventCollection>
         <OfficeholderSubFeed>
-          <InitialDeliveryDate>2023-01-02</InitialDeliveryDate>
+          <FullDeliveryDate>2023-01-02</FullDeliveryDate>
         </OfficeholderSubFeed>
         <FeedInactiveDate>2024-01-01</FeedInactiveDate>
       </Feed>
@@ -13846,6 +13814,23 @@ class FeedInactiveDateIsLatestDateTest(absltest.TestCase):
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
+  def test_is_test_feed_older_inactive_date_succeeds(self):
+    feed_string = """
+      <Feed>
+        <SourceDirPath>test_path_1</SourceDirPath>
+        <IsTest>true</IsTest>
+        <ElectionEventCollection>
+          <ElectionEvent>
+            <EndDate>2023-12-01</EndDate>
+            <FullDeliveryDate>2023-12-01</FullDeliveryDate>
+          </ElectionEvent>
+        </ElectionEventCollection>
+        <FeedInactiveDate>2022-01-01</FeedInactiveDate>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
 
 class FeedHasValidCountryCodeTest(absltest.TestCase):
 
@@ -13945,6 +13930,51 @@ class FeedInactiveDateSetForNonEvergreenFeedTest(absltest.TestCase):
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
 
+class FeedInactiveDateNotOlderThanOneYearTest(absltest.TestCase):
+
+  def setUp(self):
+    super(FeedInactiveDateNotOlderThanOneYearTest, self).setUp()
+    self.validator = rules.FeedInactiveDateNotOlderThanOneYear(None, None)
+
+  @freezegun.freeze_time("2026-01-01")
+  def test_feed_without_inactive_date_succeeds(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  @freezegun.freeze_time("2026-01-01")
+  def test_feed_inactive_date_less_than_one_year_old_succeeds(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <FeedInactiveDate>2025-06-01</FeedInactiveDate>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  @freezegun.freeze_time("2026-01-01")
+  def test_feed_inactive_date_older_than_one_year_fails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <FeedInactiveDate>2024-12-31</FeedInactiveDate>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "FeedInactiveDate '2024-12-31' is older than 1 year for feed"
+        " 'test-feed'.",
+    )
+
+
 class DeprecatedPartyLeadershipSchemaTest(absltest.TestCase):
 
   def setUp(self):
@@ -14004,64 +14034,6 @@ class DeprecatedPartyLeadershipSchemaTest(absltest.TestCase):
         "Specifying party leadership via external identifiers is deprecated."
         " Please use the PartyLeadership element instead.",
     )
-
-
-class GovernmentBodyExternalIdTest(absltest.TestCase):
-
-  def setUp(self):
-    super(GovernmentBodyExternalIdTest, self).setUp()
-    self.validator = rules.GovernmentBodyExternalId(None, None)
-
-  def test_government_body_external_id_warns(self):
-    government_body_string = """
-      <Office objectId="office">
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>government-body</OtherType>
-            <Value>government-body-value</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-      </Office>
-      """
-
-    with self.assertRaises(loggers.ElectionWarning) as context:
-      self.validator.check(etree.fromstring(government_body_string))
-    self.assertEqual(
-        context.exception.log_entry[0].message,
-        "Specifying government body via external identifiers is deprecated."
-        " Please use the top level GovernmentBody element instead.",
-    )
-
-  def test_governmental_body_external_id_warns(self):
-    government_body_string = """
-      <Office objectId="office">
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>governmental-body</OtherType>
-            <Value>government-body-value</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-      </Office>
-      """
-
-    with self.assertRaises(loggers.ElectionWarning) as context:
-      self.validator.check(etree.fromstring(government_body_string))
-    self.assertEqual(
-        context.exception.log_entry[0].message,
-        "Specifying government body via external identifiers is deprecated."
-        " Please use the top level GovernmentBody element instead.",
-    )
-
-  def test_new_schema_succeeds(self):
-    office_string = """
-      <Office objectId="office-id">
-        <GovernmentBodyIds>gb</GovernmentBodyIds>
-      </Office>
-      """
-
-    self.validator.check(etree.fromstring(office_string))
 
 
 class ElectoralCommissionCollectionExistsTest(absltest.TestCase):

@@ -25,6 +25,7 @@ from civics_cdf_validator import base
 from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator import office_utils
+import dateutil
 from frozendict import frozendict
 import language_tags
 from lxml import etree
@@ -141,6 +142,13 @@ _WINNER_POST_ELECTION_STATUSES = frozenset([
 ])
 
 
+def _is_xml_true(element):
+  return (
+      element_has_text(element)
+      and element.text.strip().lower() in _XML_TRUE_VALUES
+  )
+
+
 def _get_office_roles(element, is_post_office_split_feed=False):
   if is_post_office_split_feed:
     return [element.text for element in element.findall("Role")]
@@ -153,14 +161,7 @@ def _is_executive_office(element, is_post_office_split_feed=False):
 
 
 def _has_government_body(element):
-  if element_has_text(element.find("GovernmentBodyIds")):
-    return True
-  governmental_body = get_entity_info_for_value_type(
-      element,
-      "governmental-body",
-  )
-  government_body = get_entity_info_for_value_type(element, "government-body")
-  return bool(governmental_body or government_body)
+  return element_has_text(element.find("GovernmentBodyIds"))
 
 
 def get_external_id_values(
@@ -415,10 +416,10 @@ class HungarianStyleNotation(base.BaseRule):
 
 
 class LanguageCode(base.BaseRule):
-  """Check that Text elements have a valid language code."""
+  """Check that Text and Uri elements have a valid language code."""
 
   def elements(self):
-    return ["Text"]
+    return ["Text", "Uri"]
 
   def check(self, element):
     if "language" not in element.attrib:
@@ -1627,6 +1628,50 @@ class DuplicateContestNames(base.BaseRule):
         error_log.append(
             loggers.LogEntry("Contests have the same name %s." % name, contests)
         )
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
+class DuplicateBallotTitleSeatPair(base.BaseRule):
+  """Checks that each English (BallotTitle, Seat) combination is unique.
+
+  Adds Warning/Error if duplicate English (BallotTitle, Seat) combinations are
+  found.
+  """
+
+  def elements(self):
+    return ["ContestCollection"]
+
+  def check(self, element):
+    error_log = []
+    contest_elements = element.findall("Contest")
+    contests_by_title_and_seat = collections.defaultdict(list)
+
+    for contest in contest_elements:
+      ballot_title_element = get_language_to_text_map(
+          contest.find("BallotTitle")
+      )
+      english_title = ballot_title_element.get("en")
+      seat_element = contest.find("Seat")
+
+      ballot_title = english_title[0].strip() if english_title else ""
+      seat = seat_element.text.strip() if element_has_text(seat_element) else ""
+
+      if not ballot_title:
+        continue
+
+      ballot_title_and_seat = (ballot_title, seat)
+      contests_by_title_and_seat[ballot_title_and_seat].append(contest)
+
+    for ballot_title_and_seat, contests in contests_by_title_and_seat.items():
+      if len(contests) > 1:
+        ballot_title, seat = ballot_title_and_seat
+        error_message = (
+            "Multiple Contests found with the same BallotTitle"
+            f" ('{ballot_title}') and Seat ('{seat}')."
+        )
+        error_log.append(loggers.LogEntry(error_message, contests))
+
     if error_log:
       raise loggers.ElectionError(error_log)
 
@@ -4723,6 +4768,10 @@ class FeedInactiveDateIsLatestDate(base.BaseRule):
     return ["Feed"]
 
   def check(self, element):
+    # Skip this rule for test feeds.
+    if _is_xml_true(element.find("IsTest")):
+      return
+
     if element_has_text(element.find("FeedInactiveDate")):
       feed_inactive_date = base.PartialDate.init_partial_date(
           element.find("FeedInactiveDate").text
@@ -4778,6 +4827,31 @@ class FeedHasValidCountryCode(base.BaseRule):
         return
       raise loggers.ElectionError.from_message(
           "Feed {} is missing CountryCode.".format(element.find("FeedId").text),
+          [element],
+      )
+
+
+class FeedInactiveDateNotOlderThanOneYear(base.BaseRule):
+  """Feeds should not have a FeedInactiveDate older than 1 year."""
+
+  def elements(self):
+    return ["Feed"]
+
+  def check(self, element):
+    feed_inactive_date_element = element.find("FeedInactiveDate")
+    if not element_has_text(feed_inactive_date_element):
+      return
+    feed_inactive_date = datetime.date.fromisoformat(
+        feed_inactive_date_element.text
+    )
+    one_year_ago = datetime.date.today() - dateutil.relativedelta.relativedelta(
+        years=1
+    )
+    if feed_inactive_date < one_year_ago:
+      feed_id_element = element.find("FeedId")
+      raise loggers.ElectionError.from_message(
+          f"FeedInactiveDate '{feed_inactive_date_element.text}' is older than"
+          f" 1 year for feed '{feed_id_element.text}'.",
           [element],
       )
 
@@ -4932,26 +5006,6 @@ class DeprecatedPartyLeadershipSchema(base.BaseRule):
       raise loggers.ElectionError.from_message(
           "Specifying party leadership via external identifiers is deprecated."
           " Please use the PartyLeadership element instead."
-      )
-
-
-class GovernmentBodyExternalId(base.BaseRule):
-  """Warns if the government body is set using an external identifier instead of the GovernmentBody element.
-
-  This rule will be upgraded to an error once all feeds are migrated to the new
-  schema.
-  """
-
-  def elements(self):
-    return ["ExternalIdentifiers"]
-
-  def check(self, element):
-    if get_external_id_values(
-        element, "government-body"
-    ) or get_external_id_values(element, "governmental-body"):
-      raise loggers.ElectionWarning.from_message(
-          "Specifying government body via external identifiers is deprecated."
-          " Please use the top level GovernmentBody element instead."
       )
 
 
@@ -5431,11 +5485,7 @@ class ValidateIncludeInAggregationBallotSelections(base.BaseRule):
 
     included_selections = []
     for selection in all_selections:
-      included_in_aggregation_element = selection.find("IncludedInAggregation")
-      if (
-          element_has_text(included_in_aggregation_element)
-          and included_in_aggregation_element.text in _XML_TRUE_VALUES
-      ):
+      if _is_xml_true(selection.find("IncludedInAggregation")):
         included_selections.append(selection)
     if not included_selections:
       return
@@ -5499,7 +5549,6 @@ COMMON_RULES = (
     EmptyText,
     Encoding,
     ExecutiveOfficeShouldNotHaveGovernmentBody,
-    GovernmentBodyExternalId,
     GpUnitOcdId,
     GpUnitsCyclesRefsValidation,
     GpUnitsHaveInternationalizedName,
@@ -5559,6 +5608,7 @@ ELECTION_RULES = COMMON_RULES + (
     ContestStartDateContainsCorrespondingEndDate,
     CorrectCandidateSelectionCount,
     DateStatusMatches,
+    DuplicateBallotTitleSeatPair,
     DuplicateContestNames,
     DuplicatedPartyAbbreviation,
     DuplicatedPartyName,
@@ -5639,6 +5689,7 @@ METADATA_RULES = (
     FeedHasValidCountryCode,
     FeedIdsAreUnique,
     FeedInactiveDateIsLatestDate,
+    FeedInactiveDateNotOlderThanOneYear,
     FeedInactiveDateSetForNonEvergreenFeed,
     FeedTypeHasValidFeedLongevity,
     OfficeholderSubFeedDatesAreSequential,
