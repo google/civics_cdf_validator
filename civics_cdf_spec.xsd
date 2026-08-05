@@ -885,7 +885,7 @@
     <xs:complexContent>
       <xs:extension base="BallotSelection">
         <xs:sequence>
-          <xs:element name="CountedInTotal" type="xs:boolean"/>
+          <xs:element minOccurs="0" name="CountedInTotal" type="xs:boolean"/>
           <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers"/>
           <xs:element name="Selection" type="InternationalizedText"/>
         </xs:sequence>
