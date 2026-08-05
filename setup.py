@@ -59,6 +59,7 @@ setup(
         'pycountry==22.1.10',
         'frozendict>=2.4.4',
         'attrs>=25.1.0',
+        'python-dateutil>=2.8.1',
         'six',
     ],
     setup_requires=['pytest-runner'],
