@@ -368,53 +368,6 @@ class Encoding(base.TreeRule):
       raise loggers.ElectionError.from_message("Encoding on file is not UTF-8")
 
 
-class HungarianStyleNotation(base.BaseRule):
-  """Check that element identifiers use Hungarian style notation.
-
-  Hungarian style notation is used to maintain uniqueness and provide context
-  for the identifiers.
-  """
-
-  # Add a prefix when there is a specific entity in the xml.
-  elements_prefix = {
-      "BallotMeasureContest": "bmc",
-      "BallotMeasureSelection": "bms",
-      "BallotStyle": "bs",
-      "Candidate": "can",
-      "CandidateContest": "cc",
-      "CandidateSelection": "cs",
-      "Coalition": "coa",
-      "ContactInformation": "ci",
-      "Hours": "hours",
-      "Office": "off",
-      "OfficeGroup": "og",
-      "Party": "par",
-      "PartyContest": "pc",
-      "PartySelection": "ps",
-      "Person": "per",
-      "ReportingDevice": "rd",
-      "ReportingUnit": "ru",
-      "RetentionContest": "rc",
-      "Schedule": "sched",
-  }
-
-  def elements(self):
-    return self.elements_prefix.keys()
-
-  def check(self, element):
-    object_id = element.get("objectId")
-    tag = self.get_element_class(element)
-    if object_id:
-      if not object_id.startswith(self.elements_prefix[tag]):
-        raise loggers.ElectionInfo.from_message(
-            (
-                "%s ID %s is not in Hungarian Style Notation. Should start"
-                " with  %s" % (tag, object_id, self.elements_prefix[tag])
-            ),
-            [element],
-        )
-
-
 class LanguageCode(base.BaseRule):
   """Check that Text and Uri elements have a valid language code."""
 
@@ -5552,7 +5505,6 @@ COMMON_RULES = (
     GpUnitOcdId,
     GpUnitsCyclesRefsValidation,
     GpUnitsHaveInternationalizedName,
-    HungarianStyleNotation,
     IndependentPartyName,
     LanguageCode,
     MissingFieldsError,
