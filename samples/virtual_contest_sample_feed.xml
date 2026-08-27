@@ -21,7 +21,7 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>example-cand-2025-nz-noel-asdf</Value>
+            <Value>can-2025-nz-noel-asdf</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <FileDate>2025-11-01</FileDate>
@@ -40,7 +40,7 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>example-cand-2025-nz-claus-wasd</Value>
+            <Value>can-2025-nz-claus-wasd</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <PartyId>par-gdas134562asghsfgka</PartyId>
@@ -58,7 +58,7 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>example-cand-2025-nz-heat-asdf</Value>
+            <Value>can-2025-nz-heat-asdf</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <FileDate>2025-11-10</FileDate>
@@ -74,7 +74,7 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>example-cand-2025-nz-snow-wasd</Value>
+            <Value>can-2025-nz-snow-wasd</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <PartyId>par-gdas134562asghsfgka</PartyId>
@@ -82,7 +82,7 @@
       </Candidate>
     </CandidateCollection>
     <ContestCollection>
-      <Contest objectId="cc-qfascead" xsi:type="CandidateContest">
+      <Contest objectId="c-qfascead" xsi:type="CandidateContest">
         <Abbreviation>PUI</Abbreviation>
         <BallotSelection objectId="cs-dfghs" xsi:type="CandidateSelection">
           <SequenceOrder>2</SequenceOrder>
@@ -149,7 +149,7 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>example-cont-2025-asdfa</Value>
+            <Value>c-2025-asdfa</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <HasRotation>true</HasRotation>
@@ -165,7 +165,7 @@
         <OfficeIds>off-asfa567985thjkgh</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc-aewefac" xsi:type="CandidateContest">
+      <Contest objectId="c-aewefac" xsi:type="CandidateContest">
         <Abbreviation>PUI</Abbreviation>
         <BallotSelection objectId="cs-gasdfa" xsi:type="CandidateSelection">
           <SequenceOrder>2</SequenceOrder>
@@ -231,7 +231,7 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>example-cont-2025-qwer</Value>
+            <Value>c-2025-qwer</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <HasRotation>true</HasRotation>
@@ -243,7 +243,7 @@
         <OfficeIds>off-asfa567985thjkgh</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest xsi:type="PartyContest" objectId="pc-20001">
+      <Contest xsi:type="PartyContest" objectId="c-20001">
         <BallotSelection objectId="ps-101321" xsi:type="PartySelection">
           <VoteCountsCollection>
             <VoteCounts>
@@ -302,13 +302,13 @@
           </VoteCountsCollection>
           <PartyIds>par-gdas134562asghsfgka</PartyIds>
         </BallotSelection>
-        <ComposingContestIds>cc-qfascead cc-aewefac</ComposingContestIds>
+        <ComposingContestIds>c-qfascead c-aewefac</ComposingContestIds>
         <ElectoralDistrictId>ru-3456345sadfa</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>example-pc-sdrasc</Value>
+            <Value>c-pc-sdrasc</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>Supreme Summary Contest</Name>
@@ -334,7 +334,7 @@
       <ExternalIdentifier>
         <Type>other</Type>
         <OtherType>stable</OtherType>
-        <Value>example-ele-asdf</Value>
+        <Value>e-ele-asdf</Value>
       </ExternalIdentifier>
     </ExternalIdentifiers>
     <Name>
@@ -347,7 +347,7 @@
   <Format>summary-contest</Format>
   <GeneratedDate>2025-12-25T14:25:28</GeneratedDate>
   <GovernmentBodyCollection>
-    <GovernmentBody objectId="gov-777">
+    <GovernmentBody objectId="gb-777">
       <ContactInformation language="en">
         <Email>where.everybody.knows.your.name@example.com</Email>
       </ContactInformation>
@@ -355,7 +355,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gov-asdfqwerqc</Value>
+          <Value>gb-asdfqwerqc</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>
@@ -372,7 +372,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gpu-ru-3456345sadfa</Value>
+          <Value>ru-3456345sadfa</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
@@ -391,7 +391,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gpu-ru-1234567890</Value>
+          <Value>ru-1234567890</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
@@ -411,7 +411,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gpu-ru-0987654321</Value>
+          <Value>ru-0987654321</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
@@ -447,7 +447,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-off-asfa567985thjkgh</Value>
+          <Value>off-asfa567985thjkgh</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -466,7 +466,7 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2025-11-01</FilingDeadline>
-      <GovernmentBodyIds>gov-777</GovernmentBodyIds>
+      <GovernmentBodyIds>gb-777</GovernmentBodyIds>
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">Supreme</Text>
@@ -487,7 +487,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>example-pty-2025-sasdf</Value>
+          <Value>par-2025-sasdf</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <LogoUri>https://www.theabcparty.com/img/our_party_logo.jpg</LogoUri>
@@ -508,7 +508,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>example-pty-2025-sasa</Value>
+          <Value>par-2025-sasa</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <LogoUri>https://www.123party.com/img/the_123_party_logo.jpg</LogoUri>
@@ -528,7 +528,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per-asdfhk54232gkjh123</Value>
+          <Value>per-asdfhk54232gkjh123</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Santa</FirstName>
@@ -553,7 +553,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per-askdjhf2378456asjhdfg</Value>
+          <Value>per-askdjhf2378456asjhdfg</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Père</FirstName>
@@ -569,7 +569,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per-lkajsdfadc</Value>
+          <Value>per-lkajsdfadc</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Heat</FirstName>
@@ -587,7 +587,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per-lasdjhianniu1234879</Value>
+          <Value>per-lasdjhianniu1234879</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Snow</FirstName>

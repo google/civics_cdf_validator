@@ -2,7 +2,7 @@
 <ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Election>
     <CandidateCollection>
-      <Candidate objectId="can12345">
+      <Candidate objectId="can-12345">
         <BallotName>
           <Text language="en">Dwayne Johnson</Text>
         </BallotName>
@@ -23,34 +23,34 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-rock</Value>
+            <Value>can-2013-va-rock</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0004</PartyId>
-        <PersonId>per12345</PersonId>
+        <PartyId>par-0004</PartyId>
+        <PersonId>per-12345</PersonId>
       </Candidate>
     </CandidateCollection>
     <ContestCollection>
-      <Contest objectId="rc40001" xsi:type="RetentionContest">
-        <BallotSelection objectId="bms40001a" xsi:type="BallotMeasureSelection">
+      <Contest objectId="c-40001" xsi:type="RetentionContest">
+        <BallotSelection objectId="bms-40001a" xsi:type="BallotMeasureSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>absentee</Type>
               <Count>1296</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>early</Type>
               <Count>1007</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>election-day</Type>
               <Count>5249</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>total</Type>
               <Count>7552</Count>
             </VoteCounts>
@@ -59,32 +59,32 @@
             <ExternalIdentifier>
               <Type>other</Type>
               <OtherType>stable</OtherType>
-              <Value>bmc_bms40001a</Value>
+              <Value>bms-40001a</Value>
             </ExternalIdentifier>
           </ExternalIdentifiers>
           <Selection label="bms40001at">
             <Text language="en">Yes</Text>
           </Selection>
         </BallotSelection>
-        <BallotSelection objectId="bms40001b" xsi:type="BallotMeasureSelection">
+        <BallotSelection objectId="bms-40001b" xsi:type="BallotMeasureSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>absentee</Type>
               <Count>2600</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>early</Type>
               <Count>8621</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>election-day</Type>
               <Count>2552</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>total</Type>
               <Count>13773</Count>
             </VoteCounts>
@@ -93,7 +93,7 @@
             <ExternalIdentifier>
               <Type>other</Type>
               <OtherType>stable</OtherType>
-              <Value>bmc_bms40001b</Value>
+              <Value>bms-40001b</Value>
             </ExternalIdentifier>
           </ExternalIdentifiers>
           <Selection label="bms40001bt">
@@ -103,18 +103,18 @@
         <BallotTitle>
           <Text language="en">Retention of Supreme Court Justice</Text>
         </BallotTitle>
-        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-0002</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-va16-country-us</Value>
+            <Value>c-2013-va16-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>Judicial Retention, Supreme Court</Name>
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
-        <CandidateId>can12345</CandidateId>
+        <CandidateId>can-12345</CandidateId>
       </Contest>
     </ContestCollection>
     <CountStatus>
@@ -125,12 +125,12 @@
       <Status>in-process</Status>
       <Type>election-day</Type>
     </CountStatus>
-    <ElectionScopeId>ru0002</ElectionScopeId>
+    <ElectionScopeId>ru-0002</ElectionScopeId>
     <ExternalIdentifiers>
       <ExternalIdentifier>
         <Type>other</Type>
         <OtherType>stable</OtherType>
-        <Value>va_retention_el</Value>
+        <Value>e-va-retention</Value>
       </ExternalIdentifier>
     </ExternalIdentifiers>
     <Name>
@@ -143,15 +143,15 @@
   <Format>summary-contest</Format>
   <GeneratedDate>2013-11-05T14:25:28</GeneratedDate>
   <GpUnitCollection>
-    <GpUnit objectId="ru000us" xsi:type="ReportingUnit">
+    <GpUnit objectId="ru-000us" xsi:type="ReportingUnit">
       <ComposingGpUnitIds>
-        ru0002
+        ru-0002
       </ComposingGpUnitIds>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gpu-ru000us</Value>
+          <Value>ru-000us</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
@@ -165,12 +165,12 @@
       <Name>United States Of America</Name>
       <Type>country</Type>
     </GpUnit>
-    <GpUnit objectId="ru0002" xsi:type="ReportingUnit">
+    <GpUnit objectId="ru-0002" xsi:type="ReportingUnit">
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gpu-ru0002</Value>
+          <Value>ru-0002</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
@@ -188,7 +188,7 @@
   <Issuer>Commonwealth of Virginia</Issuer>
   <IssuerAbbreviation>VA</IssuerAbbreviation>
   <PartyCollection>
-     <Party objectId="par0002">
+     <Party objectId="par-0002">
       <InternationalizedAbbreviation>
         <Text language="en">LIB</Text>
       </InternationalizedAbbreviation>
@@ -197,15 +197,15 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>vageneral-pty-2013-libertarian</Value>
+          <Value>par-2013-libertarian</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>
         <Text language="en">Libertarian</Text>
       </Name>
-      <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
+      <PartyScopeGpUnitIds>ru-000us</PartyScopeGpUnitIds>
     </Party>
-    <Party objectId="par0004">
+    <Party objectId="par-0004">
       <InternationalizedAbbreviation>
         <Text language="en">IND</Text>
       </InternationalizedAbbreviation>
@@ -213,18 +213,18 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>vageneral-pty-2013-independent</Value>
+          <Value>par-2013-independent</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <IsIndependent>true</IsIndependent>
       <Name>
         <Text language="en">Independent</Text>
       </Name>
-      <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
+      <PartyScopeGpUnitIds>ru-000us</PartyScopeGpUnitIds>
     </Party>
   </PartyCollection>
   <PersonCollection>
-    <Person objectId="per12345">
+    <Person objectId="per-12345">
       <ContactInformation language="en">
         <AddressLine>Jonesworks, Inc.9301 Wilshire Blvd.Suite 504</AddressLine>
         <AddressLine>Beverly Hills, CA 90210-6149</AddressLine>
@@ -242,7 +242,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per12345</Value>
+          <Value>per-12345</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Dwayne</FirstName>
@@ -250,7 +250,7 @@
         <Text language="en">Dwayne Johnson</Text>
       </FullName>
       <LastName>Johnson</LastName>
-      <PartyId>par0002</PartyId>
+      <PartyId>par-0002</PartyId>
     </Person>
   </PersonCollection>
   <SequenceStart>1</SequenceStart>

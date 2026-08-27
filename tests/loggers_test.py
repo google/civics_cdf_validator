@@ -18,7 +18,7 @@ class ParentHierarchyObjectIdStrTest(absltest.TestCase):
     election_feed = """
       <ElectionReport>
         <PersonCollection>
-          <Person objectId="per1">
+          <Person objectId="per-1">
             <ContactInformation>
               <Uri Annotation="personal-facebook">www.facebook.com/michael_scott
               </Uri>
@@ -32,7 +32,7 @@ class ParentHierarchyObjectIdStrTest(absltest.TestCase):
         "PersonCollection/Person/ContactInformation/Uri")
 
     actual_value = loggers.get_parent_hierarchy_object_id_str(uri_element)
-    self.assertEqual("Person:per1 > ContactInformation > Uri", actual_value)
+    self.assertEqual("Person:per-1 > ContactInformation > Uri", actual_value)
 
   def test_hierarchy_goes_to_root_when_no_object_id(self):
     election_feed = """

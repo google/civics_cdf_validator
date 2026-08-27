@@ -4,12 +4,12 @@
   <CandidateCollection>
     <Candidate objectId='can-br-alckmin'>
       <BallotName><Text language='en'>GERALDO ALCKMIN</Text></BallotName>
-      <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>brgeneral-cand-2018-br-alckmin</Value></ExternalIdentifier></ExternalIdentifiers>
+      <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>can-2018-br-alckmin</Value></ExternalIdentifier></ExternalIdentifiers>
       <PartyId>par-psdb</PartyId>
     </Candidate>
   </CandidateCollection>
   <ContestCollection>
-    <Contest xsi:type="CandidateContest" objectId="cc-br1-pres-br">
+    <Contest xsi:type="CandidateContest" objectId="c-br1-pres-br">
       <Abbreviation>BR1-PRES-COUNTRY-BR</Abbreviation>
       <BallotSelection xsi:type="CandidateSelection" objectId="cs-br1-alckmin">
         <SequenceOrder>3</SequenceOrder>
@@ -20,7 +20,7 @@
       </BallotSelection>
       <CountStatus><Status>unknown</Status><Type>election-day</Type></CountStatus>
       <ElectoralDistrictId>ru-country-br</ElectoralDistrictId>
-      <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>brgeneral-cont-2018-br1-country-br</Value></ExternalIdentifier></ExternalIdentifiers>
+      <ExternalIdentifiers><ExternalIdentifier><Type>other</Type><OtherType>stable</OtherType><Value>c-2018-br1-country-br</Value></ExternalIdentifier></ExternalIdentifiers>
       <Name>PRESIDENTIAL ELECTION, ROUND 1, 2018</Name>
       <VotesAllowed>1</VotesAllowed>
     </Contest>
@@ -51,7 +51,7 @@
       <ExternalIdentifier>
         <Type>other</Type>
         <OtherType>stable</OtherType>
-        <Value>brgeneral-pty-2018-psdb</Value>
+        <Value>par-2018-psdb</Value>
       </ExternalIdentifier>
     </ExternalIdentifiers>
     <Name><Text language="en">Brazilian Social Democracy Party</Text></Name>

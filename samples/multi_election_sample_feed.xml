@@ -9,7 +9,7 @@
 <ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Election>
     <CandidateCollection>
-      <Candidate objectId="candidate12">
+      <Candidate objectId="can-12">
         <BallotName>
           <Text language="en">Republican Gubernatorial Candidate1</Text>
         </BallotName>
@@ -17,14 +17,14 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>candidate12</Value>
+            <Value>can-12</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>party1</PartyId>
-        <PersonId>person12</PersonId>
+        <PartyId>par-1</PartyId>
+        <PersonId>per-12</PersonId>
         <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
-      <Candidate objectId="candidate13">
+      <Candidate objectId="can-13">
         <BallotName>
           <Text language="en">Republican Gubernatorial Candidate2</Text>
         </BallotName>
@@ -32,14 +32,14 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>candidate13</Value>
+            <Value>can-13</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>party1</PartyId>
-        <PersonId>person13</PersonId>
+        <PartyId>par-1</PartyId>
+        <PersonId>per-13</PersonId>
         <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
-      <Candidate objectId="candidate23">
+      <Candidate objectId="can-23">
         <BallotName>
           <Text language="en">Democratic Gubernatorial Candidate1</Text>
         </BallotName>
@@ -47,14 +47,14 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>candidate23</Value>
+            <Value>can-23</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>party2</PartyId>
-        <PersonId>person23</PersonId>
+        <PartyId>par-2</PartyId>
+        <PersonId>per-23</PersonId>
         <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
-      <Candidate objectId="candidate24">
+      <Candidate objectId="can-24">
         <BallotName>
           <Text language="en">Democratic Presidential Candidate2</Text>
         </BallotName>
@@ -62,21 +62,21 @@
           <ExternalIdentifier>
             <Type>other</Type>
              <OtherType>stable</OtherType>
-            <Value>candidate24</Value>
+            <Value>can-24</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>party2</PartyId>
-        <PersonId>person24</PersonId>
+        <PartyId>par-2</PartyId>
+        <PersonId>per-24</PersonId>
         <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
     </CandidateCollection>
     <ContestCollection>
-      <Contest objectId="cc301" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs12_301" xsi:type="CandidateSelection">
-          <CandidateIds>candidate12</CandidateIds>
+      <Contest objectId="c-301" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-12-301" xsi:type="CandidateSelection">
+          <CandidateIds>can-12</CandidateIds>
         </BallotSelection>
-        <BallotSelection objectId="cs13_301" xsi:type="CandidateSelection">
-          <CandidateIds>candidate13</CandidateIds>
+        <BallotSelection objectId="cs-13-301" xsi:type="CandidateSelection">
+          <CandidateIds>can-13</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">2020 Delware gubernatorial Republican Party primary election</Text>
@@ -86,23 +86,23 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>contest301</Value>
+            <Value>c-301</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>2020 Delware gubernatorial Republican Party primary election</Name>
-        <SubsequentContestId>cc300</SubsequentContestId>
+        <SubsequentContestId>c-300</SubsequentContestId>
         <NumberElected>1</NumberElected>
-        <OfficeIds>office2</OfficeIds>
-        <PrimaryPartyIds>party1</PrimaryPartyIds>
+        <OfficeIds>off-2</OfficeIds>
+        <PrimaryPartyIds>par-1</PrimaryPartyIds>
         <Type>partisan-primary-closed</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc302" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs23_301" xsi:type="CandidateSelection">
-          <CandidateIds>candidate23</CandidateIds>
+      <Contest objectId="c-302" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-23-301" xsi:type="CandidateSelection">
+          <CandidateIds>can-23</CandidateIds>
         </BallotSelection>
-        <BallotSelection objectId="cs24_301" xsi:type="CandidateSelection">
-          <CandidateIds>candidate24</CandidateIds>
+        <BallotSelection objectId="cs-24-301" xsi:type="CandidateSelection">
+          <CandidateIds>can-24</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">2020 Delware gubernatorial Democratic Party primary election</Text>
@@ -112,14 +112,14 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>contest302</Value>
+            <Value>c-302</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>2020 Delware gubernatorial Democratic Party primary election</Name>
-        <SubsequentContestId>cc300</SubsequentContestId>
+        <SubsequentContestId>c-300</SubsequentContestId>
         <NumberElected>1</NumberElected>
-        <OfficeIds>office2</OfficeIds>
-        <PrimaryPartyIds>party2</PrimaryPartyIds>
+        <OfficeIds>off-2</OfficeIds>
+        <PrimaryPartyIds>par-2</PrimaryPartyIds>
         <Type>partisan-primary-closed</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
@@ -129,7 +129,7 @@
       <ExternalIdentifier>
         <Type>other</Type>
         <OtherType>stable</OtherType>
-        <Value>delaware_primaries_el</Value>
+        <Value>e-delaware-primaries</Value>
       </ExternalIdentifier>
     </ExternalIdentifiers>
     <Name>
@@ -141,7 +141,7 @@
   </Election>
   <Election>
     <CandidateCollection>
-      <Candidate objectId="candidate111">
+      <Candidate objectId="can-111">
         <BallotName>
           <Text language="en">Republican Presidential Candidate1</Text>
         </BallotName>
@@ -162,14 +162,14 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>candidate111</Value>
+            <Value>can-111</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>party1</PartyId>
-        <PersonId>person11</PersonId>
+        <PartyId>par-1</PartyId>
+        <PersonId>per-11</PersonId>
         <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
-      <Candidate objectId="candidate113">
+      <Candidate objectId="can-113">
         <BallotName>
           <Text language="en">Republican Presidential Candidate2</Text>
         </BallotName>
@@ -177,14 +177,14 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>candidate113</Value>
+            <Value>can-113</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>party1</PartyId>
-        <PersonId>person15</PersonId>
+        <PartyId>par-1</PartyId>
+        <PersonId>per-15</PersonId>
         <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
-      <Candidate objectId="candidate211">
+      <Candidate objectId="can-211">
         <BallotName>
           <Text language="en">Democratic Presidential Candidate1</Text>
         </BallotName>
@@ -192,14 +192,14 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>candidate211</Value>
+            <Value>can-211</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>party2</PartyId>
-        <PersonId>person21</PersonId>
+        <PartyId>par-2</PartyId>
+        <PersonId>per-21</PersonId>
         <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
-      <Candidate objectId="candidate221">
+      <Candidate objectId="can-221">
         <BallotName>
           <Text language="en">Democratic Presidential Candidate2</Text>
         </BallotName>
@@ -207,44 +207,44 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>candidate221</Value>
+            <Value>can-221</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>party2</PartyId>
-        <PersonId>person22</PersonId>
+        <PartyId>par-2</PartyId>
+        <PersonId>per-22</PersonId>
         <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
     </CandidateCollection>
     <ContestCollection>
-      <Contest objectId="cc400" xsi:type="CandidateContest">
+      <Contest objectId="c-400" xsi:type="CandidateContest">
         <BallotTitle>
           <Text language="en">2020 US Presidential Republican Party primary election</Text>
         </BallotTitle>
-        <ComposingContestIds>cc401 cc403</ComposingContestIds>
+        <ComposingContestIds>c-401 c-403</ComposingContestIds>
         <ElectoralDistrictId>ru-united-states</ElectoralDistrictId>
         <EndDate>2020-08-11</EndDate>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>contest400</Value>
+            <Value>c-400</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>2020 US Presidential Republican Party primary election</Name>
         <StartDate>2020-02-03</StartDate>
-        <SubsequentContestId>cc200</SubsequentContestId>
+        <SubsequentContestId>c-200</SubsequentContestId>
         <NumberElected>1</NumberElected>
-        <OfficeIds>office1</OfficeIds>
-        <PrimaryPartyIds>party1</PrimaryPartyIds>
+        <OfficeIds>off-1</OfficeIds>
+        <PrimaryPartyIds>par-1</PrimaryPartyIds>
         <Type>partisan-primary-open</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc401" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs41_111" xsi:type="CandidateSelection">
-          <CandidateIds>candidate111</CandidateIds>
+      <Contest objectId="c-401" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-41-111" xsi:type="CandidateSelection">
+          <CandidateIds>can-111</CandidateIds>
         </BallotSelection>
-        <BallotSelection objectId="cs41_113" xsi:type="CandidateSelection">
-          <CandidateIds>candidate113</CandidateIds>
+        <BallotSelection objectId="cs-41-113" xsi:type="CandidateSelection">
+          <CandidateIds>can-113</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">2020 US California Presidential Republican Party primary election</Text>
@@ -255,24 +255,24 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>contest401</Value>
+            <Value>c-401</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>2020 US California Presidential Republican Party primary election</Name>
         <StartDate>2020-03-03</StartDate>
-        <SubsequentContestId>cc201</SubsequentContestId>
+        <SubsequentContestId>c-201</SubsequentContestId>
         <NumberElected>1</NumberElected>
-        <OfficeIds>office1</OfficeIds>
-        <PrimaryPartyIds>party1</PrimaryPartyIds>
+        <OfficeIds>off-1</OfficeIds>
+        <PrimaryPartyIds>par-1</PrimaryPartyIds>
         <Type>partisan-primary-open</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc403" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs43_113" xsi:type="CandidateSelection">
-          <CandidateIds>candidate113</CandidateIds>
+      <Contest objectId="c-403" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-43-113" xsi:type="CandidateSelection">
+          <CandidateIds>can-113</CandidateIds>
         </BallotSelection>
-        <BallotSelection objectId="cs43_111" xsi:type="CandidateSelection">
-          <CandidateIds>candidate111</CandidateIds>
+        <BallotSelection objectId="cs-43-111" xsi:type="CandidateSelection">
+          <CandidateIds>can-111</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">2020 US Virginia Presidential Republican Party primary election</Text>
@@ -283,47 +283,47 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>contest403</Value>
+            <Value>c-403</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>2020 US Virginia Presidential Republican Party primary election</Name>
         <StartDate>2020-03-03</StartDate>
-        <SubsequentContestId>cc203</SubsequentContestId>
+        <SubsequentContestId>c-203</SubsequentContestId>
         <NumberElected>1</NumberElected>
-        <OfficeIds>office1</OfficeIds>
-        <PrimaryPartyIds>party1</PrimaryPartyIds>
+        <OfficeIds>off-1</OfficeIds>
+        <PrimaryPartyIds>par-1</PrimaryPartyIds>
         <Type>partisan-primary-open</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc100" xsi:type="CandidateContest">
+      <Contest objectId="c-100" xsi:type="CandidateContest">
         <BallotTitle>
           <Text language="en">2020 US Presidential Democratic Party primary election</Text>
         </BallotTitle>
-        <ComposingContestIds>cc101 cc103</ComposingContestIds>
+        <ComposingContestIds>c-101 c-103</ComposingContestIds>
         <ElectoralDistrictId>ru-united-states</ElectoralDistrictId>
         <EndDate>2020-08-11</EndDate>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>contest100</Value>
+            <Value>c-100</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>2020 US Presidential Democratic Party primary election</Name>
         <StartDate>2020-02-03</StartDate>
-        <SubsequentContestId>cc200</SubsequentContestId>
+        <SubsequentContestId>c-200</SubsequentContestId>
         <NumberElected>1</NumberElected>
-        <OfficeIds>office1</OfficeIds>
-        <PrimaryPartyIds>party2</PrimaryPartyIds>
+        <OfficeIds>off-1</OfficeIds>
+        <PrimaryPartyIds>par-2</PrimaryPartyIds>
         <Type>partisan-primary-open</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc101" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs21_101" xsi:type="CandidateSelection">
-          <CandidateIds>candidate211</CandidateIds>
+      <Contest objectId="c-101" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-21-101" xsi:type="CandidateSelection">
+          <CandidateIds>can-211</CandidateIds>
         </BallotSelection>
-        <BallotSelection objectId="cs22_101" xsi:type="CandidateSelection">
-          <CandidateIds>candidate221</CandidateIds>
+        <BallotSelection objectId="cs-22-101" xsi:type="CandidateSelection">
+          <CandidateIds>can-221</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">2020 US California Presidential Democratic Party primary election</Text>
@@ -334,24 +334,24 @@
           <ExternalIdentifier>
               <Type>other</Type>
               <OtherType>stable</OtherType>
-              <Value>contest101</Value>
+              <Value>c-101</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>2020 US California Presidential Democratic Party primary election</Name>
         <StartDate>2020-03-03</StartDate>
-        <SubsequentContestId>cc201</SubsequentContestId>
+        <SubsequentContestId>c-201</SubsequentContestId>
         <NumberElected>1</NumberElected>
-        <OfficeIds>office1</OfficeIds>
-        <PrimaryPartyIds>party2</PrimaryPartyIds>
+        <OfficeIds>off-1</OfficeIds>
+        <PrimaryPartyIds>par-2</PrimaryPartyIds>
         <Type>partisan-primary-open</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc103" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs21_103" xsi:type="CandidateSelection">
-          <CandidateIds>candidate211</CandidateIds>
+      <Contest objectId="c-103" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-21-103" xsi:type="CandidateSelection">
+          <CandidateIds>can-211</CandidateIds>
         </BallotSelection>
-        <BallotSelection objectId="cs22_103" xsi:type="CandidateSelection">
-          <CandidateIds>candidate221</CandidateIds>
+        <BallotSelection objectId="cs-22-103" xsi:type="CandidateSelection">
+          <CandidateIds>can-221</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">2020 US Virginia Presidential Democratic Party primary election</Text>
@@ -362,15 +362,15 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>contest103</Value>
+            <Value>c-103</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>2020 US Virginia Presidential Democratic Party primary election</Name>
         <StartDate>2020-03-03</StartDate>
-        <SubsequentContestId>cc203</SubsequentContestId>
+        <SubsequentContestId>c-203</SubsequentContestId>
         <NumberElected>1</NumberElected>
-        <OfficeIds>office1</OfficeIds>
-        <PrimaryPartyIds>party2</PrimaryPartyIds>
+        <OfficeIds>off-1</OfficeIds>
+        <PrimaryPartyIds>par-2</PrimaryPartyIds>
         <Type>partisan-primary-open</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
@@ -380,7 +380,7 @@
       <ExternalIdentifier>
         <Type>other</Type>
         <OtherType>stable</OtherType>
-        <Value>dem_pres_praimry_el</Value>
+        <Value>e-dem-pres-primary</Value>
       </ExternalIdentifier>
     </ExternalIdentifiers>
     <Name>
@@ -392,32 +392,32 @@
   </Election>
   <Election>
     <ContestCollection>
-      <Contest objectId="cc200" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs11_201" xsi:type="CandidateSelection">
-          <CandidateIds>candidate111</CandidateIds>
+      <Contest objectId="c-200" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-11-201" xsi:type="CandidateSelection">
+          <CandidateIds>can-111</CandidateIds>
         </BallotSelection>
-        <BallotSelection objectId="cs21_201" xsi:type="CandidateSelection">
-          <CandidateIds>candidate211</CandidateIds>
+        <BallotSelection objectId="cs-21-201" xsi:type="CandidateSelection">
+          <CandidateIds>can-211</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">2020 US Presidential election</Text>
         </BallotTitle>
-        <ComposingContestIds>cc201 cc203</ComposingContestIds>
+        <ComposingContestIds>c-201 c-203</ComposingContestIds>
         <ElectoralDistrictId>ru-united-states</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>contest200</Value>
+            <Value>c-200</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>2020 US Presidential election</Name>
         <NumberElected>1</NumberElected>
-        <OfficeIds>office1</OfficeIds>
+        <OfficeIds>off-1</OfficeIds>
         <Type>general</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc201" xsi:type="CandidateContest">
+      <Contest objectId="c-201" xsi:type="CandidateContest">
         <BallotTitle>
           <Text language="en">2020 US California Presidential election</Text>
         </BallotTitle>
@@ -426,16 +426,16 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>contest201</Value>
+            <Value>c-201</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>2020 US California Presidential election</Name>
         <NumberElected>1</NumberElected>
-        <OfficeIds>office1</OfficeIds>
+        <OfficeIds>off-1</OfficeIds>
         <Type>general</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc203" xsi:type="CandidateContest">
+      <Contest objectId="c-203" xsi:type="CandidateContest">
         <BallotTitle>
           <Text language="en">2020 US Virginia Presidential election</Text>
         </BallotTitle>
@@ -444,21 +444,21 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>contest203</Value>
+            <Value>c-203</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>2020 US Virginia Presidential election</Name>
         <NumberElected>1</NumberElected>
-        <OfficeIds>office1</OfficeIds>
+        <OfficeIds>off-1</OfficeIds>
         <Type>general</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc300" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs12_300" xsi:type="CandidateSelection">
-          <CandidateIds>candidate12</CandidateIds>
+      <Contest objectId="c-300" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-12-300" xsi:type="CandidateSelection">
+          <CandidateIds>can-12</CandidateIds>
         </BallotSelection>
-        <BallotSelection objectId="cs23_300" xsi:type="CandidateSelection">
-          <CandidateIds>candidate23</CandidateIds>
+        <BallotSelection objectId="cs-23-300" xsi:type="CandidateSelection">
+          <CandidateIds>can-23</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">2020 Delaware gubernatorial election</Text>
@@ -468,12 +468,12 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>contest300</Value>
+            <Value>c-300</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>Governor of Delaware</Name>
         <NumberElected>1</NumberElected>
-        <OfficeIds>office2</OfficeIds>
+        <OfficeIds>off-2</OfficeIds>
         <Type>general</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
@@ -483,7 +483,7 @@
       <ExternalIdentifier>
         <Type>other</Type>
         <OtherType>stable</OtherType>
-        <Value>pres_gen_el</Value>
+        <Value>e-pres-gen</Value>
       </ExternalIdentifier>
     </ExternalIdentifiers>
     <Name>
@@ -571,7 +571,7 @@
   <Issuer>DataPartner1</Issuer>
   <IssuerAbbreviation>DP1</IssuerAbbreviation>
   <OfficeCollection>
-    <Office objectId="office1">
+    <Office objectId="off-1">
       <ContactInformation language="en">
         <AddressLine>655 New York Ave, NW</AddressLine>
         <AddressLine>Washington, DC 20005</AddressLine>
@@ -590,7 +590,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>office1</Value>
+          <Value>off-1</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -617,13 +617,13 @@
         <Type>full-term</Type>
       </Term>
     </Office>
-    <Office objectId="office2">
+    <Office objectId="off-2">
       <ElectoralDistrictId>ru-delaware</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>office2</Value>
+          <Value>off-2</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -653,7 +653,7 @@
     </Office>
   </OfficeCollection>
   <PartyCollection>
-    <Party objectId="party1">
+    <Party objectId="par-1">
       <InternationalizedAbbreviation>
         <Text language="en">GOP</Text>
       </InternationalizedAbbreviation>
@@ -662,7 +662,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>party1</Value>
+          <Value>par-1</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>
@@ -670,7 +670,7 @@
       </Name>
       <PartyScopeGpUnitIds>ru-united-states</PartyScopeGpUnitIds>
     </Party>
-    <Party objectId="party2">
+    <Party objectId="par-2">
       <InternationalizedAbbreviation>
         <Text language="en">DEM</Text>
       </InternationalizedAbbreviation>
@@ -679,7 +679,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>party2</Value>
+          <Value>par-2</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>
@@ -689,7 +689,7 @@
     </Party>
   </PartyCollection>
   <PersonCollection>
-    <Person objectId="person21">
+    <Person objectId="per-21">
       <ContactInformation language="en">
         <AddressLine>655 New York Ave, NW</AddressLine>
         <AddressLine>Washington, DC 20005</AddressLine>
@@ -707,104 +707,104 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person21</Value>
+          <Value>per-21</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FullName>
         <Text language="en">Democratic Presidential Candidate1</Text>
       </FullName>
-      <PartyId>party2</PartyId>
+      <PartyId>par-2</PartyId>
     </Person>
-    <Person objectId="person22">
+    <Person objectId="per-22">
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person22</Value>
+          <Value>per-22</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FullName>
         <Text language="en">Democratic Presidential Candidate2</Text>
       </FullName>
-      <PartyId>party2</PartyId>
+      <PartyId>par-2</PartyId>
     </Person>
-    <Person objectId="person23">
+    <Person objectId="per-23">
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person23</Value>
+          <Value>per-23</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FullName>
         <Text language="en">Democratic Gubernatorial Candidate1</Text>
       </FullName>
-      <PartyId>party2</PartyId>
+      <PartyId>par-2</PartyId>
     </Person>
-    <Person objectId="person24">
+    <Person objectId="per-24">
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person24</Value>
+          <Value>per-24</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FullName>
         <Text language="en">Democratic Gubernatorial Candidate2</Text>
       </FullName>
-      <PartyId>party2</PartyId>
+      <PartyId>par-2</PartyId>
     </Person>
-    <Person objectId="person11">
+    <Person objectId="per-11">
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person11</Value>
+          <Value>per-11</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FullName>
         <Text language="en">Republican Presidential Candidate1</Text>
       </FullName>
-      <PartyId>party1</PartyId>
+      <PartyId>par-1</PartyId>
     </Person>
-    <Person objectId="person15">
+    <Person objectId="per-15">
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person15</Value>
+          <Value>per-15</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FullName>
         <Text language="en">Republican Presidential Candidate2</Text>
       </FullName>
-      <PartyId>party1</PartyId>
+      <PartyId>par-1</PartyId>
     </Person>
-    <Person objectId="person12">
+    <Person objectId="per-12">
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person12</Value>
+          <Value>per-12</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FullName>
         <Text language="en">Republican Gubernatorial Candidate1</Text>
       </FullName>
-      <PartyId>party1</PartyId>
+      <PartyId>par-1</PartyId>
     </Person>
-    <Person objectId="person13">
+    <Person objectId="per-13">
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person13</Value>
+          <Value>per-13</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FullName>
         <Text language="en">Republican Gubernatorial Candidate2</Text>
       </FullName>
-      <PartyId>party1</PartyId>
+      <PartyId>par-1</PartyId>
     </Person>
   </PersonCollection>
   <SequenceStart>1</SequenceStart>
