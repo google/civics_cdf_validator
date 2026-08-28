@@ -429,6 +429,7 @@
       <xs:element minOccurs="0" name="SubUnitsReported" type="xs:integer"/>
       <xs:element minOccurs="0" name="SubsequentContestId" type="xs:IDREF"/>
       <xs:element maxOccurs="unbounded" minOccurs="0" name="SummaryCounts" type="SummaryCounts"/>
+      <xs:element minOccurs="0" name="TotalSeats" type="xs:integer"/>
       <xs:element minOccurs="0" name="TotalSubUnits" type="xs:integer"/>
       <xs:element minOccurs="0" name="VoteVariation" type="VoteVariation"/>
       <xs:element minOccurs="0" name="OtherVoteVariation" type="xs:string"/>
