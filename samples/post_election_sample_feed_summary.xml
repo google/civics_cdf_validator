@@ -2,7 +2,7 @@
 <ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Election>
     <CandidateCollection>
-      <Candidate objectId="can10861a">
+      <Candidate objectId="can-10861a">
         <BallotName>
           <Text language="en">Barack H. Obama</Text>
         </BallotName>
@@ -23,14 +23,14 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-obama</Value>
+            <Value>can-2013-va-obama</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <FileDate>2013-06-01</FileDate>
-        <PartyId>par0003</PartyId>
-        <PersonId>per10861a</PersonId>
+        <PartyId>par-0003</PartyId>
+        <PersonId>per-10861a</PersonId>
       </Candidate>
-      <Candidate objectId="can10861b">
+      <Candidate objectId="can-10861b">
         <BallotName>
           <Text language="en">Joseph R. Biden</Text>
         </BallotName>
@@ -38,13 +38,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-biden</Value>
+            <Value>can-2013-va-biden</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0003</PartyId>
-        <PersonId>per10861b</PersonId>
+        <PartyId>par-0003</PartyId>
+        <PersonId>per-10861b</PersonId>
       </Candidate>
-      <Candidate objectId="can10862a">
+      <Candidate objectId="can-10862a">
         <BallotName>
           <Text language="en">Mitt Romney</Text>
         </BallotName>
@@ -52,13 +52,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-romney</Value>
+            <Value>can-2013-va-romney</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0001</PartyId>
-        <PersonId>per10862a</PersonId>
+        <PartyId>par-0001</PartyId>
+        <PersonId>per-10862a</PersonId>
       </Candidate>
-      <Candidate objectId="can10862b">
+      <Candidate objectId="can-10862b">
         <BallotName>
           <Text language="en">Paul Ryan</Text>
         </BallotName>
@@ -66,13 +66,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-ryan</Value>
+            <Value>can-2013-va-ryan</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0001</PartyId>
-        <PersonId>per10862b</PersonId>
+        <PartyId>par-0001</PartyId>
+        <PersonId>per-10862b</PersonId>
       </Candidate>
-      <Candidate objectId="can10961">
+      <Candidate objectId="can-10961">
         <BallotName>
           <Text language="en">Ken T. Cuccinelli II</Text>
         </BallotName>
@@ -80,13 +80,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-cuccinelli</Value>
+            <Value>can-2013-va-cuccinelli</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0001</PartyId>
-        <PersonId>per10961</PersonId>
+        <PartyId>par-0001</PartyId>
+        <PersonId>per-10961</PersonId>
       </Candidate>
-      <Candidate objectId="can10962">
+      <Candidate objectId="can-10962">
         <BallotName>
           <Text language="en">Robert C. Sarvis</Text>
         </BallotName>
@@ -94,13 +94,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-sarvis</Value>
+            <Value>can-2013-va-sarvis</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0002</PartyId>
-        <PersonId>per10962</PersonId>
+        <PartyId>par-0002</PartyId>
+        <PersonId>per-10962</PersonId>
       </Candidate>
-      <Candidate objectId="can10963">
+      <Candidate objectId="can-10963">
         <BallotName>
           <Text language="en">Terry R. McAuliffe</Text>
         </BallotName>
@@ -108,13 +108,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-mcauliffe</Value>
+            <Value>can-2013-va-mcauliffe</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0003</PartyId>
-        <PersonId>per10963</PersonId>
+        <PartyId>par-0003</PartyId>
+        <PersonId>per-10963</PersonId>
       </Candidate>
-      <Candidate objectId="can10966">
+      <Candidate objectId="can-10966">
         <BallotName>
           <Text language="en">Ralph S. Northam</Text>
         </BallotName>
@@ -122,13 +122,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-northam</Value>
+            <Value>can-2013-va-northam</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0003</PartyId>
-        <PersonId>per10966</PersonId>
+        <PartyId>par-0003</PartyId>
+        <PersonId>per-10966</PersonId>
       </Candidate>
-      <Candidate objectId="can10967">
+      <Candidate objectId="can-10967">
         <BallotName>
           <Text language="en">E. W. Jackson</Text>
         </BallotName>
@@ -136,13 +136,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-jackson</Value>
+            <Value>can-2013-va-jackson</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0001</PartyId>
-        <PersonId>per10967</PersonId>
+        <PartyId>par-0001</PartyId>
+        <PersonId>per-10967</PersonId>
       </Candidate>
-      <Candidate objectId="can10422">
+      <Candidate objectId="can-10422">
         <BallotName>
           <Text language="en">R. Steven /Steve/ Landes</Text>
         </BallotName>
@@ -150,13 +150,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-landes</Value>
+            <Value>can-2013-va-landes</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0001</PartyId>
-        <PersonId>per10422</PersonId>
+        <PartyId>par-0001</PartyId>
+        <PersonId>per-10422</PersonId>
       </Candidate>
-      <Candidate objectId="can10388">
+      <Candidate objectId="can-10388">
         <BallotName>
           <Text language="en">David J. Toscano</Text>
         </BallotName>
@@ -164,13 +164,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-toscano</Value>
+            <Value>can-2013-va-toscano</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0003</PartyId>
-        <PersonId>per10388</PersonId>
+        <PartyId>par-0003</PartyId>
+        <PersonId>per-10388</PersonId>
       </Candidate>
-      <Candidate objectId="can10466">
+      <Candidate objectId="can-10466">
         <BallotName>
           <Text language="en">C. Matt Fariss</Text>
         </BallotName>
@@ -178,13 +178,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-fariss</Value>
+            <Value>can-2013-va-fariss</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0001</PartyId>
-        <PersonId>per10466</PersonId>
+        <PartyId>par-0001</PartyId>
+        <PersonId>per-10466</PersonId>
       </Candidate>
-      <Candidate objectId="can10438">
+      <Candidate objectId="can-10438">
         <BallotName>
           <Text language="en">Robert B. Bell III</Text>
         </BallotName>
@@ -192,13 +192,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-bell</Value>
+            <Value>can-2013-va-bell</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0006</PartyId>
-        <PersonId>per10438</PersonId>
+        <PartyId>par-0006</PartyId>
+        <PersonId>per-10438</PersonId>
       </Candidate>
-      <Candidate objectId="can10079">
+      <Candidate objectId="can-10079">
         <BallotName>
           <Text language="en">Jane D. Dittmar</Text>
         </BallotName>
@@ -206,13 +206,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-dittmar</Value>
+            <Value>can-2013-va-dittmar</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0003</PartyId>
-        <PersonId>per10079</PersonId>
+        <PartyId>par-0003</PartyId>
+        <PersonId>per-10079</PersonId>
       </Candidate>
-      <Candidate objectId="can10080">
+      <Candidate objectId="can-10080">
         <BallotName>
           <Text language="en">C. L. /Cindi/ Burket</Text>
         </BallotName>
@@ -220,13 +220,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-burket</Value>
+            <Value>can-2013-va-burket</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0001</PartyId>
-        <PersonId>per10080</PersonId>
+        <PartyId>par-0001</PartyId>
+        <PersonId>per-10080</PersonId>
       </Candidate>
-      <Candidate objectId="can10075">
+      <Candidate objectId="can-10075">
         <BallotName>
           <Text language="en">Diantha H. McKeel</Text>
         </BallotName>
@@ -234,13 +234,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-mckeel</Value>
+            <Value>can-2013-va-mckeel</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0004</PartyId>
-        <PersonId>per10075</PersonId>
+        <PartyId>par-0004</PartyId>
+        <PersonId>per-10075</PersonId>
       </Candidate>
-      <Candidate objectId="can10076">
+      <Candidate objectId="can-10076">
         <BallotName>
           <Text language="en">B. Phillip Seay</Text>
         </BallotName>
@@ -248,13 +248,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-seay</Value>
+            <Value>can-2013-va-seay</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0004</PartyId>
-        <PersonId>per10076</PersonId>
+        <PartyId>par-0004</PartyId>
+        <PersonId>per-10076</PersonId>
       </Candidate>
-      <Candidate objectId="can10073">
+      <Candidate objectId="can-10073">
         <BallotName>
           <Text language="en">Liz A. Palmer</Text>
         </BallotName>
@@ -262,13 +262,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-palmer</Value>
+            <Value>can-2013-va-palmer</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0003</PartyId>
-        <PersonId>per10073</PersonId>
+        <PartyId>par-0003</PartyId>
+        <PersonId>per-10073</PersonId>
       </Candidate>
-      <Candidate objectId="can10074">
+      <Candidate objectId="can-10074">
         <BallotName>
           <Text language="en">Duane E. Snow</Text>
         </BallotName>
@@ -276,13 +276,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-snow</Value>
+            <Value>can-2013-va-snow</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0001</PartyId>
-        <PersonId>per10074</PersonId>
+        <PartyId>par-0001</PartyId>
+        <PersonId>per-10074</PersonId>
       </Candidate>
-      <Candidate objectId="can10077">
+      <Candidate objectId="can-10077">
         <BallotName>
           <Text language="en">Rodney S. Thomas</Text>
         </BallotName>
@@ -290,13 +290,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-thomas</Value>
+            <Value>can-2013-va-thomas</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0001</PartyId>
-        <PersonId>per10077</PersonId>
+        <PartyId>par-0001</PartyId>
+        <PersonId>per-10077</PersonId>
       </Candidate>
-      <Candidate objectId="can10078">
+      <Candidate objectId="can-10078">
         <BallotName>
           <Text language="en">J. L. /Brad/ Sheffield</Text>
         </BallotName>
@@ -304,13 +304,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-sheffield</Value>
+            <Value>can-2013-va-sheffield</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0003</PartyId>
-        <PersonId>per10078</PersonId>
+        <PartyId>par-0003</PartyId>
+        <PersonId>per-10078</PersonId>
       </Candidate>
-      <Candidate objectId="can10214">
+      <Candidate objectId="can-10214">
         <BallotName>
           <Text language="en">Pamela R. Moynihan</Text>
         </BallotName>
@@ -318,13 +318,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-moynihan</Value>
+            <Value>can-2013-va-moynihan</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0004</PartyId>
-        <PersonId>per10214</PersonId>
+        <PartyId>par-0004</PartyId>
+        <PersonId>per-10214</PersonId>
       </Candidate>
-      <Candidate objectId="can10215">
+      <Candidate objectId="can-10215">
         <BallotName>
           <Text language="en">Eric J. Strucko</Text>
         </BallotName>
@@ -332,13 +332,13 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-strucko</Value>
+            <Value>can-2013-va-strucko</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0004</PartyId>
-        <PersonId>per10215</PersonId>
+        <PartyId>par-0004</PartyId>
+        <PersonId>per-10215</PersonId>
       </Candidate>
-      <Candidate objectId="can10213">
+      <Candidate objectId="can-10213">
         <BallotName>
           <Text language="en">K. L.  /Kate/ Acuff</Text>
         </BallotName>
@@ -346,237 +346,237 @@
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cand-2013-va-acuff</Value>
+            <Value>can-2013-va-acuff</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyId>par0004</PartyId>
-        <PersonId>per10213</PersonId>
+        <PartyId>par-0004</PartyId>
+        <PersonId>per-10213</PersonId>
       </Candidate>
     </CandidateCollection>
     <ContestCollection>
-      <Contest objectId="cc20002" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs10861_a" xsi:type="CandidateSelection">
+      <Contest objectId="c-20002" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-10861-a" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>absentee</Type>
               <Count>3394</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>early</Type>
               <Count>3775</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>election-day</Type>
               <Count>5054</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>total</Type>
               <Count>12223</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10861a</CandidateIds>
+          <CandidateIds>can-10861a</CandidateIds>
         </BallotSelection>
-        <BallotSelection objectId="cs10861_b" xsi:type="CandidateSelection">
+        <BallotSelection objectId="cs-10861-b" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>absentee</Type>
               <Count>3394</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>early</Type>
               <Count>3775</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>election-day</Type>
               <Count>5054</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>total</Type>
               <Count>12223</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10861b</CandidateIds>
+          <CandidateIds>can-10861b</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">President of the United States</Text>
         </BallotTitle>
-        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-0002</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-us1-country-us-pres</Value>
+            <Value>c-2013-us1-country-us-pres</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>President</Name>
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off9999a</OfficeIds>
+        <OfficeIds>off-9999a</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc20001" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs10862_a" xsi:type="CandidateSelection">
+      <Contest objectId="c-20001" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-10862-a" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>absentee</Type>
               <Count>8103</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>early</Type>
               <Count>7757</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>election-day</Type>
               <Count>2626</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>total</Type>
               <Count>18486</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10862a</CandidateIds>
+          <CandidateIds>can-10862a</CandidateIds>
         </BallotSelection>
-        <BallotSelection objectId="cs10862_b" xsi:type="CandidateSelection">
+        <BallotSelection objectId="cs-10862-b" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>absentee</Type>
               <Count>8103</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>early</Type>
               <Count>7757</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>election-day</Type>
               <Count>2626</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>total</Type>
               <Count>18486</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10862b</CandidateIds>
+          <CandidateIds>can-10862b</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">Vice-President of the United States</Text>
         </BallotTitle>
-        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-0002</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-us1-country-us-vicepres</Value>
+            <Value>c-2013-us1-country-us-vicepres</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>Vice-President</Name>
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off9999b</OfficeIds>
+        <OfficeIds>off-9999b</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc20003" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs10961" xsi:type="CandidateSelection">
+      <Contest objectId="c-20003" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-10961" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>absentee</Type>
               <Count>6618</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>early</Type>
               <Count>4143</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>election-day</Type>
               <Count>3498</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>total</Type>
               <Count>14259</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10961</CandidateIds>
+          <CandidateIds>can-10961</CandidateIds>
         </BallotSelection>
-        <BallotSelection objectId="cs10962" xsi:type="CandidateSelection">
+        <BallotSelection objectId="cs-10962" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>absentee</Type>
               <Count>1120</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>early</Type>
               <Count>3819</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>election-day</Type>
               <Count>9524</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>total</Type>
               <Count>14463</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10962</CandidateIds>
+          <CandidateIds>can-10962</CandidateIds>
         </BallotSelection>
-        <BallotSelection objectId="cs10963" xsi:type="CandidateSelection">
+        <BallotSelection objectId="cs-10963" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>absentee</Type>
               <Count>5583</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>early</Type>
               <Count>136</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>election-day</Type>
               <Count>6734</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>total</Type>
               <Count>12453</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10963</CandidateIds>
+          <CandidateIds>can-10963</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">Governor of Virginia</Text>
         </BallotTitle>
-        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-0002</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-va1-country-us</Value>
+            <Value>c-2013-va1-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <HasRotation>true</HasRotation>
@@ -584,661 +584,661 @@
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off0000</OfficeIds>
+        <OfficeIds>off-0000</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc20004" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs10966" xsi:type="CandidateSelection">
+      <Contest objectId="c-20004" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-10966" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>absentee</Type>
               <Count>6555</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>early</Type>
               <Count>5086</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>election-day</Type>
               <Count>5496</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>total</Type>
               <Count>17137</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10966</CandidateIds>
+          <CandidateIds>can-10966</CandidateIds>
         </BallotSelection>
-        <BallotSelection objectId="cs10967" xsi:type="CandidateSelection">
+        <BallotSelection objectId="cs-10967" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>absentee</Type>
               <Count>3317</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>early</Type>
               <Count>2208</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>election-day</Type>
               <Count>6530</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0002</GpUnitId>
+              <GpUnitId>ru-0002</GpUnitId>
               <Type>total</Type>
               <Count>12055</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10967</CandidateIds>
+          <CandidateIds>can-10967</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">Lieutenant Governor of Virginia</Text>
         </BallotTitle>
-        <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-0002</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-va2-country-us</Value>
+            <Value>c-2013-va2-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>Lieutenant Governor</Name>
         <SubUnitsReported>21</SubUnitsReported>
         <TotalSubUnits>31</TotalSubUnits>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off0001</OfficeIds>
+        <OfficeIds>off-0001</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc20024" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs10422" xsi:type="CandidateSelection">
+      <Contest objectId="c-20024" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-10422" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0150</GpUnitId>
+              <GpUnitId>ru-0150</GpUnitId>
               <Type>absentee</Type>
               <Count>3181</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0150</GpUnitId>
+              <GpUnitId>ru-0150</GpUnitId>
               <Type>early</Type>
               <Count>3075</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0150</GpUnitId>
+              <GpUnitId>ru-0150</GpUnitId>
               <Type>election-day</Type>
               <Count>4986</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0150</GpUnitId>
+              <GpUnitId>ru-0150</GpUnitId>
               <Type>total</Type>
               <Count>11242</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10422</CandidateIds>
+          <CandidateIds>can-10422</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">Member House of Delegates District - 0150</Text>
         </BallotTitle>
-        <ElectoralDistrictId>ru0150</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-0150</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-va4-country-us</Value>
+            <Value>c-2013-va4-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>Member House of Delegates District - 0150</Name>
         <SubUnitsReported>5</SubUnitsReported>
         <TotalSubUnits>7</TotalSubUnits>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off21</OfficeIds>
+        <OfficeIds>off-21</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc20025" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs10388" xsi:type="CandidateSelection">
+      <Contest objectId="c-20025" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-10388" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0311</GpUnitId>
+              <GpUnitId>ru-0311</GpUnitId>
               <Type>absentee</Type>
               <Count>2773</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0311</GpUnitId>
+              <GpUnitId>ru-0311</GpUnitId>
               <Type>early</Type>
               <Count>2938</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0311</GpUnitId>
+              <GpUnitId>ru-0311</GpUnitId>
               <Type>election-day</Type>
               <Count>1203</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0311</GpUnitId>
+              <GpUnitId>ru-0311</GpUnitId>
               <Type>total</Type>
               <Count>6914</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10388</CandidateIds>
+          <CandidateIds>can-10388</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">Member House of Delegates District - 0311</Text>
         </BallotTitle>
-        <ElectoralDistrictId>ru0311</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-0311</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-va5-country-us</Value>
+            <Value>c-2013-va5-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>Member House of Delegates District - 0311</Name>
         <SubUnitsReported>6</SubUnitsReported>
         <TotalSubUnits>9</TotalSubUnits>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off21</OfficeIds>
+        <OfficeIds>off-21</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc20033" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs10466" xsi:type="CandidateSelection">
+      <Contest objectId="c-20033" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-10466" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0107</GpUnitId>
+              <GpUnitId>ru-0107</GpUnitId>
               <Type>absentee</Type>
               <Count>4797</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0107</GpUnitId>
+              <GpUnitId>ru-0107</GpUnitId>
               <Type>early</Type>
               <Count>434</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0107</GpUnitId>
+              <GpUnitId>ru-0107</GpUnitId>
               <Type>election-day</Type>
               <Count>207</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0107</GpUnitId>
+              <GpUnitId>ru-0107</GpUnitId>
               <Type>total</Type>
               <Count>5438</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10466</CandidateIds>
+          <CandidateIds>can-10466</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">Member House of Delegates District - 0107</Text>
         </BallotTitle>
-        <ElectoralDistrictId>ru0107</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-0107</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-va6-country-us</Value>
+            <Value>c-2013-va6-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>Member House of Delegates District - 0107</Name>
         <SubUnitsReported>2</SubUnitsReported>
         <TotalSubUnits>2</TotalSubUnits>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off21</OfficeIds>
+        <OfficeIds>off-21</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc20100" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs10438" xsi:type="CandidateSelection">
+      <Contest objectId="c-20100" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-10438" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0076</GpUnitId>
+              <GpUnitId>ru-0076</GpUnitId>
               <Type>absentee</Type>
               <Count>563</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0076</GpUnitId>
+              <GpUnitId>ru-0076</GpUnitId>
               <Type>early</Type>
               <Count>4133</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0076</GpUnitId>
+              <GpUnitId>ru-0076</GpUnitId>
               <Type>election-day</Type>
               <Count>1315</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0076</GpUnitId>
+              <GpUnitId>ru-0076</GpUnitId>
               <Type>total</Type>
               <Count>6011</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10438</CandidateIds>
+          <CandidateIds>can-10438</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">Member House of Delegates District - 0076</Text>
         </BallotTitle>
-        <ElectoralDistrictId>ru0076</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-0076</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-va7-country-us</Value>
+            <Value>c-2013-va7-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>Member House of Delegates District - 0076</Name>
         <SubUnitsReported>7</SubUnitsReported>
         <TotalSubUnits>13</TotalSubUnits>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off21</OfficeIds>
-        <PrimaryPartyIds>par0005</PrimaryPartyIds>
+        <OfficeIds>off-21</OfficeIds>
+        <PrimaryPartyIds>par-0005</PrimaryPartyIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc20262" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs10079" xsi:type="CandidateSelection">
+      <Contest objectId="c-20262" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-10079" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0103</GpUnitId>
+              <GpUnitId>ru-0103</GpUnitId>
               <Type>absentee</Type>
               <Count>1870</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0103</GpUnitId>
+              <GpUnitId>ru-0103</GpUnitId>
               <Type>early</Type>
               <Count>2136</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0103</GpUnitId>
+              <GpUnitId>ru-0103</GpUnitId>
               <Type>election-day</Type>
               <Count>7503</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0103</GpUnitId>
+              <GpUnitId>ru-0103</GpUnitId>
               <Type>total</Type>
               <Count>11509</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10079</CandidateIds>
+          <CandidateIds>can-10079</CandidateIds>
         </BallotSelection>
-        <BallotSelection objectId="cs10080" xsi:type="CandidateSelection">
+        <BallotSelection objectId="cs-10080" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0103</GpUnitId>
+              <GpUnitId>ru-0103</GpUnitId>
               <Type>absentee</Type>
               <Count>3656</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0103</GpUnitId>
+              <GpUnitId>ru-0103</GpUnitId>
               <Type>early</Type>
               <Count>6887</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0103</GpUnitId>
+              <GpUnitId>ru-0103</GpUnitId>
               <Type>election-day</Type>
               <Count>9796</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0103</GpUnitId>
+              <GpUnitId>ru-0103</GpUnitId>
               <Type>total</Type>
               <Count>20339</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10080</CandidateIds>
+          <CandidateIds>can-10080</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">Member Board of Supervisors - Scottsville</Text>
         </BallotTitle>
-        <ElectoralDistrictId>ru0103</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-0103</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-va8-country-us</Value>
+            <Value>c-2013-va8-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>Member Board of Supervisors - Scottsville</Name>
         <SubUnitsReported>3</SubUnitsReported>
         <TotalSubUnits>5</TotalSubUnits>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off20262</OfficeIds>
+        <OfficeIds>off-20262</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc20305" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs10075" xsi:type="CandidateSelection">
+      <Contest objectId="c-20305" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-10075" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0054</GpUnitId>
+              <GpUnitId>ru-0054</GpUnitId>
               <Type>absentee</Type>
               <Count>1842</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0054</GpUnitId>
+              <GpUnitId>ru-0054</GpUnitId>
               <Type>early</Type>
               <Count>7673</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0054</GpUnitId>
+              <GpUnitId>ru-0054</GpUnitId>
               <Type>election-day</Type>
               <Count>2174</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0054</GpUnitId>
+              <GpUnitId>ru-0054</GpUnitId>
               <Type>total</Type>
               <Count>11689</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10075</CandidateIds>
+          <CandidateIds>can-10075</CandidateIds>
         </BallotSelection>
-        <BallotSelection objectId="cs10076" xsi:type="CandidateSelection">
+        <BallotSelection objectId="cs-10076" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0054</GpUnitId>
+              <GpUnitId>ru-0054</GpUnitId>
               <Type>absentee</Type>
               <Count>7412</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0054</GpUnitId>
+              <GpUnitId>ru-0054</GpUnitId>
               <Type>early</Type>
               <Count>2074</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0054</GpUnitId>
+              <GpUnitId>ru-0054</GpUnitId>
               <Type>election-day</Type>
               <Count>8017</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0054</GpUnitId>
+              <GpUnitId>ru-0054</GpUnitId>
               <Type>total</Type>
               <Count>17503</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10076</CandidateIds>
+          <CandidateIds>can-10076</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">Member Board of Supervisors - Jack Jouett</Text>
         </BallotTitle>
-        <ElectoralDistrictId>ru0054</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-0054</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-va9-country-us</Value>
+            <Value>c-2013-va9-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>Member Board of Supervisors - Jack Jouett</Name>
         <SubUnitsReported>3</SubUnitsReported>
         <TotalSubUnits>5</TotalSubUnits>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off20305</OfficeIds>
+        <OfficeIds>off-20305</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc20350" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs10073" xsi:type="CandidateSelection">
+      <Contest objectId="c-20350" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-10073" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0030</GpUnitId>
+              <GpUnitId>ru-0030</GpUnitId>
               <Type>absentee</Type>
               <Count>3570</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0030</GpUnitId>
+              <GpUnitId>ru-0030</GpUnitId>
               <Type>early</Type>
               <Count>7785</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0030</GpUnitId>
+              <GpUnitId>ru-0030</GpUnitId>
               <Type>election-day</Type>
               <Count>9789</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0030</GpUnitId>
+              <GpUnitId>ru-0030</GpUnitId>
               <Type>total</Type>
               <Count>21144</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10073</CandidateIds>
+          <CandidateIds>can-10073</CandidateIds>
         </BallotSelection>
-        <BallotSelection objectId="cs10074" xsi:type="CandidateSelection">
+        <BallotSelection objectId="cs-10074" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0030</GpUnitId>
+              <GpUnitId>ru-0030</GpUnitId>
               <Type>absentee</Type>
               <Count>8081</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0030</GpUnitId>
+              <GpUnitId>ru-0030</GpUnitId>
               <Type>early</Type>
               <Count>1666</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0030</GpUnitId>
+              <GpUnitId>ru-0030</GpUnitId>
               <Type>election-day</Type>
               <Count>2703</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0030</GpUnitId>
+              <GpUnitId>ru-0030</GpUnitId>
               <Type>total</Type>
               <Count>12450</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10074</CandidateIds>
+          <CandidateIds>can-10074</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">Member Board of Supervisors - Samuel Miller</Text>
         </BallotTitle>
-        <ElectoralDistrictId>ru0030</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-0030</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-va10-country-us</Value>
+            <Value>c-2013-va10-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>Member Board of Supervisors - Samuel Miller</Name>
         <SubUnitsReported>4</SubUnitsReported>
         <TotalSubUnits>4</TotalSubUnits>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off20350</OfficeIds>
+        <OfficeIds>off-20350</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc20355" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs10077" xsi:type="CandidateSelection">
+      <Contest objectId="c-20355" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-10077" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0081</GpUnitId>
+              <GpUnitId>ru-0081</GpUnitId>
               <Type>absentee</Type>
               <Count>4055</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0081</GpUnitId>
+              <GpUnitId>ru-0081</GpUnitId>
               <Type>early</Type>
               <Count>2226</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0081</GpUnitId>
+              <GpUnitId>ru-0081</GpUnitId>
               <Type>election-day</Type>
               <Count>6341</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0081</GpUnitId>
+              <GpUnitId>ru-0081</GpUnitId>
               <Type>total</Type>
               <Count>12622</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10077</CandidateIds>
+          <CandidateIds>can-10077</CandidateIds>
         </BallotSelection>
-        <BallotSelection objectId="cs10078" xsi:type="CandidateSelection">
+        <BallotSelection objectId="cs-10078" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0081</GpUnitId>
+              <GpUnitId>ru-0081</GpUnitId>
               <Type>absentee</Type>
               <Count>1149</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0081</GpUnitId>
+              <GpUnitId>ru-0081</GpUnitId>
               <Type>early</Type>
               <Count>8347</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0081</GpUnitId>
+              <GpUnitId>ru-0081</GpUnitId>
               <Type>election-day</Type>
               <Count>6748</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0081</GpUnitId>
+              <GpUnitId>ru-0081</GpUnitId>
               <Type>total</Type>
               <Count>16244</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10078</CandidateIds>
+          <CandidateIds>can-10078</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">Member Board of Supervisors - Rio</Text>
         </BallotTitle>
-        <ElectoralDistrictId>ru0081</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-0081</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-va11-country-us</Value>
+            <Value>c-2013-va11-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>Member Board of Supervisors - Rio</Name>
         <SubUnitsReported>4</SubUnitsReported>
         <TotalSubUnits>6</TotalSubUnits>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off20355</OfficeIds>
+        <OfficeIds>off-20355</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc20449" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs10214" xsi:type="CandidateSelection">
+      <Contest objectId="c-20449" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-10214" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0081</GpUnitId>
+              <GpUnitId>ru-0081</GpUnitId>
               <Type>absentee</Type>
               <Count>9547</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0081</GpUnitId>
+              <GpUnitId>ru-0081</GpUnitId>
               <Type>early</Type>
               <Count>1210</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0081</GpUnitId>
+              <GpUnitId>ru-0081</GpUnitId>
               <Type>election-day</Type>
               <Count>3699</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0081</GpUnitId>
+              <GpUnitId>ru-0081</GpUnitId>
               <Type>total</Type>
               <Count>14456</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10214</CandidateIds>
+          <CandidateIds>can-10214</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">Member School Board - Rio</Text>
         </BallotTitle>
-        <ElectoralDistrictId>ru0081</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-0081</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-va12-country-us</Value>
+            <Value>c-2013-va12-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>Member School Board - Rio</Name>
         <SubUnitsReported>4</SubUnitsReported>
         <TotalSubUnits>6</TotalSubUnits>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off20449</OfficeIds>
+        <OfficeIds>off-20449</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc20473" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs10215" xsi:type="CandidateSelection">
+      <Contest objectId="c-20473" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-10215" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0030</GpUnitId>
+              <GpUnitId>ru-0030</GpUnitId>
               <Type>absentee</Type>
               <Count>8705</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0030</GpUnitId>
+              <GpUnitId>ru-0030</GpUnitId>
               <Type>early</Type>
               <Count>9205</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0030</GpUnitId>
+              <GpUnitId>ru-0030</GpUnitId>
               <Type>election-day</Type>
               <Count>9954</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0030</GpUnitId>
+              <GpUnitId>ru-0030</GpUnitId>
               <Type>total</Type>
               <Count>27864</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10215</CandidateIds>
+          <CandidateIds>can-10215</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">Member School Board - Samuel Miller</Text>
         </BallotTitle>
-        <ElectoralDistrictId>ru0030</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-0030</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-va13-country-us</Value>
+            <Value>c-2013-va13-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>Member School Board - Samuel Miller</Name>
         <SubUnitsReported>4</SubUnitsReported>
         <TotalSubUnits>4</TotalSubUnits>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off20473</OfficeIds>
+        <OfficeIds>off-20473</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc20476" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs10213" xsi:type="CandidateSelection">
+      <Contest objectId="c-20476" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-10213" xsi:type="CandidateSelection">
           <VoteCountsCollection>
             <VoteCounts>
-              <GpUnitId>ru0054</GpUnitId>
+              <GpUnitId>ru-0054</GpUnitId>
               <Type>absentee</Type>
               <Count>2271</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0054</GpUnitId>
+              <GpUnitId>ru-0054</GpUnitId>
               <Type>early</Type>
               <Count>7621</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0054</GpUnitId>
+              <GpUnitId>ru-0054</GpUnitId>
               <Type>election-day</Type>
               <Count>6514</Count>
             </VoteCounts>
             <VoteCounts>
-              <GpUnitId>ru0054</GpUnitId>
+              <GpUnitId>ru-0054</GpUnitId>
               <Type>total</Type>
               <Count>16406</Count>
             </VoteCounts>
           </VoteCountsCollection>
-          <CandidateIds>can10213</CandidateIds>
+          <CandidateIds>can-10213</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">Member School Board - Jack Jouett</Text>
         </BallotTitle>
-        <ElectoralDistrictId>ru0054</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-0054</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>vageneral-cont-2013-va14-country-us</Value>
+            <Value>c-2013-va14-country-us</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>Member School Board - Jack Jouett</Name>
         <SubUnitsReported>3</SubUnitsReported>
         <TotalSubUnits>5</TotalSubUnits>
         <NumberElected>1</NumberElected>
-        <OfficeIds>off20476</OfficeIds>
+        <OfficeIds>off-20476</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
     </ContestCollection>
@@ -1250,12 +1250,12 @@
       <Status>in-process</Status>
       <Type>election-day</Type>
     </CountStatus>
-    <ElectionScopeId>ru0002</ElectionScopeId>
+    <ElectionScopeId>ru-0002</ElectionScopeId>
     <ExternalIdentifiers>
       <ExternalIdentifier>
         <Type>other</Type>
         <OtherType>stable</OtherType>
-        <Value>va_gen_el</Value>
+        <Value>e-va-gen-2013</Value>
       </ExternalIdentifier>
     </ExternalIdentifiers>
     <Name>
@@ -1268,32 +1268,32 @@
   <Format>summary-contest</Format>
   <GeneratedDate>2013-11-05T14:25:28</GeneratedDate>
   <GovernmentBodyCollection>
-    <GovernmentBody objectId="gb1">
+    <GovernmentBody objectId="gb-1">
       <Name>
         <Text language="en">Virginia House of Delegates</Text>
       </Name>
     </GovernmentBody>
-    <GovernmentBody objectId="gb2">
+    <GovernmentBody objectId="gb-2">
       <Name>
         <Text language="en">Board of Supervisors</Text>
       </Name>
     </GovernmentBody>
-    <GovernmentBody objectId="gb3">
+    <GovernmentBody objectId="gb-3">
       <Name>
         <Text language="en">School Board</Text>
       </Name>
     </GovernmentBody>
   </GovernmentBodyCollection>
   <GpUnitCollection>
-    <GpUnit objectId="ru000us" xsi:type="ReportingUnit">
+    <GpUnit objectId="ru-000us" xsi:type="ReportingUnit">
       <ComposingGpUnitIds>
-        ru0002
+        ru-0002
       </ComposingGpUnitIds>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gpu-ru000us</Value>
+          <Value>ru-000us</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
@@ -1309,15 +1309,15 @@
       </InternationalizedName>
       <Type>country</Type>
     </GpUnit>
-    <GpUnit objectId="ru0002" xsi:type="ReportingUnit">
+    <GpUnit objectId="ru-0002" xsi:type="ReportingUnit">
       <ComposingGpUnitIds>
-        ru0311 ru0001 ru0150 ru0076 ru0107
+        ru-0311 ru-0001 ru-0150 ru-0076 ru-0107
       </ComposingGpUnitIds>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gpu-ru0002</Value>
+          <Value>ru-0002</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
@@ -1333,13 +1333,13 @@
       </InternationalizedName>
       <Type>state</Type>
     </GpUnit>
-    <GpUnit objectId="ru0001" xsi:type="ReportingUnit">
-      <ComposingGpUnitIds>ru0030 ru0081 ru0054 ru0103</ComposingGpUnitIds>
+    <GpUnit objectId="ru-0001" xsi:type="ReportingUnit">
+      <ComposingGpUnitIds>ru-0030 ru-0081 ru-0054 ru-0103</ComposingGpUnitIds>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gpu-ru0001</Value>
+          <Value>ru-0001</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
@@ -1355,12 +1355,12 @@
       </InternationalizedName>
       <Type>county</Type>
     </GpUnit>
-    <GpUnit objectId="ru0150" xsi:type="ReportingUnit">
+    <GpUnit objectId="ru-0150" xsi:type="ReportingUnit">
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gpu-ru0150</Value>
+          <Value>ru-0150</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
@@ -1371,12 +1371,12 @@
       <Number>25</Number>
       <Type>state-house</Type>
     </GpUnit>
-    <GpUnit objectId="ru0311" xsi:type="ReportingUnit">
+    <GpUnit objectId="ru-0311" xsi:type="ReportingUnit">
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gpu-ru0311</Value>
+          <Value>ru-0311</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
@@ -1387,12 +1387,12 @@
       <Number>57</Number>
       <Type>state-house</Type>
     </GpUnit>
-    <GpUnit objectId="ru0076" xsi:type="ReportingUnit">
+    <GpUnit objectId="ru-0076" xsi:type="ReportingUnit">
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gpu-ru0076</Value>
+          <Value>ru-0076</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
@@ -1403,12 +1403,12 @@
       <Number>58</Number>
       <Type>state-house</Type>
     </GpUnit>
-    <GpUnit objectId="ru0107" xsi:type="ReportingUnit">
+    <GpUnit objectId="ru-0107" xsi:type="ReportingUnit">
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gpu-ru0107</Value>
+          <Value>ru-0107</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
@@ -1419,12 +1419,12 @@
       <Number>59</Number>
       <Type>state-house</Type>
     </GpUnit>
-    <GpUnit objectId="ru0030" xsi:type="ReportingUnit">
+    <GpUnit objectId="ru-0030" xsi:type="ReportingUnit">
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gpu-ru0030</Value>
+          <Value>ru-0030</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
@@ -1435,12 +1435,12 @@
       <Number>3</Number>
       <Type>county-council</Type>
     </GpUnit>
-    <GpUnit objectId="ru0054" xsi:type="ReportingUnit">
+    <GpUnit objectId="ru-0054" xsi:type="ReportingUnit">
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gpu-ru0054</Value>
+          <Value>ru-0054</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
@@ -1451,12 +1451,12 @@
       <Number>2</Number>
       <Type>county-council</Type>
     </GpUnit>
-    <GpUnit objectId="ru0081" xsi:type="ReportingUnit">
+    <GpUnit objectId="ru-0081" xsi:type="ReportingUnit">
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gpu-ru0081</Value>
+          <Value>ru-0081</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
@@ -1467,12 +1467,12 @@
       <Number>1</Number>
       <Type>county-council</Type>
     </GpUnit>
-    <GpUnit objectId="ru0103" xsi:type="ReportingUnit">
+    <GpUnit objectId="ru-0103" xsi:type="ReportingUnit">
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gpu-ru0103</Value>
+          <Value>ru-0103</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
@@ -1487,7 +1487,7 @@
   <Issuer>Commonwealth of Virginia</Issuer>
   <IssuerAbbreviation>VA</IssuerAbbreviation>
   <OfficeCollection>
-    <Office objectId="off9999a">
+    <Office objectId="off-9999a">
       <ContactInformation language="en">
         <AddressLine>1600 Pennsylvania Ave., NW</AddressLine>
         <AddressLine>Washington, DC 20500</AddressLine>
@@ -1501,12 +1501,12 @@
         <AddressLine>Washington, DC 20500</AddressLine>
         <Name>casa Blanca</Name>
       </ContactInformation>
-      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+      <ElectoralDistrictId>ru-0002</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-off9999a</Value>
+          <Value>off-9999a</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1516,7 +1516,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
-          <Value>ru0002</Value>
+          <Value>ru-0002</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1534,13 +1534,13 @@
         <Type>full-term</Type>
       </Term>
     </Office>
-    <Office objectId="off9999b">
-      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+    <Office objectId="off-9999b">
+      <ElectoralDistrictId>ru-0002</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-off9999b</Value>
+          <Value>off-9999b</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1550,7 +1550,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
-          <Value>ru0002</Value>
+          <Value>ru-0002</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1568,13 +1568,13 @@
         <Type>full-term</Type>
       </Term>
     </Office>
-    <Office objectId="off0000">
-      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+    <Office objectId="off-0000">
+      <ElectoralDistrictId>ru-0002</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-off0000</Value>
+          <Value>off-0000</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1584,7 +1584,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
-          <Value>ru0002</Value>
+          <Value>ru-0002</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1602,13 +1602,13 @@
         <Type>full-term</Type>
       </Term>
     </Office>
-    <Office objectId="off0001">
-      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+    <Office objectId="off-0001">
+      <ElectoralDistrictId>ru-0002</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-off0001</Value>
+          <Value>off-0001</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1618,7 +1618,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
-          <Value>ru0002</Value>
+          <Value>ru-0002</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1636,8 +1636,8 @@
         <Type>full-term</Type>
       </Term>
     </Office>
-    <Office objectId="off21">
-      <ElectoralDistrictId>ru0002</ElectoralDistrictId>
+    <Office objectId="off-21">
+      <ElectoralDistrictId>ru-0002</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1647,7 +1647,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-off20100</Value>
+          <Value>off-20100</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1657,11 +1657,11 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
-          <Value>ru0002</Value>
+          <Value>ru-0002</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
-      <GovernmentBodyIds>gb1</GovernmentBodyIds>
+      <GovernmentBodyIds>gb-1</GovernmentBodyIds>
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">Virginia House of Delegates Member</Text>
@@ -1672,13 +1672,13 @@
       </Term>
     </Office>
     <!-- Board of Supervisors -->
-    <Office objectId="off20262">
-      <ElectoralDistrictId>ru0103</ElectoralDistrictId>
+    <Office objectId="off-20262">
+      <ElectoralDistrictId>ru-0103</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-off20262</Value>
+          <Value>off-20262</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1688,7 +1688,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
-          <Value>ru0103</Value>
+          <Value>ru-0103</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1697,7 +1697,7 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
-      <GovernmentBodyIds>gb2</GovernmentBodyIds>
+      <GovernmentBodyIds>gb-2</GovernmentBodyIds>
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">Member Board of Supervisors - Scottsville</Text>
@@ -1707,13 +1707,13 @@
         <Type>full-term</Type>
       </Term>
     </Office>
-    <Office objectId="off20305">
-      <ElectoralDistrictId>ru0054</ElectoralDistrictId>
+    <Office objectId="off-20305">
+      <ElectoralDistrictId>ru-0054</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-off20305</Value>
+          <Value>off-20305</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1723,7 +1723,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
-          <Value>ru0054</Value>
+          <Value>ru-0054</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1732,7 +1732,7 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
-      <GovernmentBodyIds>gb2</GovernmentBodyIds>
+      <GovernmentBodyIds>gb-2</GovernmentBodyIds>
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">Member Board of Supervisors - Jack Jouett</Text>
@@ -1742,13 +1742,13 @@
         <Type>full-term</Type>
       </Term>
     </Office>
-    <Office objectId="off20350">
-      <ElectoralDistrictId>ru0030</ElectoralDistrictId>
+    <Office objectId="off-20350">
+      <ElectoralDistrictId>ru-0030</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-off20350</Value>
+          <Value>off-20350</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1758,7 +1758,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
-          <Value>ru0030</Value>
+          <Value>ru-0030</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1767,7 +1767,7 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
-      <GovernmentBodyIds>gb2</GovernmentBodyIds>
+      <GovernmentBodyIds>gb-2</GovernmentBodyIds>
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">Member Board of Supervisors - Samuel Miller</Text>
@@ -1777,13 +1777,13 @@
         <Type>full-term</Type>
       </Term>
     </Office>
-    <Office objectId="off20355">
-      <ElectoralDistrictId>ru0081</ElectoralDistrictId>
+    <Office objectId="off-20355">
+      <ElectoralDistrictId>ru-0081</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-off20355</Value>
+          <Value>off-20355</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1793,7 +1793,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
-          <Value>ru0081</Value>
+          <Value>ru-0081</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1802,7 +1802,7 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
-      <GovernmentBodyIds>gb2</GovernmentBodyIds>
+      <GovernmentBodyIds>gb-2</GovernmentBodyIds>
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">Member Board of Supervisors - Rio</Text>
@@ -1813,13 +1813,13 @@
       </Term>
     </Office>
     <!-- School board -->
-    <Office objectId="off20449">
-      <ElectoralDistrictId>ru0081</ElectoralDistrictId>
+    <Office objectId="off-20449">
+      <ElectoralDistrictId>ru-0081</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-off20449</Value>
+          <Value>off-20449</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1829,7 +1829,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
-          <Value>ru0081</Value>
+          <Value>ru-0081</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1838,7 +1838,7 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
-      <GovernmentBodyIds>gb3</GovernmentBodyIds>
+      <GovernmentBodyIds>gb-3</GovernmentBodyIds>
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">Member School Board - Rio</Text>
@@ -1848,13 +1848,13 @@
         <Type>full-term</Type>
       </Term>
     </Office>
-    <Office objectId="off20473">
-      <ElectoralDistrictId>ru0030</ElectoralDistrictId>
+    <Office objectId="off-20473">
+      <ElectoralDistrictId>ru-0030</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-off20473</Value>
+          <Value>off-20473</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1864,7 +1864,7 @@
        <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
-          <Value>ru0030</Value>
+          <Value>ru-0030</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1873,7 +1873,7 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
-      <GovernmentBodyIds>gb3</GovernmentBodyIds>
+      <GovernmentBodyIds>gb-3</GovernmentBodyIds>
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">Member School Board - Samuel Miller</Text>
@@ -1883,13 +1883,13 @@
         <Type>full-term</Type>
       </Term>
     </Office>
-    <Office objectId="off20476">
-      <ElectoralDistrictId>ru0054</ElectoralDistrictId>
+    <Office objectId="off-20476">
+      <ElectoralDistrictId>ru-0054</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-off20476</Value>
+          <Value>off-20476</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1899,7 +1899,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
-          <Value>ru0054</Value>
+          <Value>ru-0054</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -1908,7 +1908,7 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
-      <GovernmentBodyIds>gb3</GovernmentBodyIds>
+      <GovernmentBodyIds>gb-3</GovernmentBodyIds>
       <IsPartisan>true</IsPartisan>
       <Name>
         <Text language="en">Member School Board - Jack Jouett</Text>
@@ -1920,7 +1920,7 @@
     </Office>
   </OfficeCollection>
   <PartyCollection>
-    <Party objectId="par0001">
+    <Party objectId="par-0001">
       <InternationalizedAbbreviation>
         <Text language="en">REP</Text>
       </InternationalizedAbbreviation>
@@ -1929,15 +1929,15 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>vageneral-pty-2013-republican</Value>
+          <Value>par-2013-republican</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>
         <Text language="en">Republican</Text>
       </Name>
-      <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
+      <PartyScopeGpUnitIds>ru-000us</PartyScopeGpUnitIds>
     </Party>
-    <Party objectId="par0002">
+    <Party objectId="par-0002">
       <InternationalizedAbbreviation>
         <Text language="en">LIB</Text>
       </InternationalizedAbbreviation>
@@ -1946,15 +1946,15 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>vageneral-pty-2013-libertarian</Value>
+          <Value>par-2013-libertarian</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>
         <Text language="en">Libertarian</Text>
       </Name>
-      <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
+      <PartyScopeGpUnitIds>ru-000us</PartyScopeGpUnitIds>
     </Party>
-    <Party objectId="par0003">
+    <Party objectId="par-0003">
       <InternationalizedAbbreviation>
         <Text language="en">DEM</Text>
       </InternationalizedAbbreviation>
@@ -1963,15 +1963,15 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>vageneral-pty-2013-democratic</Value>
+          <Value>par-2013-democratic</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>
         <Text language="en">Democratic</Text>
       </Name>
-      <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
+      <PartyScopeGpUnitIds>ru-000us</PartyScopeGpUnitIds>
     </Party>
-    <Party objectId="par0004">
+    <Party objectId="par-0004">
       <InternationalizedAbbreviation>
         <Text language="en">IND</Text>
       </InternationalizedAbbreviation>
@@ -1979,16 +1979,16 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>vageneral-pty-2013-independent</Value>
+          <Value>par-2013-independent</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <IsIndependent>true</IsIndependent>
       <Name>
         <Text language="en">Independent</Text>
       </Name>
-      <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
+      <PartyScopeGpUnitIds>ru-000us</PartyScopeGpUnitIds>
     </Party>
-    <Party objectId="par0005">
+    <Party objectId="par-0005">
       <InternationalizedAbbreviation>
         <Text language="en">VN</Text>
       </InternationalizedAbbreviation>
@@ -1996,15 +1996,15 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>vageneral-pty-2013-nominated</Value>
+          <Value>par-2013-nominated</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>
         <Text language="en">Voter Nominated</Text>
       </Name>
-      <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
+      <PartyScopeGpUnitIds>ru-000us</PartyScopeGpUnitIds>
     </Party>
-    <Party objectId="par0006">
+    <Party objectId="par-0006">
       <InternationalizedAbbreviation>
         <Text language="en">PPN</Text>
       </InternationalizedAbbreviation>
@@ -2012,18 +2012,18 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>vageneral-pty-2013-none</Value>
+          <Value>par-2013-none</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>
         <Text language="en">Party Preference: None</Text>
       </Name>
-      <PartyScopeGpUnitIds>ru000us</PartyScopeGpUnitIds>
+      <PartyScopeGpUnitIds>ru-000us</PartyScopeGpUnitIds>
     </Party>
   </PartyCollection>
   <PersonCollection>
-    <Person objectId="per50001">
-      <ContactInformation label="ci60002">
+    <Person objectId="per-50001">
+      <ContactInformation label="ci-60002">
         <Email>rwashburne@albemarle.org</Email>
         <Phone>4349724173</Phone>
       </ContactInformation>
@@ -2031,7 +2031,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per50001</Value>
+          <Value>per-50001</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>RICHARD</FirstName>
@@ -2041,13 +2041,13 @@
       <LastName>WASHBURNE</LastName>
       <MiddleName>J.</MiddleName>
       <Nickname>JAKE</Nickname>
-      <PartyId>par0001</PartyId>
+      <PartyId>par-0001</PartyId>
       <Title>
         <Text language="en">General Registrar Physical</Text>
       </Title>
     </Person>
-    <Person objectId="per10861a">
-      <ContactInformation label="ci10861a">
+    <Person objectId="per-10861a">
+      <ContactInformation label="ci-10861a">
         <AddressLine>1600 Pennsylvania Ave</AddressLine>
         <AddressLine>Washington, DC 20006</AddressLine>
         <Email>president@whitehouse.gov</Email>
@@ -2061,7 +2061,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10861a</Value>
+          <Value>per-10861a</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Barack</FirstName>
@@ -2070,9 +2070,9 @@
       </FullName>
       <LastName>Obama</LastName>
       <MiddleName>H.</MiddleName>
-      <PartyId>par0002</PartyId>
+      <PartyId>par-0002</PartyId>
     </Person>
-    <Person objectId="per10861b">
+    <Person objectId="per-10861b">
       <ContactInformation language="en">
         <AddressLine>1600 Pennsylvania Ave., NW</AddressLine>
         <AddressLine>Washington, DC 20500</AddressLine>
@@ -2090,7 +2090,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10861b</Value>
+          <Value>per-10861b</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Joseph</FirstName>
@@ -2099,10 +2099,10 @@
       </FullName>
       <LastName>Biden</LastName>
       <MiddleName>R.</MiddleName>
-      <PartyId>par0006</PartyId>
+      <PartyId>par-0006</PartyId>
     </Person>
-    <Person objectId="per10862a">
-      <ContactInformation label="ci10862a">
+    <Person objectId="per-10862a">
+      <ContactInformation label="ci-10862a">
         <AddressLine>Post Office Box 149756</AddressLine>
         <AddressLine>Boston, MA 02114-9756</AddressLine>
         <Email>info@mittromney.com</Email>
@@ -2112,7 +2112,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10862a</Value>
+          <Value>per-10862a</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Willard</FirstName>
@@ -2121,14 +2121,14 @@
       </FullName>
       <LastName>Romney</LastName>
       <MiddleName>Mitt</MiddleName>
-      <PartyId>par0005</PartyId>
+      <PartyId>par-0005</PartyId>
     </Person>
-    <Person objectId="per10862b">
+    <Person objectId="per-10862b">
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10862b</Value>
+          <Value>per-10862b</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Paul</FirstName>
@@ -2137,10 +2137,10 @@
       </FullName>
       <LastName>Ryan</LastName>
       <MiddleName>D.</MiddleName>
-      <PartyId>par0004</PartyId>
+      <PartyId>par-0004</PartyId>
     </Person>
-    <Person objectId="per10961">
-      <ContactInformation label="ci10961">
+    <Person objectId="per-10961">
+      <ContactInformation label="ci-10961">
         <AddressLine>10560 Main St, Ste 218</AddressLine>
         <AddressLine>Fairfax, VA 22030</AddressLine>
         <Email>ken@cuccinelli.com</Email>
@@ -2151,7 +2151,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10961</Value>
+          <Value>per-10961</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Ken</FirstName>
@@ -2160,11 +2160,11 @@
       </FullName>
       <LastName>Cuccinelli</LastName>
       <MiddleName>T.</MiddleName>
-      <PartyId>par0003</PartyId>
+      <PartyId>par-0003</PartyId>
       <Suffix>II</Suffix>
     </Person>
-    <Person objectId="per10962">
-      <ContactInformation label="ci10962">
+    <Person objectId="per-10962">
+      <ContactInformation label="ci-10962">
         <AddressLine>PO Box 224</AddressLine>
         <AddressLine>Annandale, VA 22003</AddressLine>
         <Email>info@robertsarvis.com</Email>
@@ -2174,7 +2174,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10962</Value>
+          <Value>per-10962</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Robert</FirstName>
@@ -2183,10 +2183,10 @@
       </FullName>
       <LastName>Sarvis</LastName>
       <MiddleName>C.</MiddleName>
-      <PartyId>par0002</PartyId>
+      <PartyId>par-0002</PartyId>
     </Person>
-    <Person objectId="per10963">
-      <ContactInformation label="ci10963">
+    <Person objectId="per-10963">
+      <ContactInformation label="ci-10963">
         <AddressLine>1601 N. Kent St., Suite 900</AddressLine>
         <AddressLine>Arlington, VA 22209</AddressLine>
         <Email>info@terrymcauliffe.com</Email>
@@ -2197,7 +2197,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10963</Value>
+          <Value>per-10963</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Terry</FirstName>
@@ -2206,10 +2206,10 @@
       </FullName>
       <LastName>McAuliffe</LastName>
       <MiddleName>R.</MiddleName>
-      <PartyId>par0001</PartyId>
+      <PartyId>par-0001</PartyId>
     </Person>
-    <Person objectId="per10966">
-      <ContactInformation label="ci10966">
+    <Person objectId="per-10966">
+      <ContactInformation label="ci-10966">
         <AddressLine>PO Box 597</AddressLine>
         <AddressLine>Richmond, VA 23218</AddressLine>
         <Email>ralph@ralphnortham.com</Email>
@@ -2220,7 +2220,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10966</Value>
+          <Value>per-10966</Value>
         </ExternalIdentifier></ExternalIdentifiers>
       <FirstName>Ralph</FirstName>
       <FullName>
@@ -2228,10 +2228,10 @@
       </FullName>
       <LastName>Northam</LastName>
       <MiddleName>S.</MiddleName>
-      <PartyId>par0001</PartyId>
+      <PartyId>par-0001</PartyId>
     </Person>
-    <Person objectId="per10967">
-      <ContactInformation label="ci10967">
+    <Person objectId="per-10967">
+      <ContactInformation label="ci-10967">
         <AddressLine>Jackson for Lt. Governor</AddressLine>
         <AddressLine>PO Box 15003</AddressLine>
         <AddressLine>Chesapeake, VA 23328</AddressLine>
@@ -2243,7 +2243,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10967</Value>
+          <Value>per-10967</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>E.</FirstName>
@@ -2252,10 +2252,10 @@
       </FullName>
       <LastName>Jackson</LastName>
       <MiddleName>W.</MiddleName>
-      <PartyId>par0003</PartyId>
+      <PartyId>par-0003</PartyId>
     </Person>
-    <Person objectId="per10964">
-      <ContactInformation label="ci10964">
+    <Person objectId="per-10964">
+      <ContactInformation label="ci-10964">
         <AddressLine>PO Box 555</AddressLine>
         <AddressLine>Harrisonburg, VA 228030555</AddressLine>
         <Email>campaign@markobenshain.com</Email>
@@ -2266,7 +2266,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10964</Value>
+          <Value>per-10964</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Mark</FirstName>
@@ -2275,10 +2275,10 @@
       </FullName>
       <LastName>Obenshain</LastName>
       <MiddleName>D.</MiddleName>
-      <PartyId>par0004</PartyId>
+      <PartyId>par-0004</PartyId>
     </Person>
-    <Person objectId="per10965">
-      <ContactInformation label="ci10965">
+    <Person objectId="per-10965">
+      <ContactInformation label="ci-10965">
         <AddressLine>PO Box 6201</AddressLine>
         <AddressLine>Leesburg, VA 201787428</AddressLine>
         <Email>kevin@herringforag.com</Email>
@@ -2289,7 +2289,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10965</Value>
+          <Value>per-10965</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Mark</FirstName>
@@ -2298,10 +2298,10 @@
       </FullName>
       <LastName>Herring</LastName>
       <MiddleName>R.</MiddleName>
-      <PartyId>par0005</PartyId>
+      <PartyId>par-0005</PartyId>
     </Person>
-    <Person objectId="per10422">
-      <ContactInformation label="ci10422">
+    <Person objectId="per-10422">
+      <ContactInformation label="ci-10422">
         <AddressLine>PO Box 12</AddressLine>
         <AddressLine>Verona, VA 24482</AddressLine>
         <Email>steve@stevelandes.com</Email>
@@ -2312,7 +2312,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10422</Value>
+          <Value>per-10422</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>R.</FirstName>
@@ -2322,10 +2322,10 @@
       <LastName>Landes</LastName>
       <MiddleName>Steven</MiddleName>
       <Nickname>Steve</Nickname>
-      <PartyId>par0001</PartyId>
+      <PartyId>par-0001</PartyId>
     </Person>
-    <Person objectId="per10388">
-      <ContactInformation label="ci10388">
+    <Person objectId="per-10388">
+      <ContactInformation label="ci-10388">
         <AddressLine>PO Box 283</AddressLine>
         <AddressLine>Charlottesville, VA 22902</AddressLine>
         <Email>david@davidtoscano.com</Email>
@@ -2336,7 +2336,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10388</Value>
+          <Value>per-10388</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>David</FirstName>
@@ -2345,10 +2345,10 @@
       </FullName>
       <LastName>Toscano</LastName>
       <MiddleName>J.</MiddleName>
-      <PartyId>par0005</PartyId>
+      <PartyId>par-0005</PartyId>
     </Person>
-    <Person objectId="per10466">
-      <ContactInformation label="ci10466">
+    <Person objectId="per-10466">
+      <ContactInformation label="ci-10466">
         <AddressLine>243-B Livestock Rd</AddressLine>
         <AddressLine>Rustburg, VA 24588</AddressLine>
         <Email>friendsofmattfariss@gmail.com</Email>
@@ -2359,7 +2359,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10466</Value>
+          <Value>per-10466</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>C.</FirstName>
@@ -2368,10 +2368,10 @@
       </FullName>
       <LastName>Fariss</LastName>
       <MiddleName>Matt</MiddleName>
-      <PartyId>par0004</PartyId>
+      <PartyId>par-0004</PartyId>
     </Person>
-    <Person objectId="per10438">
-      <ContactInformation label="ci10438">
+    <Person objectId="per-10438">
+      <ContactInformation label="ci-10438">
         <AddressLine>2309 Finch Court</AddressLine>
         <AddressLine>Charlottesville, VA 22911</AddressLine>
         <Email>robbellgop@aol.com</Email>
@@ -2381,7 +2381,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10438</Value>
+          <Value>per-10438</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Robert</FirstName>
@@ -2390,11 +2390,11 @@
       </FullName>
       <LastName>Bell</LastName>
       <MiddleName>B.</MiddleName>
-      <PartyId>par0003</PartyId>
+      <PartyId>par-0003</PartyId>
       <Suffix>III</Suffix>
     </Person>
-    <Person objectId="per10079">
-      <ContactInformation label="ci10079">
+    <Person objectId="per-10079">
+      <ContactInformation label="ci-10079">
         <AddressLine>1365 Tattersall Ct</AddressLine>
         <AddressLine>Keswick, VA 229479169</AddressLine>
         <Email>Jane4supervisor@gmail.com</Email>
@@ -2405,7 +2405,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10079</Value>
+          <Value>per-10079</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Jane</FirstName>
@@ -2414,10 +2414,10 @@
       </FullName>
       <LastName>Dittmar</LastName>
       <MiddleName>D.</MiddleName>
-      <PartyId>par0006</PartyId>
+      <PartyId>par-0006</PartyId>
     </Person>
-    <Person objectId="per10080">
-      <ContactInformation label="ci10080">
+    <Person objectId="per-10080">
+      <ContactInformation label="ci-10080">
         <AddressLine>PO Box 318</AddressLine>
         <AddressLine>Free Union, VA 229400318</AddressLine>
         <Email>cincha@aol.com</Email>
@@ -2428,7 +2428,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10080</Value>
+          <Value>per-10080</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>C.</FirstName>
@@ -2438,10 +2438,10 @@
       <LastName>Burket</LastName>
       <MiddleName>L.</MiddleName>
       <Nickname>Cindi</Nickname>
-      <PartyId>par0004</PartyId>
+      <PartyId>par-0004</PartyId>
     </Person>
-    <Person objectId="per10075">
-      <ContactInformation label="ci10075">
+    <Person objectId="per-10075">
+      <ContactInformation label="ci-10075">
         <AddressLine>103 Smithfield Ct</AddressLine>
         <AddressLine>Charlottesville, VA 229012252</AddressLine>
         <Email>diantha.mckeel@embarqmail.com</Email>
@@ -2451,7 +2451,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10075</Value>
+          <Value>per-10075</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Diantha</FirstName>
@@ -2460,10 +2460,10 @@
       </FullName>
       <LastName>McKeel</LastName>
       <MiddleName>H.</MiddleName>
-      <PartyId>par0001</PartyId>
+      <PartyId>par-0001</PartyId>
     </Person>
-    <Person objectId="per10076">
-      <ContactInformation label="ci10076">
+    <Person objectId="per-10076">
+      <ContactInformation label="ci-10076">
         <AddressLine>2305 Fairway Ln</AddressLine>
         <AddressLine>Charlottesville, VA 229015022</AddressLine>
         <Email>bps43@comcast.net</Email>
@@ -2473,7 +2473,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10076</Value>
+          <Value>per-10076</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>B.</FirstName>
@@ -2482,10 +2482,10 @@
       </FullName>
       <LastName>Seay</LastName>
       <MiddleName>Phillip</MiddleName>
-      <PartyId>par0002</PartyId>
+      <PartyId>par-0002</PartyId>
     </Person>
-    <Person objectId="per10073">
-      <ContactInformation label="ci10073">
+    <Person objectId="per-10073">
+      <ContactInformation label="ci-10073">
         <AddressLine>PO Box 315</AddressLine>
         <AddressLine>Ivy, VA 229450315</AddressLine>
         <Email>Liz@LizPalmerforSupervisor.com</Email>
@@ -2496,7 +2496,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10073</Value>
+          <Value>per-10073</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Liz</FirstName>
@@ -2505,10 +2505,10 @@
       </FullName>
       <LastName>Palmer</LastName>
       <MiddleName>A.</MiddleName>
-      <PartyId>par0003</PartyId>
+      <PartyId>par-0003</PartyId>
     </Person>
-    <Person objectId="per10074">
-      <ContactInformation label="ci10074">
+    <Person objectId="per-10074">
+      <ContactInformation label="ci-10074">
         <AddressLine>905 Leigh Way</AddressLine>
         <AddressLine>Charlottesville, VA 229017749</AddressLine>
         <Email>duanesnow@gmail.com</Email>
@@ -2519,7 +2519,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10074</Value>
+          <Value>per-10074</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Duane</FirstName>
@@ -2528,10 +2528,10 @@
       </FullName>
       <LastName>Snow</LastName>
       <MiddleName>E.</MiddleName>
-      <PartyId>par0002</PartyId>
+      <PartyId>par-0002</PartyId>
     </Person>
-    <Person objectId="per10077">
-      <ContactInformation label="ci10077">
+    <Person objectId="per-10077">
+      <ContactInformation label="ci-10077">
         <AddressLine>104 Dover Ct</AddressLine>
         <AddressLine>Charlottesville, VA 229011012</AddressLine>
         <Email>rodney@charlottesvillepress.com</Email>
@@ -2542,7 +2542,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10077</Value>
+          <Value>per-10077</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Rodney</FirstName>
@@ -2551,10 +2551,10 @@
       </FullName>
       <LastName>Thomas</LastName>
       <MiddleName>S.</MiddleName>
-      <PartyId>par0003</PartyId>
+      <PartyId>par-0003</PartyId>
     </Person>
-    <Person objectId="per10078">
-      <ContactInformation label="ci10078">
+    <Person objectId="per-10078">
+      <ContactInformation label="ci-10078">
         <AddressLine>844 Belvedere Blvd</AddressLine>
         <AddressLine>Charlottesville, VA 229013201</AddressLine>
         <Email>bsheffield@andaregroup.com</Email>
@@ -2565,7 +2565,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10078</Value>
+          <Value>per-10078</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>J.</FirstName>
@@ -2575,10 +2575,10 @@
       <LastName>Sheffield</LastName>
       <MiddleName>L.</MiddleName>
       <Nickname>Brad</Nickname>
-      <PartyId>par0001</PartyId>
+      <PartyId>par-0001</PartyId>
     </Person>
-    <Person objectId="per10214">
-      <ContactInformation label="ci10214">
+    <Person objectId="per-10214">
+      <ContactInformation label="ci-10214">
         <AddressLine>3974 Deepwoods Rd</AddressLine>
         <AddressLine>Earlysville, VA 229369776</AddressLine>
         <Email>prpmoynihan@comcast.net</Email>
@@ -2588,7 +2588,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10214</Value>
+          <Value>per-10214</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Pamela</FirstName>
@@ -2597,10 +2597,10 @@
       </FullName>
       <LastName>Moynihan</LastName>
       <MiddleName>R.</MiddleName>
-      <PartyId>par0004</PartyId>
+      <PartyId>par-0004</PartyId>
     </Person>
-    <Person objectId="per10215">
-      <ContactInformation label="ci10215">
+    <Person objectId="per-10215">
+      <ContactInformation label="ci-10215">
         <AddressLine>1029 Tilman Rd</AddressLine>
         <AddressLine>Charlottesville, VA 229016336</AddressLine>
         <Email>ejs6j@virginia.edu</Email>
@@ -2610,7 +2610,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10215</Value>
+          <Value>per-10215</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Eric</FirstName>
@@ -2619,10 +2619,10 @@
       </FullName>
       <LastName>Strucko</LastName>
       <MiddleName>J.</MiddleName>
-      <PartyId>par0001</PartyId>
+      <PartyId>par-0001</PartyId>
     </Person>
-    <Person objectId="per10213">
-      <ContactInformation label="ci10213">
+    <Person objectId="per-10213">
+      <ContactInformation label="ci-10213">
         <AddressLine>2210 Camargo Dr</AddressLine>
         <AddressLine>Charlottesville, VA 229018827</AddressLine>
         <Email>klacuff@earthlink.net</Email>
@@ -2632,7 +2632,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>person-per10213</Value>
+          <Value>per-10213</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>K.</FirstName>
@@ -2642,7 +2642,7 @@
       <LastName>Acuff</LastName>
       <MiddleName>L.</MiddleName>
       <Nickname>Kate</Nickname>
-      <PartyId>par0002</PartyId>
+      <PartyId>par-0002</PartyId>
     </Person>
   </PersonCollection>
   <SequenceStart>1</SequenceStart>

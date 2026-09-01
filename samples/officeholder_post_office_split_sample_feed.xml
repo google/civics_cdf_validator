@@ -3,12 +3,12 @@
   <Format>precinct-level</Format>
   <GeneratedDate>2018-11-05T14:25:28</GeneratedDate>
   <GovernmentBodyCollection>
-    <GovernmentBody objectId="gov0">
+    <GovernmentBody objectId="gb-0">
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gov0</Value>
+          <Value>gb-0</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>
@@ -26,7 +26,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gpu-2lkjg1zsv9j</Value>
+          <Value>ru-2lkjg1zsv9j</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>Texas</Name>
@@ -41,7 +41,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gpu-wlkj2oijg2g</Value>
+          <Value>ru-wlkj2oijg2g</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <InternationalizedName>
@@ -60,7 +60,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-gpu-2k3flj2kjf2</Value>
+          <Value>ru-2k3flj2kjf2</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>United States</Name>
@@ -70,25 +70,25 @@
   <Issuer>Data Partner X</Issuer>
   <IssuerAbbreviation>DPX</IssuerAbbreviation>
   <OfficeCollection>
-    <Office objectId="off0">
+    <Office objectId="off-0">
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-off0</Value>
+          <Value>off-0</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <GovernmentBodyIds>gov0</GovernmentBodyIds>
+      <GovernmentBodyIds>gb-0</GovernmentBodyIds>
       <JurisdictionId>ru-gpu2</JurisdictionId>
       <Level>Country</Level>
       <Name>
         <Text language="en">United States Senator</Text>
       </Name>
-      <OfficeHolderPersonIds>per0</OfficeHolderPersonIds>
+      <OfficeHolderPersonIds>per-0</OfficeHolderPersonIds>
       <Role>upper house</Role>
       <SelectionMethod>directly-elected</SelectionMethod>
     </Office>
-    <Office objectId="off1">
+    <Office objectId="off-1">
       <ContactInformation language="en">
         <AddressLine>655 New York Ave, NW</AddressLine>
         <AddressLine>Washington, DC 20005</AddressLine>
@@ -106,7 +106,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-off1</Value>
+          <Value>off-1</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <JurisdictionId>ru-gpu2</JurisdictionId>
@@ -114,57 +114,57 @@
       <Name>
         <Text language="en">United States Vice President</Text>
       </Name>
-      <OfficeHolderPersonIds>per1</OfficeHolderPersonIds>
+      <OfficeHolderPersonIds>per-1</OfficeHolderPersonIds>
       <Role>deputy head of government</Role>
       <SelectionMethod>directly-elected</SelectionMethod>
     </Office>
   </OfficeCollection>
   <OfficeHolderTenureCollection>
-    <OfficeHolderTenure objectId="offten0">
+    <OfficeHolderTenure objectId="oh-0">
       <ElectoralDistrictId>ru-gpu0</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-offten0</Value>
+          <Value>oh-0</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <OfficeHolderPersonId>per1</OfficeHolderPersonId>
-      <OfficeId>off0</OfficeId>
+      <OfficeHolderPersonId>per-1</OfficeHolderPersonId>
+      <OfficeId>off-0</OfficeId>
       <OfficeSelectionMethod>directly-elected</OfficeSelectionMethod>
       <StartDate>2019-01-01</StartDate>
     </OfficeHolderTenure>
-    <OfficeHolderTenure objectId="offten1">
+    <OfficeHolderTenure objectId="oh-1">
       <ElectoralDistrictId>ru-gpu0</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-offten1</Value>
+          <Value>oh-1</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <OfficeHolderPersonId>per1</OfficeHolderPersonId>
-      <OfficeId>off1</OfficeId>
+      <OfficeHolderPersonId>per-1</OfficeHolderPersonId>
+      <OfficeId>off-1</OfficeId>
       <OfficeSelectionMethod>directly-elected</OfficeSelectionMethod>
       <StartDate>2019-01-01</StartDate>
     </OfficeHolderTenure>
-    <OfficeHolderTenure objectId="offten2">
+    <OfficeHolderTenure objectId="oh-2">
       <ElectoralDistrictId>ru-gpu1</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-offten2</Value>
+          <Value>oh-2</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <OfficeHolderPersonId>per0</OfficeHolderPersonId>
-      <OfficeId>off0</OfficeId>
+      <OfficeHolderPersonId>per-0</OfficeHolderPersonId>
+      <OfficeId>off-0</OfficeId>
       <OfficeSelectionMethod>directly-elected</OfficeSelectionMethod>
       <StartDate>2019-01-01</StartDate>
     </OfficeHolderTenure>
   </OfficeHolderTenureCollection>
   <PartyCollection>
-    <Party objectId="par0">
+    <Party objectId="par-0">
       <InternationalizedAbbreviation>
         <Text language="en">R</Text>
       </InternationalizedAbbreviation>
@@ -176,7 +176,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-par0</Value>
+          <Value>par-0</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>
@@ -184,7 +184,7 @@
       </Name>
       <PartyScopeGpUnitIds>ru-gpu2</PartyScopeGpUnitIds>
     </Party>
-    <Party objectId="par1">
+    <Party objectId="par-1">
       <InternationalizedAbbreviation>
         <Text language="en">D</Text>
       </InternationalizedAbbreviation>
@@ -196,18 +196,18 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-par1</Value>
+          <Value>par-1</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Leadership objectId="par-1-leader">
+      <Leadership objectId="pl-1-leader">
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>stable-par-1-leader</Value>
+            <Value>pl-1-leader</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
-        <PartyLeaderId>per2</PartyLeaderId>
+        <PartyLeaderId>per-2</PartyLeaderId>
         <Type>party-leader</Type>
       </Leadership>
       <Name>
@@ -217,7 +217,7 @@
     </Party>
   </PartyCollection>
   <PersonCollection>
-    <Person objectId="per0">
+    <Person objectId="per-0">
       <ContactInformation language="en">
         <AddressLine>655 New York Ave, NW</AddressLine>
         <AddressLine>Washington, DC 20005</AddressLine>
@@ -242,7 +242,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-per0</Value>
+          <Value>per-0</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Rafael</FirstName>
@@ -253,9 +253,9 @@
       <LastName>Cruz</LastName>
       <MiddleName>Edward</MiddleName>
       <Nickname>Ted Cruz</Nickname>
-      <PartyId>par0</PartyId>
+      <PartyId>par-0</PartyId>
     </Person>
-    <Person objectId="per1">
+    <Person objectId="per-1">
       <ContactInformation>
         <Uri Annotation="personal-website">https://act.berniesanders.com/signup/signup/</Uri>
         <Uri Annotation="personal-facebook">https://www.facebook.com/berniesanders</Uri>
@@ -266,7 +266,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-per1</Value>
+          <Value>per-1</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Bernie</FirstName>
@@ -275,9 +275,9 @@
       </FullName>
       <Gender>Male</Gender>
       <LastName>Sanders</LastName>
-      <PartyId>par1</PartyId>
+      <PartyId>par-1</PartyId>
     </Person>
-    <Person objectId="per2">
+    <Person objectId="per-2">
       <!-- Party leader referenced by party-leader-id. Does not require a linked office. -->
       <ContactInformation>
         <Uri Annotation="personal-facebook">https://www.facebook.com/leaderofparty</Uri>
@@ -290,7 +290,7 @@
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>stable-per2</Value>
+          <Value>per-2</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FirstName>Lebron</FirstName>
@@ -300,7 +300,7 @@
       <Gender>Male</Gender>
       <LastName>King</LastName>
       <MiddleName>Marcus</MiddleName>
-      <PartyId>par1</PartyId>
+      <PartyId>par-1</PartyId>
     </Person>
   </PersonCollection>
   <SequenceStart>1</SequenceStart>

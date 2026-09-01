@@ -368,53 +368,6 @@ class Encoding(base.TreeRule):
       raise loggers.ElectionError.from_message("Encoding on file is not UTF-8")
 
 
-class HungarianStyleNotation(base.BaseRule):
-  """Check that element identifiers use Hungarian style notation.
-
-  Hungarian style notation is used to maintain uniqueness and provide context
-  for the identifiers.
-  """
-
-  # Add a prefix when there is a specific entity in the xml.
-  elements_prefix = {
-      "BallotMeasureContest": "bmc",
-      "BallotMeasureSelection": "bms",
-      "BallotStyle": "bs",
-      "Candidate": "can",
-      "CandidateContest": "cc",
-      "CandidateSelection": "cs",
-      "Coalition": "coa",
-      "ContactInformation": "ci",
-      "Hours": "hours",
-      "Office": "off",
-      "OfficeGroup": "og",
-      "Party": "par",
-      "PartyContest": "pc",
-      "PartySelection": "ps",
-      "Person": "per",
-      "ReportingDevice": "rd",
-      "ReportingUnit": "ru",
-      "RetentionContest": "rc",
-      "Schedule": "sched",
-  }
-
-  def elements(self):
-    return self.elements_prefix.keys()
-
-  def check(self, element):
-    object_id = element.get("objectId")
-    tag = self.get_element_class(element)
-    if object_id:
-      if not object_id.startswith(self.elements_prefix[tag]):
-        raise loggers.ElectionInfo.from_message(
-            (
-                "%s ID %s is not in Hungarian Style Notation. Should start"
-                " with  %s" % (tag, object_id, self.elements_prefix[tag])
-            ),
-            [element],
-        )
-
-
 class LanguageCode(base.BaseRule):
   """Check that Text and Uri elements have a valid language code."""
 
@@ -2238,57 +2191,24 @@ class VoteCountValidSeatsDeltaTypes(base.BaseRule):
   """Ensure VoteCount seats delta types are valid."""
 
   def elements(self):
-    return ["Contest"]
+    return ["BallotSelection"] + list(
+        self.get_element_names_for_type("SpecialBallotSelection")
+    )
 
   def check(self, element):
-    if element.get("type", "") == "PartyContest":
-      for ballot_selection in element.findall("BallotSelection"):
-        ballot_selection_vote_types = []
-        ballot_selection_obj_id = ballot_selection.get("objectId")
-        for vote_counts in ballot_selection.find(
-            "VoteCountsCollection"
-        ).findall("VoteCounts"):
-          vote_count_type = vote_counts.find("OtherType").text
-          ballot_selection_vote_types.append(vote_count_type)
-        if (
-            "seats-delta" in ballot_selection_vote_types
-            and "seats-delta-mandate" in ballot_selection_vote_types
-        ):
-          msg = (
-              "The VoteCount types seats-delta and seats-delta-mandate should"
-              " not coexist within the same BallotSelection (objectId={})."
-              " They represent the same data, and seats-delta is scheduled"
-              " for deprecation."
-          ).format(ballot_selection_obj_id)
-          raise loggers.ElectionWarning.from_message(msg, [element])
-        if (
-            "seats-delta-institutional" in ballot_selection_vote_types
-            and "seats-delta-mandate" not in ballot_selection_vote_types
-        ):
-          msg = (
-              "Missing required field VoteCount type seats-delta-mandate must"
-              " be included whenever VoteCount type seats-delta-institutional"
-              " is present. (BallotSelection objectId={})"
-          ).format(ballot_selection_obj_id)
-          raise loggers.ElectionError.from_message(msg, [element])
-        if "seats-delta" in ballot_selection_vote_types:
-          current_date = datetime.datetime.now()
-          deletion_date = datetime.datetime(2026, 7, 1)
-          #   If current date is before July 1st, 2026
-          if current_date < deletion_date:
-            msg = (
-                "VoteCount type seats-delta is deprecated and will be removed"
-                " on July 1, 2026. Please update your implementation to use"
-                " seats-delta-mandate. (BallotSelection objectId={})"
-            ).format(ballot_selection_obj_id)
-            raise loggers.ElectionWarning.from_message(msg, [element])
-          else:
-            msg = (
-                "VoteCount type seats-delta is deprecated and was removed on"
-                " July 1, 2026. Please update your implementation to use"
-                " seats-delta-mandate. (BallotSelection objectId={})"
-            ).format(ballot_selection_obj_id)
-            raise loggers.ElectionError.from_message(msg, [element])
+    vote_count_types = set()
+    vote_counts_collection = element.find("VoteCountsCollection")
+    if vote_counts_collection is None:
+      return
+    for vote_counts in vote_counts_collection.findall("VoteCounts"):
+      vote_count_types.add(_get_type_or_other_type(vote_counts))
+    if "seats-delta" in vote_count_types:
+      raise loggers.ElectionError.from_message(
+          "Legacy VoteCounts type seats-delta is no longer supported as of"
+          " July 1, 2026. Please update your implementation to use"
+          " seats-delta-mandate and/or seats-delta-institutional.",
+          [element],
+      )
 
 
 class URIValidator(base.BaseRule):
@@ -5552,7 +5472,6 @@ COMMON_RULES = (
     GpUnitOcdId,
     GpUnitsCyclesRefsValidation,
     GpUnitsHaveInternationalizedName,
-    HungarianStyleNotation,
     IndependentPartyName,
     LanguageCode,
     MissingFieldsError,

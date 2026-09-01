@@ -1,65 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <Election objectId="el_1">
+  <Election objectId="e-1">
     <ContestCollection>
-      <Contest objectId="cc_1" xsi:type="CandidateContest">
+      <Contest objectId="c-1" xsi:type="CandidateContest">
         <BallotTitle>
           <Text language="en">2022 Mali National Assembly general election</Text>
           <Text language="fr">2022 Mali Assemblée Nationale générales élections</Text>
         </BallotTitle>
         <ContestDateStatus>postponed</ContestDateStatus>
-        <ElectoralDistrictId>ru_ml_999</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-ml-999</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>cc_1</Value>
+            <Value>c-1</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>
 <![CDATA[2022 Mali National Assembly general election]]>
         </Name>
         <VoteVariation>1-of-m</VoteVariation>
-        <OfficeIds>off_ml_1</OfficeIds>
+        <OfficeIds>off-ml-1</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
-      <Contest objectId="cc_2" xsi:type="CandidateContest">
+      <Contest objectId="c-2" xsi:type="CandidateContest">
         <BallotTitle>
           <Text language="en">2022 Mali Presidential general election</Text>
           <Text language="fr">2022 Mali Président générales élection</Text>
         </BallotTitle>
         <ContestDateStatus>postponed</ContestDateStatus>
-        <ElectoralDistrictId>ru_ml_999</ElectoralDistrictId>
+        <ElectoralDistrictId>ru-ml-999</ElectoralDistrictId>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
             <OtherType>stable</OtherType>
-            <Value>cc_2</Value>
+            <Value>c-2</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>
 <![CDATA[2022 Mali Presidential general election]]>
         </Name>
         <VoteVariation>1-of-m</VoteVariation>
-        <OfficeIds>off_ml_3</OfficeIds>
+        <OfficeIds>off-ml-3</OfficeIds>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
     </ContestCollection>
     <ElectionDateStatus>postponed</ElectionDateStatus>
     <ElectionDateType>bounded</ElectionDateType>
-    <ElectionScopeId>ru_ml_999</ElectionScopeId>
+    <ElectionScopeId>ru-ml-999</ElectionScopeId>
     <ExternalIdentifiers>
       <ExternalIdentifier>
         <Type>other</Type>
         <OtherType>stable</OtherType>
-        <Value>stable_el1</Value>
+        <Value>e-1</Value>
       </ExternalIdentifier>
     </ExternalIdentifiers>
     <ExternalIdentifiers>
       <ExternalIdentifier>
         <Type>other</Type>
         <OtherType>stable</OtherType>
-        <Value>el_1</Value>
+        <Value>e-1</Value>
       </ExternalIdentifier>
     </ExternalIdentifiers>
     <Name>
@@ -77,12 +77,12 @@
   <Format>summary-contest</Format>
   <GeneratedDate>2022-04-11T15:42:48+01:00</GeneratedDate>
   <GpUnitCollection>
-    <GpUnit objectId="ru_ml_999" xsi:type="ReportingUnit">
+    <GpUnit objectId="ru-ml-999" xsi:type="ReportingUnit">
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>ru_ml_999</Value>
+          <Value>ru-ml-999</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>ocd-id</Type>
@@ -113,18 +113,18 @@
   <Issuer>Data Partner</Issuer>
   <IssuerAbbreviation>DP</IssuerAbbreviation>
   <OfficeCollection>
-    <Office objectId="off_ml_1">
-      <ElectoralDistrictId>ru_ml_999</ElectoralDistrictId>
+    <Office objectId="off-ml-1">
+      <ElectoralDistrictId>ru-ml-999</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>off_ml_1</Value>
+          <Value>off-ml-1</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
-          <Value>ru_ml_999</Value>
+          <Value>ru-ml-999</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -152,18 +152,18 @@
       </Name>
       <SelectionMethod>directly-elected</SelectionMethod>
     </Office>
-    <Office objectId="off_ml_3">
-      <ElectoralDistrictId>ru_ml_999</ElectoralDistrictId>
+    <Office objectId="off-ml-3">
+      <ElectoralDistrictId>ru-ml-999</ElectoralDistrictId>
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>stable</OtherType>
-          <Value>off_ml_3</Value>
+          <Value>off-ml-3</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
-          <Value>ru_ml_999</Value>
+          <Value>ru-ml-999</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
