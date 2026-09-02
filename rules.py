@@ -21,6 +21,7 @@ import enum
 import hashlib
 import re
 
+from botocore import utils as botocore_utils
 from civics_cdf_validator import base
 from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
@@ -4565,6 +4566,57 @@ class SourceDirPathsAreUnique(base.BaseRule):
       raise loggers.ElectionError(error_log)
 
 
+_ARN_PARSER = botocore_utils.ArnParser()
+
+
+class SqsQueueNameIsFullyQualifiedArn(base.BaseRule):
+  """SqsQueueName must be a valid fully qualified ARN."""
+
+  def elements(self):
+    return ["Feed"]
+
+  def check(self, element):
+    sqs_queue_name = element.find("SqsQueueName")
+    if not element_has_text(sqs_queue_name):
+      return
+    queue_name = sqs_queue_name.text.strip()
+    feed_id_element = element.find("FeedId")
+    feed_id = (
+        feed_id_element.text.strip()
+        if element_has_text(feed_id_element)
+        else ""
+    )
+
+    is_valid = False
+    if queue_name.startswith("arn:"):
+      try:
+        arn_dict = _ARN_PARSER.parse_arn(queue_name)
+        is_valid = bool(
+            arn_dict.get("partition") == "aws"
+            and arn_dict.get("service", "").lower() == "sqs"
+            and arn_dict.get("region")
+            and arn_dict.get("account")
+            and arn_dict.get("resource")
+        )
+      except botocore_utils.InvalidArnException:
+        is_valid = False
+
+    if not is_valid:
+      if feed_id:
+        error_message = (
+            f"SqsQueueName '{queue_name}' is not a valid fully qualified ARN"
+            f" for feed {feed_id}."
+        )
+      else:
+        error_message = (
+            f"SqsQueueName '{queue_name}' is not a valid fully qualified ARN."
+        )
+      raise loggers.ElectionError.from_message(
+          error_message,
+          [element],
+      )
+
+
 class SqsQueueNameRequiresS3SourceDirPath(base.BaseRule):
   """If SqsQueueName is set, SourceDirPath must also be set and must be an s3 path."""
 
@@ -5616,6 +5668,7 @@ METADATA_RULES = (
     Schema,
     SourceDirPathMustBeSetAfterInitialDeliveryDate,
     SourceDirPathsAreUnique,
+    SqsQueueNameIsFullyQualifiedArn,
     SqsQueueNameRequiresS3SourceDirPath,
     UniqueLabel,
     # go/keep-sorted end
