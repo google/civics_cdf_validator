@@ -133,7 +133,7 @@
       <FeedType>election-results</FeedType>
       <FeedLongevity>limited</FeedLongevity>
       <SourceDirPath>s3://sample/results.xml</SourceDirPath>
-      <SqsQueueName>sample-feed-results</SqsQueueName>
+      <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:sample-feed-results</SqsQueueName>
       <CountryCode>US</CountryCode>
       <FeedInactiveDate>2024-12-31</FeedInactiveDate>
       <ElectionEventCollection>
@@ -167,7 +167,7 @@
       <FeedType>election-results</FeedType>
       <FeedLongevity>limited</FeedLongevity>
       <SourceDirPath>s3://sample/results-test.xml</SourceDirPath>
-      <SqsQueueName>sample-feed-results-test</SqsQueueName>
+      <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:sample-feed-results-test</SqsQueueName>
       <CountryCode>US</CountryCode>
       <FeedInactiveDate>2024-12-31</FeedInactiveDate>
       <IsTest>true</IsTest>

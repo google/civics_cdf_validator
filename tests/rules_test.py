@@ -13356,6 +13356,234 @@ class SourceDirPathsAreUniqueTest(absltest.TestCase):
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
 
+class SqsQueueNameIsFullyQualifiedArnTest(absltest.TestCase):
+
+  def setUp(self):
+    super().setUp()
+    self.validator = rules.SqsQueueNameIsFullyQualifiedArn(None, None)
+
+  def test_no_sqs_queue_name_succeeds(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SourceDirPath>https://example.com/feed</SourceDirPath>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def test_empty_sqs_queue_name_succeeds(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName></SqsQueueName>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def test_whitespace_sqs_queue_name_succeeds(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>   </SqsQueueName>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def test_valid_arn_succeeds(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:my-queue</SqsQueueName>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def test_valid_arn_with_whitespace_succeeds(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>
+          arn:aws:sqs:us-east-1:123456789012:my-queue
+        </SqsQueueName>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def test_non_arn_fails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>my-queue</SqsQueueName>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        "SqsQueueName 'my-queue' is not a valid fully qualified ARN for feed"
+        " test-feed.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def test_arn_missing_parts_fails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>arn:aws:sqs:us-east-1</SqsQueueName>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        "SqsQueueName 'arn:aws:sqs:us-east-1' is not a valid fully qualified"
+        " ARN for feed test-feed.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def test_arn_non_sqs_service_fails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>arn:aws:sns:us-east-1:123456789012:my-topic</SqsQueueName>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        "SqsQueueName 'arn:aws:sns:us-east-1:123456789012:my-topic' is not a"
+        " valid fully qualified ARN for feed test-feed.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def test_arn_missing_region_fails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>arn:aws:sqs::123456789012:my-queue</SqsQueueName>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        "SqsQueueName 'arn:aws:sqs::123456789012:my-queue' is not a valid"
+        " fully qualified ARN for feed test-feed.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def test_arn_missing_account_fails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>arn:aws:sqs:us-east-1::my-queue</SqsQueueName>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        "SqsQueueName 'arn:aws:sqs:us-east-1::my-queue' is not a valid fully"
+        " qualified ARN for feed test-feed.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def test_arn_missing_resource_fails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:</SqsQueueName>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        "SqsQueueName 'arn:aws:sqs:us-east-1:123456789012:' is not a valid"
+        " fully qualified ARN for feed test-feed.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def test_arn_invalid_prefix_fails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>not-arn:aws:sqs:us-east-1:123456789012:my-queue</SqsQueueName>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        "SqsQueueName 'not-arn:aws:sqs:us-east-1:123456789012:my-queue' is not"
+        " a valid fully qualified ARN for feed test-feed.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def test_arn_missing_feed_id_fails(self):
+    feed_string = """
+      <Feed>
+        <SqsQueueName>my-queue</SqsQueueName>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        "SqsQueueName 'my-queue' is not a valid fully qualified ARN.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def test_arn_non_aws_partition_fails(self):
+    for partition in ["aws-cn", "aws-us-gov", "other"]:
+      feed_string = f"""
+        <Feed>
+          <FeedId>test-feed</FeedId>
+          <SqsQueueName>arn:{partition}:sqs:us-east-1:123456789012:my-queue</SqsQueueName>
+        </Feed>
+        """
+
+      with self.assertRaises(loggers.ElectionError) as context:
+        self.validator.check(etree.fromstring(feed_string))
+      self.assertEqual(
+          f"SqsQueueName 'arn:{partition}:sqs:us-east-1:123456789012:my-queue'"
+          " is not a valid fully qualified ARN for feed test-feed.",
+          context.exception.log_entry[0].message,
+      )
+      self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def test_arn_invalid_arn_exception_fails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>arn:aws</SqsQueueName>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        "SqsQueueName 'arn:aws' is not a valid fully qualified ARN for feed"
+        " test-feed.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+
 class SqsQueueNameRequiresS3SourceDirPathTest(absltest.TestCase):
 
   def setUp(self):
@@ -13377,7 +13605,7 @@ class SqsQueueNameRequiresS3SourceDirPathTest(absltest.TestCase):
       <Feed>
         <FeedId>test-feed</FeedId>
         <SourceDirPath>s3://my-bucket/feed</SourceDirPath>
-        <SqsQueueName>my-queue</SqsQueueName>
+        <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:my-queue</SqsQueueName>
       </Feed>
       """
 
@@ -13387,7 +13615,7 @@ class SqsQueueNameRequiresS3SourceDirPathTest(absltest.TestCase):
     feed_string = """
       <Feed>
         <FeedId>test-feed</FeedId>
-        <SqsQueueName>my-queue</SqsQueueName>
+        <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:my-queue</SqsQueueName>
       </Feed>
       """
 
@@ -13405,7 +13633,7 @@ class SqsQueueNameRequiresS3SourceDirPathTest(absltest.TestCase):
       <Feed>
         <FeedId>test-feed</FeedId>
         <SourceDirPath>https://example.com/feed</SourceDirPath>
-        <SqsQueueName>my-queue</SqsQueueName>
+        <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:my-queue</SqsQueueName>
       </Feed>
       """
 

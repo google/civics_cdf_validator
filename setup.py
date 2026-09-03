@@ -61,6 +61,7 @@ setup(
         'attrs>=25.1.0',
         'python-dateutil>=2.8.1',
         'six',
+        'botocore',
     ],
     setup_requires=['pytest-runner'],
     extras_require={
