@@ -5672,7 +5672,8 @@ METADATA_RULES = (
     Schema,
     SourceDirPathMustBeSetAfterInitialDeliveryDate,
     SourceDirPathsAreUnique,
-    SqsQueueNameIsFullyQualifiedArn,
+    # TODO(b/555757644): Reenable this rule once we are ready to enforce it.
+    # SqsQueueNameIsFullyQualifiedArn,
     SqsQueueNameRequiresS3SourceDirPath,
     UniqueLabel,
     # go/keep-sorted end

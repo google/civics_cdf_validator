@@ -15568,6 +15568,8 @@ class RulesTest(absltest.TestCase):
     possible_rules.remove(base.DateRule)
     possible_rules.remove(base.MissingFieldRule)
     possible_rules.remove(rules.UnreferencedEntitiesBase)
+    # TODO(b/555757644): Reenable this rule once we are ready to enforce it.
+    possible_rules.remove(rules.SqsQueueNameIsFullyQualifiedArn)
 
     self.assertSetEqual(all_rules, possible_rules)
 
