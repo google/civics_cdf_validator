@@ -943,7 +943,7 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
   """Candidate should not be referred to by multiple unrelated contests.
 
   A Candidate object should only be referenced from one contest, unless the
-  contests are related (connected by SubsequentContestId). If a Person is
+  contests are related (connected by ComposingContestIds). If a Person is
   running in multiple unrelated Contests, then that Person is a Candidate
   several times over, but a Candida(te|cy) can't span unrelated contests.
   """
@@ -1003,22 +1003,6 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
       self.contest_graph.add_node(contest.get("objectId"))
 
     for contest in contests:
-      subsequent_contest_id = None
-      subsequent_contest = contest.find("SubsequentContestId")
-      if element_has_text(subsequent_contest):
-        subsequent_contest_id = subsequent_contest.text
-        # subsequent contest id is not valid if it isn't in the graph
-        if not self.contest_graph.has_node(subsequent_contest_id):
-          raise loggers.ElectionError.from_message(
-              (
-                  "Contest {} contains a subsequent Contest Id ({}) that does "
-                  "not exist."
-              ).format(contest.get("objectId"), subsequent_contest_id),
-              [subsequent_contest],
-          )
-        self.contest_graph.add_edge(
-            contest.get("objectId"), subsequent_contest.text
-        )
       # Add the composing contest if it exists
       composing_contests = contest.find("ComposingContestIds")
       if element_has_text(composing_contests):
@@ -1033,8 +1017,7 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
                 ).format(contest.get("objectId"), child),
                 [composing_contests],
             )
-          if subsequent_contest_id:
-            self.contest_graph.add_edge(child, subsequent_contest_id)
+          self.contest_graph.add_edge(contest.get("objectId"), child)
 
   def _check_candidate_contests_are_related(self, contest_id_list):
     for i in range(len(contest_id_list) - 1):
