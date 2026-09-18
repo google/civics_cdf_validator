@@ -1,10 +1,9 @@
 <?xml version="1.0"?>
 <!-- Included in the ElectionReport:
-- an Election with two gubernatorial primaries  (2020-09-15, DE)
-- an Election with a general gubernatorial (2020-11-03, DE)
-- an Election with three state level presidential primary contests
-- an Election for the general election day, with presidential state level contests, a national
-  level presidential rollup
+- an Election for primaries (2020-02-03 to 2020-09-15), with gubernatorial primaries (DE)
+  and presidential state level and national rollup primary contests
+- an Election for the general election (2020-11-03) and runoff election (2020-12-08), with
+  gubernatorial (DE) and presidential state level and national rollup contests
 -->
 <ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Election>
@@ -69,78 +68,6 @@
         <PersonId>per-24</PersonId>
         <PreElectionStatus>self-declared</PreElectionStatus>
       </Candidate>
-    </CandidateCollection>
-    <ContestCollection>
-      <Contest objectId="c-301" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs-12-301" xsi:type="CandidateSelection">
-          <CandidateIds>can-12</CandidateIds>
-        </BallotSelection>
-        <BallotSelection objectId="cs-13-301" xsi:type="CandidateSelection">
-          <CandidateIds>can-13</CandidateIds>
-        </BallotSelection>
-        <BallotTitle>
-          <Text language="en">2020 Delware gubernatorial Republican Party primary election</Text>
-        </BallotTitle>
-        <ElectoralDistrictId>ru-delaware</ElectoralDistrictId>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>c-301</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <Name>2020 Delware gubernatorial Republican Party primary election</Name>
-        <SubsequentContestId>c-300</SubsequentContestId>
-        <NumberElected>1</NumberElected>
-        <OfficeIds>off-2</OfficeIds>
-        <PrimaryPartyIds>par-1</PrimaryPartyIds>
-        <Type>partisan-primary-closed</Type>
-        <VotesAllowed>1</VotesAllowed>
-      </Contest>
-      <Contest objectId="c-302" xsi:type="CandidateContest">
-        <BallotSelection objectId="cs-23-301" xsi:type="CandidateSelection">
-          <CandidateIds>can-23</CandidateIds>
-        </BallotSelection>
-        <BallotSelection objectId="cs-24-301" xsi:type="CandidateSelection">
-          <CandidateIds>can-24</CandidateIds>
-        </BallotSelection>
-        <BallotTitle>
-          <Text language="en">2020 Delware gubernatorial Democratic Party primary election</Text>
-        </BallotTitle>
-        <ElectoralDistrictId>ru-delaware</ElectoralDistrictId>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>c-302</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <Name>2020 Delware gubernatorial Democratic Party primary election</Name>
-        <SubsequentContestId>c-300</SubsequentContestId>
-        <NumberElected>1</NumberElected>
-        <OfficeIds>off-2</OfficeIds>
-        <PrimaryPartyIds>par-2</PrimaryPartyIds>
-        <Type>partisan-primary-closed</Type>
-        <VotesAllowed>1</VotesAllowed>
-      </Contest>
-    </ContestCollection>
-    <ElectionScopeId>ru-united-states</ElectionScopeId>
-    <ExternalIdentifiers>
-      <ExternalIdentifier>
-        <Type>other</Type>
-        <OtherType>stable</OtherType>
-        <Value>e-delaware-primaries</Value>
-      </ExternalIdentifier>
-    </ExternalIdentifiers>
-    <Name>
-      <Text language="en">2020 Delaware gubernatorial primary election</Text>
-    </Name>
-    <StartDate>2020-09-15</StartDate>
-    <EndDate>2020-09-15</EndDate>
-    <Type>partisan-primary-closed</Type>
-  </Election>
-  <Election>
-    <CandidateCollection>
       <Candidate objectId="can-111">
         <BallotName>
           <Text language="en">Republican Presidential Candidate1</Text>
@@ -239,6 +166,29 @@
         <Type>partisan-primary-open</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
+      <Contest objectId="c-100" xsi:type="CandidateContest">
+        <BallotTitle>
+          <Text language="en">2020 US Presidential Democratic Party primary election</Text>
+        </BallotTitle>
+        <ComposingContestIds>c-101 c-103</ComposingContestIds>
+        <ElectoralDistrictId>ru-united-states</ElectoralDistrictId>
+        <EndDate>2020-08-11</EndDate>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>c-100</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>2020 US Presidential Democratic Party primary election</Name>
+        <StartDate>2020-02-03</StartDate>
+        <SubsequentContestId>c-200</SubsequentContestId>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off-1</OfficeIds>
+        <PrimaryPartyIds>par-2</PrimaryPartyIds>
+        <Type>partisan-primary-open</Type>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
       <Contest objectId="c-401" xsi:type="CandidateContest">
         <BallotSelection objectId="cs-41-111" xsi:type="CandidateSelection">
           <CandidateIds>can-111</CandidateIds>
@@ -292,29 +242,6 @@
         <NumberElected>1</NumberElected>
         <OfficeIds>off-1</OfficeIds>
         <PrimaryPartyIds>par-1</PrimaryPartyIds>
-        <Type>partisan-primary-open</Type>
-        <VotesAllowed>1</VotesAllowed>
-      </Contest>
-      <Contest objectId="c-100" xsi:type="CandidateContest">
-        <BallotTitle>
-          <Text language="en">2020 US Presidential Democratic Party primary election</Text>
-        </BallotTitle>
-        <ComposingContestIds>c-101 c-103</ComposingContestIds>
-        <ElectoralDistrictId>ru-united-states</ElectoralDistrictId>
-        <EndDate>2020-08-11</EndDate>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>c-100</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <Name>2020 US Presidential Democratic Party primary election</Name>
-        <StartDate>2020-02-03</StartDate>
-        <SubsequentContestId>c-200</SubsequentContestId>
-        <NumberElected>1</NumberElected>
-        <OfficeIds>off-1</OfficeIds>
-        <PrimaryPartyIds>par-2</PrimaryPartyIds>
         <Type>partisan-primary-open</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
@@ -374,36 +301,241 @@
         <Type>partisan-primary-open</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
+      <Contest objectId="c-301" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-12-301" xsi:type="CandidateSelection">
+          <CandidateIds>can-12</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs-13-301" xsi:type="CandidateSelection">
+          <CandidateIds>can-13</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">2020 Delware gubernatorial Republican Party primary election</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru-delaware</ElectoralDistrictId>
+        <EndDate>2020-09-15</EndDate>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>c-301</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>2020 Delware gubernatorial Republican Party primary election</Name>
+        <StartDate>2020-09-15</StartDate>
+        <SubsequentContestId>c-300</SubsequentContestId>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off-2</OfficeIds>
+        <PrimaryPartyIds>par-1</PrimaryPartyIds>
+        <Type>partisan-primary-closed</Type>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+      <Contest objectId="c-302" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-23-301" xsi:type="CandidateSelection">
+          <CandidateIds>can-23</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs-24-301" xsi:type="CandidateSelection">
+          <CandidateIds>can-24</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">2020 Delware gubernatorial Democratic Party primary election</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru-delaware</ElectoralDistrictId>
+        <EndDate>2020-09-15</EndDate>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>c-302</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>2020 Delware gubernatorial Democratic Party primary election</Name>
+        <StartDate>2020-09-15</StartDate>
+        <SubsequentContestId>c-300</SubsequentContestId>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off-2</OfficeIds>
+        <PrimaryPartyIds>par-2</PrimaryPartyIds>
+        <Type>partisan-primary-closed</Type>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
     </ContestCollection>
     <ElectionScopeId>ru-united-states</ElectionScopeId>
     <ExternalIdentifiers>
       <ExternalIdentifier>
         <Type>other</Type>
         <OtherType>stable</OtherType>
-        <Value>e-dem-pres-primary</Value>
+        <Value>e-primaries</Value>
       </ExternalIdentifier>
     </ExternalIdentifiers>
     <Name>
-      <Text language="en">2020 US Presidential Democratic Party primary election</Text>
+      <Text language="en">2020 US Primary Election</Text>
     </Name>
     <StartDate>2020-02-03</StartDate>
-    <EndDate>2020-08-11</EndDate>
+    <EndDate>2020-09-15</EndDate>
     <Type>primary</Type>
   </Election>
   <Election>
+    <CandidateCollection>
+      <Candidate objectId="can-14">
+        <BallotName>
+          <Text language="en">Republican Gubernatorial Candidate1</Text>
+        </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>can-14</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>par-1</PartyId>
+        <PersonId>per-12</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
+      </Candidate>
+      <Candidate objectId="can-15">
+        <BallotName>
+          <Text language="en">Republican Gubernatorial Candidate1</Text>
+        </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>can-15</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>par-1</PartyId>
+        <PersonId>per-12</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
+      </Candidate>
+      <Candidate objectId="can-25">
+        <BallotName>
+          <Text language="en">Democratic Gubernatorial Candidate1</Text>
+        </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>can-25</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>par-2</PartyId>
+        <PersonId>per-23</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
+      </Candidate>
+      <Candidate objectId="can-26">
+        <BallotName>
+          <Text language="en">Democratic Gubernatorial Candidate1</Text>
+        </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>can-26</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>par-2</PartyId>
+        <PersonId>per-23</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
+      </Candidate>
+      <Candidate objectId="can-112">
+        <BallotName>
+          <Text language="en">Republican Presidential Candidate1</Text>
+        </BallotName>
+        <ContactInformation language="en">
+          <AddressLine>655 New York Ave, NW</AddressLine>
+          <AddressLine>Washington, DC 20005</AddressLine>
+          <Email>person@congress.gov</Email>
+          <Fax>888-7777</Fax>
+          <Name>Congressional Office</Name>
+          <Phone>999-8888</Phone>
+        </ContactInformation>
+        <ContactInformation language="es">
+          <AddressLine>655 Nueva York Ave, NW</AddressLine>
+          <AddressLine>Washington, DC 20005</AddressLine>
+          <Name>Oficina del Congreso</Name>
+        </ContactInformation>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>can-112</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>par-1</PartyId>
+        <PersonId>per-11</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
+      </Candidate>
+      <Candidate objectId="can-114">
+        <BallotName>
+          <Text language="en">Republican Presidential Candidate1</Text>
+        </BallotName>
+        <ContactInformation language="en">
+          <AddressLine>655 New York Ave, NW</AddressLine>
+          <AddressLine>Washington, DC 20005</AddressLine>
+          <Email>person@congress.gov</Email>
+          <Fax>888-7777</Fax>
+          <Name>Congressional Office</Name>
+          <Phone>999-8888</Phone>
+        </ContactInformation>
+        <ContactInformation language="es">
+          <AddressLine>655 Nueva York Ave, NW</AddressLine>
+          <AddressLine>Washington, DC 20005</AddressLine>
+          <Name>Oficina del Congreso</Name>
+        </ContactInformation>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>can-114</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>par-1</PartyId>
+        <PersonId>per-11</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
+      </Candidate>
+      <Candidate objectId="can-212">
+        <BallotName>
+          <Text language="en">Democratic Presidential Candidate1</Text>
+        </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>can-212</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>par-2</PartyId>
+        <PersonId>per-21</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
+      </Candidate>
+      <Candidate objectId="can-213">
+        <BallotName>
+          <Text language="en">Democratic Presidential Candidate1</Text>
+        </BallotName>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>can-213</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <PartyId>par-2</PartyId>
+        <PersonId>per-21</PersonId>
+        <PreElectionStatus>self-declared</PreElectionStatus>
+      </Candidate>
+    </CandidateCollection>
     <ContestCollection>
       <Contest objectId="c-200" xsi:type="CandidateContest">
         <BallotSelection objectId="cs-11-201" xsi:type="CandidateSelection">
-          <CandidateIds>can-111</CandidateIds>
+          <CandidateIds>can-112</CandidateIds>
         </BallotSelection>
         <BallotSelection objectId="cs-21-201" xsi:type="CandidateSelection">
-          <CandidateIds>can-211</CandidateIds>
+          <CandidateIds>can-212</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">2020 US Presidential election</Text>
         </BallotTitle>
         <ComposingContestIds>c-201 c-203</ComposingContestIds>
         <ElectoralDistrictId>ru-united-states</ElectoralDistrictId>
+        <EndDate>2020-11-03</EndDate>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
@@ -412,6 +544,8 @@
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>2020 US Presidential election</Name>
+        <StartDate>2020-11-03</StartDate>
+        <SubsequentContestId>c-500</SubsequentContestId>
         <NumberElected>1</NumberElected>
         <OfficeIds>off-1</OfficeIds>
         <Type>general</Type>
@@ -422,6 +556,7 @@
           <Text language="en">2020 US California Presidential election</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru-california</ElectoralDistrictId>
+        <EndDate>2020-11-03</EndDate>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
@@ -430,6 +565,8 @@
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>2020 US California Presidential election</Name>
+        <StartDate>2020-11-03</StartDate>
+        <SubsequentContestId>c-501</SubsequentContestId>
         <NumberElected>1</NumberElected>
         <OfficeIds>off-1</OfficeIds>
         <Type>general</Type>
@@ -440,6 +577,7 @@
           <Text language="en">2020 US Virginia Presidential election</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru-virginia</ElectoralDistrictId>
+        <EndDate>2020-11-03</EndDate>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
@@ -448,6 +586,8 @@
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>2020 US Virginia Presidential election</Name>
+        <StartDate>2020-11-03</StartDate>
+        <SubsequentContestId>c-503</SubsequentContestId>
         <NumberElected>1</NumberElected>
         <OfficeIds>off-1</OfficeIds>
         <Type>general</Type>
@@ -455,15 +595,16 @@
       </Contest>
       <Contest objectId="c-300" xsi:type="CandidateContest">
         <BallotSelection objectId="cs-12-300" xsi:type="CandidateSelection">
-          <CandidateIds>can-12</CandidateIds>
+          <CandidateIds>can-14</CandidateIds>
         </BallotSelection>
         <BallotSelection objectId="cs-23-300" xsi:type="CandidateSelection">
-          <CandidateIds>can-23</CandidateIds>
+          <CandidateIds>can-25</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">2020 Delaware gubernatorial election</Text>
         </BallotTitle>
         <ElectoralDistrictId>ru-delaware</ElectoralDistrictId>
+        <EndDate>2020-11-03</EndDate>
         <ExternalIdentifiers>
           <ExternalIdentifier>
             <Type>other</Type>
@@ -472,9 +613,104 @@
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>Governor of Delaware</Name>
+        <StartDate>2020-11-03</StartDate>
+        <SubsequentContestId>c-600</SubsequentContestId>
         <NumberElected>1</NumberElected>
         <OfficeIds>off-2</OfficeIds>
         <Type>general</Type>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+      <Contest objectId="c-500" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-11-500" xsi:type="CandidateSelection">
+          <CandidateIds>can-114</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs-21-500" xsi:type="CandidateSelection">
+          <CandidateIds>can-213</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">2020 US Presidential runoff election</Text>
+        </BallotTitle>
+        <ComposingContestIds>c-501 c-503</ComposingContestIds>
+        <ElectoralDistrictId>ru-united-states</ElectoralDistrictId>
+        <EndDate>2020-12-08</EndDate>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>c-500</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>2020 US Presidential runoff election</Name>
+        <StartDate>2020-12-08</StartDate>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off-1</OfficeIds>
+        <Type>runoff</Type>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+      <Contest objectId="c-501" xsi:type="CandidateContest">
+        <BallotTitle>
+          <Text language="en">2020 US California Presidential runoff election</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru-california</ElectoralDistrictId>
+        <EndDate>2020-12-08</EndDate>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>c-501</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>2020 US California Presidential runoff election</Name>
+        <StartDate>2020-12-08</StartDate>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off-1</OfficeIds>
+        <Type>runoff</Type>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+      <Contest objectId="c-503" xsi:type="CandidateContest">
+        <BallotTitle>
+          <Text language="en">2020 US Virginia Presidential runoff election</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru-virginia</ElectoralDistrictId>
+        <EndDate>2020-12-08</EndDate>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>c-503</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>2020 US Virginia Presidential runoff election</Name>
+        <StartDate>2020-12-08</StartDate>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off-1</OfficeIds>
+        <Type>runoff</Type>
+        <VotesAllowed>1</VotesAllowed>
+      </Contest>
+      <Contest objectId="c-600" xsi:type="CandidateContest">
+        <BallotSelection objectId="cs-12-600" xsi:type="CandidateSelection">
+          <CandidateIds>can-15</CandidateIds>
+        </BallotSelection>
+        <BallotSelection objectId="cs-23-600" xsi:type="CandidateSelection">
+          <CandidateIds>can-26</CandidateIds>
+        </BallotSelection>
+        <BallotTitle>
+          <Text language="en">2020 Delaware gubernatorial runoff election</Text>
+        </BallotTitle>
+        <ElectoralDistrictId>ru-delaware</ElectoralDistrictId>
+        <EndDate>2020-12-08</EndDate>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>c-600</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+        <Name>Governor of Delaware runoff</Name>
+        <StartDate>2020-12-08</StartDate>
+        <NumberElected>1</NumberElected>
+        <OfficeIds>off-2</OfficeIds>
+        <Type>runoff</Type>
         <VotesAllowed>1</VotesAllowed>
       </Contest>
     </ContestCollection>
@@ -490,8 +726,9 @@
       <Text language="en">2020 US General Election</Text>
     </Name>
     <StartDate>2020-11-03</StartDate>
-    <EndDate>2020-11-03</EndDate>
+    <EndDate>2020-12-08</EndDate>
     <Type>general</Type>
+    <Type>runoff</Type>
   </Election>
   <Format>summary-contest</Format>
   <GeneratedDate>2019-05-18T14:25:28</GeneratedDate>

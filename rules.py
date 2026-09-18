@@ -21,6 +21,7 @@ import enum
 import hashlib
 import re
 
+from botocore import utils as botocore_utils
 from civics_cdf_validator import base
 from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
@@ -942,7 +943,7 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
   """Candidate should not be referred to by multiple unrelated contests.
 
   A Candidate object should only be referenced from one contest, unless the
-  contests are related (connected by SubsequentContestId). If a Person is
+  contests are related (connected by ComposingContestIds). If a Person is
   running in multiple unrelated Contests, then that Person is a Candidate
   several times over, but a Candida(te|cy) can't span unrelated contests.
   """
@@ -1002,22 +1003,6 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
       self.contest_graph.add_node(contest.get("objectId"))
 
     for contest in contests:
-      subsequent_contest_id = None
-      subsequent_contest = contest.find("SubsequentContestId")
-      if element_has_text(subsequent_contest):
-        subsequent_contest_id = subsequent_contest.text
-        # subsequent contest id is not valid if it isn't in the graph
-        if not self.contest_graph.has_node(subsequent_contest_id):
-          raise loggers.ElectionError.from_message(
-              (
-                  "Contest {} contains a subsequent Contest Id ({}) that does "
-                  "not exist."
-              ).format(contest.get("objectId"), subsequent_contest_id),
-              [subsequent_contest],
-          )
-        self.contest_graph.add_edge(
-            contest.get("objectId"), subsequent_contest.text
-        )
       # Add the composing contest if it exists
       composing_contests = contest.find("ComposingContestIds")
       if element_has_text(composing_contests):
@@ -1032,8 +1017,7 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
                 ).format(contest.get("objectId"), child),
                 [composing_contests],
             )
-          if subsequent_contest_id:
-            self.contest_graph.add_edge(child, subsequent_contest_id)
+          self.contest_graph.add_edge(contest.get("objectId"), child)
 
   def _check_candidate_contests_are_related(self, contest_id_list):
     for i in range(len(contest_id_list) - 1):
@@ -4565,6 +4549,61 @@ class SourceDirPathsAreUnique(base.BaseRule):
       raise loggers.ElectionError(error_log)
 
 
+_ARN_PARSER = botocore_utils.ArnParser()
+
+
+class SqsQueueNameIsFullyQualifiedArn(base.BaseRule):
+  """SqsQueueName must be a valid fully qualified ARN.
+
+  Only AWS region ARNs are supported.
+  """
+
+  def elements(self):
+    return ["Feed"]
+
+  def check(self, element):
+    sqs_queue_name = element.find("SqsQueueName")
+    if not element_has_text(sqs_queue_name):
+      return
+    queue_name = sqs_queue_name.text.strip()
+    feed_id_element = element.find("FeedId")
+    feed_id = (
+        feed_id_element.text.strip()
+        if element_has_text(feed_id_element)
+        else ""
+    )
+
+    is_valid = False
+    if queue_name.startswith("arn:"):
+      try:
+        arn_dict = _ARN_PARSER.parse_arn(queue_name)
+        is_valid = bool(
+            arn_dict.get("partition") == "aws"
+            and arn_dict.get("service", "").lower() == "sqs"
+            and arn_dict.get("region")
+            and arn_dict.get("account")
+            and arn_dict.get("resource")
+        )
+      except botocore_utils.InvalidArnException:
+        is_valid = False
+
+    if not is_valid:
+      if feed_id:
+        error_message = (
+            f"SqsQueueName '{queue_name}' is not a valid fully qualified ARN"
+            f" for feed {feed_id}."
+        )
+      else:
+        error_message = (
+            f"SqsQueueName '{queue_name}' is not a valid fully qualified ARN."
+        )
+      raise loggers.ElectionError.from_message(
+          error_message,
+          [element],
+          [sqs_queue_name.sourceline],
+      )
+
+
 class SqsQueueNameRequiresS3SourceDirPath(base.BaseRule):
   """If SqsQueueName is set, SourceDirPath must also be set and must be an s3 path."""
 
@@ -5616,6 +5655,8 @@ METADATA_RULES = (
     Schema,
     SourceDirPathMustBeSetAfterInitialDeliveryDate,
     SourceDirPathsAreUnique,
+    # TODO(b/555757644): Reenable this rule once we are ready to enforce it.
+    # SqsQueueNameIsFullyQualifiedArn,
     SqsQueueNameRequiresS3SourceDirPath,
     UniqueLabel,
     # go/keep-sorted end

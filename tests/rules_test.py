@@ -1961,7 +1961,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
             )
         )
 
-  def test_tree_roots_are_connected_for_any_subsequent_relationship_succeeds(
+  def test_composing_contests_are_connected_succeeds(
       self,
   ):
     election_report = """
@@ -1969,9 +1969,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
         <Contest objectId="con001">
           <ComposingContestIds>con002 con003</ComposingContestIds>
         </Contest>
-        <Contest objectId="con002">
-          <SubsequentContestId>con005</SubsequentContestId>
-        </Contest>
+        <Contest objectId="con002"/>
         <Contest objectId="con003"/>
         <Contest objectId="con004">
           <ComposingContestIds>con005 con006</ComposingContestIds>
@@ -1984,16 +1982,18 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
 
     self.validator._construct_contest_graph(report_elem)
 
-    # assert roots are connected for subsequent relationships
     self.assertTrue(
-        networkx.has_path(self.validator.contest_graph, "con002", "con005")
+        networkx.has_path(self.validator.contest_graph, "con001", "con002")
+    )
+    self.assertTrue(
+        networkx.has_path(self.validator.contest_graph, "con002", "con003")
     )
 
-  def test_invalid_subsequent_contest_id_fails(self):
+  def test_invalid_composing_contest_id_fails(self):
     election_report = """
       <ContestCollection>
         <Contest objectId="con001">
-          <SubsequentContestId>con004</SubsequentContestId>
+          <ComposingContestIds>con004</ComposingContestIds>
         </Contest>
         <Contest objectId="con002"/>
         <Contest objectId="con003"/>
@@ -2006,7 +2006,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     self.assertEqual(
         context.exception.log_entry[0].message,
         (
-            "Contest con001 contains a subsequent Contest Id "
+            "Contest con001 contains a composing Contest Id "
             "(con004) that does not exist."
         ),
     )
@@ -2033,16 +2033,16 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
 
     self.assertFalse(are_related)
 
-  def test_all_contests_in_given_list_are_related_subsequent_rel_succeeds(
+  def test_all_contests_in_given_list_are_related_composing_rel_succeeds(
       self,
   ):
     election_report = """
       <ContestCollection>
         <Contest objectId="con001">
-          <SubsequentContestId>con003</SubsequentContestId>
+          <ComposingContestIds>con003</ComposingContestIds>
         </Contest>
         <Contest objectId="con003">
-          <SubsequentContestId>con004</SubsequentContestId>
+          <ComposingContestIds>con004</ComposingContestIds>
         </Contest>
         <Contest objectId="con004"/>
       </ContestCollection>
@@ -2057,17 +2057,17 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
 
     self.assertTrue(are_related)
 
-  def test_contest_trees_not_related_subsequent_rel_succeeds(
+  def test_contest_trees_not_related_composing_rel_succeeds(
       self,
   ):
     election_report = """
       <ContestCollection>
         <Contest objectId="con001">
-          <SubsequentContestId>con002</SubsequentContestId>
+          <ComposingContestIds>con002</ComposingContestIds>
         </Contest>
         <Contest objectId="con002"/>
         <Contest objectId="con003">
-          <SubsequentContestId>con004</SubsequentContestId>
+          <ComposingContestIds>con004</ComposingContestIds>
         </Contest>
         <Contest objectId="con004"/>
       </ContestCollection>
@@ -2089,15 +2089,15 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     election_report = """
       <ContestCollection>
         <Contest objectId="con001">
-          <SubsequentContestId>con002</SubsequentContestId>
+          <ComposingContestIds>con002</ComposingContestIds>
         </Contest>
         <Contest objectId="con002"/>
         <Contest objectId="con003">
-          <SubsequentContestId>con004</SubsequentContestId>
+          <ComposingContestIds>con004</ComposingContestIds>
         </Contest>
         <Contest objectId="con004"/>
         <Contest objectId="con005">
-          <SubsequentContestId>con006</SubsequentContestId>
+          <ComposingContestIds>con006</ComposingContestIds>
         </Contest>
         <Contest objectId="con006"/>
       </ContestCollection>
@@ -2123,8 +2123,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
     election_report = """
       <ContestCollection>
         <Contest objectId="con001">
-          <ComposingContestIds>con002</ComposingContestIds>
-          <SubsequentContestId>con003</SubsequentContestId>
+          <ComposingContestIds>con002 con003</ComposingContestIds>
         </Contest>
         <Contest objectId="con002"/>
         <Contest objectId="con003">
@@ -2188,9 +2187,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
 
     self.validator.check(report_elem)
 
-  def test_repeat_candidates_valid_in_related_contests_subsequent_succeeds(
-      self,
-  ):
+  def test_same_person_candidates_in_subsequent_contests_succeeds(self):
     election_report = """
       <ElectionReport>
         <PersonCollection>
@@ -2202,16 +2199,22 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
             <PersonId>per001</PersonId>
           </Candidate>
           <Candidate objectId="can002">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can003">
+            <PersonId>per002</PersonId>
+          </Candidate>
+          <Candidate objectId="can004">
             <PersonId>per002</PersonId>
           </Candidate>
         </CandidateCollection>
         <ContestCollection>
           <Contest objectId="con001">
-            <CandidateIds>can001 can002</CandidateIds>
+            <CandidateIds>can001 can003</CandidateIds>
             <SubsequentContestId>con002</SubsequentContestId>
           </Contest>
           <Contest objectId="con002">
-            <CandidateIds>can001 can002</CandidateIds>
+            <CandidateIds>can002 can004</CandidateIds>
           </Contest>
         </ContestCollection>
       </ElectionReport>
@@ -2220,45 +2223,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
 
     self.validator.check(report_elem)
 
-  def test_repeat_candidate_valid_in_related_contests_subsequent_of_subsequent_succeeds(
-      self,
-  ):
-    election_report = """
-      <ElectionReport>
-        <PersonCollection>
-          <Person objectId="per001"/>
-        </PersonCollection>
-        <CandidateCollection>
-          <Candidate objectId="can001">
-            <PersonId>per001</PersonId>
-          </Candidate>
-        </CandidateCollection>
-        <ContestCollection>
-          <Contest objectId="rep" type="CandidateContest">
-            <BallotSelection objectId="two" type="CandidateSelection">
-              <CandidateIds>can001</CandidateIds>
-            </BallotSelection>
-            <SubsequentContestId>gen</SubsequentContestId>
-          </Contest>
-          <Contest objectId="dem" type="CandidateContest">
-            <BallotSelection objectId="one" type="CandidateSelection">
-              <CandidateIds>can001</CandidateIds>
-            </BallotSelection>
-            <SubsequentContestId>runoff</SubsequentContestId>
-          </Contest>
-          <Contest objectId="runoff" type="CandidateContest">
-            <SubsequentContestId>gen</SubsequentContestId>
-          </Contest>
-          <Contest objectId="gen" type="CandidateContest">
-          </Contest>
-        </ContestCollection>
-      </ElectionReport>
-    """
-    report_elem = etree.fromstring(election_report)
-
-    self.validator.check(report_elem)
-
-  def test_repeat_candidate_valid_in_related_contests_subsequent_of_composing_succeeds(
+  def test_repeat_candidates_valid_in_related_contests_composing_succeeds(
       self,
   ):
     election_report = """
@@ -2276,23 +2241,45 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
           </Candidate>
         </CandidateCollection>
         <ContestCollection>
-          <Contest objectId="gen" type="CandidateContest">
-            <ComposingContestIds>rep dem</ComposingContestIds>
-            <SubsequentContestId>runoff</SubsequentContestId>
+          <Contest objectId="con001">
+            <CandidateIds>can001 can002</CandidateIds>
+            <ComposingContestIds>con002</ComposingContestIds>
           </Contest>
-          <Contest objectId="rep" type="CandidateContest">
+          <Contest objectId="con002">
+            <CandidateIds>can001 can002</CandidateIds>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    report_elem = etree.fromstring(election_report)
+
+    self.validator.check(report_elem)
+
+  def test_repeat_candidate_valid_in_sibling_composing_contests_succeeds(
+      self,
+  ):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="parent" type="CandidateContest">
+            <ComposingContestIds>child1 child2</ComposingContestIds>
+          </Contest>
+          <Contest objectId="child1" type="CandidateContest">
             <BallotSelection objectId="one" type="CandidateSelection">
               <CandidateIds>can001</CandidateIds>
             </BallotSelection>
           </Contest>
-          <Contest objectId="dem" type="CandidateContest">
+          <Contest objectId="child2" type="CandidateContest">
             <BallotSelection objectId="two" type="CandidateSelection">
-              <CandidateIds>can002</CandidateIds>
-            </BallotSelection>
-          </Contest>
-          <Contest objectId="runoff" type="CandidateContest">
-            <BallotSelection objectId="two_runoff" type="CandidateSelection">
-              <CandidateIds>can002</CandidateIds>
+              <CandidateIds>can001</CandidateIds>
             </BallotSelection>
           </Contest>
         </ContestCollection>
@@ -2302,14 +2289,13 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
 
     self.validator.check(report_elem)
 
-  def test_repeat_candidates_valid_repeat_subsequent_succeeds(self):
+  def test_repeat_candidates_valid_composing_multi_depth_succeeds(self):
     election_report = """
       <ElectionReport>
         <PersonCollection>
           <Person objectId="per001"/>
           <Person objectId="per002"/>
           <Person objectId="per003"/>
-          <Person objectId="per004"/>
         </PersonCollection>
         <CandidateCollection>
           <Candidate objectId="can001">
@@ -2321,83 +2307,22 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
           <Candidate objectId="can003">
             <PersonId>per003</PersonId>
           </Candidate>
-          <Candidate objectId="can004">
-            <PersonId>per004</PersonId>
-          </Candidate>
         </CandidateCollection>
         <ContestCollection>
           <Contest objectId="con001">
-            <Name>New York Democratic Primary</Name>
-            <CandidateIds>can001 can002 can004</CandidateIds>
-            <SubsequentContestId>con003</SubsequentContestId>
+            <CandidateIds>can001 can002 can003</CandidateIds>
+            <ComposingContestIds>con002</ComposingContestIds>
           </Contest>
           <Contest objectId="con002">
-            <Name>New York Republican Primary</Name>
-            <CandidateIds>can003 can004</CandidateIds>
-            <SubsequentContestId>con003</SubsequentContestId>
-          </Contest>
-          <Contest objectId="con003">
-            <Name>General Election</Name>
-            <CandidateIds>can001 can003</CandidateIds>
-          </Contest>
-        </ContestCollection>
-      </ElectionReport>
-    """
-    # The winner of each primary go on to the general election
-    # the general election contest is the subsequent contest for both primaries
-    report_elem = etree.fromstring(election_report)
-
-    self.validator.check(report_elem)
-
-  def test_repeat_candidates_valid_subsequent_multi_depth_succeeds(self):
-    election_report = """
-      <ElectionReport>
-        <PersonCollection>
-          <Person objectId="per001"/>
-          <Person objectId="per002"/>
-          <Person objectId="per003"/>
-          <Person objectId="per004"/>
-        </PersonCollection>
-        <CandidateCollection>
-          <Candidate objectId="can001">
-            <PersonId>per001</PersonId>
-          </Candidate>
-          <Candidate objectId="can002">
-            <PersonId>per002</PersonId>
-          </Candidate>
-          <Candidate objectId="can003">
-            <PersonId>per003</PersonId>
-          </Candidate>
-          <Candidate objectId="can004">
-            <PersonId>per004</PersonId>
-          </Candidate>
-        </CandidateCollection>
-        <ContestCollection>
-          <Contest objectId="con001">
-            <Name>New York Democratic Primary</Name>
             <CandidateIds>can001 can002</CandidateIds>
-            <SubsequentContestId>con003</SubsequentContestId>
-          </Contest>
-          <Contest objectId="con002">
-            <Name>New York Republican Primary</Name>
-            <CandidateIds>can003 can004</CandidateIds>
-            <SubsequentContestId>con003</SubsequentContestId>
+            <ComposingContestIds>con003</ComposingContestIds>
           </Contest>
           <Contest objectId="con003">
-            <Name>General Election</Name>
-            <CandidateIds>can001 can003</CandidateIds>
-            <SubsequentContestId>con004</SubsequentContestId>
-          </Contest>
-          <Contest objectId="con004">
-            <Name>General Runoff Election</Name>
             <CandidateIds>can001 can003</CandidateIds>
           </Contest>
         </ContestCollection>
       </ElectionReport>
     """
-    # The winner of each primary go on to the general election
-    # The general election contest is the subsequent contest for both primaries
-    # The general election leads into the runoff as its subsequent contest
     report_elem = etree.fromstring(election_report)
 
     self.validator.check(report_elem)
@@ -2443,7 +2368,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
         ),
     )
 
-  def test_repeat_candidates_in_composing_contests_fails(self):
+  def test_repeat_candidates_in_subsequent_contests_fails(self):
     election_report = """
       <ElectionReport>
         <PersonCollection>
@@ -2461,7 +2386,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
         <ContestCollection>
           <Contest objectId="con001">
             <CandidateIds>can001 can002</CandidateIds>
-            <ComposingContestIds>con002</ComposingContestIds>
+            <SubsequentContestId>con002</SubsequentContestId>
           </Contest>
           <Contest objectId="con002">
             <CandidateIds>can001 can002</CandidateIds>
@@ -2515,7 +2440,7 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
         <ContestCollection>
           <Contest objectId="con001">
             <CandidateIds>can001 can003</CandidateIds>
-            <SubsequentContestId>con002</SubsequentContestId>
+            <ComposingContestIds>con002</ComposingContestIds>
           </Contest>
           <Contest objectId="con002">
             <CandidateIds>can002 can004</CandidateIds>
@@ -13356,6 +13281,235 @@ class SourceDirPathsAreUniqueTest(absltest.TestCase):
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
 
+class SqsQueueNameIsFullyQualifiedArnTest(absltest.TestCase):
+
+  def setUp(self):
+    super().setUp()
+    self.validator = rules.SqsQueueNameIsFullyQualifiedArn(None, None)
+
+  def test_no_sqs_queue_name_succeeds(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SourceDirPath>https://example.com/feed</SourceDirPath>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def test_empty_sqs_queue_name_succeeds(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName></SqsQueueName>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def test_whitespace_sqs_queue_name_succeeds(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>   </SqsQueueName>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def test_valid_arn_succeeds(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:my-queue</SqsQueueName>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def test_valid_arn_with_whitespace_succeeds(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>
+          arn:aws:sqs:us-east-1:123456789012:my-queue
+        </SqsQueueName>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def test_non_arn_fails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>my-queue</SqsQueueName>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        "SqsQueueName 'my-queue' is not a valid fully qualified ARN for feed"
+        " test-feed.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+    self.assertEqual(context.exception.log_entry[0].lines, [4])
+
+  def test_arn_missing_parts_fails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>arn:aws:sqs:us-east-1</SqsQueueName>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        "SqsQueueName 'arn:aws:sqs:us-east-1' is not a valid fully qualified"
+        " ARN for feed test-feed.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def test_arn_non_sqs_service_fails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>arn:aws:sns:us-east-1:123456789012:my-topic</SqsQueueName>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        "SqsQueueName 'arn:aws:sns:us-east-1:123456789012:my-topic' is not a"
+        " valid fully qualified ARN for feed test-feed.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def test_arn_missing_region_fails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>arn:aws:sqs::123456789012:my-queue</SqsQueueName>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        "SqsQueueName 'arn:aws:sqs::123456789012:my-queue' is not a valid"
+        " fully qualified ARN for feed test-feed.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def test_arn_missing_account_fails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>arn:aws:sqs:us-east-1::my-queue</SqsQueueName>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        "SqsQueueName 'arn:aws:sqs:us-east-1::my-queue' is not a valid fully"
+        " qualified ARN for feed test-feed.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def test_arn_missing_resource_fails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:</SqsQueueName>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        "SqsQueueName 'arn:aws:sqs:us-east-1:123456789012:' is not a valid"
+        " fully qualified ARN for feed test-feed.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def test_arn_invalid_prefix_fails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>not-arn:aws:sqs:us-east-1:123456789012:my-queue</SqsQueueName>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        "SqsQueueName 'not-arn:aws:sqs:us-east-1:123456789012:my-queue' is not"
+        " a valid fully qualified ARN for feed test-feed.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def test_arn_missing_feed_id_fails(self):
+    feed_string = """
+      <Feed>
+        <SqsQueueName>my-queue</SqsQueueName>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        "SqsQueueName 'my-queue' is not a valid fully qualified ARN.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def test_arn_non_aws_partition_fails(self):
+    for partition in ["aws-cn", "aws-us-gov", "other"]:
+      feed_string = f"""
+        <Feed>
+          <FeedId>test-feed</FeedId>
+          <SqsQueueName>arn:{partition}:sqs:us-east-1:123456789012:my-queue</SqsQueueName>
+        </Feed>
+        """
+
+      with self.assertRaises(loggers.ElectionError) as context:
+        self.validator.check(etree.fromstring(feed_string))
+      self.assertEqual(
+          f"SqsQueueName 'arn:{partition}:sqs:us-east-1:123456789012:my-queue'"
+          " is not a valid fully qualified ARN for feed test-feed.",
+          context.exception.log_entry[0].message,
+      )
+      self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def test_arn_invalid_arn_exception_fails(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <SqsQueueName>arn:aws</SqsQueueName>
+      </Feed>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_string))
+    self.assertEqual(
+        "SqsQueueName 'arn:aws' is not a valid fully qualified ARN for feed"
+        " test-feed.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+
 class SqsQueueNameRequiresS3SourceDirPathTest(absltest.TestCase):
 
   def setUp(self):
@@ -13377,7 +13531,7 @@ class SqsQueueNameRequiresS3SourceDirPathTest(absltest.TestCase):
       <Feed>
         <FeedId>test-feed</FeedId>
         <SourceDirPath>s3://my-bucket/feed</SourceDirPath>
-        <SqsQueueName>my-queue</SqsQueueName>
+        <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:my-queue</SqsQueueName>
       </Feed>
       """
 
@@ -13387,7 +13541,7 @@ class SqsQueueNameRequiresS3SourceDirPathTest(absltest.TestCase):
     feed_string = """
       <Feed>
         <FeedId>test-feed</FeedId>
-        <SqsQueueName>my-queue</SqsQueueName>
+        <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:my-queue</SqsQueueName>
       </Feed>
       """
 
@@ -13405,7 +13559,7 @@ class SqsQueueNameRequiresS3SourceDirPathTest(absltest.TestCase):
       <Feed>
         <FeedId>test-feed</FeedId>
         <SourceDirPath>https://example.com/feed</SourceDirPath>
-        <SqsQueueName>my-queue</SqsQueueName>
+        <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:my-queue</SqsQueueName>
       </Feed>
       """
 
@@ -15339,6 +15493,8 @@ class RulesTest(absltest.TestCase):
     possible_rules.remove(base.DateRule)
     possible_rules.remove(base.MissingFieldRule)
     possible_rules.remove(rules.UnreferencedEntitiesBase)
+    # TODO(b/555757644): Reenable this rule once we are ready to enforce it.
+    possible_rules.remove(rules.SqsQueueNameIsFullyQualifiedArn)
 
     self.assertSetEqual(all_rules, possible_rules)
 
