@@ -6341,6 +6341,38 @@ class ValidURIAnnotationTest(absltest.TestCase):
 
     self.validator.check(etree.fromstring(root_string))
 
+  def test_candidate_image_in_contact_information_succeeds(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="candidate-image">
+          <![CDATA[https://www.parlament.gv.at/test.jpg]]>
+        </Uri>
+      </ContactInformation>
+    """
+
+    self.validator.check(etree.fromstring(root_string))
+
+
+class CandidateImageInContactInformationTest(absltest.TestCase):
+
+  def setUp(self):
+    super(CandidateImageInContactInformationTest, self).setUp()
+    self.validator = rules.CandidateImageInContactInformation(None, None)
+
+  def test_valid_contact_information_without_candidate_image_succeeds(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="personal-website">https://example.com</Uri>
+      </ContactInformation>
+    """
+
+    self.validator.check(etree.fromstring(root_string))
+
+  def test_empty_contact_information_succeeds(self):
+    root_string = '<ContactInformation label="ci_par_at_1" />'
+
+    self.validator.check(etree.fromstring(root_string))
+
   def test_candidate_image_in_contact_information_warns(self):
     root_string = """
       <ContactInformation label="ci_par_at_1">
@@ -6354,8 +6386,27 @@ class ValidURIAnnotationTest(absltest.TestCase):
       self.validator.check(etree.fromstring(root_string))
     self.assertEqual(
         context.exception.log_entry[0].message,
-        "'candidate-image' is not a valid annotation.",
+        "Annotation 'candidate-image' in ContactInformation.Uri is"
+        " deprecated. Please use Person.ImageUri instead.",
     )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Uri")
+
+  def test_multiple_candidate_images_in_contact_information_warns(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="candidate-image">https://fake.com/1.jpg</Uri>
+        <Uri Annotation="candidate-image">https://fake.com/2.jpg</Uri>
+      </ContactInformation>
+    """
+
+    with self.assertRaises(loggers.ElectionWarning) as context:
+      self.validator.check(etree.fromstring(root_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Annotation 'candidate-image' in ContactInformation.Uri is"
+        " deprecated. Please use Person.ImageUri instead.",
+    )
+    self.assertLen(context.exception.log_entry[0].elements, 2)
 
 
 class OnlyOneCandidateImagePerPersonTest(absltest.TestCase):

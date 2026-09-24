@@ -1710,6 +1710,27 @@ class PersonsMissingPartyData(base.BaseRule):
       )
 
 
+class CandidateImageInContactInformation(base.BaseRule):
+  """Warn if candidate-image is set in ContactInformation.Uri."""
+
+  def elements(self):
+    return ["ContactInformation"]
+
+  def check(self, element):
+    candidate_image_uris = []
+    for uri in element.findall("Uri"):
+      annotation = uri.get("Annotation", "").strip()
+      if annotation == "candidate-image":
+        candidate_image_uris.append(uri)
+
+    if candidate_image_uris:
+      raise loggers.ElectionWarning.from_message(
+          "Annotation 'candidate-image' in ContactInformation.Uri is"
+          " deprecated. Please use Person.ImageUri instead.",
+          candidate_image_uris,
+      )
+
+
 class OnlyOneCandidateImagePerPerson(base.BaseRule):
   """Ensure only one candidate-image is provided per Person."""
 
@@ -2386,8 +2407,9 @@ class ValidURIAnnotation(base.BaseRule):
             "URI {} is missing annotation.".format(ascii_url), [uri]
         )
 
-      # Skip platform checks for office contact form annotations.
-      if annotation == "office-contact_form":
+      # Skip platform checks for office contact form and candidate-image
+      # annotations.
+      if annotation in ("office-contact_form", "candidate-image"):
         continue
 
       ann_elements = annotation.split("-")
@@ -5500,6 +5522,7 @@ COMMON_RULES = (
     AllInternationalizedTextHaveEnVersion,
     AllLanguages,
     BadCharactersInPersonFullName,
+    CandidateImageInContactInformation,
     DeprecatedPartyLeadershipSchema,
     DuplicateGpUnits,
     DuplicateID,
