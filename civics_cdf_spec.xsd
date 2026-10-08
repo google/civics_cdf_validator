@@ -435,6 +435,7 @@
       <xs:element minOccurs="0" name="OtherVoteVariation" type="xs:string"/>
       <xs:element minOccurs="0" name="ResultsEmbargoEnd" type="xs:dateTime"/>
       <xs:element minOccurs="0" name="ResultsExpected" type="xs:dateTime"/>
+      <xs:element minOccurs="0" name="ResultsLastUpdated" type="xs:dateTime"/>
       <xs:element minOccurs="0" name="ResultsReportingStageCollection">
         <xs:complexType>
           <xs:sequence>
