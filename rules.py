@@ -432,7 +432,7 @@ class EmptyString(base.BaseRule):
 
   # pylint: disable=g-explicit-length-test
   def check(self, element):
-    if element.text is None or not element.text.strip() and not len(element):
+    if (element.text is None or not element.text.strip()) and not len(element):
       raise loggers.ElectionError.from_message(
           "String field is empty", [element]
       )

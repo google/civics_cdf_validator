@@ -645,6 +645,22 @@ class EmptyStringTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError):
       self.validator.check(element)
 
+  def test_element_with_child_elements_and_no_whitespace_succeeds(self):
+    element_string = '<Name><Text language="en">Jerry</Text></Name>'
+    element = etree.fromstring(element_string)
+
+    self.validator.check(element)
+
+  def test_element_with_child_elements_and_whitespace_succeeds(self):
+    element_string = """
+      <Name>
+        <Text language="en">Jerry</Text>
+      </Name>
+    """
+    element = etree.fromstring(element_string)
+
+    self.validator.check(element)
+
 
 class DuplicateIDTest(absltest.TestCase):
 
