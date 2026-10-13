@@ -415,6 +415,7 @@
       <xs:element minOccurs="0" name="EarliestPollsClose" type="xs:dateTime"/>
       <xs:element name="ElectoralDistrictId" type="xs:IDREF"/>
       <xs:element maxOccurs="1" minOccurs="0" name="EndDate" type="PartialDate"/>
+      <xs:element minOccurs="0" name="EstimatedExpectedVotePercentage" type="xs:float"/>
       <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers"/>
       <xs:element maxOccurs="1" minOccurs="0" name="FilingDeadline" type="PartialDate"/>
       <xs:element minOccurs="0" name="HasRotation" type="xs:boolean"/>
