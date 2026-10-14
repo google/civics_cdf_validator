@@ -474,6 +474,8 @@ class ValidIDREF(base.BaseRule):
 
   _REFERENCE_TYPE_OVERRIDES = {
       # ID refs to GpUnits
+      "DiplomatReceivingStateId": "GpUnit",
+      "DiplomatSendingStateId": "GpUnit",
       "ElectoralDistrictId": "GpUnit",
       "ElectionScopeId": "GpUnit",
       "ScopeLevel": "GpUnit",
@@ -2605,6 +2607,31 @@ class OfficesHaveValidOfficeRole(base.BaseRule):
     else:
       raise loggers.ElectionError.from_message(
           "Office has more than two office roles.",
+          [element],
+      )
+
+
+class DiplomaticOfficesHaveCorrespondingGpUnitsSet(base.BaseRule):
+  """Offices with the 'diplomat' role must have a sending or receiving state."""
+
+  def elements(self):
+    return ["Office"]
+
+  def check(self, element):
+    office_roles = (
+        role.text.strip()
+        for role in element.findall("Role")
+        if element_has_text(role)
+    )
+    if "diplomat" not in office_roles:
+      return
+
+    if not element_has_text(
+        element.find("DiplomatSendingStateId")
+    ) and not element_has_text(element.find("DiplomatReceivingStateId")):
+      raise loggers.ElectionError.from_message(
+          "Office with role 'diplomat' must have at least one of"
+          " DiplomatSendingStateId or DiplomatReceivingStateId set.",
           [element],
       )
 
@@ -5524,6 +5551,7 @@ COMMON_RULES = (
     BadCharactersInPersonFullName,
     CandidateImageInContactInformation,
     DeprecatedPartyLeadershipSchema,
+    DiplomaticOfficesHaveCorrespondingGpUnitsSet,
     DuplicateGpUnits,
     DuplicateID,
     DuplicatedGpUnitOcdId,

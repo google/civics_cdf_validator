@@ -909,6 +909,8 @@ class ValidIDREFTest(absltest.TestCase):
       <xs:element name="Report"/>
       <xs:complexType name="Office">
         <xs:sequence>
+            <xs:element minOccurs="0" name="DiplomatReceivingStateId" type="xs:IDREF" />
+            <xs:element minOccurs="0" name="DiplomatSendingStateId" type="xs:IDREF" />
             <xs:element minOccurs="0" name="ElectoralDistrictId" type="xs:IDREF" />
             <xs:element minOccurs="0" name="FilingDeadline" type="xs:date" />
             <xs:element minOccurs="0" name="IsPartisan" type="xs:boolean" />
@@ -1000,6 +1002,8 @@ class ValidIDREFTest(absltest.TestCase):
         "Candidate": {"can001"},
     }
     expected_reference_mapping = {
+        "DiplomatReceivingStateId": "GpUnit",
+        "DiplomatSendingStateId": "GpUnit",
         "ElectoralDistrictId": "GpUnit",
         "OfficeHolderPersonIds": "Person",
         "PartyLeaderId": "Person",
@@ -1025,6 +1029,8 @@ class ValidIDREFTest(absltest.TestCase):
     ref_type_mappings = {
         "GpUnitId": "GpUnit",
         "GpUnitIds": "GpUnit",
+        "DiplomatReceivingStateId": "GpUnit",
+        "DiplomatSendingStateId": "GpUnit",
         "ElectoralDistrictId": "GpUnit",
         "ElectionScopeId": "GpUnit",
         "ComposingGpUnitIds": "GpUnit",
@@ -7389,6 +7395,103 @@ class OfficesHaveValidOfficeRoleTest(absltest.TestCase):
     )
     self.assertEqual(
         context.exception.log_entry[0].elements[0].get("objectId"), "off1"
+    )
+
+
+class DiplomaticOfficesHaveCorrespondingGpUnitsSetTest(absltest.TestCase):
+
+  def setUp(self):
+    super(DiplomaticOfficesHaveCorrespondingGpUnitsSetTest, self).setUp()
+    self.validator = rules.DiplomaticOfficesHaveCorrespondingGpUnitsSet(
+        None, None
+    )
+
+  def test_diplomat_office_with_sending_state_succeeds(self):
+    test_string = """
+      <Office objectId="off-fake-1">
+        <Role>diplomat</Role>
+        <DiplomatSendingStateId>gpunit-fake-sending</DiplomatSendingStateId>
+      </Office>
+    """
+    element = etree.fromstring(test_string)
+
+    self.validator.check(element)
+
+  def test_diplomat_office_with_receiving_state_succeeds(self):
+    test_string = """
+      <Office objectId="off-fake-1">
+        <Role>diplomat</Role>
+        <DiplomatReceivingStateId>gpunit-fake-receiving</DiplomatReceivingStateId>
+      </Office>
+    """
+    element = etree.fromstring(test_string)
+
+    self.validator.check(element)
+
+  def test_diplomat_office_with_both_states_succeeds(self):
+    test_string = """
+      <Office objectId="off-fake-1">
+        <Role>diplomat</Role>
+        <DiplomatSendingStateId>gpunit-fake-sending</DiplomatSendingStateId>
+        <DiplomatReceivingStateId>gpunit-fake-receiving</DiplomatReceivingStateId>
+      </Office>
+    """
+    element = etree.fromstring(test_string)
+
+    self.validator.check(element)
+
+  def test_non_diplomat_office_without_states_succeeds(self):
+    test_string = """
+      <Office objectId="off-fake-1">
+        <Role>upper house</Role>
+      </Office>
+    """
+    element = etree.fromstring(test_string)
+
+    self.validator.check(element)
+
+  def test_diplomat_office_without_states_fails(self):
+    test_string = """
+      <Office objectId="off-fake-1">
+        <Role>diplomat</Role>
+      </Office>
+    """
+    element = etree.fromstring(test_string)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(element)
+
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Office with role 'diplomat' must have at least one of"
+        " DiplomatSendingStateId or DiplomatReceivingStateId set.",
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements[0].get("objectId"),
+        "off-fake-1",
+    )
+
+  def test_diplomat_office_with_empty_states_fails(self):
+    test_string = """
+      <Office objectId="off-fake-1">
+        <Role>diplomat</Role>
+        <DiplomatSendingStateId>   </DiplomatSendingStateId>
+        <DiplomatReceivingStateId></DiplomatReceivingStateId>
+      </Office>
+    """
+    element = etree.fromstring(test_string)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(element)
+
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Office with role 'diplomat' must have at least one of"
+        " DiplomatSendingStateId or DiplomatReceivingStateId set.",
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements[0].get("objectId"),
+        "off-fake-1",
     )
 
 

@@ -668,6 +668,8 @@
   <xs:complexType name="Office">
     <xs:sequence>
       <xs:element maxOccurs="unbounded" minOccurs="0" name="ContactInformation" type="ContactInformation"/>
+      <xs:element minOccurs="0" name="DiplomatReceivingStateId" type="xs:IDREF"/>
+      <xs:element minOccurs="0" name="DiplomatSendingStateId" type="xs:IDREF"/>
       <xs:element minOccurs="0" name="ElectoralDistrictId" type="xs:IDREF"/>
       <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers"/>
       <xs:element minOccurs="0" name="FilingDeadline" type="PartialDate"/>
