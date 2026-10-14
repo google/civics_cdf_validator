@@ -361,6 +361,8 @@
           <xs:element minOccurs="0" name="EndorsementPartyIds" type="xs:IDREFS"/>
           <xs:element minOccurs="0" name="IncludedInAggregation" type="xs:boolean"/>
           <xs:element minOccurs="0" name="IsWriteIn" type="xs:boolean"/>
+          <xs:element minOccurs="0" name="PostElectionStatus" type="CandidatePostElectionStatus"/>
+          <xs:element minOccurs="0" name="PreElectionStatus" type="CandidatePreElectionStatus"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
