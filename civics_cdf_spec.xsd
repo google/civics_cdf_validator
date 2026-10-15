@@ -787,6 +787,7 @@
   </xs:complexType>
   <xs:complexType name="Person">
     <xs:sequence>
+      <xs:element minOccurs="0" name="Alias" type="InternationalizedText"/>
       <xs:element maxOccurs="unbounded" minOccurs="0" name="ContactInformation" type="ContactInformation"/>
       <xs:element minOccurs="0" name="DateOfBirth" type="PartialDate"/>
       <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers"/>
