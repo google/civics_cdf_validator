@@ -854,6 +854,7 @@
       <xs:element maxOccurs="unbounded" name="Attribution" type="Attribution"/>
       <xs:element name="ExpectedStartDateTime" type="xs:dateTime"/>
       <xs:element minOccurs="0" name="ActualStartDateTime" type="xs:dateTime"/>
+      <xs:element minOccurs="0" name="NoResultsProvided" type="xs:boolean"/>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="RetentionContest">
