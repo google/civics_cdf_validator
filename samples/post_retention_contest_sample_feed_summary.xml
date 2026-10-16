@@ -125,6 +125,8 @@
       <Status>in-process</Status>
       <Type>election-day</Type>
     </CountStatus>
+    <ElectionDateStatus>confirmed</ElectionDateStatus>
+    <ElectionDateType>scheduled</ElectionDateType>
     <ElectionScopeId>ru-0002</ElectionScopeId>
     <ExternalIdentifiers>
       <ExternalIdentifier>

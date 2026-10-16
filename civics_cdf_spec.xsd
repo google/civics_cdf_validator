@@ -506,8 +506,8 @@
         </xs:complexType>
       </xs:element>
       <xs:element maxOccurs="unbounded" minOccurs="0" name="CountStatus" type="CountStatus"/>
-      <xs:element maxOccurs="1" minOccurs="0" name="ElectionDateStatus" type="DateStatus"/>
-      <xs:element maxOccurs="1" minOccurs="0" name="ElectionDateType" type="ElectionDateType"/>
+      <xs:element name="ElectionDateStatus" type="DateStatus"/>
+      <xs:element name="ElectionDateType" type="ElectionDateType"/>
       <xs:element name="ElectionScopeId" type="xs:IDREF"/>
       <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers"/>
       <xs:element name="Name" type="InternationalizedText"/>

@@ -115,6 +115,8 @@
         </SummaryText>
       </Contest>
     </ContestCollection>
+    <ElectionDateStatus>confirmed</ElectionDateStatus>
+    <ElectionDateType>scheduled</ElectionDateType>
     <ElectionScopeId>ru-ca-1</ElectionScopeId>
     <ExternalIdentifiers>
       <ExternalIdentifier>

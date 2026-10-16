@@ -358,6 +358,8 @@
         <VotesAllowed>1</VotesAllowed>
       </Contest>
     </ContestCollection>
+    <ElectionDateStatus>confirmed</ElectionDateStatus>
+    <ElectionDateType>scheduled</ElectionDateType>
     <ElectionScopeId>ru-united-states</ElectionScopeId>
     <ExternalIdentifiers>
       <ExternalIdentifier>
@@ -714,6 +716,8 @@
         <VotesAllowed>1</VotesAllowed>
       </Contest>
     </ContestCollection>
+    <ElectionDateStatus>confirmed</ElectionDateStatus>
+    <ElectionDateType>scheduled</ElectionDateType>
     <ElectionScopeId>ru-united-states</ElectionScopeId>
     <ExternalIdentifiers>
       <ExternalIdentifier>
