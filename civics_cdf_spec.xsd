@@ -411,6 +411,7 @@
       <xs:element minOccurs="0" name="BlankBallotSelection" type="SpecialBallotSelection"/>
       <xs:element minOccurs="0" name="ComposingContestIds" type="xs:IDREFS"/>
       <xs:element maxOccurs="1" minOccurs="0" name="ContestDateStatus" type="DateStatus"/>
+      <xs:element maxOccurs="1" minOccurs="0" name="ContestDateType" type="ElectionDateType"/>
       <xs:element maxOccurs="unbounded" minOccurs="0" name="CountStatus" type="CountStatus"/>
       <xs:element maxOccurs="1" minOccurs="0" name="CountingDate" type="PartialDate"/>
       <xs:element minOccurs="0" name="CurrentResultsReportingStage" type="ResultsReportingStageType"/>
