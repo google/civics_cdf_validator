@@ -427,6 +427,7 @@
       <xs:element name="Name" type="xs:string"/>
       <xs:element minOccurs="0" name="NoneOfTheAboveBallotSelection" type="SpecialBallotSelection"/>
       <xs:element minOccurs="0" name="NullBallotSelection" type="SpecialBallotSelection"/>
+      <xs:element minOccurs="0" name="OutcomeDetermined" type="xs:boolean"/>
       <xs:element maxOccurs="1" minOccurs="0" name="Seat" type="xs:string"/>
       <xs:element minOccurs="0" name="SequenceOrder" type="xs:integer"/>
       <xs:element maxOccurs="1" minOccurs="0" name="StartDate" type="PartialDate"/>
