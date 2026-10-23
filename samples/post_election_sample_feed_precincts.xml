@@ -5980,7 +5980,7 @@
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>PLACEHOLDER -- REPRESENTS REST OF STATE OF VIRGINIA</Name>
-      <Type>precinct</Type>
+      <Type>combined-precinct</Type>
     </GpUnit>
     <GpUnit objectId="ru-pre90111" xsi:type="ReportingUnit">
         <ExternalIdentifiers>
@@ -5988,6 +5988,10 @@
           <Type>other</Type>
           <OtherType>stable</OtherType>
           <Value>ru-ru-pre90111</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/precinct:203-georgetown</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>203 - GEORGETOWN</Name>
@@ -6001,6 +6005,10 @@
           <OtherType>stable</OtherType>
           <Value>ru-ru-pre90139</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/precinct:103-branchlands</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>103 - BRANCHLANDS</Name>
       <Number>0103</Number>
@@ -6012,6 +6020,10 @@
           <Type>other</Type>
           <OtherType>stable</OtherType>
           <Value>ru-ru-pre90183</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/precinct:602-free_union</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>602 - FREE UNION</Name>
@@ -6049,6 +6061,10 @@
           <OtherType>stable</OtherType>
           <Value>ru-ru-pre90614</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/precinct:503-hollymead</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>503 - HOLLYMEAD</Name>
       <Number>0503</Number>
@@ -6061,6 +6077,10 @@
           <OtherType>stable</OtherType>
           <Value>ru-ru-pre90666</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/precinct:105-dunlora</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>105 - DUNLORA</Name>
       <Number>0105</Number>
@@ -6072,6 +6092,10 @@
           <Type>other</Type>
           <OtherType>stable</OtherType>
           <Value>ru-ru-pre90929</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/precinct:406-stone_robinson</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>406 - STONE ROBINSON</Name>
@@ -6133,6 +6157,10 @@
           <OtherType>stable</OtherType>
           <Value>ru-ru-pre91298</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/precinct:106-northside</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>106 - NORTHSIDE</Name>
       <Number>0106</Number>
@@ -6144,6 +6172,10 @@
           <Type>other</Type>
           <OtherType>stable</OtherType>
           <Value>ru-ru-pre91602</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/precinct:202-university_hall</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>202 - UNIVERSITY HALL</Name>
@@ -6169,6 +6201,10 @@
           <OtherType>stable</OtherType>
           <Value>ru-ru-pre91918</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/precinct:302-red_hill</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>302 - RED HILL</Name>
       <Number>0302</Number>
@@ -6180,6 +6216,10 @@
           <Type>other</Type>
           <OtherType>stable</OtherType>
           <Value>ru-ru-pre91999</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/precinct:405-cale</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>405 - CALE</Name>
@@ -6193,6 +6233,10 @@
           <OtherType>stable</OtherType>
           <Value>ru-ru-pre92065</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/precinct:305-country_green</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>305 - COUNTRY GREEN</Name>
       <Number>0305</Number>
@@ -6204,6 +6248,10 @@
           <Type>other</Type>
           <OtherType>stable</OtherType>
           <Value>ru-ru-pre92087</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/precinct:604-brownsville</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>604 - BROWNSVILLE</Name>
@@ -6217,6 +6265,10 @@
           <OtherType>stable</OtherType>
           <Value>ru-ru-pre92140</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/precinct:501-keswick</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>501 - KESWICK</Name>
       <Number>0501</Number>
@@ -6228,6 +6280,10 @@
           <Type>other</Type>
           <OtherType>stable</OtherType>
           <Value>ru-ru-pre92145</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/precinct:601-crozet</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>601 - CROZET</Name>
@@ -6265,6 +6321,10 @@
           <OtherType>stable</OtherType>
           <Value>ru-ru-pre92175</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/precinct:104-agnor-hurt</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>104 - AGNOR-HURT</Name>
       <Number>0104</Number>
@@ -6276,6 +6336,10 @@
           <Type>other</Type>
           <OtherType>stable</OtherType>
           <Value>ru-ru-pre92306</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/precinct:204-belfield</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>204 - BELFIELD</Name>
@@ -6289,6 +6353,10 @@
           <OtherType>stable</OtherType>
           <Value>ru-ru-pre92320</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/precinct:402-monticello</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>402 - MONTICELLO</Name>
       <Number>0402</Number>
@@ -6300,6 +6368,10 @@
           <Type>other</Type>
           <OtherType>stable</OtherType>
           <Value>ru-ru-pre92353</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/precinct:603-earlysville</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>603 - EARLYSVILLE</Name>
@@ -6313,6 +6385,10 @@
           <OtherType>stable</OtherType>
           <Value>ru-ru-pre92360</Value>
         </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/precinct:301-ivy</Value>
+        </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>301 - IVY</Name>
       <Number>0301</Number>
@@ -6324,6 +6400,10 @@
           <Type>other</Type>
           <OtherType>stable</OtherType>
           <Value>ru-ru-pre92426</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va/county:albemarle/precinct:304-east_ivy</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <Name>304 - EAST IVY</Name>

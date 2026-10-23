@@ -806,6 +806,12 @@ class GpUnitOcdIdTest(parameterized.TestCase):
 
     self.gp_unit_ocd_id_validator.check(elements)
 
+  def test_elements_includes_gp_unit_and_reporting_unit_succeeds(self):
+    self.assertEqual(
+        self.gp_unit_ocd_id_validator.elements(),
+        ["GpUnit", "ReportingUnit"],
+    )
+
 
 class DuplicatedGpUnitOcdIdTest(absltest.TestCase):
   """2 GPUnits should not have same OCD ID."""
