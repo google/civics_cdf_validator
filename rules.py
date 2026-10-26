@@ -590,7 +590,7 @@ class GpUnitOcdId(base.BaseRule):
   """All GpUnits MUST have a valid OCD ID."""
 
   def elements(self):
-    return ["GpUnit"]
+    return ["GpUnit", "ReportingUnit"]
 
   def check(self, element):
     # ReportingDevices are not expected to have OCD IDs.
