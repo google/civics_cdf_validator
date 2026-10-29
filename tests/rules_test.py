@@ -12850,6 +12850,148 @@ class ResultsReportingStagesMustHaveUniqueTypeTest(absltest.TestCase):
     self.validator.check(etree.fromstring(collection_string))
 
 
+class ValidateResultReportingStagesTest(parameterized.TestCase):
+
+  def setUp(self):
+    super(ValidateResultReportingStagesTest, self).setUp()
+    self.validator = rules.ValidateResultReportingStages(None, None)
+
+  def test_registered_in_election_rules(self):
+    self.assertIn(rules.ValidateResultReportingStages, rules.ELECTION_RULES)
+
+  @parameterized.parameters("true", "1", " true ")
+  def test_inherit_true_without_stages_succeeds(self, inherit):
+    collection_string = f"""
+      <ResultsReportingStageCollection>
+        <InheritFromComposedContest>{inherit}</InheritFromComposedContest>
+      </ResultsReportingStageCollection>
+    """
+    collection_element = etree.fromstring(collection_string)
+
+    self.validator.check(collection_element)
+
+  @parameterized.parameters("true", "1")
+  def test_inherit_true_with_stages_fails(self, inherit):
+    collection_string = f"""
+      <ResultsReportingStageCollection>
+        <InheritFromComposedContest>{inherit}</InheritFromComposedContest>
+        <ResultsReportingStage>
+          <StageType>preliminary</StageType>
+        </ResultsReportingStage>
+      </ResultsReportingStageCollection>
+    """
+    collection_element = etree.fromstring(collection_string)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(collection_element)
+
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "ResultsReportingStageCollection must not contain any"
+        " ResultsReportingStage elements when InheritFromComposedContest is"
+        " true.",
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements, [collection_element]
+    )
+
+  @parameterized.parameters("false", "0")
+  def test_inherit_false_with_stages_succeeds(self, inherit):
+    collection_string = f"""
+      <ResultsReportingStageCollection>
+        <InheritFromComposedContest>{inherit}</InheritFromComposedContest>
+        <ResultsReportingStage>
+          <StageType>preliminary</StageType>
+        </ResultsReportingStage>
+        <ResultsReportingStage>
+          <StageType>official</StageType>
+        </ResultsReportingStage>
+      </ResultsReportingStageCollection>
+    """
+    collection_element = etree.fromstring(collection_string)
+
+    self.validator.check(collection_element)
+
+  @parameterized.parameters("false", "0")
+  def test_inherit_false_without_stages_fails(self, inherit):
+    collection_string = f"""
+      <ResultsReportingStageCollection>
+        <InheritFromComposedContest>{inherit}</InheritFromComposedContest>
+      </ResultsReportingStageCollection>
+    """
+    collection_element = etree.fromstring(collection_string)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(collection_element)
+
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "ResultsReportingStageCollection must contain at least one"
+        " ResultsReportingStage element when InheritFromComposedContest is"
+        " not true.",
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements, [collection_element]
+    )
+
+  def test_inherit_omitted_with_stage_succeeds(self):
+    collection_string = """
+      <ResultsReportingStageCollection>
+        <ResultsReportingStage>
+          <StageType>preliminary</StageType>
+        </ResultsReportingStage>
+      </ResultsReportingStageCollection>
+    """
+    collection_element = etree.fromstring(collection_string)
+
+    self.validator.check(collection_element)
+
+  def test_inherit_omitted_without_stages_fails(self):
+    collection_string = """
+      <ResultsReportingStageCollection>
+      </ResultsReportingStageCollection>
+    """
+    collection_element = etree.fromstring(collection_string)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(collection_element)
+
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "ResultsReportingStageCollection must contain at least one"
+        " ResultsReportingStage element when InheritFromComposedContest is"
+        " not true.",
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements, [collection_element]
+    )
+
+  def test_inherit_empty_without_stages_fails(self):
+    collection_string = """
+      <ResultsReportingStageCollection>
+        <InheritFromComposedContest> </InheritFromComposedContest>
+      </ResultsReportingStageCollection>
+    """
+    collection_element = etree.fromstring(collection_string)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(collection_element)
+
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "ResultsReportingStageCollection must contain at least one"
+        " ResultsReportingStage element when InheritFromComposedContest is"
+        " not true.",
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements, [collection_element]
+    )
+
+
 class CommitteeClassificationEndDateOccursAfterStartDateTest(absltest.TestCase):
 
   def setUp(self):
