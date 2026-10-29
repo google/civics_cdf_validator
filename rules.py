@@ -4406,6 +4406,34 @@ class ResultsReportingStagesMustHaveUniqueType(base.BaseRule):
       raise loggers.ElectionError(errors)
 
 
+class ValidateResultReportingStages(base.BaseRule):
+  """Checks ResultsReportingStage presence for InheritFromComposedContest."""
+
+  def elements(self):
+    return ["ResultsReportingStageCollection"]
+
+  def check(self, element):
+    inherit_from_composed = _is_xml_true(
+        element.find("InheritFromComposedContest")
+    )
+    stages = element.findall("ResultsReportingStage")
+
+    if inherit_from_composed and stages:
+      raise loggers.ElectionError.from_message(
+          "ResultsReportingStageCollection must not contain any"
+          " ResultsReportingStage elements when InheritFromComposedContest is"
+          " true.",
+          [element],
+      )
+    if not inherit_from_composed and not stages:
+      raise loggers.ElectionError.from_message(
+          "ResultsReportingStageCollection must contain at least one"
+          " ResultsReportingStage element when InheritFromComposedContest is"
+          " not true.",
+          [element],
+      )
+
+
 class CandidateContestTypesAreCompatible(base.BaseRule):
   """CandidateContest Type values cannot have both a general and primary type."""
 
@@ -5652,6 +5680,7 @@ ELECTION_RULES = COMMON_RULES + (
     ValidateIncludeInAggregationBallotSelections,
     ValidateInfoUriAnnotation,
     ValidatePollsCloseDatetimes,
+    ValidateResultReportingStages,
     ValidateResultsEmbargoEnd,
     ValidateResultsExpected,
     ValidateSpecialBallotSelectionCountedInTotal,
