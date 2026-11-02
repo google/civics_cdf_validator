@@ -15,16 +15,23 @@
   <xs:simpleType name="CandidatePostElectionStatus">
     <xs:restriction base="xs:string">
       <xs:enumeration value="advanced-to-runoff"/>
+      <xs:enumeration value="defeated"/>
+      <xs:enumeration value="did-not-participate"/>
+      <xs:enumeration value="disqualified"/>
+      <xs:enumeration value="projected-advanced-to-runoff"/>
       <xs:enumeration value="projected-winner"/>
+      <xs:enumeration value="sub-judice"/>
       <xs:enumeration value="winner"/>
       <xs:enumeration value="withdrawn"/>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="CandidatePreElectionStatus">
     <xs:restriction base="xs:string">
+      <xs:enumeration value="disqualified"/>
       <xs:enumeration value="filed"/>
-      <xs:enumeration value="self-declared"/>
       <xs:enumeration value="qualified"/>
+      <xs:enumeration value="self-declared"/>
+      <xs:enumeration value="sub-judice"/>
       <xs:enumeration value="withdrawn"/>
       <xs:enumeration value="write-in"/>
     </xs:restriction>
