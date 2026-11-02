@@ -4406,6 +4406,83 @@ class ResultsReportingStagesMustHaveUniqueType(base.BaseRule):
       raise loggers.ElectionError(errors)
 
 
+class ValidateResultReportingStages(base.BaseRule):
+  """Validates ResultsReportingStage elements in a stage collection."""
+
+  def setup(self):
+    self.composing_contest_ids = self._get_composing_contest_ids()
+
+  def _get_composing_contest_ids(self):
+    composing_contest_ids = set()
+    for contest in self.get_elements_by_class(self.election_tree, "Contest"):
+      composing_contest_ids_element = contest.find("ComposingContestIds")
+      if element_has_text(composing_contest_ids_element):
+        composing_contest_ids.update(composing_contest_ids_element.text.split())
+    return composing_contest_ids
+
+  def elements(self):
+    return ["ResultsReportingStageCollection"]
+
+  def check(self, element):
+    inherit_from_composed = _is_xml_true(
+        element.find("InheritFromComposedContest")
+    )
+    stages = element.findall("ResultsReportingStage")
+
+    if inherit_from_composed:
+      error_log = []
+      if stages:
+        error_log.append(
+            loggers.LogEntry(
+                "ResultsReportingStageCollection must not contain any"
+                " ResultsReportingStage elements when"
+                " InheritFromComposedContest is true.",
+                [element],
+            )
+        )
+      contest = element.getparent()
+      contest_id = contest.get("objectId") if contest is not None else None
+      if contest_id not in self.composing_contest_ids:
+        error_log.append(
+            loggers.LogEntry(
+                f"Contest {contest_id} sets InheritFromComposedContest to"
+                " true but is not listed in the ComposingContestIds of any"
+                " other Contest.",
+                [contest],
+            )
+        )
+      if error_log:
+        raise loggers.ElectionError(error_log)
+      return
+
+    if not stages:
+      raise loggers.ElectionError.from_message(
+          "ResultsReportingStageCollection must contain at least one"
+          " ResultsReportingStage element when InheritFromComposedContest is"
+          " not true.",
+          [element],
+      )
+
+    stage_types = set()
+    for stage in stages:
+      stage_type_element = stage.find("StageType")
+      if element_has_text(stage_type_element):
+        stage_types.add(stage_type_element.text.strip())
+
+    if (
+        len(stages) < 2
+        or "no-results" not in stage_types
+        or stage_types.isdisjoint({"preliminary", "official"})
+    ):
+      raise loggers.ElectionWarning.from_message(
+          "ResultsReportingStageCollection should contain at least two"
+          " ResultsReportingStage elements, including one of StageType"
+          " 'no-results' and at least one of StageType 'preliminary' or"
+          " 'official', when InheritFromComposedContest is not true.",
+          [element],
+      )
+
+
 class CandidateContestTypesAreCompatible(base.BaseRule):
   """CandidateContest Type values cannot have both a general and primary type."""
 
@@ -5652,6 +5729,7 @@ ELECTION_RULES = COMMON_RULES + (
     ValidateIncludeInAggregationBallotSelections,
     ValidateInfoUriAnnotation,
     ValidatePollsCloseDatetimes,
+    ValidateResultReportingStages,
     ValidateResultsEmbargoEnd,
     ValidateResultsExpected,
     ValidateSpecialBallotSelectionCountedInTotal,
