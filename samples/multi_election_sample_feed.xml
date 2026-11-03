@@ -374,161 +374,13 @@
     <Type>primary</Type>
   </Election>
   <Election>
-    <CandidateCollection>
-      <Candidate objectId="can-14">
-        <BallotName>
-          <Text language="en">Republican Gubernatorial Candidate1</Text>
-        </BallotName>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>can-14</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <PartyId>par-1</PartyId>
-        <PersonId>per-12</PersonId>
-        <PreElectionStatus>self-declared</PreElectionStatus>
-      </Candidate>
-      <Candidate objectId="can-15">
-        <BallotName>
-          <Text language="en">Republican Gubernatorial Candidate1</Text>
-        </BallotName>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>can-15</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <PartyId>par-1</PartyId>
-        <PersonId>per-12</PersonId>
-        <PreElectionStatus>self-declared</PreElectionStatus>
-      </Candidate>
-      <Candidate objectId="can-25">
-        <BallotName>
-          <Text language="en">Democratic Gubernatorial Candidate1</Text>
-        </BallotName>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>can-25</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <PartyId>par-2</PartyId>
-        <PersonId>per-23</PersonId>
-        <PreElectionStatus>self-declared</PreElectionStatus>
-      </Candidate>
-      <Candidate objectId="can-26">
-        <BallotName>
-          <Text language="en">Democratic Gubernatorial Candidate1</Text>
-        </BallotName>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>can-26</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <PartyId>par-2</PartyId>
-        <PersonId>per-23</PersonId>
-        <PreElectionStatus>self-declared</PreElectionStatus>
-      </Candidate>
-      <Candidate objectId="can-112">
-        <BallotName>
-          <Text language="en">Republican Presidential Candidate1</Text>
-        </BallotName>
-        <ContactInformation language="en">
-          <AddressLine>655 New York Ave, NW</AddressLine>
-          <AddressLine>Washington, DC 20005</AddressLine>
-          <Email>person@congress.gov</Email>
-          <Fax>888-7777</Fax>
-          <Name>Congressional Office</Name>
-          <Phone>999-8888</Phone>
-        </ContactInformation>
-        <ContactInformation language="es">
-          <AddressLine>655 Nueva York Ave, NW</AddressLine>
-          <AddressLine>Washington, DC 20005</AddressLine>
-          <Name>Oficina del Congreso</Name>
-        </ContactInformation>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>can-112</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <PartyId>par-1</PartyId>
-        <PersonId>per-11</PersonId>
-        <PreElectionStatus>self-declared</PreElectionStatus>
-      </Candidate>
-      <Candidate objectId="can-114">
-        <BallotName>
-          <Text language="en">Republican Presidential Candidate1</Text>
-        </BallotName>
-        <ContactInformation language="en">
-          <AddressLine>655 New York Ave, NW</AddressLine>
-          <AddressLine>Washington, DC 20005</AddressLine>
-          <Email>person@congress.gov</Email>
-          <Fax>888-7777</Fax>
-          <Name>Congressional Office</Name>
-          <Phone>999-8888</Phone>
-        </ContactInformation>
-        <ContactInformation language="es">
-          <AddressLine>655 Nueva York Ave, NW</AddressLine>
-          <AddressLine>Washington, DC 20005</AddressLine>
-          <Name>Oficina del Congreso</Name>
-        </ContactInformation>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>can-114</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <PartyId>par-1</PartyId>
-        <PersonId>per-11</PersonId>
-        <PreElectionStatus>self-declared</PreElectionStatus>
-      </Candidate>
-      <Candidate objectId="can-212">
-        <BallotName>
-          <Text language="en">Democratic Presidential Candidate1</Text>
-        </BallotName>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>can-212</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <PartyId>par-2</PartyId>
-        <PersonId>per-21</PersonId>
-        <PreElectionStatus>self-declared</PreElectionStatus>
-      </Candidate>
-      <Candidate objectId="can-213">
-        <BallotName>
-          <Text language="en">Democratic Presidential Candidate1</Text>
-        </BallotName>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>can-213</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <PartyId>par-2</PartyId>
-        <PersonId>per-21</PersonId>
-        <PreElectionStatus>self-declared</PreElectionStatus>
-      </Candidate>
-    </CandidateCollection>
     <ContestCollection>
       <Contest objectId="c-200" xsi:type="CandidateContest">
         <BallotSelection objectId="cs-11-201" xsi:type="CandidateSelection">
-          <CandidateIds>can-112</CandidateIds>
+          <CandidateIds>can-111</CandidateIds>
         </BallotSelection>
         <BallotSelection objectId="cs-21-201" xsi:type="CandidateSelection">
-          <CandidateIds>can-212</CandidateIds>
+          <CandidateIds>can-211</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">2020 US Presidential election</Text>
@@ -595,10 +447,10 @@
       </Contest>
       <Contest objectId="c-300" xsi:type="CandidateContest">
         <BallotSelection objectId="cs-12-300" xsi:type="CandidateSelection">
-          <CandidateIds>can-14</CandidateIds>
+          <CandidateIds>can-12</CandidateIds>
         </BallotSelection>
         <BallotSelection objectId="cs-23-300" xsi:type="CandidateSelection">
-          <CandidateIds>can-25</CandidateIds>
+          <CandidateIds>can-23</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">2020 Delaware gubernatorial election</Text>
@@ -622,10 +474,10 @@
       </Contest>
       <Contest objectId="c-500" xsi:type="CandidateContest">
         <BallotSelection objectId="cs-11-500" xsi:type="CandidateSelection">
-          <CandidateIds>can-114</CandidateIds>
+          <CandidateIds>can-111</CandidateIds>
         </BallotSelection>
         <BallotSelection objectId="cs-21-500" xsi:type="CandidateSelection">
-          <CandidateIds>can-213</CandidateIds>
+          <CandidateIds>can-211</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">2020 US Presidential runoff election</Text>
@@ -689,10 +541,10 @@
       </Contest>
       <Contest objectId="c-600" xsi:type="CandidateContest">
         <BallotSelection objectId="cs-12-600" xsi:type="CandidateSelection">
-          <CandidateIds>can-15</CandidateIds>
+          <CandidateIds>can-12</CandidateIds>
         </BallotSelection>
         <BallotSelection objectId="cs-23-600" xsi:type="CandidateSelection">
-          <CandidateIds>can-26</CandidateIds>
+          <CandidateIds>can-23</CandidateIds>
         </BallotSelection>
         <BallotTitle>
           <Text language="en">2020 Delaware gubernatorial runoff election</Text>

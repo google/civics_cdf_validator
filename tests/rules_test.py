@@ -2039,6 +2039,56 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
         ),
     )
 
+  def test_tree_roots_are_connected_for_any_subsequent_relationship_succeeds(
+      self,
+  ):
+    election_report = """
+      <ContestCollection>
+        <Contest objectId="con001">
+          <ComposingContestIds>con002 con003</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con002">
+          <SubsequentContestId>con005</SubsequentContestId>
+        </Contest>
+        <Contest objectId="con003"/>
+        <Contest objectId="con004">
+          <ComposingContestIds>con005 con006</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con005"/>
+        <Contest objectId="con006"/>
+      </ContestCollection>
+    """
+    report_elem = etree.fromstring(election_report)
+
+    self.validator._construct_contest_graph(report_elem)
+
+    # assert roots are connected for subsequent relationships
+    self.assertTrue(
+        networkx.has_path(self.validator.contest_graph, "con002", "con005")
+    )
+
+  def test_invalid_subsequent_contest_id_fails(self):
+    election_report = """
+      <ContestCollection>
+        <Contest objectId="con001">
+          <SubsequentContestId>con004</SubsequentContestId>
+        </Contest>
+        <Contest objectId="con002"/>
+        <Contest objectId="con003"/>
+      </ContestCollection>
+    """
+    report_elem = etree.fromstring(election_report)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator._construct_contest_graph(report_elem)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        (
+            "Contest con001 contains a subsequent Contest Id "
+            "(con004) that does not exist."
+        ),
+    )
+
   def test_any_contest_in_given_list_not_related_parent_child_succeeds(
       self,
   ):
@@ -2071,6 +2121,30 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
         </Contest>
         <Contest objectId="con003">
           <ComposingContestIds>con004</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con004"/>
+      </ContestCollection>
+    """
+    report_elem = etree.fromstring(election_report)
+    contest_id_list = ["con001", "con003", "con004"]
+
+    self.validator._construct_contest_graph(report_elem)
+    are_related = self.validator._check_candidate_contests_are_related(
+        contest_id_list
+    )
+
+    self.assertTrue(are_related)
+
+  def test_all_contests_in_given_list_are_related_subsequent_rel_succeeds(
+      self,
+  ):
+    election_report = """
+      <ContestCollection>
+        <Contest objectId="con001">
+          <SubsequentContestId>con003</SubsequentContestId>
+        </Contest>
+        <Contest objectId="con003">
+          <SubsequentContestId>con004</SubsequentContestId>
         </Contest>
         <Contest objectId="con004"/>
       </ContestCollection>
@@ -2215,42 +2289,6 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
 
     self.validator.check(report_elem)
 
-  def test_same_person_candidates_in_subsequent_contests_succeeds(self):
-    election_report = """
-      <ElectionReport>
-        <PersonCollection>
-          <Person objectId="per001"/>
-          <Person objectId="per002"/>
-        </PersonCollection>
-        <CandidateCollection>
-          <Candidate objectId="can001">
-            <PersonId>per001</PersonId>
-          </Candidate>
-          <Candidate objectId="can002">
-            <PersonId>per001</PersonId>
-          </Candidate>
-          <Candidate objectId="can003">
-            <PersonId>per002</PersonId>
-          </Candidate>
-          <Candidate objectId="can004">
-            <PersonId>per002</PersonId>
-          </Candidate>
-        </CandidateCollection>
-        <ContestCollection>
-          <Contest objectId="con001">
-            <CandidateIds>can001 can003</CandidateIds>
-            <SubsequentContestId>con002</SubsequentContestId>
-          </Contest>
-          <Contest objectId="con002">
-            <CandidateIds>can002 can004</CandidateIds>
-          </Contest>
-        </ContestCollection>
-      </ElectionReport>
-    """
-    report_elem = etree.fromstring(election_report)
-
-    self.validator.check(report_elem)
-
   def test_repeat_candidates_valid_in_related_contests_composing_succeeds(
       self,
   ):
@@ -2355,6 +2393,220 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
 
     self.validator.check(report_elem)
 
+  def test_repeat_candidates_valid_in_related_contests_subsequent_succeeds(
+      self,
+  ):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can002">
+            <PersonId>per002</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="con001">
+            <CandidateIds>can001 can002</CandidateIds>
+            <SubsequentContestId>con002</SubsequentContestId>
+          </Contest>
+          <Contest objectId="con002">
+            <CandidateIds>can001 can002</CandidateIds>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    report_elem = etree.fromstring(election_report)
+
+    self.validator.check(report_elem)
+
+  def test_repeat_candidate_valid_in_related_contests_subsequent_of_subsequent_succeeds(
+      self,
+  ):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="rep" type="CandidateContest">
+            <BallotSelection objectId="two" type="CandidateSelection">
+              <CandidateIds>can001</CandidateIds>
+            </BallotSelection>
+            <SubsequentContestId>gen</SubsequentContestId>
+          </Contest>
+          <Contest objectId="dem" type="CandidateContest">
+            <BallotSelection objectId="one" type="CandidateSelection">
+              <CandidateIds>can001</CandidateIds>
+            </BallotSelection>
+            <SubsequentContestId>runoff</SubsequentContestId>
+          </Contest>
+          <Contest objectId="runoff" type="CandidateContest">
+            <SubsequentContestId>gen</SubsequentContestId>
+          </Contest>
+          <Contest objectId="gen" type="CandidateContest">
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    report_elem = etree.fromstring(election_report)
+
+    self.validator.check(report_elem)
+
+  def test_repeat_candidate_valid_in_related_contests_subsequent_of_composing_succeeds(
+      self,
+  ):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can002">
+            <PersonId>per002</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="gen" type="CandidateContest">
+            <ComposingContestIds>rep dem</ComposingContestIds>
+            <SubsequentContestId>runoff</SubsequentContestId>
+          </Contest>
+          <Contest objectId="rep" type="CandidateContest">
+            <BallotSelection objectId="one" type="CandidateSelection">
+              <CandidateIds>can001</CandidateIds>
+            </BallotSelection>
+          </Contest>
+          <Contest objectId="dem" type="CandidateContest">
+            <BallotSelection objectId="two" type="CandidateSelection">
+              <CandidateIds>can002</CandidateIds>
+            </BallotSelection>
+          </Contest>
+          <Contest objectId="runoff" type="CandidateContest">
+            <BallotSelection objectId="two_runoff" type="CandidateSelection">
+              <CandidateIds>can002</CandidateIds>
+            </BallotSelection>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    report_elem = etree.fromstring(election_report)
+
+    self.validator.check(report_elem)
+
+  def test_repeat_candidates_valid_repeat_subsequent_succeeds(self):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+          <Person objectId="per003"/>
+          <Person objectId="per004"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can002">
+            <PersonId>per002</PersonId>
+          </Candidate>
+          <Candidate objectId="can003">
+            <PersonId>per003</PersonId>
+          </Candidate>
+          <Candidate objectId="can004">
+            <PersonId>per004</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="con001">
+            <Name>New York Democratic Primary</Name>
+            <CandidateIds>can001 can002 can004</CandidateIds>
+            <SubsequentContestId>con003</SubsequentContestId>
+          </Contest>
+          <Contest objectId="con002">
+            <Name>New York Republican Primary</Name>
+            <CandidateIds>can003 can004</CandidateIds>
+            <SubsequentContestId>con003</SubsequentContestId>
+          </Contest>
+          <Contest objectId="con003">
+            <Name>General Election</Name>
+            <CandidateIds>can001 can003</CandidateIds>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    # The winner of each primary go on to the general election
+    # the general election contest is the subsequent contest for both primaries
+    report_elem = etree.fromstring(election_report)
+
+    self.validator.check(report_elem)
+
+  def test_repeat_candidates_valid_subsequent_multi_depth_succeeds(self):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+          <Person objectId="per003"/>
+          <Person objectId="per004"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can002">
+            <PersonId>per002</PersonId>
+          </Candidate>
+          <Candidate objectId="can003">
+            <PersonId>per003</PersonId>
+          </Candidate>
+          <Candidate objectId="can004">
+            <PersonId>per004</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="con001">
+            <Name>New York Democratic Primary</Name>
+            <CandidateIds>can001 can002</CandidateIds>
+            <SubsequentContestId>con003</SubsequentContestId>
+          </Contest>
+          <Contest objectId="con002">
+            <Name>New York Republican Primary</Name>
+            <CandidateIds>can003 can004</CandidateIds>
+            <SubsequentContestId>con003</SubsequentContestId>
+          </Contest>
+          <Contest objectId="con003">
+            <Name>General Election</Name>
+            <CandidateIds>can001 can003</CandidateIds>
+            <SubsequentContestId>con004</SubsequentContestId>
+          </Contest>
+          <Contest objectId="con004">
+            <Name>General Runoff Election</Name>
+            <CandidateIds>can001 can003</CandidateIds>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    # The winner of each primary go on to the general election
+    # The general election contest is the subsequent contest for both primaries
+    # The general election leads into the runoff as its subsequent contest
+    report_elem = etree.fromstring(election_report)
+
+    self.validator.check(report_elem)
+
   def test_same_candidate_in_unrelated_contests_fails(self):
     election_report = """
       <ElectionReport>
@@ -2396,52 +2648,6 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
         ),
     )
 
-  def test_repeat_candidates_in_subsequent_contests_fails(self):
-    election_report = """
-      <ElectionReport>
-        <PersonCollection>
-          <Person objectId="per001"/>
-          <Person objectId="per002"/>
-        </PersonCollection>
-        <CandidateCollection>
-          <Candidate objectId="can001">
-            <PersonId>per001</PersonId>
-          </Candidate>
-          <Candidate objectId="can002">
-            <PersonId>per002</PersonId>
-          </Candidate>
-        </CandidateCollection>
-        <ContestCollection>
-          <Contest objectId="con001">
-            <CandidateIds>can001 can002</CandidateIds>
-            <SubsequentContestId>con002</SubsequentContestId>
-          </Contest>
-          <Contest objectId="con002">
-            <CandidateIds>can001 can002</CandidateIds>
-          </Contest>
-        </ContestCollection>
-      </ElectionReport>
-    """
-    report_elem = etree.fromstring(election_report)
-
-    with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(report_elem)
-    self.assertLen(context.exception.log_entry, 2)
-    self.assertEqual(
-        context.exception.log_entry[0].message,
-        (
-            "Candidate can001 appears in the following contests"
-            " which are not all related: con001, con002"
-        ),
-    )
-    self.assertEqual(
-        context.exception.log_entry[1].message,
-        (
-            "Candidate can002 appears in the following contests"
-            " which are not all related: con001, con002"
-        ),
-    )
-
   def test_person_has_multiple_candidates_in_related_contests_fails(
       self,
   ):
@@ -2469,6 +2675,52 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
           <Contest objectId="con001">
             <CandidateIds>can001 can003</CandidateIds>
             <ComposingContestIds>con002</ComposingContestIds>
+          </Contest>
+          <Contest objectId="con002">
+            <CandidateIds>can002 can004</CandidateIds>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    report_elem = etree.fromstring(election_report)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(report_elem)
+    self.assertLen(context.exception.log_entry, 2)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Person per001 has separate candidates in contests that are related.",
+    )
+    self.assertEqual(
+        context.exception.log_entry[1].message,
+        "Person per002 has separate candidates in contests that are related.",
+    )
+
+  def test_person_has_multiple_candidates_in_subsequent_contests_fails(self):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can002">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can003">
+            <PersonId>per002</PersonId>
+          </Candidate>
+          <Candidate objectId="can004">
+            <PersonId>per002</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="con001">
+            <CandidateIds>can001 can003</CandidateIds>
+            <SubsequentContestId>con002</SubsequentContestId>
           </Contest>
           <Contest objectId="con002">
             <CandidateIds>can002 can004</CandidateIds>
