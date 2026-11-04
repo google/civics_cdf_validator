@@ -33,6 +33,7 @@ from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator import rules
 from civics_cdf_validator import version
+from civics_cdf_validator.rulesets import rule_util
 
 _REGISTRY_KEY = "registry"
 _METADATA_KEY = "metadata"
@@ -81,7 +82,7 @@ def _validate_country_codes(parser, arg):
   """
   country_code = arg.strip().lower()
 
-  if rules.country_code_is_valid(country_code):
+  if rule_util.country_code_is_valid(country_code):
     return country_code
 
   parser.error(
