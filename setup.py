@@ -74,5 +74,5 @@ setup(
     },
     entry_points=ENTRY_POINTS,
     package_dir={'civics_cdf_validator': ''},
-    packages=['civics_cdf_validator'],
+    packages=['civics_cdf_validator', 'civics_cdf_validator.rulesets'],
 )
