@@ -11,6 +11,7 @@ from civics_cdf_validator import base
 from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator import rules
+from civics_cdf_validator.rulesets import committee_rules
 from civics_cdf_validator.rulesets import common_rules
 from civics_cdf_validator.rulesets import election_dates_rules
 from civics_cdf_validator.rulesets import election_rules
@@ -13495,8 +13496,10 @@ class CommitteeClassificationEndDateOccursAfterStartDateTest(absltest.TestCase):
 
   def setUp(self):
     super(CommitteeClassificationEndDateOccursAfterStartDateTest, self).setUp()
-    self.validator = rules.CommitteeClassificationEndDateOccursAfterStartDate(
-        None, None
+    self.validator = (
+        committee_rules.CommitteeClassificationEndDateOccursAfterStartDate(
+            None, None
+        )
     )
     self.today_date = datetime.datetime.now(datetime.timezone.utc)
 
@@ -13583,7 +13586,7 @@ class EinMatchesFormatTest(absltest.TestCase):
       </Committee>
     """
     self.ein_string = "<OtherType>ein</OtherType>"
-    self.validator = rules.EinMatchesFormat(None, None)
+    self.validator = committee_rules.EinMatchesFormat(None, None)
 
   def test_valid_ein_id_succeeds(self):
     test_string = self.root_string.format(
@@ -13625,7 +13628,9 @@ class AffiliationHasEitherPartyOrPersonTest(absltest.TestCase):
 
   def setUp(self):
     super(AffiliationHasEitherPartyOrPersonTest, self).setUp()
-    self.validator = rules.AffiliationHasEitherPartyOrPerson(None, None)
+    self.validator = committee_rules.AffiliationHasEitherPartyOrPerson(
+        None, None
+    )
 
   def test_valid_affiliation_succeeds(self):
     test_string = """
