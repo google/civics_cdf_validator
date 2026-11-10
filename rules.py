@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Validation rules for the NIST CDF XML validator."""
+"""Validation rules for the CDF XML validator."""
 
 from __future__ import print_function
 
@@ -26,25 +26,20 @@ from civics_cdf_validator import base
 from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator import office_utils
+from civics_cdf_validator.rulesets import rule_util
 import dateutil
 from frozendict import frozendict
 import language_tags
 from lxml import etree
 import networkx
-import pycountry
 from six.moves.urllib.parse import urlparse
 
 
-_XML_TRUE_VALUES = frozenset(["true", "1"])
-_PARTY_LEADERSHIP_TYPES = ["party-leader-id", "party-chair-id"]
 _INDEPENDENT_PARTY_NAMES = frozenset(["independent", "nonpartisan"])
 _IDREF_TYPES = frozenset(["xs:IDREF", "xs:IDREFS"])
 # The set of external identifiers that contain references to other entities.
 _IDREF_EXTERNAL_IDENTIFIERS = frozenset(
-    ["jurisdiction-id"] + _PARTY_LEADERSHIP_TYPES
-)
-_IDENTIFIER_TYPES = frozenset(
-    ["local-level", "national-level", "ocd-id", "state-level"]
+    ["jurisdiction-id"] + rule_util.PARTY_LEADERSHIP_TYPES
 )
 _CONTEST_STAGE_TYPES = frozenset([
     "exit-polls",
@@ -143,17 +138,10 @@ _WINNER_POST_ELECTION_STATUSES = frozenset([
 ])
 
 
-def _is_xml_true(element):
-  return (
-      element_has_text(element)
-      and element.text.strip().lower() in _XML_TRUE_VALUES
-  )
-
-
 def _get_office_roles(element, is_post_office_split_feed=False):
   if is_post_office_split_feed:
     return [element.text for element in element.findall("Role")]
-  return get_entity_info_for_value_type(element, "office-role")
+  return rule_util.get_entity_info_for_value_type(element, "office-role")
 
 
 def _is_executive_office(element, is_post_office_split_feed=False):
@@ -162,72 +150,7 @@ def _is_executive_office(element, is_post_office_split_feed=False):
 
 
 def _has_government_body(element):
-  return element_has_text(element.find("GovernmentBodyIds"))
-
-
-def get_external_id_values(
-    element, value_type, return_elements=False, search_subelements=True
-):
-  """Helper to gather all Values of external ids for a given type.
-
-  If search_subelements is True, will search all subelements, if False, will
-  only search child elements.
-
-  Args:
-    element: element to be processed
-    value_type: external id value type
-    return_elements: Boolean if True return elements, if False return values.
-    search_subelements: Boolean to instruct the function to recursively search
-      subelements.
-
-  Returns:
-    A list of external id values or external identifier elements
-  """
-  external_ids = []
-  if search_subelements:
-    external_ids = element.findall(".//ExternalIdentifier")
-  else:
-    external_ids = element.findall("ExternalIdentifiers/ExternalIdentifier")
-  values = []
-  for extern_id in external_ids:
-    id_type = extern_id.find("Type")
-    if id_type is None or not id_type.text:
-      continue
-    matches_type = False
-    id_text = id_type.text.strip()
-    if id_text in _IDENTIFIER_TYPES and id_text == value_type:
-      matches_type = True
-    elif id_text == "other":
-      other_type = extern_id.find("OtherType")
-      if (
-          other_type is not None
-          and other_type.text
-          and other_type.text.strip() == value_type
-          and value_type not in _IDENTIFIER_TYPES
-      ):
-        matches_type = True
-    if matches_type:
-      value = extern_id.find("Value")
-      # Could include empty text; check in calling function.
-      # Not checked here because errors should be raised in some cases.
-      if value is not None and value.text:
-        if return_elements:
-          values.append(value)
-        else:
-          values.append(value.text)
-  return values
-
-
-def get_additional_type_values(element, value_type, return_elements=False):
-  """Helper to gather all nested additional type values for a given type."""
-  elements = element.findall(".//AdditionalData[@type='{}']".format(value_type))
-  if not return_elements:
-    return [
-        val.text
-        for val in elements
-        if val is not None and val.text and val.text.strip()
-    ]
-  return elements
+  return rule_util.element_has_text(element.find("GovernmentBodyIds"))
 
 
 def extract_person_fullname(person):
@@ -243,62 +166,18 @@ def extract_person_fullname(person):
   return []
 
 
-def get_entity_info_for_value_type(element, info_type, return_elements=False):
-  info_collection = get_additional_type_values(
-      element, info_type, return_elements
-  )
-  info_collection.extend(
-      list(get_external_id_values(element, info_type, return_elements))
-  )
-  return info_collection
-
-
-def get_language_to_text_map(element):
-  """Return a map of languages to text in an InternationalizedText element."""
-  language_map = {}
-  if element is None:
-    return language_map
-  intl_strings = element.findall("Text")
-
-  for intl_string in intl_strings:
-    text = intl_string.text
-    if text is None or not text:
-      continue
-    language = intl_string.get("language")
-    if language is None or not language:
-      continue
-    if language not in language_map:
-      language_map[language] = [text]
-    else:
-      language_map[language].append(text)
-  return language_map
-
-
-def element_has_text(element):
-  return (
-      element is not None
-      and element.text is not None
-      and not element.text.isspace()
-  )
-
-
-def country_code_is_valid(country_code):
-  # EU is part of ISO 3166/MA
-  return (
-      country_code.lower() == "eu"
-      or pycountry.countries.get(alpha_2=country_code.upper()) is not None
-  )
-
-
 def _get_type_or_other_type(element):
+  """Returns the OtherType text if Type is "other", else the Type text."""
   type_element = element.find("Type")
   other_type_element = element.find("OtherType")
   type_text = (
-      type_element.text.strip() if element_has_text(type_element) else ""
+      type_element.text.strip()
+      if rule_util.element_has_text(type_element)
+      else ""
   )
   other_type_text = (
       other_type_element.text.strip()
-      if element_has_text(other_type_element)
+      if rule_util.element_has_text(other_type_element)
       else ""
   )
   return other_type_text if type_text == "other" else type_text
@@ -572,7 +451,7 @@ class ValidStableID(base.BaseRule):
     return ["ExternalIdentifiers"]
 
   def check(self, element):
-    stable_ids = get_external_id_values(element, "stable")
+    stable_ids = rule_util.get_external_id_values(element, "stable")
     error_log = []
     for s_id in stable_ids:
       if not self.stable_id_matcher.match(s_id):
@@ -598,11 +477,11 @@ class GpUnitOcdId(base.BaseRule):
       return
     type_element = element.find("Type")
     if (
-        element_has_text(type_element)
+        rule_util.element_has_text(type_element)
         and type_element.text in _GPUNIT_TYPES_WITHOUT_OCD_IDS
     ):
       return
-    ocd_ids = get_external_id_values(element, "ocd-id")
+    ocd_ids = rule_util.get_external_id_values(element, "ocd-id")
     if not ocd_ids:
       raise loggers.ElectionError.from_message(
           f"The GpUnit {element.get('objectId')} does not have an ocd-id.",
@@ -630,7 +509,7 @@ class DuplicatedGpUnitOcdId(base.BaseRule):
     gp_ocdid = dict()
     gpunits = element.findall("GpUnit")
     for gpunit in gpunits:
-      ocd_ids = get_external_id_values(gpunit, "ocd-id")
+      ocd_ids = rule_util.get_external_id_values(gpunit, "ocd-id")
       for ocd_id in ocd_ids:
         if ocd_id not in gp_ocdid.keys():
           gp_ocdid[ocd_id] = gpunit.get("objectId")
@@ -717,7 +596,7 @@ class GpUnitsHaveSingleRoot(base.TreeRule):
     else:
       for object_id in roots:
         element = gpunit_ids.get(object_id)
-        ocd_ids = get_external_id_values(element, "ocd-id")
+        ocd_ids = rule_util.get_external_id_values(element, "ocd-id")
         for ocd_id in ocd_ids:
           if not gpunit_rules.GpUnitOcdIdValidator.is_country_or_region_ocd_id(
               ocd_id
@@ -850,7 +729,7 @@ class PartisanPrimary(base.BaseRule):
   def check(self, election_elem):
     election_type_elem = election_elem.find("Type")
     election_type = None
-    if element_has_text(election_type_elem):
+    if rule_util.element_has_text(election_type_elem):
       election_type = election_type_elem.text.strip()
 
     if not election_type or election_type not in (
@@ -862,7 +741,7 @@ class PartisanPrimary(base.BaseRule):
     contests = self.get_elements_by_class(election_elem, "CandidateContest")
     for contest_elem in contests:
       primary_party_ids = contest_elem.find("PrimaryPartyIds")
-      if not element_has_text(primary_party_ids):
+      if not rule_util.element_has_text(primary_party_ids):
         msg = (
             "Election is of ElectionType %s but PrimaryPartyIds is not present"
             " or is empty" % (self.election_type)
@@ -882,7 +761,7 @@ class PartisanPrimaryHeuristic(base.BaseRule):
   def check(self, election_elem):
     election_type_elem = election_elem.find("Type")
     election_type = None
-    if element_has_text(election_type_elem):
+    if rule_util.element_has_text(election_type_elem):
       election_type = election_type_elem.text.strip()
 
     if election_type is not None and election_type in (
@@ -895,7 +774,7 @@ class PartisanPrimaryHeuristic(base.BaseRule):
     contests = self.get_elements_by_class(election_elem, "CandidateContest")
     for contest_elem in contests:
       contest_name = contest_elem.find("Name")
-      if element_has_text(contest_name):
+      if rule_util.element_has_text(contest_name):
         c_name = contest_name.text.replace(" ", "").lower()
         for p_text in self.party_text:
           if p_text in c_name:
@@ -974,7 +853,7 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
       candidate_id_elements = self.get_elements_by_class(contest, "CandidateId")
       id_elements = candidate_ids_elements + candidate_id_elements
       for id_element in id_elements:
-        if element_has_text(id_element):
+        if rule_util.element_has_text(id_element):
           for candidate_id in id_element.text.split():
             candidate_to_contest_mapping.setdefault(candidate_id, []).append(
                 contest_id
@@ -984,7 +863,7 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
     for candidate in candidates:
       candidate_id = candidate.get("objectId", None)
       person_id = candidate.find("PersonId")
-      if element_has_text(person_id):
+      if rule_util.element_has_text(person_id):
         if candidate_id not in candidate_to_contest_mapping.keys():
           raise loggers.ElectionError.from_message(
               (
@@ -1007,7 +886,7 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
 
     for contest in contests:
       subsequent_contest = contest.find("SubsequentContestId")
-      if element_has_text(subsequent_contest):
+      if rule_util.element_has_text(subsequent_contest):
         subsequent_contest_id = subsequent_contest.text
         # subsequent contest id is not valid if it isn't in the graph
         if not self.contest_graph.has_node(subsequent_contest_id):
@@ -1023,7 +902,7 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
         )
       # Add the composing contest if it exists
       composing_contests = contest.find("ComposingContestIds")
-      if element_has_text(composing_contests):
+      if rule_util.element_has_text(composing_contests):
         children = composing_contests.text.split()
         for child in children:
           # composing contest id is not valid if it isn't in the graph
@@ -1309,13 +1188,13 @@ class ValidateDuplicateColors(base.TreeRule):
       party_objects[party_id] = party
       party_colors_by_id[party_id] = {}
       color_element = party.find("Color")
-      if element_has_text(color_element):
+      if rule_util.element_has_text(color_element):
         party_colors_by_id[party_id]["Color"] = color_element.text.lower()
       colors_element = party.find("Colors")
       if colors_element is not None:
         for color_field in ("DarkThemeColor", "LightThemeColor"):
           sub_color_element = colors_element.find(color_field)
-          if element_has_text(sub_color_element):
+          if rule_util.element_has_text(sub_color_element):
             party_colors_by_id[party_id][
                 color_field
             ] = sub_color_element.text.lower()
@@ -1603,14 +1482,18 @@ class DuplicateBallotTitleSeatPair(base.BaseRule):
     contests_by_title_and_seat = collections.defaultdict(list)
 
     for contest in contest_elements:
-      ballot_title_element = get_language_to_text_map(
+      ballot_title_element = rule_util.get_language_to_text_map(
           contest.find("BallotTitle")
       )
       english_title = ballot_title_element.get("en")
       seat_element = contest.find("Seat")
 
       ballot_title = english_title[0].strip() if english_title else ""
-      seat = seat_element.text.strip() if element_has_text(seat_element) else ""
+      seat = (
+          seat_element.text.strip()
+          if rule_util.element_has_text(seat_element)
+          else ""
+      )
 
       if not ballot_title:
         continue
@@ -1641,7 +1524,7 @@ class UniqueStableID(base.TreeRule):
     error_log = []
     stable_obj_dict = dict()
     for _, element in etree.iterwalk(self.election_tree, events=("end",)):
-      stable_ids = get_external_id_values(
+      stable_ids = rule_util.get_external_id_values(
           element, "stable", search_subelements=False
       )
       if not stable_ids:
@@ -1666,7 +1549,7 @@ class UniqueStableID(base.TreeRule):
   def _get_object_id_or_name(self, element):
     if "objectId" in element.attrib:
       return element.get("objectId")
-    names_by_language = get_language_to_text_map(element.find("Name"))
+    names_by_language = rule_util.get_language_to_text_map(element.find("Name"))
     if "en" in names_by_language:
       return names_by_language["en"][0]
     for names in names_by_language.values():
@@ -1703,7 +1586,9 @@ class MissingStableIds(base.BaseRule):
     stable_ids = []
     external_identifiers = element.find("ExternalIdentifiers")
     if external_identifiers is not None:
-      stable_ids = get_external_id_values(external_identifiers, "stable")
+      stable_ids = rule_util.get_external_id_values(
+          external_identifiers, "stable"
+      )
     if not stable_ids:
       raise loggers.ElectionError.from_message(
           "The element is missing a stable id", [element]
@@ -1785,7 +1670,7 @@ class UniqueCandidateImageUris(base.TreeRule):
       return
     for person in person_collection.findall("Person"):
       for image_uri_element in person.findall("ImageUri"):
-        if not element_has_text(image_uri_element):
+        if not rule_util.element_has_text(image_uri_element):
           continue
         annotation = image_uri_element.get("Annotation", "").strip()
         if annotation == "candidate-image":
@@ -1989,7 +1874,9 @@ class SelfDeclaredCandidateMethod(base.BaseRule):
   def check(self, element):
     status = element.find("PreElectionStatus")
     if status is not None and status.text == "self-declared":
-      externalidvalues = get_external_id_values(element, "electoral-commission")
+      externalidvalues = rule_util.get_external_id_values(
+          element, "electoral-commission"
+      )
       length = len(externalidvalues)
       if length > 0:
         msg = (
@@ -2009,7 +1896,7 @@ class ValidateOcdidLowerCase(base.BaseRule):
     return ["ExternalIdentifiers"]
 
   def check(self, element):
-    for ocd_id in get_external_id_values(element, "ocd-id"):
+    for ocd_id in rule_util.get_external_id_values(element, "ocd-id"):
       if not ocd_id.islower():
         msg = (
             "OCD-ID %s is not in all lower case letters. "
@@ -2058,7 +1945,10 @@ class PersonHasOffice(base.ValidReferenceRule):
     # Add party leaders provided in the External Identifier
     for external_id in root.findall(".//Party//ExternalIdentifier"):
       other_type = external_id.find("OtherType")
-      if other_type is not None and other_type.text in _PARTY_LEADERSHIP_TYPES:
+      if (
+          other_type is not None
+          and other_type.text in rule_util.PARTY_LEADERSHIP_TYPES
+      ):
         person_reference_ids.add(external_id.find("Value").text)
     # Add party leaders provided in the Leadership entity
     for leader_id in root.findall(".//Party//PartyLeaderId"):
@@ -2109,7 +1999,10 @@ class PartyLeadershipMustExist(base.ValidReferenceRule):
     party_leader_ids = set()
     for external_id in root.findall(".//Party//ExternalIdentifier"):
       other_type = external_id.find("OtherType")
-      if other_type is not None and other_type.text in _PARTY_LEADERSHIP_TYPES:
+      if (
+          other_type is not None
+          and other_type.text in rule_util.PARTY_LEADERSHIP_TYPES
+      ):
         party_leader_ids.add(external_id.find("Value").text)
     return party_leader_ids
 
@@ -2485,10 +2378,10 @@ class OfficesHaveJurisdictionID(base.BaseRule):
   def check(self, element):
     jurisdiction_values = []
     post_office_split_jurisdiction_element = element.find("JurisdictionId")
-    if element_has_text(post_office_split_jurisdiction_element):
+    if rule_util.element_has_text(post_office_split_jurisdiction_element):
       jurisdiction_values.append(post_office_split_jurisdiction_element.text)
     else:
-      jurisdiction_values = get_entity_info_for_value_type(
+      jurisdiction_values = rule_util.get_entity_info_for_value_type(
           element, "jurisdiction-id"
       )
 
@@ -2514,7 +2407,7 @@ class ValidJurisdictionID(base.ValidReferenceRule):
 
   def _gather_reference_values(self):
     root = self.election_tree.getroot()
-    jurisdiction_values = get_entity_info_for_value_type(
+    jurisdiction_values = rule_util.get_entity_info_for_value_type(
         root, "jurisdiction-id"
     )
     return set(jurisdiction_values)
@@ -2531,7 +2424,7 @@ class OfficeHasjurisdictionSameAsElectoralDistrict(base.BaseRule):
     return ["Office"]
 
   def check(self, element):
-    jurisdiction_values = get_entity_info_for_value_type(
+    jurisdiction_values = rule_util.get_entity_info_for_value_type(
         element, "jurisdiction-id"
     )
     jurisdiction_values = [
@@ -2559,12 +2452,12 @@ class OfficesHaveValidOfficeLevel(base.BaseRule):
   def check(self, element):
     office_levels = []
     post_office_split_office_level_element = element.find("Level")
-    if element_has_text(post_office_split_office_level_element):
+    if rule_util.element_has_text(post_office_split_office_level_element):
       office_levels.append(post_office_split_office_level_element.text)
     else:
       office_levels = [
           ol_id.strip()
-          for ol_id in get_external_id_values(element, "office-level")
+          for ol_id in rule_util.get_external_id_values(element, "office-level")
           if ol_id.strip()
       ]
 
@@ -2597,7 +2490,9 @@ class OfficesHaveValidOfficeRole(base.BaseRule):
     if not office_roles:
       office_roles = [
           office_role.strip()
-          for office_role in get_external_id_values(element, "office-role")
+          for office_role in rule_util.get_external_id_values(
+              element, "office-role"
+          )
       ]
 
     if not office_roles:
@@ -2637,14 +2532,16 @@ class DiplomaticOfficesHaveCorrespondingGpUnitsSet(base.BaseRule):
     office_roles = (
         role.text.strip()
         for role in element.findall("Role")
-        if element_has_text(role)
+        if rule_util.element_has_text(role)
     )
     if "diplomat" not in office_roles:
       return
 
-    if not element_has_text(
+    if not rule_util.element_has_text(
         element.find("DiplomatSendingStateId")
-    ) and not element_has_text(element.find("DiplomatReceivingStateId")):
+    ) and not rule_util.element_has_text(
+        element.find("DiplomatReceivingStateId")
+    ):
       raise loggers.ElectionError.from_message(
           "Office with role 'diplomat' must have at least one of"
           " DiplomatSendingStateId or DiplomatReceivingStateId set.",
@@ -2661,7 +2558,7 @@ class ContestHasValidContestStage(base.BaseRule):
   def check(self, element):
     contest_stage_values = [
         contest_stage_value.strip()
-        for contest_stage_value in get_external_id_values(
+        for contest_stage_value in rule_util.get_external_id_values(
             element, "contest-stage"
         )
     ]
@@ -2931,7 +2828,7 @@ class ElectionTypesAndCandidateContestTypesAreCompatible(base.BaseRule):
     return {
         element.text.strip().lower()
         for element in elements
-        if element_has_text(element)
+        if rule_util.element_has_text(element)
     }
 
   def elements(self):
@@ -2992,13 +2889,13 @@ class DateStatusMatches(base.DateRule):
     election_date_status = "confirmed"  # default value
     election_status_elem = election_elem.find("ElectionDateStatus")
 
-    if element_has_text(election_status_elem):
+    if rule_util.element_has_text(election_status_elem):
       election_date_status = election_status_elem.text.strip()
 
     contest_statuses = set()
     for contest_elem in self.get_elements_by_class(election_elem, "Contest"):
       contest_status_elem = contest_elem.find("ContestDateStatus")
-      if element_has_text(contest_status_elem):
+      if rule_util.element_has_text(contest_status_elem):
         contest_statuses.add(contest_status_elem.text.strip())
       else:
         contest_statuses.add("confirmed")
@@ -3074,7 +2971,9 @@ class OfficeHolderTenureTermDates(base.DateRule):
   def check(self, element):
     start_date = element.find("StartDate")
     end_date = element.find("EndDate")
-    if element_has_text(start_date) and element_has_text(end_date):
+    if rule_util.element_has_text(start_date) and rule_util.element_has_text(
+        end_date
+    ):
       start_date_obj = base.PartialDate.init_partial_date(start_date.text)
       end_date_obj = base.PartialDate.init_partial_date(end_date.text)
       if end_date_obj < start_date_obj:
@@ -3118,7 +3017,7 @@ class OfficeTermDates(base.DateRule):
         raise loggers.ElectionError(self.error_log)
     else:
       off_per_id = element.find("OfficeHolderPersonIds")
-      if element_has_text(off_per_id):
+      if rule_util.element_has_text(off_per_id):
         term = element.find("Term")
         if term is None:
           raise loggers.ElectionWarning.from_message(
@@ -3301,15 +3200,17 @@ class UniqueStartDatesForOfficeRoleAndJurisdiction(base.BaseRule):
       start_date = ""
 
       start_date_elem = office.find(".//Term//StartDate")
-      if not element_has_text(start_date_elem):
+      if not rule_util.element_has_text(start_date_elem):
         continue
       start_date = start_date_elem.text
 
-      office_roles = get_entity_info_for_value_type(office, "office-role")
+      office_roles = rule_util.get_entity_info_for_value_type(
+          office, "office-role"
+      )
       if office_roles:
         office_role = office_roles[0]
 
-      jurisdiction_ids = get_entity_info_for_value_type(
+      jurisdiction_ids = rule_util.get_entity_info_for_value_type(
           office, "jurisdiction-id"
       )
       if jurisdiction_ids:
@@ -3460,11 +3361,13 @@ class FullTextOrBallotText(base.BaseRule):
     return ["BallotMeasureContest"]
 
   def check(self, element):
-    full_text_map = get_language_to_text_map(element.find("FullText"))
+    full_text_map = rule_util.get_language_to_text_map(element.find("FullText"))
     if not full_text_map:
       return
 
-    ballot_text_map = get_language_to_text_map(element.find("BallotText"))
+    ballot_text_map = rule_util.get_language_to_text_map(
+        element.find("BallotText")
+    )
     for language, full_text_strings in full_text_map.items():
       full_text_string = full_text_strings[0]
       if (
@@ -3487,13 +3390,17 @@ class BallotTitle(base.BaseRule):
     return ["BallotMeasureContest"]
 
   def check(self, element):
-    ballot_title_map = get_language_to_text_map(element.find("BallotTitle"))
+    ballot_title_map = rule_util.get_language_to_text_map(
+        element.find("BallotTitle")
+    )
     if not ballot_title_map:
       raise loggers.ElectionError.from_message(
           "BallotMeasureContest is missing BallotTitle.", [element]
       )
 
-    ballot_text_map = get_language_to_text_map(element.find("BallotText"))
+    ballot_text_map = rule_util.get_language_to_text_map(
+        element.find("BallotText")
+    )
     if not ballot_text_map:
       msg = (
           "BallotText is missing. Please confirm that the ballot "
@@ -3592,7 +3499,7 @@ class WinnerCountLimit(base.BaseRule):
     for candidate in candidates:
       object_id = candidate.get("objectId")
       post_election_status = candidate.find("PostElectionStatus")
-      if object_id and element_has_text(post_election_status):
+      if object_id and rule_util.element_has_text(post_election_status):
         candidate_post_election_status_by_object_id[object_id] = (
             post_election_status.text.strip()
         )
@@ -3605,14 +3512,14 @@ class WinnerCountLimit(base.BaseRule):
     number_elected_element = element.find("NumberElected")
     number_elected = (
         int(number_elected_element.text)
-        if element_has_text(number_elected_element)
+        if rule_util.element_has_text(number_elected_element)
         else 1
     )
 
     candidate_ids_elements = element.findall("BallotSelection//CandidateIds")
     candidate_ids = set()
     for candidate_ids_element in candidate_ids_elements:
-      if element_has_text(candidate_ids_element):
+      if rule_util.element_has_text(candidate_ids_element):
         candidate_ids.update(candidate_ids_element.text.split())
 
     winner_count = 0
@@ -3706,7 +3613,7 @@ class PartySpanMultipleCountries(base.BaseRule):
     self.existing_gpunits = dict()
     country_pattern = re.compile(r"^ocd-division\/country:[a-z]{2}")
     for gpunit in self.get_elements_by_class(election_tree, "GpUnit"):
-      ocd_ids = get_external_id_values(gpunit, "ocd-id")
+      ocd_ids = rule_util.get_external_id_values(gpunit, "ocd-id")
       if ocd_ids:
         country_match = country_pattern.search(ocd_ids[0])
         if country_match:
@@ -3852,7 +3759,7 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
 
     for contest_id, contest in contest_by_id.items():
       element = contest.find("SubsequentContestId")
-      if not element_has_text(element):
+      if not rule_util.element_has_text(element):
         continue
       subsequent_contest_id = element.text.strip()
 
@@ -3887,10 +3794,10 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
       contest_office_id = None
       subsequent_contest_office_id = None
       element = contest.find("OfficeIds")
-      if element_has_text(element):
+      if rule_util.element_has_text(element):
         contest_office_id = element.text
       element = subsequent_contest.find("OfficeIds")
-      if element_has_text(element):
+      if rule_util.element_has_text(element):
         subsequent_contest_office_id = element.text
 
       if contest_office_id != subsequent_contest_office_id:
@@ -3908,10 +3815,10 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
       contest_primary_party_ids = None
       subsequent_contest_primary_party_ids = None
       element = contest.find("PrimaryPartyIds")
-      if element_has_text(element):
+      if rule_util.element_has_text(element):
         contest_primary_party_ids = set(element.text.split())
       element = subsequent_contest.find("PrimaryPartyIds")
-      if element_has_text(element):
+      if rule_util.element_has_text(element):
         subsequent_contest_primary_party_ids = set(element.text.split())
 
       if (
@@ -3929,7 +3836,7 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
 
       # Check that there is not a subsequent contest <-> composing contest loop
       element = subsequent_contest.find("ComposingContestIds")
-      if element_has_text(element):
+      if rule_util.element_has_text(element):
         subsequent_composing_ids = element.text.split()
         if contest_id in subsequent_composing_ids:
           error_log.append(
@@ -3967,7 +3874,7 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
     composing_contests = {}
     for contest_id, contest in contest_ids.items():
       element = contest.find("ComposingContestIds")
-      if not element_has_text(element):
+      if not rule_util.element_has_text(element):
         continue
       composing_contests[contest_id] = element.text.split()
 
@@ -4004,10 +3911,10 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
         c_office_id = None
         cc_office_id = None
         element = contest.find("OfficeIds")
-        if element_has_text(element):
+        if rule_util.element_has_text(element):
           c_office_id = element.text
         element = composing_contest.find("OfficeIds")
-        if element_has_text(element):
+        if rule_util.element_has_text(element):
           cc_office_id = element.text
 
         if c_office_id != cc_office_id:
@@ -4022,10 +3929,10 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
         c_primary_party_ids = None
         cc_primary_party_ids = None
         element = contest.find("PrimaryPartyIds")
-        if element_has_text(element):
+        if rule_util.element_has_text(element):
           c_primary_party_ids = set(element.text.split())
         element = composing_contest.find("PrimaryPartyIds")
-        if element_has_text(element):
+        if rule_util.element_has_text(element):
           cc_primary_party_ids = set(element.text.split())
 
         if c_primary_party_ids != cc_primary_party_ids:
@@ -4059,7 +3966,7 @@ class MultipleInternationalizedTextWithSameLanguageCode(base.BaseRule):
     return _INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE
 
   def check(self, element):
-    language_map = get_language_to_text_map(element)
+    language_map = rule_util.get_language_to_text_map(element)
 
     for language, texts in language_map.items():
       if len(texts) > 1:
@@ -4075,7 +3982,7 @@ class AllInternationalizedTextHaveEnVersion(base.BaseRule):
     return list(self.get_element_names_for_type("InternationalizedText"))
 
   def check(self, element):
-    language_map = get_language_to_text_map(element)
+    language_map = rule_util.get_language_to_text_map(element)
     if "en" not in language_map:
       raise loggers.ElectionInfo.from_message(
           message='No "english" version found for the InternationalizedText.',
@@ -4168,7 +4075,7 @@ class ContestEndDateOccursBeforeSubsequentContestStartDate(base.DateRule):
     for contest_id, contest in contest_by_contest_id.items():
       # ignore contests that don't have a subsequent contest
       subsequent_element = contest.find("SubsequentContestId")
-      if not element_has_text(subsequent_element):
+      if not rule_util.element_has_text(subsequent_element):
         continue
       # ignore invalid subsequent contest ids
       subsequent_contest_id = subsequent_element.text.strip()
@@ -4234,9 +4141,9 @@ class ValidatePollsCloseDatetimes(base.BaseRule):
     earliest_polls_close_element = element.find("EarliestPollsClose")
     latest_polls_close_element = element.find("LatestPollsClose")
 
-    if not element_has_text(
+    if not rule_util.element_has_text(
         earliest_polls_close_element
-    ) or not element_has_text(latest_polls_close_element):
+    ) or not rule_util.element_has_text(latest_polls_close_element):
       return
 
     earliest_polls_close_text = earliest_polls_close_element.text.strip()
@@ -4277,7 +4184,7 @@ class ValidateResultsExpected(base.BaseRule):
 
   def check(self, element):
     results_expected_element = element.find("ResultsExpected")
-    if not element_has_text(results_expected_element):
+    if not rule_util.element_has_text(results_expected_element):
       return
 
     results_expected_text = results_expected_element.text.strip()
@@ -4300,13 +4207,13 @@ class ValidateResultsExpected(base.BaseRule):
     for stage in stage_collection.findall("ResultsReportingStage"):
       stage_type_element = stage.find("StageType")
       if (
-          element_has_text(stage_type_element)
+          rule_util.element_has_text(stage_type_element)
           and stage_type_element.text.strip() == "no-results"
       ):
         continue
 
       start_element = stage.find("ExpectedStartDateTime")
-      if not element_has_text(start_element):
+      if not rule_util.element_has_text(start_element):
         continue
 
       start_text = start_element.text.strip()
@@ -4340,7 +4247,7 @@ class ValidateResultsEmbargoEnd(base.BaseRule):
 
   def check(self, element):
     results_embargo_end_element = element.find("ResultsEmbargoEnd")
-    if not element_has_text(results_embargo_end_element):
+    if not rule_util.element_has_text(results_embargo_end_element):
       return
 
     results_embargo_end_text = results_embargo_end_element.text.strip()
@@ -4365,11 +4272,11 @@ class ValidateResultsEmbargoEnd(base.BaseRule):
     for stage in stage_collection.findall("ResultsReportingStage"):
       stage_type_element = stage.find("StageType")
       if (
-          element_has_text(stage_type_element)
+          rule_util.element_has_text(stage_type_element)
           and stage_type_element.text.strip() == "official"
       ):
         start_element = stage.find("ExpectedStartDateTime")
-        if not element_has_text(start_element):
+        if not rule_util.element_has_text(start_element):
           continue
 
         start_text = start_element.text.strip()
@@ -4404,7 +4311,7 @@ class ResultsReportingStagesMustHaveUniqueType(base.BaseRule):
     stages_by_type = collections.defaultdict(list)
     for stage in element.findall("ResultsReportingStage"):
       stage_type_element = stage.find("StageType")
-      if element_has_text(stage_type_element):
+      if rule_util.element_has_text(stage_type_element):
         stage_type = stage_type_element.text.strip()
         stages_by_type[stage_type].append(stage)
 
@@ -4432,7 +4339,7 @@ class ValidateResultReportingStages(base.BaseRule):
     composing_contest_ids = set()
     for contest in self.get_elements_by_class(self.election_tree, "Contest"):
       composing_contest_ids_element = contest.find("ComposingContestIds")
-      if element_has_text(composing_contest_ids_element):
+      if rule_util.element_has_text(composing_contest_ids_element):
         composing_contest_ids.update(composing_contest_ids_element.text.split())
     return composing_contest_ids
 
@@ -4440,7 +4347,7 @@ class ValidateResultReportingStages(base.BaseRule):
     return ["ResultsReportingStageCollection"]
 
   def check(self, element):
-    inherit_from_composed = _is_xml_true(
+    inherit_from_composed = rule_util.is_xml_true(
         element.find("InheritFromComposedContest")
     )
     stages = element.findall("ResultsReportingStage")
@@ -4482,7 +4389,7 @@ class ValidateResultReportingStages(base.BaseRule):
     stage_types = set()
     for stage in stages:
       stage_type_element = stage.find("StageType")
-      if element_has_text(stage_type_element):
+      if rule_util.element_has_text(stage_type_element):
         stage_types.add(stage_type_element.text.strip())
 
     if (
@@ -4516,7 +4423,7 @@ class CandidateContestTypesAreCompatible(base.BaseRule):
       contest_types = {
           type_element.text.strip().lower()
           for type_element in contest_type_elements
-          if element_has_text(type_element)
+          if rule_util.element_has_text(type_element)
       }
       if "general" in contest_types and primary_types.intersection(
           contest_types
@@ -4576,7 +4483,7 @@ class EinMatchesFormat(base.BaseRule):
   def check(self, element):
     external_identifiers = element.find("ExternalIdentifiers")
     if external_identifiers is not None:
-      ein_ids = get_external_id_values(external_identifiers, "ein")
+      ein_ids = rule_util.get_external_id_values(external_identifiers, "ein")
       if ein_ids:
         e_id = ein_ids.pop()
         if not self.ein_id_matcher.match(e_id):
@@ -4612,9 +4519,9 @@ class FeedTypeHasValidFeedLongevity(base.BaseRule):
   def check(self, element):
     feed_type_element = element.find("FeedType")
     feed_longevity_element = element.find("FeedLongevity")
-    if element_has_text(feed_type_element) and element_has_text(
-        feed_longevity_element
-    ):
+    if rule_util.element_has_text(
+        feed_type_element
+    ) and rule_util.element_has_text(feed_longevity_element):
       feed_type = feed_type_element.text.lower().replace("_", "-")
       feed_longevity = feed_longevity_element.text.lower().replace("_", "-")
       if (
@@ -4643,7 +4550,7 @@ class FeedIdsAreUnique(base.BaseRule):
     feed_ids = set()
     error_log = []
     for feed_element in element.findall("Feed"):
-      if element_has_text(feed_element.find("FeedId")):
+      if rule_util.element_has_text(feed_element.find("FeedId")):
         feed_id = feed_element.find("FeedId").text
         if feed_id in feed_ids:
           msg = (
@@ -4672,7 +4579,7 @@ class SourceDirPathsAreUnique(base.BaseRule):
     source_dir_paths = set()
     error_log = []
     for feed_element in element.findall("Feed"):
-      if element_has_text(feed_element.find("SourceDirPath")):
+      if rule_util.element_has_text(feed_element.find("SourceDirPath")):
         source_dir_path = feed_element.find("SourceDirPath").text
         if source_dir_path in source_dir_paths:
           msg = (
@@ -4705,13 +4612,13 @@ class SqsQueueNameIsFullyQualifiedArn(base.BaseRule):
 
   def check(self, element):
     sqs_queue_name = element.find("SqsQueueName")
-    if not element_has_text(sqs_queue_name):
+    if not rule_util.element_has_text(sqs_queue_name):
       return
     queue_name = sqs_queue_name.text.strip()
     feed_id_element = element.find("FeedId")
     feed_id = (
         feed_id_element.text.strip()
-        if element_has_text(feed_id_element)
+        if rule_util.element_has_text(feed_id_element)
         else ""
     )
 
@@ -4754,10 +4661,10 @@ class SqsQueueNameRequiresS3SourceDirPath(base.BaseRule):
 
   def check(self, element):
     sqs_queue_name = element.find("SqsQueueName")
-    if not element_has_text(sqs_queue_name):
+    if not rule_util.element_has_text(sqs_queue_name):
       return
     source_dir_path = element.find("SourceDirPath")
-    if not element_has_text(
+    if not rule_util.element_has_text(
         source_dir_path
     ) or not source_dir_path.text.strip().lower().startswith("s3://"):
       raise loggers.ElectionError.from_message(
@@ -4777,7 +4684,10 @@ class ElectionEventDatesAreSequential(base.DateRule):
     self.reset_instance_vars()
     self.gather_dates(element)
     self.check_end_after_start()
-    if element_has_text(element.find("FullDeliveryDate")) and self.start_date:
+    if (
+        rule_util.element_has_text(element.find("FullDeliveryDate"))
+        and self.start_date
+    ):
       full_delivery_date = base.PartialDate.init_partial_date(
           element.find("FullDeliveryDate").text
       )
@@ -4788,9 +4698,9 @@ class ElectionEventDatesAreSequential(base.DateRule):
                 [element],
             )
         )
-    if element_has_text(
+    if rule_util.element_has_text(
         element.find("InitialDeliveryDate")
-    ) and element_has_text(element.find("FullDeliveryDate")):
+    ) and rule_util.element_has_text(element.find("FullDeliveryDate")):
       initial_delivery_date = base.PartialDate.init_partial_date(
           element.find("InitialDeliveryDate").text
       )
@@ -4816,7 +4726,7 @@ class SourceDirPathMustBeSetAfterInitialDeliveryDate(base.BaseRule):
     return ["Feed"]
 
   def check(self, element):
-    if element_has_text(element.find("SourceDirPath")):
+    if rule_util.element_has_text(element.find("SourceDirPath")):
       return
     today = datetime.date.today()
     today_partial_date = base.PartialDate(
@@ -4826,7 +4736,7 @@ class SourceDirPathMustBeSetAfterInitialDeliveryDate(base.BaseRule):
     for initial_delivery in initial_deliveries:
       initial_delivery_date = (
           base.PartialDate.init_partial_date(initial_delivery.text)
-          if element_has_text(initial_delivery)
+          if rule_util.element_has_text(initial_delivery)
           else None
       )
       if initial_delivery_date and initial_delivery_date < today_partial_date:
@@ -4844,9 +4754,9 @@ class OfficeholderSubFeedDatesAreSequential(base.DateRule):
     return ["OfficeholderSubFeed"]
 
   def check(self, element):
-    if element_has_text(
+    if rule_util.element_has_text(
         element.find("InitialDeliveryDate")
-    ) and element_has_text(element.find("FullDeliveryDate")):
+    ) and rule_util.element_has_text(element.find("FullDeliveryDate")):
       initial_delivery_date = base.PartialDate.init_partial_date(
           element.find("InitialDeliveryDate").text
       )
@@ -4870,10 +4780,10 @@ class FeedInactiveDateIsLatestDate(base.BaseRule):
 
   def check(self, element):
     # Skip this rule for test feeds.
-    if _is_xml_true(element.find("IsTest")):
+    if rule_util.is_xml_true(element.find("IsTest")):
       return
 
-    if element_has_text(element.find("FeedInactiveDate")):
+    if rule_util.element_has_text(element.find("FeedInactiveDate")):
       feed_inactive_date = base.PartialDate.init_partial_date(
           element.find("FeedInactiveDate").text
       )
@@ -4887,14 +4797,14 @@ class FeedInactiveDateIsLatestDate(base.BaseRule):
               [element],
           )
       for election_event_element in element.iter("ElectionEvent"):
-        if element_has_text(
+        if rule_util.element_has_text(
             election_event_element.find("ElectionDateStatus")
         ) and (
             election_event_element.find("ElectionDateStatus").text
             in self.ignorable_election_date_statuses
         ):
           continue
-        if element_has_text(election_event_element.find("EndDate")):
+        if rule_util.element_has_text(election_event_element.find("EndDate")):
           end_date_element = election_event_element.find("EndDate")
           end_date = base.PartialDate.init_partial_date(end_date_element.text)
           if feed_inactive_date < end_date:
@@ -4912,16 +4822,16 @@ class FeedHasValidCountryCode(base.BaseRule):
 
   def check(self, element):
     country_code_element = element.find("CountryCode")
-    if element_has_text(country_code_element):
+    if rule_util.element_has_text(country_code_element):
       country_code = country_code_element.text.upper()
-      if not country_code_is_valid(country_code):
+      if not rule_util.country_code_is_valid(country_code):
         raise loggers.ElectionError.from_message(
             "Invalid country code {}.".format(country_code),
             [element],
         )
     else:
       feed_type = element.find("FeedType")
-      if element_has_text(feed_type) and (
+      if rule_util.element_has_text(feed_type) and (
           feed_type.text.lower().replace("_", "-") == "election-dates"
           or feed_type.text.lower().replace("_", "-") == "voter-information"
       ):
@@ -4940,7 +4850,7 @@ class FeedInactiveDateNotOlderThanOneYear(base.BaseRule):
 
   def check(self, element):
     feed_inactive_date_element = element.find("FeedInactiveDate")
-    if not element_has_text(feed_inactive_date_element):
+    if not rule_util.element_has_text(feed_inactive_date_element):
       return
     feed_inactive_date = datetime.date.fromisoformat(
         feed_inactive_date_element.text
@@ -4966,9 +4876,9 @@ class FeedInactiveDateSetForNonEvergreenFeed(base.BaseRule):
   def check(self, element):
     feed_longevity = element.find("FeedLongevity")
     if (
-        element_has_text(feed_longevity)
+        rule_util.element_has_text(feed_longevity)
         and feed_longevity.text.lower() != "evergreen"
-        and not element_has_text(element.find("FeedInactiveDate"))
+        and not rule_util.element_has_text(element.find("FeedInactiveDate"))
     ):
       raise loggers.ElectionError.from_message(
           "FeedInactiveDate is not set for non-evergreen feed with FeedId {}."
@@ -5008,7 +4918,7 @@ class UnreferencedEntitiesBase(base.TreeRule):
     referenced_entities = set()
     for external_id_type in _IDREF_EXTERNAL_IDENTIFIERS:
       referenced_entities.update(
-          get_external_id_values(self.election_tree, external_id_type)
+          rule_util.get_external_id_values(self.election_tree, external_id_type)
       )
     idref_elements = self.get_element_names_for_types(_IDREF_TYPES)
     for _, element in etree.iterwalk(self.election_tree):
@@ -5101,8 +5011,8 @@ class DeprecatedPartyLeadershipSchema(base.BaseRule):
     return ["Party"]
 
   def check(self, element):
-    if len(get_external_id_values(element, "party-leader-id")) or len(
-        get_external_id_values(element, "party-chair-id")
+    if len(rule_util.get_external_id_values(element, "party-leader-id")) or len(
+        rule_util.get_external_id_values(element, "party-chair-id")
     ):
       raise loggers.ElectionError.from_message(
           "Specifying party leadership via external identifiers is deprecated."
@@ -5238,7 +5148,7 @@ class FeedElementsShouldHaveSubElementsBasedOnType(base.BaseRule):
     feed_type = element.find("FeedType")
     feed_id = element.find("FeedId").text
 
-    if not element_has_text(feed_type):
+    if not rule_util.element_has_text(feed_type):
       return
 
     feed_type = feed_type.text
@@ -5274,7 +5184,7 @@ class NotEmptyUniqueDataSourceUris(base.BaseRule):
     for data_source in element.findall("DataSource"):
       datasource_id = data_source.get("objectId")
       for uri_element in data_source.findall("Uri"):
-        if not element_has_text(uri_element):
+        if not rule_util.element_has_text(uri_element):
           error_log.append(
               loggers.LogEntry(
                   "DataSource {} has an empty Uri.".format(datasource_id),
@@ -5361,7 +5271,7 @@ class UniqueDataSourceDisplayNames(base.BaseRule):
       data_source_id = data_source.get("objectId")
       display_name_element = data_source.find("DisplayName")
       for text_element in display_name_element.findall("Text"):
-        if not element_has_text(text_element):
+        if not rule_util.element_has_text(text_element):
           error_log.append(
               loggers.LogEntry(
                   "DataSource {} has a DisplayName element without"
@@ -5404,7 +5314,9 @@ def _get_attribution_depth(element):
 def _get_datasource_id(element):
   """Helper to safely extract and strip the text of the DataSourceId child."""
   ds_element = element.find("DataSourceId")
-  return ds_element.text.strip() if element_has_text(ds_element) else ""
+  return (
+      ds_element.text.strip() if rule_util.element_has_text(ds_element) else ""
+  )
 
 
 class AttributionDepthLimit(base.BaseRule):
@@ -5524,7 +5436,7 @@ class ValidateSpecialBallotSelectionCountedInTotal(base.BaseRule):
         "BlankBallotSelection",
         "NullBallotSelection",
         "NoneOfTheAboveBallotSelection",
-    ) and not element_has_text(counted_in_total):
+    ) and not rule_util.element_has_text(counted_in_total):
       raise loggers.ElectionError.from_message(
           f"{tag} must have an explicit value for CountedInTotal.",
           [element],
@@ -5558,7 +5470,7 @@ class ValidateIncludeInAggregationBallotSelections(base.BaseRule):
 
     for vote_counts in vote_counts_collection.findall("VoteCounts"):
       count_element = vote_counts.find("Count")
-      if not element_has_text(count_element):
+      if not rule_util.element_has_text(count_element):
         continue
       count = float(count_element.text)
 
@@ -5566,7 +5478,7 @@ class ValidateIncludeInAggregationBallotSelections(base.BaseRule):
       gp_unit_id_element = vote_counts.find("GpUnitId")
       gp_unit_id = (
           gp_unit_id_element.text.strip()
-          if element_has_text(gp_unit_id_element)
+          if rule_util.element_has_text(gp_unit_id_element)
           else ""
       )
 
@@ -5586,7 +5498,7 @@ class ValidateIncludeInAggregationBallotSelections(base.BaseRule):
 
     included_selections = []
     for selection in all_selections:
-      if _is_xml_true(selection.find("IncludedInAggregation")):
+      if rule_util.is_xml_true(selection.find("IncludedInAggregation")):
         included_selections.append(selection)
     if not included_selections:
       return
