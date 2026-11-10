@@ -23,6 +23,7 @@ from botocore import utils as botocore_utils
 from civics_cdf_validator import base
 from civics_cdf_validator import loggers
 from civics_cdf_validator.rulesets import common_rules
+from civics_cdf_validator.rulesets import election_dates_rules
 from civics_cdf_validator.rulesets import election_rules
 from civics_cdf_validator.rulesets import officeholder_rules
 from civics_cdf_validator.rulesets import rule_util
@@ -489,22 +490,6 @@ class FeedInactiveDateSetForNonEvergreenFeed(base.BaseRule):
       )
 
 
-class UnreferencedEntitiesElectionDates(common_rules.UnreferencedEntitiesBase):
-  """CDF elections and contests are top-level in election dates feeds.
-
-  All other entity types must be referenced.
-  """
-
-  def __init__(self, election_tree, schema_tree, **kwargs):
-    super(UnreferencedEntitiesElectionDates, self).__init__(
-        election_tree,
-        schema_tree,
-        frozenset(["Election", "Contest"]),
-        frozenset([]),
-        **kwargs,
-    )
-
-
 class ElectoralCommissionCollectionExists(base.BaseRule):
   """ElectoralCommissionCollection should exist."""
 
@@ -673,6 +658,7 @@ class RuleSet(enum.Enum):
 COMMON_RULES = common_rules.COMMON_RULES
 OFFICEHOLDER_RULES = officeholder_rules.OFFICEHOLDER_RULES
 ELECTION_RULES = election_rules.ELECTION_RULES
+ELECTION_DATES_RULES = election_dates_rules.ELECTION_DATES_RULES
 
 
 COMMITTEE_RULES = COMMON_RULES + (
@@ -685,7 +671,6 @@ COMMITTEE_RULES = COMMON_RULES + (
     # go/keep-sorted end
 )
 
-ELECTION_DATES_RULES = ELECTION_RULES + (UnreferencedEntitiesElectionDates,)
 
 METADATA_RULES = (
     # go/keep-sorted start

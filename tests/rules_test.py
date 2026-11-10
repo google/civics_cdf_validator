@@ -12,6 +12,7 @@ from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator import rules
 from civics_cdf_validator.rulesets import common_rules
+from civics_cdf_validator.rulesets import election_dates_rules
 from civics_cdf_validator.rulesets import election_rules
 from civics_cdf_validator.rulesets import officeholder_rules
 from civics_cdf_validator.rulesets import rule_util
@@ -13695,7 +13696,7 @@ class UnreferencedEntitiesElectionDatesTest(absltest.TestCase):
   """
 
     with self.assertRaises(loggers.ElectionInfo) as context:
-      rules.UnreferencedEntitiesElectionDates(
+      election_dates_rules.UnreferencedEntitiesElectionDates(
           etree.fromstring(test_string), etree.fromstring(schema_string)
       ).check()
     self.assertEqual(
@@ -13713,7 +13714,7 @@ class UnreferencedEntitiesElectionDatesTest(absltest.TestCase):
     """
 
     with self.assertRaises(loggers.ElectionError) as context:
-      rules.UnreferencedEntitiesElectionDates(
+      election_dates_rules.UnreferencedEntitiesElectionDates(
           etree.fromstring(test_string), self._base_schema
       ).check()
     self.assertEqual(
@@ -13729,7 +13730,7 @@ class UnreferencedEntitiesElectionDatesTest(absltest.TestCase):
     """
 
     with self.assertRaises(loggers.ElectionError) as context:
-      rules.UnreferencedEntitiesElectionDates(
+      election_dates_rules.UnreferencedEntitiesElectionDates(
           etree.fromstring(test_string), self._base_schema
       ).check()
     self.assertEqual(
@@ -13748,7 +13749,7 @@ class UnreferencedEntitiesElectionDatesTest(absltest.TestCase):
     </Election>
     """
 
-    rules.UnreferencedEntitiesElectionDates(
+    election_dates_rules.UnreferencedEntitiesElectionDates(
         etree.fromstring(test_string), self._base_schema
     ).check()
 
@@ -13774,7 +13775,7 @@ class UnreferencedEntitiesElectionDatesTest(absltest.TestCase):
     </xs:schema>
   """
 
-    rules.UnreferencedEntitiesElectionDates(
+    election_dates_rules.UnreferencedEntitiesElectionDates(
         etree.fromstring(test_string), etree.fromstring(schema_string)
     ).check()
 
@@ -13811,7 +13812,7 @@ class UnreferencedEntitiesElectionDatesTest(absltest.TestCase):
     </xs:schema>
   """
 
-    rules.UnreferencedEntitiesElectionDates(
+    election_dates_rules.UnreferencedEntitiesElectionDates(
         etree.fromstring(test_string), etree.fromstring(schema_string)
     ).check()
 
