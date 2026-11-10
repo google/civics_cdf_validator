@@ -11,6 +11,7 @@ from civics_cdf_validator import base
 from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator import rules
+from civics_cdf_validator.rulesets import common_rules
 from civics_cdf_validator.rulesets import rule_util
 import freezegun
 from lxml import etree
@@ -265,7 +266,7 @@ class SchemaTest(absltest.TestCase):
       </Report>
     """
     election_tree = etree.fromstring(root_string)
-    validator = rules.Schema(election_tree, SchemaTest._schema_tree)
+    validator = common_rules.Schema(election_tree, SchemaTest._schema_tree)
 
     validator.check()
 
@@ -276,7 +277,7 @@ class SchemaTest(absltest.TestCase):
       </xs:schema>
     """)
     election_tree = etree.fromstring("<Report/>")
-    validator = rules.Schema(election_tree, schema_tree)
+    validator = common_rules.Schema(election_tree, schema_tree)
 
     with self.assertRaises(loggers.ElectionError) as context:
       validator.check()
@@ -294,7 +295,7 @@ class SchemaTest(absltest.TestCase):
       </Person>
     """
     election_tree = etree.fromstring(root_string)
-    validator = rules.Schema(election_tree, SchemaTest._schema_tree)
+    validator = common_rules.Schema(election_tree, SchemaTest._schema_tree)
 
     with self.assertRaises(loggers.ElectionError) as context:
       validator.check()
@@ -308,7 +309,7 @@ class OptionalAndEmptyTest(absltest.TestCase):
 
   def setUp(self):
     super(OptionalAndEmptyTest, self).setUp()
-    self.validator = rules.OptionalAndEmpty(None, None)
+    self.validator = common_rules.OptionalAndEmpty(None, None)
 
   def test_optional_elements_succeeds(self):
     schema_tree = etree.fromstring(b"""
@@ -319,7 +320,7 @@ class OptionalAndEmptyTest(absltest.TestCase):
         <simpleType minOccurs="0" />
       </element>
     """)
-    self.validator = rules.OptionalAndEmpty(None, schema_tree)
+    self.validator = common_rules.OptionalAndEmpty(None, schema_tree)
     eligible_elements = self.validator.elements()
 
     self.assertEqual(eligible_elements, ["ThingOne", "ThingThree"])
@@ -371,7 +372,7 @@ class EncodingTest(absltest.TestCase):
       <Report/>
     """)
     election_tree = etree.parse(root_string)
-    validator = rules.Encoding(election_tree, None)
+    validator = common_rules.Encoding(election_tree, None)
 
     validator.check()
 
@@ -380,7 +381,7 @@ class EncodingTest(absltest.TestCase):
       <Report/>
     """)
     election_tree = etree.parse(root_string)
-    validator = rules.Encoding(election_tree, None)
+    validator = common_rules.Encoding(election_tree, None)
 
     with self.assertRaises(loggers.ElectionError) as context:
       validator.check()
@@ -393,7 +394,7 @@ class LanguageCodeTest(absltest.TestCase):
 
   def setUp(self):
     super(LanguageCodeTest, self).setUp()
-    self.validator = rules.LanguageCode(None, None)
+    self.validator = common_rules.LanguageCode(None, None)
 
   def test_target_elements_succeeds(self):
     self.assertEqual(self.validator.elements(), ["Text", "Uri"])
@@ -573,7 +574,7 @@ class EmptyTextTest(absltest.TestCase):
 
   def setUp(self):
     super(EmptyTextTest, self).setUp()
-    self.validator = rules.EmptyText(None, None)
+    self.validator = common_rules.EmptyText(None, None)
 
   def test_text_elements_succeeds(self):
     self.assertEqual(["Text"], self.validator.elements())
@@ -630,7 +631,7 @@ class EmptyStringTest(absltest.TestCase):
         </xs:element>
       </xs:schema>
     """)
-    self.validator = rules.EmptyString(None, schema_tree)
+    self.validator = common_rules.EmptyString(None, schema_tree)
 
   def test_non_empty_string_succeeds(self):
     element_string = "<FirstName>Jerry</FirstName>"
@@ -682,7 +683,7 @@ class DuplicateIDTest(absltest.TestCase):
       </Report>
     """
     election_tree = etree.fromstring(root_string)
-    validator = rules.DuplicateID(election_tree, None)
+    validator = common_rules.DuplicateID(election_tree, None)
 
     validator.check()
 
@@ -697,7 +698,7 @@ class DuplicateIDTest(absltest.TestCase):
       </Report>
     """
     election_tree = etree.fromstring(root_string)
-    validator = rules.DuplicateID(election_tree, None)
+    validator = common_rules.DuplicateID(election_tree, None)
 
     with self.assertRaises(loggers.ElectionError):
       validator.check()
@@ -713,7 +714,7 @@ class GpUnitOcdIdTest(parameterized.TestCase):
         local_file=None,
         ocd_id_list=["ocd-division/country:us/state:va"],
     )
-    self.gp_unit_ocd_id_validator = rules.GpUnitOcdId(
+    self.gp_unit_ocd_id_validator = common_rules.GpUnitOcdId(
         None,
         None,
         ocd_id_validator=self.ocd_id_validator,
@@ -801,7 +802,7 @@ class GpUnitOcdIdTest(parameterized.TestCase):
 
     self.gp_unit_ocd_id_validator.check(elements)
 
-  @parameterized.parameters(*rules._GPUNIT_TYPES_WITHOUT_OCD_IDS)
+  @parameterized.parameters(*common_rules._GPUNIT_TYPES_WITHOUT_OCD_IDS)
   def test_gp_unit_without_ocd_id_is_valid_for_type_succeeds(self, gpunit_type):
     ocd_id_string = f"""
     <GpUnit objectId="1234567890">
@@ -825,7 +826,7 @@ class DuplicatedGpUnitOcdIdTest(absltest.TestCase):
 
   def setUp(self):
     super(DuplicatedGpUnitOcdIdTest, self).setUp()
-    self.validator = rules.DuplicatedGpUnitOcdId(None, None)
+    self.validator = common_rules.DuplicatedGpUnitOcdId(None, None)
 
   def test_gp_unit_collection_ocd_id_duplicate_fails(self):
     ocd_id_string = """
@@ -982,7 +983,7 @@ class ValidIDREFTest(absltest.TestCase):
         "PersonId": "Person",
         "ElectoralDistrictId": "GpUnit",
     }
-    validator = rules.ValidIDREF(None, None)
+    validator = common_rules.ValidIDREF(None, None)
     obj_id_mock = MagicMock(return_value=expected_obj_id_mapping)
     validator._gather_object_ids_by_type = obj_id_mock
     elem_ref_mock = MagicMock(return_value=expected_elem_ref_mapping)
@@ -997,7 +998,7 @@ class ValidIDREFTest(absltest.TestCase):
   # _gather_object_ids_by_type test
   def test_map_of_element_types_to_set_of_object_ids_succeeds(self):
     element_tree = etree.fromstring(self._root_string)
-    validator = rules.ValidIDREF(element_tree, None)
+    validator = common_rules.ValidIDREF(element_tree, None)
     expected_id_mapping = {
         "Person": {"per001", "per002"},
         "Candidate": {"can001"},
@@ -1009,7 +1010,7 @@ class ValidIDREFTest(absltest.TestCase):
 
   # _gather_reference_mapping test
   def test_map_of_idrefs_to_reference_types_succeeds(self):
-    validator = rules.ValidIDREF(None, ValidIDREFTest._schema_tree)
+    validator = common_rules.ValidIDREF(None, ValidIDREFTest._schema_tree)
     validator.object_id_mapping = {
         "Person": {"per001", "per002"},
         "Candidate": {"can001"},
@@ -1029,7 +1030,7 @@ class ValidIDREFTest(absltest.TestCase):
   def test_the_name_of_the_reference_type_for_given_element_name_succeeds(
       self,
   ):
-    validator = rules.ValidIDREF(None, None)
+    validator = common_rules.ValidIDREF(None, None)
     validator.object_id_mapping = {
         "GpUnit": ["gp001"],
         "Party": ["par001"],
@@ -1079,7 +1080,7 @@ class ValidIDREFTest(absltest.TestCase):
 
   # elements test
   def test_list_of_keys_from_element_reference_mapping_succeeds(self):
-    validator = rules.ValidIDREF(None, None)
+    validator = common_rules.ValidIDREF(None, None)
     validator.element_reference_mapping = {
         "PersonId": "Person",
         "ElectoralDistrictId": "GpUnit",
@@ -1089,7 +1090,7 @@ class ValidIDREFTest(absltest.TestCase):
 
   # check test
   def test_idref_elements_reference_the_proper_type_succeeds(self):
-    validator = rules.ValidIDREF(None, None)
+    validator = common_rules.ValidIDREF(None, None)
     validator.object_id_mapping = {
         "Person": {"per001", "per002"},
         "GpUnit": {"gp001", "gp002"},
@@ -1120,7 +1121,7 @@ class ValidIDREFTest(absltest.TestCase):
   def test_idref_elements_fail_to_reference_the_proper_type_fails(
       self,
   ):
-    validator = rules.ValidIDREF(None, None)
+    validator = common_rules.ValidIDREF(None, None)
     validator.object_id_mapping = {
         "Person": {"per001", "per002"},
         "GpUnit": {"gp001", "gp002"},
@@ -1163,7 +1164,7 @@ class ValidIDREFTest(absltest.TestCase):
     )
 
   def test_reference_type_not_present_fails(self):
-    validator = rules.ValidIDREF(None, None)
+    validator = common_rules.ValidIDREF(None, None)
     validator.object_id_mapping = {
         "GpUnit": {"gp001", "gp002"},
     }
@@ -1197,7 +1198,7 @@ class BadCharactersInPersonFullNameTest(absltest.TestCase):
 
   def setUp(self):
     super(BadCharactersInPersonFullNameTest, self).setUp()
-    self.validator = rules.BadCharactersInPersonFullName(None, None)
+    self.validator = common_rules.BadCharactersInPersonFullName(None, None)
 
   def test_person_fullname_valid_succeeds(self):
     root_string = """
@@ -1263,7 +1264,7 @@ class DuplicateGpUnitsTest(absltest.TestCase):
 
   def setUp(self):
     super(DuplicateGpUnitsTest, self).setUp()
-    self.validator = rules.DuplicateGpUnits(None, None)
+    self.validator = common_rules.DuplicateGpUnits(None, None)
     self.root_string = """
     <GpUnitCollection>
     {}
@@ -1438,7 +1439,7 @@ class OtherTypeTest(absltest.TestCase):
 
   def setUp(self):
     super(OtherTypeTest, self).setUp()
-    self.validator = rules.OtherType(None, None)
+    self.validator = common_rules.OtherType(None, None)
 
   def test_complex_types_that_contain_other_type_element_succeeds(
       self,
@@ -1456,7 +1457,7 @@ class OtherTypeTest(absltest.TestCase):
         </xs:complexType>
       </xs:schema>
     """)
-    validator = rules.OtherType(None, schema_tree)
+    validator = common_rules.OtherType(None, schema_tree)
     eligible_elements = validator.elements()
 
     self.assertEqual(eligible_elements, ["Device"])
@@ -1843,7 +1844,7 @@ class UniqueLabelTest(absltest.TestCase):
         </xs:element>
       </xs:schema>
     """)
-    validator = rules.UniqueLabel(None, schema_tree)
+    validator = common_rules.UniqueLabel(None, schema_tree)
 
     self.assertEqual(["Directions"], validator.elements())
 
@@ -1852,14 +1853,14 @@ class UniqueLabelTest(absltest.TestCase):
       <Directions label="us-standard"/>
     """
     element = etree.fromstring(unique_element_label_string)
-    validator = rules.UniqueLabel(None, None)
+    validator = common_rules.UniqueLabel(None, None)
 
     validator.check(element)
     no_element_label_string = """
       <Directions/>
     """
     element = etree.fromstring(no_element_label_string)
-    validator = rules.UniqueLabel(None, None)
+    validator = common_rules.UniqueLabel(None, None)
     validator.check(element)
 
   def test_not_all_labels_are_unique_fails(self):
@@ -1867,7 +1868,7 @@ class UniqueLabelTest(absltest.TestCase):
       <Directions label="us-standard"/>
     """
     element = etree.fromstring(unique_element_label_string)
-    validator = rules.UniqueLabel(None, None)
+    validator = common_rules.UniqueLabel(None, None)
     validator.labels = {"us-standard"}
 
     with self.assertRaises(loggers.ElectionError):
@@ -3496,7 +3497,7 @@ class PersonHasUniqueFullNameTest(absltest.TestCase):
 
   def setUp(self):
     super(PersonHasUniqueFullNameTest, self).setUp()
-    self.validator = rules.PersonHasUniqueFullName(None, None)
+    self.validator = common_rules.PersonHasUniqueFullName(None, None)
 
   def test_empty_person_collection_raises_info(self):
     root_string = """
@@ -4053,7 +4054,7 @@ class IndependentPartyNameTest(absltest.TestCase):
 
   def setUp(self):
     super(IndependentPartyNameTest, self).setUp()
-    self.validator = rules.IndependentPartyName(None, None)
+    self.validator = common_rules.IndependentPartyName(None, None)
 
   def test_independent_party_warns(self):
     party = """
@@ -4295,7 +4296,7 @@ class ValidStableIDTest(absltest.TestCase):
       </ExternalIdentifiers>
     """
     self.stable_string = "<OtherType>stable</OtherType>"
-    self.validator = rules.ValidStableID(None, None)
+    self.validator = common_rules.ValidStableID(None, None)
 
   def test_valid_stable_id_succeeds(self):
     test_string = self.root_string.format(
@@ -4440,7 +4441,7 @@ class UniqueStableIDTest(absltest.TestCase):
     )
     election_tree = etree.fromstring(test_string)
 
-    rules.UniqueStableID(election_tree, None).check()
+    common_rules.UniqueStableID(election_tree, None).check()
 
   def test_unique_stable_id_fails(self):
     test_string = self.root_string.format(
@@ -4455,7 +4456,7 @@ class UniqueStableIDTest(absltest.TestCase):
     election_tree = etree.fromstring(test_string)
 
     with self.assertRaises(loggers.ElectionError) as context:
-      rules.UniqueStableID(election_tree, None).check()
+      common_rules.UniqueStableID(election_tree, None).check()
     self.assertEqual(
         context.exception.log_entry[0].message,
         "Stable ID 04_AS is not unique as it is mapped in ['off04_AS', 'can1']",
@@ -4474,7 +4475,7 @@ class UniqueStableIDTest(absltest.TestCase):
     election_tree = etree.fromstring(test_string)
 
     with self.assertRaises(loggers.ElectionError) as context:
-      rules.UniqueStableID(election_tree, None).check()
+      common_rules.UniqueStableID(election_tree, None).check()
     self.assertEqual(
         context.exception.log_entry[0].message,
         "Stable ID 04_AS is not unique as it is mapped in ['off04_AS', 'can1']",
@@ -4498,7 +4499,7 @@ class UniqueStableIDTest(absltest.TestCase):
     election_tree = etree.fromstring(test_string)
 
     with self.assertRaises(loggers.ElectionError) as context:
-      rules.UniqueStableID(election_tree, None).check()
+      common_rules.UniqueStableID(election_tree, None).check()
     self.assertEqual(
         context.exception.log_entry[0].message,
         "Stable ID 04_AS is not unique as it is mapped in ['off04_AS', 'can1']",
@@ -4514,15 +4515,17 @@ class MissingStableIdsTest(parameterized.TestCase):
 
   def setUp(self):
     super(MissingStableIdsTest, self).setUp()
-    self.validator = rules.MissingStableIds(None, None)
+    self.validator = common_rules.MissingStableIds(None, None)
 
   def test_elements_succeeds(self):
     self.assertEqual(
         self.validator.elements(),
-        rules.MissingStableIds._ELEMENTS_WITH_STABLE_IDS,
+        common_rules.MissingStableIds._ELEMENTS_WITH_STABLE_IDS,
     )
 
-  @parameterized.parameters(*rules.MissingStableIds._ELEMENTS_WITH_STABLE_IDS)
+  @parameterized.parameters(
+      *common_rules.MissingStableIds._ELEMENTS_WITH_STABLE_IDS
+  )
   def test_stable_id_present_succeeds(self, element_name):
     element = etree.fromstring(f"""
       <{element_name} objectId='obj1'>
@@ -4538,7 +4541,9 @@ class MissingStableIdsTest(parameterized.TestCase):
 
     self.validator.check(element)
 
-  @parameterized.parameters(*rules.MissingStableIds._ELEMENTS_WITH_STABLE_IDS)
+  @parameterized.parameters(
+      *common_rules.MissingStableIds._ELEMENTS_WITH_STABLE_IDS
+  )
   def test_stable_id_missing_fails(self, element_name):
     element = etree.fromstring(f"""
       <{element_name} objectId='obj1'></{element_name}>
@@ -4556,7 +4561,7 @@ class PersonsMissingPartyDataTest(absltest.TestCase):
 
   def setUp(self):
     super(PersonsMissingPartyDataTest, self).setUp()
-    self.validator = rules.PersonsMissingPartyData(None, None)
+    self.validator = common_rules.PersonsMissingPartyData(None, None)
 
   def test_person_elements_succeeds(self):
     self.assertEqual(self.validator.elements(), ["Person"])
@@ -4585,7 +4590,7 @@ class AllCapsTest(absltest.TestCase):
 
   def setUp(self):
     super(AllCapsTest, self).setUp()
-    self.validator = rules.AllCaps(None, None)
+    self.validator = common_rules.AllCaps(None, None)
 
   def test_listed_elements_succeeds(self):
     expected_elements = [
@@ -4790,7 +4795,7 @@ class AllLanguagesTest(absltest.TestCase):
 
   def setUp(self):
     super(AllLanguagesTest, self).setUp()
-    self.validator = rules.AllLanguages(None, None)
+    self.validator = common_rules.AllLanguages(None, None)
 
   def test_listed_elements_succeeds(self):
     expected_elements = ["BallotName", "BallotTitle", "FullName", "Name"]
@@ -4847,7 +4852,7 @@ class ValidEnumerationsTest(absltest.TestCase):
 
   def setUp(self):
     super(ValidEnumerationsTest, self).setUp()
-    self.validator = rules.ValidEnumerations(None, None)
+    self.validator = common_rules.ValidEnumerations(None, None)
 
   def test_elements_with_other_type_succeeds(
       self,
@@ -4873,7 +4878,7 @@ class ValidEnumerationsTest(absltest.TestCase):
         </xs:complexType>
       </xs:schema>
     """)
-    validator = rules.ValidEnumerations(None, schema_tree)
+    validator = common_rules.ValidEnumerations(None, schema_tree)
     expected_enumerations = ["ballot-measure", "initiative", "referendum"]
     elements = validator.elements()
 
@@ -4963,7 +4968,7 @@ class ValidateOcdidLowerCaseTest(absltest.TestCase):
 
   def setUp(self):
     super(ValidateOcdidLowerCaseTest, self).setUp()
-    self.validator = rules.ValidateOcdidLowerCase(None, None)
+    self.validator = common_rules.ValidateOcdidLowerCase(None, None)
     self.ext_ids_str = """
     <ExternalIdentifiers>
       <ExternalIdentifier>
@@ -5397,7 +5402,7 @@ class PartyLeadershipMustExistTest(absltest.TestCase):
       </xml>
     """.format(self._party_collection)
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = rules.PartyLeadershipMustExist(election_tree, None)
+    validator = common_rules.PartyLeadershipMustExist(election_tree, None)
     reference_values = validator._gather_reference_values()
 
     self.assertEqual(reference_values, {"p2", "p3"})
@@ -5414,7 +5419,7 @@ class PartyLeadershipMustExistTest(absltest.TestCase):
       </xml>
     """.format(self._party_collection)
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = rules.PartyLeadershipMustExist(election_tree, None)
+    validator = common_rules.PartyLeadershipMustExist(election_tree, None)
     defined_values = validator._gather_defined_values()
 
     self.assertEqual(defined_values, {"p4", "p5"})
@@ -5433,7 +5438,7 @@ class PartyLeadershipMustExistTest(absltest.TestCase):
     root_string = io.BytesIO(bytes(xml_string.encode()))
     election_tree = etree.parse(root_string)
 
-    rules.PartyLeadershipMustExist(election_tree, None).check()
+    common_rules.PartyLeadershipMustExist(election_tree, None).check()
 
   def test_party_leadership_exists_fails(self):
     xml_string = """
@@ -5445,7 +5450,7 @@ class PartyLeadershipMustExistTest(absltest.TestCase):
     election_tree = etree.parse(root_string)
 
     with self.assertRaises(loggers.ElectionError):
-      rules.PartyLeadershipMustExist(election_tree, None).check()
+      common_rules.PartyLeadershipMustExist(election_tree, None).check()
 
 
 class ProhibitElectionDataTest(absltest.TestCase):
@@ -5458,7 +5463,7 @@ class ProhibitElectionDataTest(absltest.TestCase):
     """)
     election_tree = etree.parse(root_string)
 
-    rules.ProhibitElectionData(election_tree, None).check()
+    common_rules.ProhibitElectionData(election_tree, None).check()
 
   def test_election_element_is_present_fails(self):
     root_string = io.BytesIO(b"""
@@ -5469,7 +5474,7 @@ class ProhibitElectionDataTest(absltest.TestCase):
     election_tree = etree.parse(root_string)
 
     with self.assertRaises(loggers.ElectionError) as context:
-      rules.ProhibitElectionData(election_tree, None).check()
+      common_rules.ProhibitElectionData(election_tree, None).check()
     self.assertIn(
         "Election data is prohibited", context.exception.log_entry[0].message
     )
@@ -5479,7 +5484,7 @@ class PersonsHaveValidGenderTest(absltest.TestCase):
 
   def setUp(self):
     super(PersonsHaveValidGenderTest, self).setUp()
-    self.validator = rules.PersonsHaveValidGender(None, None)
+    self.validator = common_rules.PersonsHaveValidGender(None, None)
 
   def test_only_gender_elements_are_checked_succeeds(self):
     self.assertEqual(self.validator.elements(), ["Gender"])
@@ -5752,7 +5757,7 @@ class URIValidatorTest(absltest.TestCase):
 
   def setUp(self):
     super(URIValidatorTest, self).setUp()
-    self.validator = rules.URIValidator(None, None)
+    self.validator = common_rules.URIValidator(None, None)
     self.uri_element = "<Uri>{}</Uri>"
 
   def test_uri_elements_succeeds(self):
@@ -6087,7 +6092,7 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
             "www.wikipedia.com/dundermifflin": [wiki_one, wiki_two],
         },
     }
-    validator = rules.UniqueURIPerAnnotationCategory(None, None)
+    validator = common_rules.UniqueURIPerAnnotationCategory(None, None)
 
     actual_mapping = validator._extract_uris_by_category(uri_elements)
 
@@ -6111,7 +6116,7 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
             "www.facebook.com/dwight_shrute": [uri_two, uri_three],
         },
     }
-    validator = rules.UniqueURIPerAnnotationCategory(None, None)
+    validator = common_rules.UniqueURIPerAnnotationCategory(None, None)
 
     actual_mapping = validator._extract_uris_by_category(uri_elements)
 
@@ -6149,7 +6154,7 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
       </ElectionReport>
     """.format(person_feed, party_feed, self._office_collection)
     election_tree = etree.fromstring(election_feed)
-    validator = rules.UniqueURIPerAnnotationCategory(election_tree, None)
+    validator = common_rules.UniqueURIPerAnnotationCategory(election_tree, None)
 
     validator.check()
 
@@ -6184,7 +6189,7 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
       </ElectionReport>
     """.format(person_feed, party_feed)
     election_tree = etree.fromstring(election_feed)
-    validator = rules.UniqueURIPerAnnotationCategory(election_tree, None)
+    validator = common_rules.UniqueURIPerAnnotationCategory(election_tree, None)
 
     validator.check()
 
@@ -6218,7 +6223,7 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
       </ElectionReport>
     """.format(person_feed, party_feed)
     election_tree = etree.fromstring(election_feed)
-    validator = rules.UniqueURIPerAnnotationCategory(election_tree, None)
+    validator = common_rules.UniqueURIPerAnnotationCategory(election_tree, None)
 
     with self.assertRaises(loggers.ElectionWarning) as context:
       validator.check()
@@ -6238,7 +6243,7 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
       </ElectionReport>
     """.format(self._office_collection)
     election_tree = etree.fromstring(election_feed)
-    validator = rules.UniqueURIPerAnnotationCategory(election_tree, None)
+    validator = common_rules.UniqueURIPerAnnotationCategory(election_tree, None)
 
     validator.check()
 
@@ -6247,7 +6252,7 @@ class ValidYoutubeURLTest(absltest.TestCase):
 
   def setUp(self):
     super(ValidYoutubeURLTest, self).setUp()
-    self.validator = rules.ValidYoutubeURL(None, None)
+    self.validator = common_rules.ValidYoutubeURL(None, None)
 
   def test_yt_channel_url_succeeds(self):
     root_string = """
@@ -6327,7 +6332,7 @@ class ValidTikTokURLTest(parameterized.TestCase):
 
   def setUp(self):
     super(ValidTikTokURLTest, self).setUp()
-    self.validator = rules.ValidTiktokURL(None, None)
+    self.validator = common_rules.ValidTiktokURL(None, None)
 
   def test_valid_tiktok_url_succeeds(self):
     root_string = """
@@ -6367,7 +6372,7 @@ class ValidURIAnnotationTest(absltest.TestCase):
 
   def setUp(self):
     super(ValidURIAnnotationTest, self).setUp()
-    self.validator = rules.ValidURIAnnotation(None, None)
+    self.validator = common_rules.ValidURIAnnotation(None, None)
 
   def test_contact_information_elements_succeeds(self):
     self.assertEqual(self.validator.elements(), ["ContactInformation"])
@@ -6644,7 +6649,7 @@ class CandidateImageInContactInformationTest(absltest.TestCase):
 
   def setUp(self):
     super(CandidateImageInContactInformationTest, self).setUp()
-    self.validator = rules.CandidateImageInContactInformation(None, None)
+    self.validator = common_rules.CandidateImageInContactInformation(None, None)
 
   def test_valid_contact_information_without_candidate_image_succeeds(self):
     root_string = """
@@ -6700,7 +6705,7 @@ class OnlyOneCandidateImagePerPersonTest(absltest.TestCase):
 
   def setUp(self):
     super(OnlyOneCandidateImagePerPersonTest, self).setUp()
-    self.validator = rules.OnlyOneCandidateImagePerPerson(None, None)
+    self.validator = common_rules.OnlyOneCandidateImagePerPerson(None, None)
 
   def test_valid_person_one_candidate_image_succeeds(self):
     root_string = """
@@ -6745,7 +6750,7 @@ class UniqueCandidateImageUrisTest(absltest.TestCase):
       </ElectionReport>
     """
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = rules.UniqueCandidateImageUris(election_tree, None)
+    validator = common_rules.UniqueCandidateImageUris(election_tree, None)
 
     validator.check()
 
@@ -6763,7 +6768,7 @@ class UniqueCandidateImageUrisTest(absltest.TestCase):
       </ElectionReport>
     """
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = rules.UniqueCandidateImageUris(election_tree, None)
+    validator = common_rules.UniqueCandidateImageUris(election_tree, None)
 
     with self.assertRaises(loggers.ElectionError) as context:
       validator.check()
@@ -6787,7 +6792,7 @@ class UniqueCandidateImageUrisTest(absltest.TestCase):
       </ElectionReport>
     """
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = rules.UniqueCandidateImageUris(election_tree, None)
+    validator = common_rules.UniqueCandidateImageUris(election_tree, None)
 
     validator.check()
 
@@ -6805,7 +6810,7 @@ class UniqueCandidateImageUrisTest(absltest.TestCase):
       </ElectionReport>
     """
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = rules.UniqueCandidateImageUris(election_tree, None)
+    validator = common_rules.UniqueCandidateImageUris(election_tree, None)
 
     validator.check()
 
@@ -6823,14 +6828,14 @@ class UniqueCandidateImageUrisTest(absltest.TestCase):
       </ElectionReport>
     """
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = rules.UniqueCandidateImageUris(election_tree, None)
+    validator = common_rules.UniqueCandidateImageUris(election_tree, None)
 
     validator.check()
 
   def test_election_report_with_no_person_collection_is_valid_succeeds(self):
     root_string = "<ElectionReport></ElectionReport>"
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = rules.UniqueCandidateImageUris(election_tree, None)
+    validator = common_rules.UniqueCandidateImageUris(election_tree, None)
 
     validator.check()
 
@@ -6842,7 +6847,7 @@ class UniqueCandidateImageUrisTest(absltest.TestCase):
       </ElectionReport>
     """
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = rules.UniqueCandidateImageUris(election_tree, None)
+    validator = common_rules.UniqueCandidateImageUris(election_tree, None)
 
     validator.check()
 
@@ -6851,7 +6856,7 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
 
   def setUp(self):
     super(OfficesHaveJurisdictionIDTest, self).setUp()
-    self.validator = rules.OfficesHaveJurisdictionID(None, None)
+    self.validator = common_rules.OfficesHaveJurisdictionID(None, None)
 
   def test_office_has_jurisdiction_id_by_additional_data_succeeds(self):
     test_string = """
@@ -7106,7 +7111,7 @@ class ValidJurisdictionIDTest(absltest.TestCase):
         "",
     )
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = rules.ValidJurisdictionID(election_tree, None)
+    validator = common_rules.ValidJurisdictionID(election_tree, None)
     reference_values = validator._gather_reference_values()
 
     self.assertEqual(reference_values, {"ru-gpu1", "ru-gpu2"})
@@ -7125,7 +7130,7 @@ class ValidJurisdictionIDTest(absltest.TestCase):
           </ExternalIdentifier>""",
     )
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = rules.ValidJurisdictionID(election_tree, None)
+    validator = common_rules.ValidJurisdictionID(election_tree, None)
     reference_values = validator._gather_reference_values()
 
     self.assertEqual(reference_values, {"ru-gpu2", "ru-gpu3"})
@@ -7141,7 +7146,7 @@ class ValidJurisdictionIDTest(absltest.TestCase):
           </ExternalIdentifier>""",
     )
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = rules.ValidJurisdictionID(election_tree, None)
+    validator = common_rules.ValidJurisdictionID(election_tree, None)
     reference_values = validator._gather_reference_values()
 
     self.assertEqual(reference_values, {"ru-gpu2"})
@@ -7160,7 +7165,7 @@ class ValidJurisdictionIDTest(absltest.TestCase):
           </ExternalIdentifier>""",
     )
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = rules.ValidJurisdictionID(election_tree, None)
+    validator = common_rules.ValidJurisdictionID(election_tree, None)
     reference_values = validator._gather_reference_values()
 
     self.assertEqual(reference_values, {"ru-gpu2"})
@@ -7176,7 +7181,7 @@ class ValidJurisdictionIDTest(absltest.TestCase):
           </ExternalIdentifier>""",
     )
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = rules.ValidJurisdictionID(election_tree, None)
+    validator = common_rules.ValidJurisdictionID(election_tree, None)
     reference_values = validator._gather_reference_values()
 
     self.assertEqual(reference_values, {"ru-gpu2"})
@@ -7193,7 +7198,7 @@ class ValidJurisdictionIDTest(absltest.TestCase):
         "",
     )
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = rules.ValidJurisdictionID(election_tree, None)
+    validator = common_rules.ValidJurisdictionID(election_tree, None)
     reference_values = validator._gather_reference_values()
 
     self.assertEqual(reference_values, {"ru-gpu2"})
@@ -7207,7 +7212,7 @@ class ValidJurisdictionIDTest(absltest.TestCase):
         "",
     )
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = rules.ValidJurisdictionID(election_tree, None)
+    validator = common_rules.ValidJurisdictionID(election_tree, None)
     reference_values = validator._gather_defined_values()
 
     self.assertEqual(reference_values, {"ru-gpu1", "ru-gpu2", "ru-gpu3"})
@@ -7230,7 +7235,7 @@ class ValidJurisdictionIDTest(absltest.TestCase):
     )
     election_tree = etree.ElementTree(etree.fromstring(root_string))
 
-    rules.ValidJurisdictionID(election_tree, None).check()
+    common_rules.ValidJurisdictionID(election_tree, None).check()
 
   def test_raises_an_election_error_if_jurisdiction_id_is_not_a_gp_unit_id_fails(
       self,
@@ -7247,7 +7252,7 @@ class ValidJurisdictionIDTest(absltest.TestCase):
     election_tree = etree.ElementTree(etree.fromstring(root_string))
 
     with self.assertRaises(loggers.ElectionError) as context:
-      rules.ValidJurisdictionID(election_tree, None).check()
+      common_rules.ValidJurisdictionID(election_tree, None).check()
     self.assertIn("ru-gpu99", context.exception.log_entry[0].message)
 
 
@@ -7262,7 +7267,7 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
         </OfficeCollection>
       </ElectionReport>
     """
-    self.validator = rules.OfficesHaveValidOfficeLevel(None, None)
+    self.validator = common_rules.OfficesHaveValidOfficeLevel(None, None)
 
   def test_office_has_office_level_by_external_identifier_succeeds(self):
     test_string = """
@@ -7458,7 +7463,7 @@ class OfficesHaveValidOfficeRoleTest(absltest.TestCase):
 
   def setUp(self):
     super(OfficesHaveValidOfficeRoleTest, self).setUp()
-    self.validator = rules.OfficesHaveValidOfficeRole(None, None)
+    self.validator = common_rules.OfficesHaveValidOfficeRole(None, None)
 
   def test_office_has_valid_office_role_succeeds(self):
     test_string = """
@@ -7667,7 +7672,7 @@ class DiplomaticOfficesHaveCorrespondingGpUnitsSetTest(absltest.TestCase):
 
   def setUp(self):
     super(DiplomaticOfficesHaveCorrespondingGpUnitsSetTest, self).setUp()
-    self.validator = rules.DiplomaticOfficesHaveCorrespondingGpUnitsSet(
+    self.validator = common_rules.DiplomaticOfficesHaveCorrespondingGpUnitsSet(
         None, None
     )
 
@@ -8008,7 +8013,7 @@ class GpUnitsCyclesRefsValidationTest(absltest.TestCase):
 
   def setUp(self):
     super(GpUnitsCyclesRefsValidationTest, self).setUp()
-    self.validator = rules.GpUnitsCyclesRefsValidation(None, None)
+    self.validator = common_rules.GpUnitsCyclesRefsValidation(None, None)
 
   def test_cycles_formed_fails(self):
     root_string = """
@@ -8387,7 +8392,7 @@ class ValidPartyLeadershipDatesTest(absltest.TestCase):
 
   def setUp(self):
     super(ValidPartyLeadershipDatesTest, self).setUp()
-    self.validator = rules.ValidPartyLeadershipDates(None, None)
+    self.validator = common_rules.ValidPartyLeadershipDates(None, None)
     self.today = datetime.datetime.now(datetime.timezone.utc).date()
     self.party_leadership_string = """
     <PartyLeadership>
@@ -9913,7 +9918,7 @@ class GpUnitsHaveInternationalizedNameTest(absltest.TestCase):
 
   def setUp(self):
     super(GpUnitsHaveInternationalizedNameTest, self).setUp()
-    self.validator = rules.GpUnitsHaveInternationalizedName(None, None)
+    self.validator = common_rules.GpUnitsHaveInternationalizedName(None, None)
 
   def test_has_exactly_one_internationalized_name_with_text_succeeds(self):
     root_string = """
@@ -11053,7 +11058,7 @@ class MissingFieldsErrorTest(absltest.TestCase):
 
   def setUp(self):
     super(MissingFieldsErrorTest, self).setUp()
-    self.validator = rules.MissingFieldsError(None, None)
+    self.validator = common_rules.MissingFieldsError(None, None)
     self.validator.setup()
 
   def test_get_severity_returns_error_level(self):
@@ -11172,7 +11177,7 @@ class MissingFieldsWarningTest(absltest.TestCase):
 
   def setUp(self):
     super(MissingFieldsWarningTest, self).setUp()
-    self.validator = rules.MissingFieldsWarning(None, None)
+    self.validator = common_rules.MissingFieldsWarning(None, None)
     self.validator.setup()
 
   def test_sets_severity_level_to_succeeds(self):
@@ -11209,7 +11214,7 @@ class MissingFieldsInfoTest(absltest.TestCase):
 
   def setUp(self):
     super(MissingFieldsInfoTest, self).setUp()
-    self.validator = rules.MissingFieldsInfo(None, None)
+    self.validator = common_rules.MissingFieldsInfo(None, None)
     self.validator.setup()
 
   def test_sets_severity_level_to_succeeds(self):
@@ -11220,7 +11225,7 @@ class PartySpanMultipleCountriesTest(absltest.TestCase):
 
   def setUp(self):
     super(PartySpanMultipleCountriesTest, self).setUp()
-    self.validator = rules.DuplicateGpUnits(None, None)
+    self.validator = common_rules.DuplicateGpUnits(None, None)
     self.base_report = """
       <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <Election>
@@ -11265,7 +11270,7 @@ class PartySpanMultipleCountriesTest(absltest.TestCase):
     referenced_gpunits = "ru0001 ru0003"
     election_string = self.base_report.format(referenced_gpunits)
     election_tree = etree.fromstring(election_string)
-    validator = rules.PartySpanMultipleCountries(election_tree, None)
+    validator = common_rules.PartySpanMultipleCountries(election_tree, None)
     expected_map = {
         "ru0001": "country:us",
         "ru0002": "country:us",
@@ -11278,7 +11283,7 @@ class PartySpanMultipleCountriesTest(absltest.TestCase):
     referenced_gpunits = "ru0001 ru0002"
     election_string = self.base_report.format(referenced_gpunits)
     election_tree = etree.fromstring(election_string)
-    validator = rules.PartySpanMultipleCountries(election_tree, None)
+    validator = common_rules.PartySpanMultipleCountries(election_tree, None)
     element = election_tree.find(
         "Election//PartyCollection//Party//PartyScopeGpUnitIds"
     )
@@ -11289,7 +11294,7 @@ class PartySpanMultipleCountriesTest(absltest.TestCase):
     referenced_gpunits = "ru0001 ru0004"
     election_string = self.base_report.format(referenced_gpunits)
     election_tree = etree.fromstring(election_string)
-    validator = rules.PartySpanMultipleCountries(election_tree, None)
+    validator = common_rules.PartySpanMultipleCountries(election_tree, None)
     element = election_tree.find(
         "Election//PartyCollection//Party//PartyScopeGpUnitIds"
     )
@@ -11300,7 +11305,7 @@ class PartySpanMultipleCountriesTest(absltest.TestCase):
     referenced_gpunits = "ru0003"
     election_string = self.base_report.format(referenced_gpunits)
     election_tree = etree.fromstring(election_string)
-    validator = rules.PartySpanMultipleCountries(election_tree, None)
+    validator = common_rules.PartySpanMultipleCountries(election_tree, None)
     element = election_tree.find(
         "Election//PartyCollection//Party//PartyScopeGpUnitIds"
     )
@@ -11311,7 +11316,7 @@ class PartySpanMultipleCountriesTest(absltest.TestCase):
     referenced_gpunits = "ru0001 ru0003"
     election_string = self.base_report.format(referenced_gpunits)
     election_tree = etree.fromstring(election_string)
-    validator = rules.PartySpanMultipleCountries(election_tree, None)
+    validator = common_rules.PartySpanMultipleCountries(election_tree, None)
     element = election_tree.find(
         "Election//PartyCollection//Party//PartyScopeGpUnitIds"
     )
@@ -11326,7 +11331,7 @@ class PartySpanMultipleCountriesTest(absltest.TestCase):
     referenced_gpunits = "ru0002 ru0003"
     election_string = self.base_report.format(referenced_gpunits)
     election_tree = etree.fromstring(election_string)
-    validator = rules.PartySpanMultipleCountries(election_tree, None)
+    validator = common_rules.PartySpanMultipleCountries(election_tree, None)
     element = election_tree.find(
         "Election//PartyCollection//Party//PartyScopeGpUnitIds"
     )
@@ -11345,9 +11350,11 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
       </Report>
     """
     element_tree = etree.fromstring(root_string)
-    self.gov_validator = rules.NonExecutiveOfficeShouldHaveGovernmentBody(
-        element_tree,
-        None,
+    self.gov_validator = (
+        common_rules.NonExecutiveOfficeShouldHaveGovernmentBody(
+            element_tree,
+            None,
+        )
     )
     root_string = """
       <Report>
@@ -11357,7 +11364,7 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
     """
     element_tree = etree.fromstring(root_string)
     self.post_office_split_validator = (
-        rules.NonExecutiveOfficeShouldHaveGovernmentBody(
+        common_rules.NonExecutiveOfficeShouldHaveGovernmentBody(
             element_tree,
             None,
         )
@@ -11485,9 +11492,11 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
       </Report>
     """
     element_tree = etree.fromstring(root_string)
-    self.gov_validator = rules.ExecutiveOfficeShouldNotHaveGovernmentBody(
-        element_tree,
-        None,
+    self.gov_validator = (
+        common_rules.ExecutiveOfficeShouldNotHaveGovernmentBody(
+            element_tree,
+            None,
+        )
     )
     root_string = """
       <Report>
@@ -11497,14 +11506,14 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
     """
     element_tree = etree.fromstring(root_string)
     self.post_office_split_validator = (
-        rules.ExecutiveOfficeShouldNotHaveGovernmentBody(
+        common_rules.ExecutiveOfficeShouldNotHaveGovernmentBody(
             element_tree,
             None,
         )
     )
 
   def test_executive_office_with_government_body_ids_fails(self):
-    for office_role in rules._EXECUTIVE_OFFICE_ROLES:
+    for office_role in common_rules._EXECUTIVE_OFFICE_ROLES:
       with self.subTest(office_role=office_role):
         office_string = f"""
           <Office>
@@ -11531,7 +11540,7 @@ class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
   def test_post_split_executive_office_with_government_body_ids_fails(
       self,
   ):
-    for office_role in rules._EXECUTIVE_OFFICE_ROLES:
+    for office_role in common_rules._EXECUTIVE_OFFICE_ROLES:
       with self.subTest(office_role=office_role):
         office_string = f"""
           <Office>
@@ -11582,7 +11591,7 @@ class OfficeSelectionMethodTest(absltest.TestCase):
 
   def setUp(self):
     super(OfficeSelectionMethodTest, self).setUp()
-    self.validator = rules.MissingOfficeSelectionMethod(None, None)
+    self.validator = common_rules.MissingOfficeSelectionMethod(None, None)
 
   def test_valid_selection_method_succeeds(self):
     office_string = """
@@ -11963,7 +11972,9 @@ class AllInternationalizedTextHaveEnVersionTest(absltest.TestCase):
 
   def setUp(self):
     super(AllInternationalizedTextHaveEnVersionTest, self).setUp()
-    self.validator = rules.AllInternationalizedTextHaveEnVersion(None, None)
+    self.validator = common_rules.AllInternationalizedTextHaveEnVersion(
+        None, None
+    )
 
   def test_internationalized_text_without_en_version_raises_info(self):
     election_string = """
@@ -14832,7 +14843,7 @@ class DeprecatedPartyLeadershipSchemaTest(absltest.TestCase):
 
   def setUp(self):
     super(DeprecatedPartyLeadershipSchemaTest, self).setUp()
-    self.validator = rules.DeprecatedPartyLeadershipSchema(None, None)
+    self.validator = common_rules.DeprecatedPartyLeadershipSchema(None, None)
 
   def test_new_party_leadership_schema_succeeds(self):
     party_string = """
@@ -16255,7 +16266,7 @@ class RulesTest(absltest.TestCase):
     possible_rules.remove(rules.ValidatePartyCollection)
     possible_rules.remove(base.DateRule)
     possible_rules.remove(base.MissingFieldRule)
-    possible_rules.remove(rules.UnreferencedEntitiesBase)
+    possible_rules.remove(common_rules.UnreferencedEntitiesBase)
     # TODO(b/555757644): Reenable this rule once we are ready to enforce it.
     possible_rules.remove(rules.SqsQueueNameIsFullyQualifiedArn)
 
