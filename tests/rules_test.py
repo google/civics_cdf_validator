@@ -12,6 +12,7 @@ from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator import rules
 from civics_cdf_validator.rulesets import common_rules
+from civics_cdf_validator.rulesets import officeholder_rules
 from civics_cdf_validator.rulesets import rule_util
 import freezegun
 from lxml import etree
@@ -5097,7 +5098,7 @@ class PersonHasOfficeTest(absltest.TestCase):
   def test_person_ids_from_person_collection_succeeds(self):
     root_string = self._base_xml.format("")
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = rules.PersonHasOffice(election_tree, None)
+    validator = officeholder_rules.PersonHasOffice(election_tree, None)
     reference_values = validator._gather_reference_values()
 
     self.assertEqual(reference_values, {"p1", "p2", "p3"})
@@ -5140,7 +5141,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     """
     root_string = self._base_xml.format(defined_collections)
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = rules.PersonHasOffice(election_tree, None)
+    validator = officeholder_rules.PersonHasOffice(election_tree, None)
     defined_values = validator._gather_defined_values()
     expected_defined_values = {"p1", "p2", "p3", "p4", "p5", "p6"}
 
@@ -5176,14 +5177,14 @@ class PersonHasOfficeTest(absltest.TestCase):
         bytes(self._base_xml.format(office_party_collections).encode())
     )
     election_tree = etree.parse(root_string)
-    validator = rules.PersonHasOffice(election_tree, None)
+    validator = officeholder_rules.PersonHasOffice(election_tree, None)
 
     validator.check()
 
   def test_no_roots_succeeds(self):
     no_root_string = io.BytesIO(b"<OfficeHolderTenureCollection/>")
     election_tree = etree.parse(no_root_string)
-    validator = rules.PersonHasOffice(election_tree, None)
+    validator = officeholder_rules.PersonHasOffice(election_tree, None)
 
     validator.check()
 
@@ -5194,7 +5195,7 @@ class PersonHasOfficeTest(absltest.TestCase):
       </xml>
     """)
     election_tree = etree.parse(no_collection_string)
-    validator = rules.PersonHasOffice(election_tree, None)
+    validator = officeholder_rules.PersonHasOffice(election_tree, None)
 
     validator.check()
 
@@ -5216,7 +5217,7 @@ class PersonHasOfficeTest(absltest.TestCase):
         bytes(self._base_xml.format(office_collection).encode())
     )
     election_tree = etree.parse(root_string)
-    validator = rules.PersonHasOffice(election_tree, None)
+    validator = officeholder_rules.PersonHasOffice(election_tree, None)
 
     validator.check()
 
@@ -5246,7 +5247,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     )
     election_tree = etree.parse(root_string)
 
-    rules.PersonHasOffice(election_tree, None).check()
+    officeholder_rules.PersonHasOffice(election_tree, None).check()
 
   def test_person_not_referenced_by_an_office_holder_tenure_fails(self):
     office_collection = """
@@ -5265,7 +5266,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     election_tree = etree.parse(root_string)
 
     with self.assertRaises(loggers.ElectionError) as context:
-      rules.PersonHasOffice(election_tree, None).check()
+      officeholder_rules.PersonHasOffice(election_tree, None).check()
     self.assertIn(
         "No defined data for p3 found in the feed.",
         context.exception.log_entry[0].message,
@@ -5285,7 +5286,7 @@ class PersonHasOfficeTest(absltest.TestCase):
         bytes(self._base_xml.format(office_collection).encode())
     )
     election_tree = etree.parse(root_string)
-    validator = rules.PersonHasOffice(election_tree, None)
+    validator = officeholder_rules.PersonHasOffice(election_tree, None)
 
     validator.check()
 
@@ -5313,7 +5314,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     )
     election_tree = etree.parse(root_string)
 
-    rules.PersonHasOffice(election_tree, None).check()
+    officeholder_rules.PersonHasOffice(election_tree, None).check()
 
   def test_person_not_referenced_by_an_office_fails(self):
     office_collection = """
@@ -5332,7 +5333,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     election_tree = etree.parse(root_string)
 
     with self.assertRaises(loggers.ElectionError) as context:
-      rules.PersonHasOffice(election_tree, None).check()
+      officeholder_rules.PersonHasOffice(election_tree, None).check()
     self.assertIn(
         "No defined data for p3 found in the feed.",
         context.exception.log_entry[0].message,
@@ -5355,7 +5356,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     election_tree = etree.parse(root_string)
 
     with self.assertRaises(loggers.ElectionError) as context:
-      rules.PersonHasOffice(election_tree, None).check()
+      officeholder_rules.PersonHasOffice(election_tree, None).check()
     self.assertEqual(
         context.exception.log_entry[0].message,
         "Office has 2 OfficeHolders. Must have exactly one.",
@@ -8080,7 +8081,7 @@ class DateOfBirthIsInPastTest(absltest.TestCase):
         </Person>
       </PersonCollection>
     """
-    self.validator = rules.DateOfBirthIsInPast(None, None)
+    self.validator = officeholder_rules.DateOfBirthIsInPast(None, None)
 
   @freezegun.freeze_time("2023-01-01")
   def test_valid_date_of_birth_succeeds(self):
@@ -9036,7 +9037,9 @@ class OfficeSelectionMethodMatchTest(absltest.TestCase):
       </Report>
     """
     element_tree = etree.fromstring(root_string)
-    self.validator = rules.OfficeSelectionMethodMatch(element_tree, None)
+    self.validator = officeholder_rules.OfficeSelectionMethodMatch(
+        element_tree, None
+    )
 
   def test_office_selection_method_match_elements_succeeds(self):
     self.assertEqual(self.validator.elements(), ["OfficeHolderTenure"])
@@ -9072,7 +9075,7 @@ class OfficeHolderTenureTermDatesTest(absltest.TestCase):
 
   def setUp(self):
     super(OfficeHolderTenureTermDatesTest, self).setUp()
-    self.validator = rules.OfficeHolderTenureTermDates(None, None)
+    self.validator = officeholder_rules.OfficeHolderTenureTermDates(None, None)
 
   def test_correct_elements_succeeds(self):
     self.assertEqual(self.validator.elements(), ["OfficeHolderTenure"])
@@ -9139,7 +9142,7 @@ class OfficeTermDatesTest(absltest.TestCase):
       </Report>
     """
     element_tree = etree.fromstring(root_string)
-    self.date_validator = rules.OfficeTermDates(element_tree, None)
+    self.date_validator = officeholder_rules.OfficeTermDates(element_tree, None)
     root_string = """
       <Report>
         <OfficeHolderTenureCollection>
@@ -9147,7 +9150,7 @@ class OfficeTermDatesTest(absltest.TestCase):
       </Report>
     """
     element_tree = etree.fromstring(root_string)
-    self.post_office_split_date_validator = rules.OfficeTermDates(
+    self.post_office_split_date_validator = officeholder_rules.OfficeTermDates(
         element_tree, None
     )
     self.office_string = """
@@ -9356,7 +9359,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     election_tree = etree.fromstring(office_string)
 
     with self.assertRaises(loggers.ElectionInfo) as context:
-      rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
+      officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
           election_tree, None
       ).check()
     self.assertEqual(
@@ -9389,7 +9392,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     election_tree = etree.fromstring(office_string)
 
     with self.assertRaises(loggers.ElectionInfo) as context:
-      rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
+      officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
           election_tree, None
       ).check()
     self.assertEqual(
@@ -9420,7 +9423,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     election_tree = etree.fromstring(test_string)
 
     with self.assertRaises(loggers.ElectionInfo) as context:
-      rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
+      officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
           election_tree, None
       ).check()
     self.assertEqual(
@@ -9449,7 +9452,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     election_tree = etree.fromstring(test_string)
 
     with self.assertRaises(loggers.ElectionInfo) as context:
-      rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
+      officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
           election_tree, None
       ).check()
     self.assertEqual(
@@ -9462,7 +9465,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
         context.exception.log_entry[0].elements[0].get("objectId"), "offten0"
     )
     with self.assertRaises(loggers.ElectionInfo) as context:
-      rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
+      officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
           election_tree, None
       ).check()
     self.assertEqual(
@@ -9493,7 +9496,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     )
     election_tree = etree.fromstring(office_string)
 
-    rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
+    officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
         election_tree, None
     ).check()
 
@@ -9506,7 +9509,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     )
     election_tree = etree.fromstring(test_string)
 
-    rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
+    officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
         election_tree, None
     ).check()
 
@@ -9515,8 +9518,10 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
 
   def setUp(self):
     super(UniqueStartDatesForOfficeRoleAndJurisdictionTest, self).setUp()
-    self.validator = rules.UniqueStartDatesForOfficeRoleAndJurisdiction(
-        None, None
+    self.validator = (
+        officeholder_rules.UniqueStartDatesForOfficeRoleAndJurisdiction(
+            None, None
+        )
     )
 
   _office_string = """
@@ -13793,7 +13798,7 @@ class UnreferencedEntitiesOfficeholdersTest(absltest.TestCase):
   """
 
     with self.assertRaises(loggers.ElectionInfo) as context:
-      rules.UnreferencedEntitiesOfficeholders(
+      officeholder_rules.UnreferencedEntitiesOfficeholders(
           etree.fromstring(test_string), etree.fromstring(schema_string)
       ).check()
     self.assertEqual(
@@ -13811,7 +13816,7 @@ class UnreferencedEntitiesOfficeholdersTest(absltest.TestCase):
     """
 
     with self.assertRaises(loggers.ElectionError) as context:
-      rules.UnreferencedEntitiesOfficeholders(
+      officeholder_rules.UnreferencedEntitiesOfficeholders(
           etree.fromstring(test_string), self._base_schema
       ).check()
     self.assertEqual(
@@ -13827,7 +13832,7 @@ class UnreferencedEntitiesOfficeholdersTest(absltest.TestCase):
     """
 
     with self.assertRaises(loggers.ElectionError) as context:
-      rules.UnreferencedEntitiesOfficeholders(
+      officeholder_rules.UnreferencedEntitiesOfficeholders(
           etree.fromstring(test_string), self._base_schema
       ).check()
     self.assertEqual(
@@ -13843,7 +13848,7 @@ class UnreferencedEntitiesOfficeholdersTest(absltest.TestCase):
     """
 
     with self.assertRaises(loggers.ElectionWarning) as context:
-      rules.UnreferencedEntitiesOfficeholders(
+      officeholder_rules.UnreferencedEntitiesOfficeholders(
           etree.fromstring(test_string), self._base_schema
       ).check()
     self.assertEqual(
@@ -13859,7 +13864,7 @@ class UnreferencedEntitiesOfficeholdersTest(absltest.TestCase):
     </Office>
     """
 
-    rules.UnreferencedEntitiesOfficeholders(
+    officeholder_rules.UnreferencedEntitiesOfficeholders(
         etree.fromstring(test_string), self._base_schema
     ).check()
 
@@ -13869,7 +13874,7 @@ class UnreferencedEntitiesOfficeholdersTest(absltest.TestCase):
     </Leadership>
     """
 
-    rules.UnreferencedEntitiesOfficeholders(
+    officeholder_rules.UnreferencedEntitiesOfficeholders(
         etree.fromstring(test_string), self._base_schema
     ).check()
 
@@ -13881,7 +13886,7 @@ class UnreferencedEntitiesOfficeholdersTest(absltest.TestCase):
     </OfficeHolderCollection>
     """
 
-    rules.UnreferencedEntitiesOfficeholders(
+    officeholder_rules.UnreferencedEntitiesOfficeholders(
         etree.fromstring(test_string), self._base_schema
     ).check()
 
@@ -13920,7 +13925,7 @@ class UnreferencedEntitiesOfficeholdersTest(absltest.TestCase):
     </xs:schema>
   """
 
-    rules.UnreferencedEntitiesOfficeholders(
+    officeholder_rules.UnreferencedEntitiesOfficeholders(
         etree.fromstring(test_string), etree.fromstring(schema_string)
     ).check()
 
