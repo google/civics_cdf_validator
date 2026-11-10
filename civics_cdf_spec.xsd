@@ -15,16 +15,23 @@
   <xs:simpleType name="CandidatePostElectionStatus">
     <xs:restriction base="xs:string">
       <xs:enumeration value="advanced-to-runoff"/>
+      <xs:enumeration value="defeated"/>
+      <xs:enumeration value="did-not-participate"/>
+      <xs:enumeration value="disqualified"/>
+      <xs:enumeration value="projected-advanced-to-runoff"/>
       <xs:enumeration value="projected-winner"/>
+      <xs:enumeration value="sub-judice"/>
       <xs:enumeration value="winner"/>
       <xs:enumeration value="withdrawn"/>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="CandidatePreElectionStatus">
     <xs:restriction base="xs:string">
+      <xs:enumeration value="disqualified"/>
       <xs:enumeration value="filed"/>
-      <xs:enumeration value="self-declared"/>
       <xs:enumeration value="qualified"/>
+      <xs:enumeration value="self-declared"/>
+      <xs:enumeration value="sub-judice"/>
       <xs:enumeration value="withdrawn"/>
       <xs:enumeration value="write-in"/>
     </xs:restriction>
@@ -361,6 +368,8 @@
           <xs:element minOccurs="0" name="EndorsementPartyIds" type="xs:IDREFS"/>
           <xs:element minOccurs="0" name="IncludedInAggregation" type="xs:boolean"/>
           <xs:element minOccurs="0" name="IsWriteIn" type="xs:boolean"/>
+          <xs:element minOccurs="0" name="PostElectionStatus" type="CandidatePostElectionStatus"/>
+          <xs:element minOccurs="0" name="PreElectionStatus" type="CandidatePreElectionStatus"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -409,12 +418,14 @@
       <xs:element minOccurs="0" name="BlankBallotSelection" type="SpecialBallotSelection"/>
       <xs:element minOccurs="0" name="ComposingContestIds" type="xs:IDREFS"/>
       <xs:element maxOccurs="1" minOccurs="0" name="ContestDateStatus" type="DateStatus"/>
+      <xs:element maxOccurs="1" minOccurs="0" name="ContestDateType" type="ElectionDateType"/>
       <xs:element maxOccurs="unbounded" minOccurs="0" name="CountStatus" type="CountStatus"/>
       <xs:element maxOccurs="1" minOccurs="0" name="CountingDate" type="PartialDate"/>
       <xs:element minOccurs="0" name="CurrentResultsReportingStage" type="ResultsReportingStageType"/>
       <xs:element minOccurs="0" name="EarliestPollsClose" type="xs:dateTime"/>
       <xs:element name="ElectoralDistrictId" type="xs:IDREF"/>
       <xs:element maxOccurs="1" minOccurs="0" name="EndDate" type="PartialDate"/>
+      <xs:element minOccurs="0" name="EstimatedExpectedVotePercentage" type="xs:float"/>
       <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers"/>
       <xs:element maxOccurs="1" minOccurs="0" name="FilingDeadline" type="PartialDate"/>
       <xs:element minOccurs="0" name="HasRotation" type="xs:boolean"/>
@@ -423,6 +434,7 @@
       <xs:element name="Name" type="xs:string"/>
       <xs:element minOccurs="0" name="NoneOfTheAboveBallotSelection" type="SpecialBallotSelection"/>
       <xs:element minOccurs="0" name="NullBallotSelection" type="SpecialBallotSelection"/>
+      <xs:element minOccurs="0" name="OutcomeDetermined" type="xs:boolean"/>
       <xs:element maxOccurs="1" minOccurs="0" name="Seat" type="xs:string"/>
       <xs:element minOccurs="0" name="SequenceOrder" type="xs:integer"/>
       <xs:element maxOccurs="1" minOccurs="0" name="StartDate" type="PartialDate"/>
@@ -435,10 +447,12 @@
       <xs:element minOccurs="0" name="OtherVoteVariation" type="xs:string"/>
       <xs:element minOccurs="0" name="ResultsEmbargoEnd" type="xs:dateTime"/>
       <xs:element minOccurs="0" name="ResultsExpected" type="xs:dateTime"/>
+      <xs:element minOccurs="0" name="ResultsLastUpdated" type="xs:dateTime"/>
       <xs:element minOccurs="0" name="ResultsReportingStageCollection">
         <xs:complexType>
           <xs:sequence>
-            <xs:element maxOccurs="unbounded" name="ResultsReportingStage" type="ResultsReportingStage"/>
+            <xs:element minOccurs="0" name="InheritFromComposedContest" type="xs:boolean"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="ResultsReportingStage" type="ResultsReportingStage"/>
           </xs:sequence>
         </xs:complexType>
       </xs:element>
@@ -666,6 +680,8 @@
   <xs:complexType name="Office">
     <xs:sequence>
       <xs:element maxOccurs="unbounded" minOccurs="0" name="ContactInformation" type="ContactInformation"/>
+      <xs:element minOccurs="0" name="DiplomatReceivingStateId" type="xs:IDREF"/>
+      <xs:element minOccurs="0" name="DiplomatSendingStateId" type="xs:IDREF"/>
       <xs:element minOccurs="0" name="ElectoralDistrictId" type="xs:IDREF"/>
       <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers"/>
       <xs:element minOccurs="0" name="FilingDeadline" type="PartialDate"/>
@@ -781,6 +797,7 @@
   </xs:complexType>
   <xs:complexType name="Person">
     <xs:sequence>
+      <xs:element minOccurs="0" name="Alias" type="InternationalizedText"/>
       <xs:element maxOccurs="unbounded" minOccurs="0" name="ContactInformation" type="ContactInformation"/>
       <xs:element minOccurs="0" name="DateOfBirth" type="PartialDate"/>
       <xs:element minOccurs="0" name="ExternalIdentifiers" type="ExternalIdentifiers"/>
@@ -847,6 +864,7 @@
       <xs:element maxOccurs="unbounded" name="Attribution" type="Attribution"/>
       <xs:element name="ExpectedStartDateTime" type="xs:dateTime"/>
       <xs:element minOccurs="0" name="ActualStartDateTime" type="xs:dateTime"/>
+      <xs:element minOccurs="0" name="NoResultsProvided" type="xs:boolean"/>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="RetentionContest">

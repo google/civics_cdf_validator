@@ -77,6 +77,7 @@
       <xs:enumeration value="criminal court at law"/>
       <xs:enumeration value="deputy head of government"/>
       <xs:enumeration value="deputy state executive"/>
+      <xs:enumeration value="diplomat"/>
       <xs:enumeration value="district attorney"/>
       <xs:enumeration value="district clerk"/>
       <xs:enumeration value="district court"/>

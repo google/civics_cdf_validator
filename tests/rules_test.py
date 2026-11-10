@@ -645,6 +645,22 @@ class EmptyStringTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError):
       self.validator.check(element)
 
+  def test_element_with_child_elements_and_no_whitespace_succeeds(self):
+    element_string = '<Name><Text language="en">Jerry</Text></Name>'
+    element = etree.fromstring(element_string)
+
+    self.validator.check(element)
+
+  def test_element_with_child_elements_and_whitespace_succeeds(self):
+    element_string = """
+      <Name>
+        <Text language="en">Jerry</Text>
+      </Name>
+    """
+    element = etree.fromstring(element_string)
+
+    self.validator.check(element)
+
 
 class DuplicateIDTest(absltest.TestCase):
 
@@ -790,6 +806,12 @@ class GpUnitOcdIdTest(parameterized.TestCase):
 
     self.gp_unit_ocd_id_validator.check(elements)
 
+  def test_elements_includes_gp_unit_and_reporting_unit_succeeds(self):
+    self.assertEqual(
+        self.gp_unit_ocd_id_validator.elements(),
+        ["GpUnit", "ReportingUnit"],
+    )
+
 
 class DuplicatedGpUnitOcdIdTest(absltest.TestCase):
   """2 GPUnits should not have same OCD ID."""
@@ -893,6 +915,8 @@ class ValidIDREFTest(absltest.TestCase):
       <xs:element name="Report"/>
       <xs:complexType name="Office">
         <xs:sequence>
+            <xs:element minOccurs="0" name="DiplomatReceivingStateId" type="xs:IDREF" />
+            <xs:element minOccurs="0" name="DiplomatSendingStateId" type="xs:IDREF" />
             <xs:element minOccurs="0" name="ElectoralDistrictId" type="xs:IDREF" />
             <xs:element minOccurs="0" name="FilingDeadline" type="xs:date" />
             <xs:element minOccurs="0" name="IsPartisan" type="xs:boolean" />
@@ -984,6 +1008,8 @@ class ValidIDREFTest(absltest.TestCase):
         "Candidate": {"can001"},
     }
     expected_reference_mapping = {
+        "DiplomatReceivingStateId": "GpUnit",
+        "DiplomatSendingStateId": "GpUnit",
         "ElectoralDistrictId": "GpUnit",
         "OfficeHolderPersonIds": "Person",
         "PartyLeaderId": "Person",
@@ -1009,6 +1035,8 @@ class ValidIDREFTest(absltest.TestCase):
     ref_type_mappings = {
         "GpUnitId": "GpUnit",
         "GpUnitIds": "GpUnit",
+        "DiplomatReceivingStateId": "GpUnit",
+        "DiplomatSendingStateId": "GpUnit",
         "ElectoralDistrictId": "GpUnit",
         "ElectionScopeId": "GpUnit",
         "ComposingGpUnitIds": "GpUnit",
@@ -2011,6 +2039,56 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
         ),
     )
 
+  def test_tree_roots_are_connected_for_any_subsequent_relationship_succeeds(
+      self,
+  ):
+    election_report = """
+      <ContestCollection>
+        <Contest objectId="con001">
+          <ComposingContestIds>con002 con003</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con002">
+          <SubsequentContestId>con005</SubsequentContestId>
+        </Contest>
+        <Contest objectId="con003"/>
+        <Contest objectId="con004">
+          <ComposingContestIds>con005 con006</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con005"/>
+        <Contest objectId="con006"/>
+      </ContestCollection>
+    """
+    report_elem = etree.fromstring(election_report)
+
+    self.validator._construct_contest_graph(report_elem)
+
+    # assert roots are connected for subsequent relationships
+    self.assertTrue(
+        networkx.has_path(self.validator.contest_graph, "con002", "con005")
+    )
+
+  def test_invalid_subsequent_contest_id_fails(self):
+    election_report = """
+      <ContestCollection>
+        <Contest objectId="con001">
+          <SubsequentContestId>con004</SubsequentContestId>
+        </Contest>
+        <Contest objectId="con002"/>
+        <Contest objectId="con003"/>
+      </ContestCollection>
+    """
+    report_elem = etree.fromstring(election_report)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator._construct_contest_graph(report_elem)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        (
+            "Contest con001 contains a subsequent Contest Id "
+            "(con004) that does not exist."
+        ),
+    )
+
   def test_any_contest_in_given_list_not_related_parent_child_succeeds(
       self,
   ):
@@ -2043,6 +2121,30 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
         </Contest>
         <Contest objectId="con003">
           <ComposingContestIds>con004</ComposingContestIds>
+        </Contest>
+        <Contest objectId="con004"/>
+      </ContestCollection>
+    """
+    report_elem = etree.fromstring(election_report)
+    contest_id_list = ["con001", "con003", "con004"]
+
+    self.validator._construct_contest_graph(report_elem)
+    are_related = self.validator._check_candidate_contests_are_related(
+        contest_id_list
+    )
+
+    self.assertTrue(are_related)
+
+  def test_all_contests_in_given_list_are_related_subsequent_rel_succeeds(
+      self,
+  ):
+    election_report = """
+      <ContestCollection>
+        <Contest objectId="con001">
+          <SubsequentContestId>con003</SubsequentContestId>
+        </Contest>
+        <Contest objectId="con003">
+          <SubsequentContestId>con004</SubsequentContestId>
         </Contest>
         <Contest objectId="con004"/>
       </ContestCollection>
@@ -2187,42 +2289,6 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
 
     self.validator.check(report_elem)
 
-  def test_same_person_candidates_in_subsequent_contests_succeeds(self):
-    election_report = """
-      <ElectionReport>
-        <PersonCollection>
-          <Person objectId="per001"/>
-          <Person objectId="per002"/>
-        </PersonCollection>
-        <CandidateCollection>
-          <Candidate objectId="can001">
-            <PersonId>per001</PersonId>
-          </Candidate>
-          <Candidate objectId="can002">
-            <PersonId>per001</PersonId>
-          </Candidate>
-          <Candidate objectId="can003">
-            <PersonId>per002</PersonId>
-          </Candidate>
-          <Candidate objectId="can004">
-            <PersonId>per002</PersonId>
-          </Candidate>
-        </CandidateCollection>
-        <ContestCollection>
-          <Contest objectId="con001">
-            <CandidateIds>can001 can003</CandidateIds>
-            <SubsequentContestId>con002</SubsequentContestId>
-          </Contest>
-          <Contest objectId="con002">
-            <CandidateIds>can002 can004</CandidateIds>
-          </Contest>
-        </ContestCollection>
-      </ElectionReport>
-    """
-    report_elem = etree.fromstring(election_report)
-
-    self.validator.check(report_elem)
-
   def test_repeat_candidates_valid_in_related_contests_composing_succeeds(
       self,
   ):
@@ -2327,6 +2393,220 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
 
     self.validator.check(report_elem)
 
+  def test_repeat_candidates_valid_in_related_contests_subsequent_succeeds(
+      self,
+  ):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can002">
+            <PersonId>per002</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="con001">
+            <CandidateIds>can001 can002</CandidateIds>
+            <SubsequentContestId>con002</SubsequentContestId>
+          </Contest>
+          <Contest objectId="con002">
+            <CandidateIds>can001 can002</CandidateIds>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    report_elem = etree.fromstring(election_report)
+
+    self.validator.check(report_elem)
+
+  def test_repeat_candidate_valid_in_related_contests_subsequent_of_subsequent_succeeds(
+      self,
+  ):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="rep" type="CandidateContest">
+            <BallotSelection objectId="two" type="CandidateSelection">
+              <CandidateIds>can001</CandidateIds>
+            </BallotSelection>
+            <SubsequentContestId>gen</SubsequentContestId>
+          </Contest>
+          <Contest objectId="dem" type="CandidateContest">
+            <BallotSelection objectId="one" type="CandidateSelection">
+              <CandidateIds>can001</CandidateIds>
+            </BallotSelection>
+            <SubsequentContestId>runoff</SubsequentContestId>
+          </Contest>
+          <Contest objectId="runoff" type="CandidateContest">
+            <SubsequentContestId>gen</SubsequentContestId>
+          </Contest>
+          <Contest objectId="gen" type="CandidateContest">
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    report_elem = etree.fromstring(election_report)
+
+    self.validator.check(report_elem)
+
+  def test_repeat_candidate_valid_in_related_contests_subsequent_of_composing_succeeds(
+      self,
+  ):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can002">
+            <PersonId>per002</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="gen" type="CandidateContest">
+            <ComposingContestIds>rep dem</ComposingContestIds>
+            <SubsequentContestId>runoff</SubsequentContestId>
+          </Contest>
+          <Contest objectId="rep" type="CandidateContest">
+            <BallotSelection objectId="one" type="CandidateSelection">
+              <CandidateIds>can001</CandidateIds>
+            </BallotSelection>
+          </Contest>
+          <Contest objectId="dem" type="CandidateContest">
+            <BallotSelection objectId="two" type="CandidateSelection">
+              <CandidateIds>can002</CandidateIds>
+            </BallotSelection>
+          </Contest>
+          <Contest objectId="runoff" type="CandidateContest">
+            <BallotSelection objectId="two_runoff" type="CandidateSelection">
+              <CandidateIds>can002</CandidateIds>
+            </BallotSelection>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    report_elem = etree.fromstring(election_report)
+
+    self.validator.check(report_elem)
+
+  def test_repeat_candidates_valid_repeat_subsequent_succeeds(self):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+          <Person objectId="per003"/>
+          <Person objectId="per004"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can002">
+            <PersonId>per002</PersonId>
+          </Candidate>
+          <Candidate objectId="can003">
+            <PersonId>per003</PersonId>
+          </Candidate>
+          <Candidate objectId="can004">
+            <PersonId>per004</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="con001">
+            <Name>New York Democratic Primary</Name>
+            <CandidateIds>can001 can002 can004</CandidateIds>
+            <SubsequentContestId>con003</SubsequentContestId>
+          </Contest>
+          <Contest objectId="con002">
+            <Name>New York Republican Primary</Name>
+            <CandidateIds>can003 can004</CandidateIds>
+            <SubsequentContestId>con003</SubsequentContestId>
+          </Contest>
+          <Contest objectId="con003">
+            <Name>General Election</Name>
+            <CandidateIds>can001 can003</CandidateIds>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    # The winner of each primary go on to the general election
+    # the general election contest is the subsequent contest for both primaries
+    report_elem = etree.fromstring(election_report)
+
+    self.validator.check(report_elem)
+
+  def test_repeat_candidates_valid_subsequent_multi_depth_succeeds(self):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+          <Person objectId="per003"/>
+          <Person objectId="per004"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can002">
+            <PersonId>per002</PersonId>
+          </Candidate>
+          <Candidate objectId="can003">
+            <PersonId>per003</PersonId>
+          </Candidate>
+          <Candidate objectId="can004">
+            <PersonId>per004</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="con001">
+            <Name>New York Democratic Primary</Name>
+            <CandidateIds>can001 can002</CandidateIds>
+            <SubsequentContestId>con003</SubsequentContestId>
+          </Contest>
+          <Contest objectId="con002">
+            <Name>New York Republican Primary</Name>
+            <CandidateIds>can003 can004</CandidateIds>
+            <SubsequentContestId>con003</SubsequentContestId>
+          </Contest>
+          <Contest objectId="con003">
+            <Name>General Election</Name>
+            <CandidateIds>can001 can003</CandidateIds>
+            <SubsequentContestId>con004</SubsequentContestId>
+          </Contest>
+          <Contest objectId="con004">
+            <Name>General Runoff Election</Name>
+            <CandidateIds>can001 can003</CandidateIds>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    # The winner of each primary go on to the general election
+    # The general election contest is the subsequent contest for both primaries
+    # The general election leads into the runoff as its subsequent contest
+    report_elem = etree.fromstring(election_report)
+
+    self.validator.check(report_elem)
+
   def test_same_candidate_in_unrelated_contests_fails(self):
     election_report = """
       <ElectionReport>
@@ -2368,52 +2648,6 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
         ),
     )
 
-  def test_repeat_candidates_in_subsequent_contests_fails(self):
-    election_report = """
-      <ElectionReport>
-        <PersonCollection>
-          <Person objectId="per001"/>
-          <Person objectId="per002"/>
-        </PersonCollection>
-        <CandidateCollection>
-          <Candidate objectId="can001">
-            <PersonId>per001</PersonId>
-          </Candidate>
-          <Candidate objectId="can002">
-            <PersonId>per002</PersonId>
-          </Candidate>
-        </CandidateCollection>
-        <ContestCollection>
-          <Contest objectId="con001">
-            <CandidateIds>can001 can002</CandidateIds>
-            <SubsequentContestId>con002</SubsequentContestId>
-          </Contest>
-          <Contest objectId="con002">
-            <CandidateIds>can001 can002</CandidateIds>
-          </Contest>
-        </ContestCollection>
-      </ElectionReport>
-    """
-    report_elem = etree.fromstring(election_report)
-
-    with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(report_elem)
-    self.assertLen(context.exception.log_entry, 2)
-    self.assertEqual(
-        context.exception.log_entry[0].message,
-        (
-            "Candidate can001 appears in the following contests"
-            " which are not all related: con001, con002"
-        ),
-    )
-    self.assertEqual(
-        context.exception.log_entry[1].message,
-        (
-            "Candidate can002 appears in the following contests"
-            " which are not all related: con001, con002"
-        ),
-    )
-
   def test_person_has_multiple_candidates_in_related_contests_fails(
       self,
   ):
@@ -2441,6 +2675,52 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
           <Contest objectId="con001">
             <CandidateIds>can001 can003</CandidateIds>
             <ComposingContestIds>con002</ComposingContestIds>
+          </Contest>
+          <Contest objectId="con002">
+            <CandidateIds>can002 can004</CandidateIds>
+          </Contest>
+        </ContestCollection>
+      </ElectionReport>
+    """
+    report_elem = etree.fromstring(election_report)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(report_elem)
+    self.assertLen(context.exception.log_entry, 2)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Person per001 has separate candidates in contests that are related.",
+    )
+    self.assertEqual(
+        context.exception.log_entry[1].message,
+        "Person per002 has separate candidates in contests that are related.",
+    )
+
+  def test_person_has_multiple_candidates_in_subsequent_contests_fails(self):
+    election_report = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per001"/>
+          <Person objectId="per002"/>
+        </PersonCollection>
+        <CandidateCollection>
+          <Candidate objectId="can001">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can002">
+            <PersonId>per001</PersonId>
+          </Candidate>
+          <Candidate objectId="can003">
+            <PersonId>per002</PersonId>
+          </Candidate>
+          <Candidate objectId="can004">
+            <PersonId>per002</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="con001">
+            <CandidateIds>can001 can003</CandidateIds>
+            <SubsequentContestId>con002</SubsequentContestId>
           </Contest>
           <Contest objectId="con002">
             <CandidateIds>can002 can004</CandidateIds>
@@ -6341,6 +6621,38 @@ class ValidURIAnnotationTest(absltest.TestCase):
 
     self.validator.check(etree.fromstring(root_string))
 
+  def test_candidate_image_in_contact_information_succeeds(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="candidate-image">
+          <![CDATA[https://www.parlament.gv.at/test.jpg]]>
+        </Uri>
+      </ContactInformation>
+    """
+
+    self.validator.check(etree.fromstring(root_string))
+
+
+class CandidateImageInContactInformationTest(absltest.TestCase):
+
+  def setUp(self):
+    super(CandidateImageInContactInformationTest, self).setUp()
+    self.validator = rules.CandidateImageInContactInformation(None, None)
+
+  def test_valid_contact_information_without_candidate_image_succeeds(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="personal-website">https://example.com</Uri>
+      </ContactInformation>
+    """
+
+    self.validator.check(etree.fromstring(root_string))
+
+  def test_empty_contact_information_succeeds(self):
+    root_string = '<ContactInformation label="ci_par_at_1" />'
+
+    self.validator.check(etree.fromstring(root_string))
+
   def test_candidate_image_in_contact_information_warns(self):
     root_string = """
       <ContactInformation label="ci_par_at_1">
@@ -6354,8 +6666,27 @@ class ValidURIAnnotationTest(absltest.TestCase):
       self.validator.check(etree.fromstring(root_string))
     self.assertEqual(
         context.exception.log_entry[0].message,
-        "'candidate-image' is not a valid annotation.",
+        "Annotation 'candidate-image' in ContactInformation.Uri is"
+        " deprecated. Please use Person.ImageUri instead.",
     )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Uri")
+
+  def test_multiple_candidate_images_in_contact_information_warns(self):
+    root_string = """
+      <ContactInformation label="ci_par_at_1">
+        <Uri Annotation="candidate-image">https://fake.com/1.jpg</Uri>
+        <Uri Annotation="candidate-image">https://fake.com/2.jpg</Uri>
+      </ContactInformation>
+    """
+
+    with self.assertRaises(loggers.ElectionWarning) as context:
+      self.validator.check(etree.fromstring(root_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Annotation 'candidate-image' in ContactInformation.Uri is"
+        " deprecated. Please use Person.ImageUri instead.",
+    )
+    self.assertLen(context.exception.log_entry[0].elements, 2)
 
 
 class OnlyOneCandidateImagePerPersonTest(absltest.TestCase):
@@ -7322,6 +7653,103 @@ class OfficesHaveValidOfficeRoleTest(absltest.TestCase):
     )
     self.assertEqual(
         context.exception.log_entry[0].elements[0].get("objectId"), "off1"
+    )
+
+
+class DiplomaticOfficesHaveCorrespondingGpUnitsSetTest(absltest.TestCase):
+
+  def setUp(self):
+    super(DiplomaticOfficesHaveCorrespondingGpUnitsSetTest, self).setUp()
+    self.validator = rules.DiplomaticOfficesHaveCorrespondingGpUnitsSet(
+        None, None
+    )
+
+  def test_diplomat_office_with_sending_state_succeeds(self):
+    test_string = """
+      <Office objectId="off-fake-1">
+        <Role>diplomat</Role>
+        <DiplomatSendingStateId>gpunit-fake-sending</DiplomatSendingStateId>
+      </Office>
+    """
+    element = etree.fromstring(test_string)
+
+    self.validator.check(element)
+
+  def test_diplomat_office_with_receiving_state_succeeds(self):
+    test_string = """
+      <Office objectId="off-fake-1">
+        <Role>diplomat</Role>
+        <DiplomatReceivingStateId>gpunit-fake-receiving</DiplomatReceivingStateId>
+      </Office>
+    """
+    element = etree.fromstring(test_string)
+
+    self.validator.check(element)
+
+  def test_diplomat_office_with_both_states_succeeds(self):
+    test_string = """
+      <Office objectId="off-fake-1">
+        <Role>diplomat</Role>
+        <DiplomatSendingStateId>gpunit-fake-sending</DiplomatSendingStateId>
+        <DiplomatReceivingStateId>gpunit-fake-receiving</DiplomatReceivingStateId>
+      </Office>
+    """
+    element = etree.fromstring(test_string)
+
+    self.validator.check(element)
+
+  def test_non_diplomat_office_without_states_succeeds(self):
+    test_string = """
+      <Office objectId="off-fake-1">
+        <Role>upper house</Role>
+      </Office>
+    """
+    element = etree.fromstring(test_string)
+
+    self.validator.check(element)
+
+  def test_diplomat_office_without_states_fails(self):
+    test_string = """
+      <Office objectId="off-fake-1">
+        <Role>diplomat</Role>
+      </Office>
+    """
+    element = etree.fromstring(test_string)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(element)
+
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Office with role 'diplomat' must have at least one of"
+        " DiplomatSendingStateId or DiplomatReceivingStateId set.",
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements[0].get("objectId"),
+        "off-fake-1",
+    )
+
+  def test_diplomat_office_with_empty_states_fails(self):
+    test_string = """
+      <Office objectId="off-fake-1">
+        <Role>diplomat</Role>
+        <DiplomatSendingStateId>   </DiplomatSendingStateId>
+        <DiplomatReceivingStateId></DiplomatReceivingStateId>
+      </Office>
+    """
+    element = etree.fromstring(test_string)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(element)
+
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Office with role 'diplomat' must have at least one of"
+        " DiplomatSendingStateId or DiplomatReceivingStateId set.",
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements[0].get("objectId"),
+        "off-fake-1",
     )
 
 
@@ -12672,6 +13100,334 @@ class ResultsReportingStagesMustHaveUniqueTypeTest(absltest.TestCase):
     """
 
     self.validator.check(etree.fromstring(collection_string))
+
+
+class ValidateResultReportingStagesTest(parameterized.TestCase):
+  _EMPTY_STAGES_ERROR = (
+      "ResultsReportingStageCollection must contain at least one"
+      " ResultsReportingStage element when InheritFromComposedContest is"
+      " not true."
+  )
+  _MISSING_REQUIRED_STAGES_WARNING = (
+      "ResultsReportingStageCollection should contain at least two"
+      " ResultsReportingStage elements, including one of StageType"
+      " 'no-results' and at least one of StageType 'preliminary' or"
+      " 'official', when InheritFromComposedContest is not true."
+  )
+
+  def setUp(self):
+    super().setUp()
+    self.validator = rules.ValidateResultReportingStages(None, None)
+
+  def test_registered_in_election_rules(self):
+    self.assertIn(rules.ValidateResultReportingStages, rules.ELECTION_RULES)
+
+  def _setup_election_with_composed_contest(self, collection_string):
+    election_string = f"""
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest objectId="c-parent" xsi:type="CandidateContest">
+              <ComposingContestIds>c-child</ComposingContestIds>
+            </Contest>
+            <Contest objectId="c-child" xsi:type="CandidateContest">
+              {collection_string}
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    election_tree = etree.fromstring(election_string)
+    self.validator = rules.ValidateResultReportingStages(election_tree, None)
+    self.validator.setup()
+    return election_tree.find(".//ResultsReportingStageCollection")
+
+  @parameterized.parameters("true", "1")
+  def test_inherit_true_without_stages_succeeds(self, inherit):
+    collection_element = self._setup_election_with_composed_contest(f"""
+        <ResultsReportingStageCollection>
+          <InheritFromComposedContest>{inherit}</InheritFromComposedContest>
+        </ResultsReportingStageCollection>
+    """)
+
+    self.validator.check(collection_element)
+
+  @parameterized.parameters("true", "1")
+  def test_inherit_true_with_stages_fails(self, inherit):
+    collection_element = self._setup_election_with_composed_contest(f"""
+        <ResultsReportingStageCollection>
+          <InheritFromComposedContest>{inherit}</InheritFromComposedContest>
+          <ResultsReportingStage>
+            <StageType>preliminary</StageType>
+          </ResultsReportingStage>
+        </ResultsReportingStageCollection>
+    """)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(collection_element)
+
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "ResultsReportingStageCollection must not contain any"
+        " ResultsReportingStage elements when InheritFromComposedContest is"
+        " true.",
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements, [collection_element]
+    )
+
+  def test_inherit_true_not_composing_contest_fails(self):
+    election_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest objectId="c-orphan" xsi:type="CandidateContest">
+              <ResultsReportingStageCollection>
+                <InheritFromComposedContest>true</InheritFromComposedContest>
+              </ResultsReportingStageCollection>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    election_tree = etree.fromstring(election_string)
+    validator = rules.ValidateResultReportingStages(election_tree, None)
+    validator.setup()
+    collection_element = election_tree.find(
+        ".//ResultsReportingStageCollection"
+    )
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      validator.check(collection_element)
+
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Contest c-orphan sets InheritFromComposedContest to true but is not"
+        " listed in the ComposingContestIds of any other Contest.",
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements,
+        [collection_element.getparent()],
+    )
+
+  @parameterized.parameters(
+      ("false", "preliminary"),
+      ("false", "official"),
+      ("0", "preliminary"),
+      ("0", "official"),
+  )
+  def test_inherit_false_with_stages_succeeds(self, inherit, result_stage):
+    collection_string = f"""
+      <ResultsReportingStageCollection>
+        <InheritFromComposedContest>{inherit}</InheritFromComposedContest>
+        <ResultsReportingStage>
+          <StageType>no-results</StageType>
+        </ResultsReportingStage>
+        <ResultsReportingStage>
+          <StageType>{result_stage}</StageType>
+        </ResultsReportingStage>
+      </ResultsReportingStageCollection>
+    """
+    collection_element = etree.fromstring(collection_string)
+
+    self.validator.check(collection_element)
+
+  @parameterized.parameters("false", "0")
+  def test_inherit_false_without_stages_fails(self, inherit):
+    collection_string = f"""
+      <ResultsReportingStageCollection>
+        <InheritFromComposedContest>{inherit}</InheritFromComposedContest>
+      </ResultsReportingStageCollection>
+    """
+    collection_element = etree.fromstring(collection_string)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(collection_element)
+
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        self._EMPTY_STAGES_ERROR,
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements, [collection_element]
+    )
+
+  @parameterized.parameters("preliminary", "official")
+  def test_inherit_omitted_with_stages_succeeds(self, result_stage):
+    collection_string = f"""
+      <ResultsReportingStageCollection>
+        <ResultsReportingStage>
+          <StageType>no-results</StageType>
+        </ResultsReportingStage>
+        <ResultsReportingStage>
+          <StageType>{result_stage}</StageType>
+        </ResultsReportingStage>
+      </ResultsReportingStageCollection>
+    """
+    collection_element = etree.fromstring(collection_string)
+
+    self.validator.check(collection_element)
+
+  def test_multiple_stages_including_intermediate_stage_succeeds(self):
+    collection_string = """
+      <ResultsReportingStageCollection>
+        <ResultsReportingStage>
+          <StageType>no-results</StageType>
+        </ResultsReportingStage>
+        <ResultsReportingStage>
+          <StageType>exit-polls</StageType>
+        </ResultsReportingStage>
+        <ResultsReportingStage>
+          <StageType>preliminary</StageType>
+        </ResultsReportingStage>
+        <ResultsReportingStage>
+          <StageType>official</StageType>
+        </ResultsReportingStage>
+      </ResultsReportingStageCollection>
+    """
+    collection_element = etree.fromstring(collection_string)
+
+    self.validator.check(collection_element)
+
+  def test_inherit_omitted_without_stages_fails(self):
+    collection_string = """
+      <ResultsReportingStageCollection>
+      </ResultsReportingStageCollection>
+    """
+    collection_element = etree.fromstring(collection_string)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(collection_element)
+
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        self._EMPTY_STAGES_ERROR,
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements, [collection_element]
+    )
+
+  def test_inherit_empty_without_stages_fails(self):
+    collection_string = """
+      <ResultsReportingStageCollection>
+        <InheritFromComposedContest> </InheritFromComposedContest>
+      </ResultsReportingStageCollection>
+    """
+    collection_element = etree.fromstring(collection_string)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(collection_element)
+
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        self._EMPTY_STAGES_ERROR,
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements, [collection_element]
+    )
+
+  @parameterized.parameters("no-results", "preliminary", "official")
+  def test_single_stage_warns(self, stage_type):
+    collection_string = f"""
+      <ResultsReportingStageCollection>
+        <ResultsReportingStage>
+          <StageType>{stage_type}</StageType>
+        </ResultsReportingStage>
+      </ResultsReportingStageCollection>
+    """
+    collection_element = etree.fromstring(collection_string)
+
+    with self.assertRaises(loggers.ElectionWarning) as context:
+      self.validator.check(collection_element)
+
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        self._MISSING_REQUIRED_STAGES_WARNING,
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements, [collection_element]
+    )
+
+  def test_missing_no_results_stage_warns(self):
+    collection_string = """
+      <ResultsReportingStageCollection>
+        <ResultsReportingStage>
+          <StageType>preliminary</StageType>
+        </ResultsReportingStage>
+        <ResultsReportingStage>
+          <StageType>official</StageType>
+        </ResultsReportingStage>
+      </ResultsReportingStageCollection>
+    """
+    collection_element = etree.fromstring(collection_string)
+
+    with self.assertRaises(loggers.ElectionWarning) as context:
+      self.validator.check(collection_element)
+
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        self._MISSING_REQUIRED_STAGES_WARNING,
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements, [collection_element]
+    )
+
+  def test_missing_preliminary_and_official_stage_warns(self):
+    collection_string = """
+      <ResultsReportingStageCollection>
+        <ResultsReportingStage>
+          <StageType>no-results</StageType>
+        </ResultsReportingStage>
+        <ResultsReportingStage>
+          <StageType>exit-polls</StageType>
+        </ResultsReportingStage>
+      </ResultsReportingStageCollection>
+    """
+    collection_element = etree.fromstring(collection_string)
+
+    with self.assertRaises(loggers.ElectionWarning) as context:
+      self.validator.check(collection_element)
+
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        self._MISSING_REQUIRED_STAGES_WARNING,
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements, [collection_element]
+    )
+
+  def test_stage_with_empty_stage_type_warns(self):
+    collection_string = """
+      <ResultsReportingStageCollection>
+        <ResultsReportingStage>
+          <StageType>no-results</StageType>
+        </ResultsReportingStage>
+        <ResultsReportingStage>
+          <StageType> </StageType>
+        </ResultsReportingStage>
+      </ResultsReportingStageCollection>
+    """
+    collection_element = etree.fromstring(collection_string)
+
+    with self.assertRaises(loggers.ElectionWarning) as context:
+      self.validator.check(collection_element)
+
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        self._MISSING_REQUIRED_STAGES_WARNING,
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements, [collection_element]
+    )
 
 
 class CommitteeClassificationEndDateOccursAfterStartDateTest(absltest.TestCase):

@@ -432,7 +432,7 @@ class EmptyString(base.BaseRule):
 
   # pylint: disable=g-explicit-length-test
   def check(self, element):
-    if element.text is None or not element.text.strip() and not len(element):
+    if (element.text is None or not element.text.strip()) and not len(element):
       raise loggers.ElectionError.from_message(
           "String field is empty", [element]
       )
@@ -474,6 +474,8 @@ class ValidIDREF(base.BaseRule):
 
   _REFERENCE_TYPE_OVERRIDES = {
       # ID refs to GpUnits
+      "DiplomatReceivingStateId": "GpUnit",
+      "DiplomatSendingStateId": "GpUnit",
       "ElectoralDistrictId": "GpUnit",
       "ElectionScopeId": "GpUnit",
       "ScopeLevel": "GpUnit",
@@ -588,7 +590,7 @@ class GpUnitOcdId(base.BaseRule):
   """All GpUnits MUST have a valid OCD ID."""
 
   def elements(self):
-    return ["GpUnit"]
+    return ["GpUnit", "ReportingUnit"]
 
   def check(self, element):
     # ReportingDevices are not expected to have OCD IDs.
@@ -943,9 +945,10 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
   """Candidate should not be referred to by multiple unrelated contests.
 
   A Candidate object should only be referenced from one contest, unless the
-  contests are related (connected by ComposingContestIds). If a Person is
-  running in multiple unrelated Contests, then that Person is a Candidate
-  several times over, but a Candida(te|cy) can't span unrelated contests.
+  contests are related (connected by ComposingContestIds or
+  SubsequentContestId). If a Person is running in multiple unrelated Contests,
+  then that Person is a Candidate several times over, but a Candida(te|cy)
+  can't span unrelated contests.
   """
 
   def __init__(self, election_tree, schema_tree, **kwargs):
@@ -1003,6 +1006,21 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
       self.contest_graph.add_node(contest.get("objectId"))
 
     for contest in contests:
+      subsequent_contest = contest.find("SubsequentContestId")
+      if element_has_text(subsequent_contest):
+        subsequent_contest_id = subsequent_contest.text
+        # subsequent contest id is not valid if it isn't in the graph
+        if not self.contest_graph.has_node(subsequent_contest_id):
+          raise loggers.ElectionError.from_message(
+              (
+                  "Contest {} contains a subsequent Contest Id ({}) that does "
+                  "not exist."
+              ).format(contest.get("objectId"), subsequent_contest_id),
+              [subsequent_contest],
+          )
+        self.contest_graph.add_edge(
+            contest.get("objectId"), subsequent_contest_id
+        )
       # Add the composing contest if it exists
       composing_contests = contest.find("ComposingContestIds")
       if element_has_text(composing_contests):
@@ -1710,6 +1728,27 @@ class PersonsMissingPartyData(base.BaseRule):
       )
 
 
+class CandidateImageInContactInformation(base.BaseRule):
+  """Warn if candidate-image is set in ContactInformation.Uri."""
+
+  def elements(self):
+    return ["ContactInformation"]
+
+  def check(self, element):
+    candidate_image_uris = []
+    for uri in element.findall("Uri"):
+      annotation = uri.get("Annotation", "").strip()
+      if annotation == "candidate-image":
+        candidate_image_uris.append(uri)
+
+    if candidate_image_uris:
+      raise loggers.ElectionWarning.from_message(
+          "Annotation 'candidate-image' in ContactInformation.Uri is"
+          " deprecated. Please use Person.ImageUri instead.",
+          candidate_image_uris,
+      )
+
+
 class OnlyOneCandidateImagePerPerson(base.BaseRule):
   """Ensure only one candidate-image is provided per Person."""
 
@@ -2386,8 +2425,9 @@ class ValidURIAnnotation(base.BaseRule):
             "URI {} is missing annotation.".format(ascii_url), [uri]
         )
 
-      # Skip platform checks for office contact form annotations.
-      if annotation == "office-contact_form":
+      # Skip platform checks for office contact form and candidate-image
+      # annotations.
+      if annotation in ("office-contact_form", "candidate-image"):
         continue
 
       ann_elements = annotation.split("-")
@@ -2583,6 +2623,31 @@ class OfficesHaveValidOfficeRole(base.BaseRule):
     else:
       raise loggers.ElectionError.from_message(
           "Office has more than two office roles.",
+          [element],
+      )
+
+
+class DiplomaticOfficesHaveCorrespondingGpUnitsSet(base.BaseRule):
+  """Offices with the 'diplomat' role must have a sending or receiving state."""
+
+  def elements(self):
+    return ["Office"]
+
+  def check(self, element):
+    office_roles = (
+        role.text.strip()
+        for role in element.findall("Role")
+        if element_has_text(role)
+    )
+    if "diplomat" not in office_roles:
+      return
+
+    if not element_has_text(
+        element.find("DiplomatSendingStateId")
+    ) and not element_has_text(element.find("DiplomatReceivingStateId")):
+      raise loggers.ElectionError.from_message(
+          "Office with role 'diplomat' must have at least one of"
+          " DiplomatSendingStateId or DiplomatReceivingStateId set.",
           [element],
       )
 
@@ -4357,6 +4422,83 @@ class ResultsReportingStagesMustHaveUniqueType(base.BaseRule):
       raise loggers.ElectionError(errors)
 
 
+class ValidateResultReportingStages(base.BaseRule):
+  """Validates ResultsReportingStage elements in a stage collection."""
+
+  def setup(self):
+    self.composing_contest_ids = self._get_composing_contest_ids()
+
+  def _get_composing_contest_ids(self):
+    composing_contest_ids = set()
+    for contest in self.get_elements_by_class(self.election_tree, "Contest"):
+      composing_contest_ids_element = contest.find("ComposingContestIds")
+      if element_has_text(composing_contest_ids_element):
+        composing_contest_ids.update(composing_contest_ids_element.text.split())
+    return composing_contest_ids
+
+  def elements(self):
+    return ["ResultsReportingStageCollection"]
+
+  def check(self, element):
+    inherit_from_composed = _is_xml_true(
+        element.find("InheritFromComposedContest")
+    )
+    stages = element.findall("ResultsReportingStage")
+
+    if inherit_from_composed:
+      error_log = []
+      if stages:
+        error_log.append(
+            loggers.LogEntry(
+                "ResultsReportingStageCollection must not contain any"
+                " ResultsReportingStage elements when"
+                " InheritFromComposedContest is true.",
+                [element],
+            )
+        )
+      contest = element.getparent()
+      contest_id = contest.get("objectId") if contest is not None else None
+      if contest_id not in self.composing_contest_ids:
+        error_log.append(
+            loggers.LogEntry(
+                f"Contest {contest_id} sets InheritFromComposedContest to"
+                " true but is not listed in the ComposingContestIds of any"
+                " other Contest.",
+                [contest],
+            )
+        )
+      if error_log:
+        raise loggers.ElectionError(error_log)
+      return
+
+    if not stages:
+      raise loggers.ElectionError.from_message(
+          "ResultsReportingStageCollection must contain at least one"
+          " ResultsReportingStage element when InheritFromComposedContest is"
+          " not true.",
+          [element],
+      )
+
+    stage_types = set()
+    for stage in stages:
+      stage_type_element = stage.find("StageType")
+      if element_has_text(stage_type_element):
+        stage_types.add(stage_type_element.text.strip())
+
+    if (
+        len(stages) < 2
+        or "no-results" not in stage_types
+        or stage_types.isdisjoint({"preliminary", "official"})
+    ):
+      raise loggers.ElectionWarning.from_message(
+          "ResultsReportingStageCollection should contain at least two"
+          " ResultsReportingStage elements, including one of StageType"
+          " 'no-results' and at least one of StageType 'preliminary' or"
+          " 'official', when InheritFromComposedContest is not true.",
+          [element],
+      )
+
+
 class CandidateContestTypesAreCompatible(base.BaseRule):
   """CandidateContest Type values cannot have both a general and primary type."""
 
@@ -5500,7 +5642,9 @@ COMMON_RULES = (
     AllInternationalizedTextHaveEnVersion,
     AllLanguages,
     BadCharactersInPersonFullName,
+    CandidateImageInContactInformation,
     DeprecatedPartyLeadershipSchema,
+    DiplomaticOfficesHaveCorrespondingGpUnitsSet,
     DuplicateGpUnits,
     DuplicateID,
     DuplicatedGpUnitOcdId,
@@ -5601,6 +5745,7 @@ ELECTION_RULES = COMMON_RULES + (
     ValidateIncludeInAggregationBallotSelections,
     ValidateInfoUriAnnotation,
     ValidatePollsCloseDatetimes,
+    ValidateResultReportingStages,
     ValidateResultsEmbargoEnd,
     ValidateResultsExpected,
     ValidateSpecialBallotSelectionCountedInTotal,

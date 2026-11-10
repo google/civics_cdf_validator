@@ -57,6 +57,7 @@ VALID_OFFICE_ROLES = frozenset([
     "criminal court at law",
     "deputy head of government",
     "deputy state executive",
+    "diplomat",
     "district attorney",
     "district clerk",
     "district court",
