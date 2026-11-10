@@ -12,6 +12,7 @@ from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator import rules
 from civics_cdf_validator.rulesets import common_rules
+from civics_cdf_validator.rulesets import election_rules
 from civics_cdf_validator.rulesets import officeholder_rules
 from civics_cdf_validator.rulesets import rule_util
 import freezegun
@@ -473,7 +474,7 @@ class PercentSumTest(absltest.TestCase):
 
   def setUp(self):
     super(PercentSumTest, self).setUp()
-    self.validator = rules.PercentSum(None, None)
+    self.validator = election_rules.PercentSum(None, None)
     self.root_string = """
       <Contest>
         <BallotSelection>
@@ -1531,7 +1532,7 @@ class PartisanPrimaryTest(absltest.TestCase):
   def test_elections_succeeds(self):
     election_string = PartisanPrimaryTest._base_report
     election_tree = etree.fromstring(election_string)
-    validator = rules.PartisanPrimary(election_tree, None)
+    validator = election_rules.PartisanPrimary(election_tree, None)
 
     self.assertEqual(["Election"], validator.elements())
 
@@ -1547,7 +1548,7 @@ class PartisanPrimaryTest(absltest.TestCase):
     root = etree.fromstring(election_string)
     election = root.find("Election")
 
-    rules.PartisanPrimary(root, None).check(election)
+    election_rules.PartisanPrimary(root, None).check(election)
 
   def test_party_ids_do_not_exist_no_party_partisan_primary_warns(
       self,
@@ -1564,7 +1565,7 @@ class PartisanPrimaryTest(absltest.TestCase):
     election.sourceline = 7
 
     with self.assertRaises(loggers.ElectionWarning):
-      rules.PartisanPrimary(root, None).check(election)
+      election_rules.PartisanPrimary(root, None).check(election)
 
   def test_party_ids_do_not_exist_empty_party_partisan_primary_warns(
       self,
@@ -1582,7 +1583,7 @@ class PartisanPrimaryTest(absltest.TestCase):
     election.sourceline = 7
 
     with self.assertRaises(loggers.ElectionWarning):
-      rules.PartisanPrimary(root, None).check(election)
+      election_rules.PartisanPrimary(root, None).check(election)
 
   def test_party_ids_do_not_exist_white_space_partisan_primary_warns(
       self,
@@ -1600,7 +1601,7 @@ class PartisanPrimaryTest(absltest.TestCase):
     election.sourceline = 7
 
     with self.assertRaises(loggers.ElectionWarning):
-      rules.PartisanPrimary(root, None).check(election)
+      election_rules.PartisanPrimary(root, None).check(election)
 
   def test_party_ids_do_not_exist_no_party_open_primary_election_warns(
       self,
@@ -1617,7 +1618,7 @@ class PartisanPrimaryTest(absltest.TestCase):
     election.sourceline = 7
 
     with self.assertRaises(loggers.ElectionWarning):
-      rules.PartisanPrimary(root, None).check(election)
+      election_rules.PartisanPrimary(root, None).check(election)
 
   def test_missing_party_ids_general_election_succeeds(self):
     election_details = """
@@ -1631,7 +1632,7 @@ class PartisanPrimaryTest(absltest.TestCase):
     election = root.find("Election")
     election.sourceline = 7
 
-    rules.PartisanPrimary(root, None).check(election)
+    election_rules.PartisanPrimary(root, None).check(election)
 
   def test_missing_party_ids_nonpartisan_primary_succeeds(self):
     election_details = """
@@ -1645,7 +1646,7 @@ class PartisanPrimaryTest(absltest.TestCase):
     election = root.find("Election")
     election.sourceline = 7
 
-    rules.PartisanPrimary(root, None).check(election)
+    election_rules.PartisanPrimary(root, None).check(election)
 
   def test_missing_party_ids_no_election_type_succeeds(self):
     election_details = """
@@ -1658,7 +1659,7 @@ class PartisanPrimaryTest(absltest.TestCase):
     election = root.find("Election")
     election.sourceline = 7
 
-    rules.PartisanPrimary(root, None).check(election)
+    election_rules.PartisanPrimary(root, None).check(election)
 
   def test_handles_multiple_elections_succeeds(self):
     election_string = """
@@ -1683,7 +1684,7 @@ class PartisanPrimaryTest(absltest.TestCase):
     for election in elections:
       election.sourceline = 7
 
-      rules.PartisanPrimary(root, None).check(election)
+      election_rules.PartisanPrimary(root, None).check(election)
 
 
 class PartisanPrimaryHeuristicTest(absltest.TestCase):
@@ -1711,7 +1712,7 @@ class PartisanPrimaryHeuristicTest(absltest.TestCase):
     election_details = "<Name>2020 election</Name>"
     election_string = self._base_election_report.format(election_details)
     election_tree = etree.fromstring(election_string)
-    validator = rules.PartisanPrimaryHeuristic(election_tree, None)
+    validator = election_rules.PartisanPrimaryHeuristic(election_tree, None)
 
     self.assertEqual(["Election"], validator.elements())
 
@@ -1720,7 +1721,7 @@ class PartisanPrimaryHeuristicTest(absltest.TestCase):
     root = etree.fromstring(root_string)
     election = root.find("Election")
 
-    rules.PartisanPrimaryHeuristic(root, None).check(election)
+    election_rules.PartisanPrimaryHeuristic(root, None).check(election)
 
   def test_contests_that_do_not_suggest_primary_empty_name_succeeds(
       self,
@@ -1733,7 +1734,7 @@ class PartisanPrimaryHeuristicTest(absltest.TestCase):
     root = etree.fromstring(root_string)
     election = root.find("Election").find("Contest")
 
-    rules.PartisanPrimaryHeuristic(root, None).check(election)
+    election_rules.PartisanPrimaryHeuristic(root, None).check(election)
 
   def test_possible_primary_detected_dem_warns(self):
     contest_details = """
@@ -1746,7 +1747,7 @@ class PartisanPrimaryHeuristicTest(absltest.TestCase):
     election.find("Contest").sourceline = 7
 
     with self.assertRaises(loggers.ElectionWarning):
-      rules.PartisanPrimaryHeuristic(root, None).check(election)
+      election_rules.PartisanPrimaryHeuristic(root, None).check(election)
 
   def test_possible_primary_detected_rep_warns(self):
     contest_details = """
@@ -1759,7 +1760,7 @@ class PartisanPrimaryHeuristicTest(absltest.TestCase):
     election.find("Contest").sourceline = 7
 
     with self.assertRaises(loggers.ElectionWarning):
-      rules.PartisanPrimaryHeuristic(root, None).check(election)
+      election_rules.PartisanPrimaryHeuristic(root, None).check(election)
 
   def test_possible_primary_detected_lib_warns(self):
     contest_details = """
@@ -1772,7 +1773,7 @@ class PartisanPrimaryHeuristicTest(absltest.TestCase):
     election.find("Contest").sourceline = 7
 
     with self.assertRaises(loggers.ElectionWarning):
-      rules.PartisanPrimaryHeuristic(root, None).check(election)
+      election_rules.PartisanPrimaryHeuristic(root, None).check(election)
 
 
 class CoalitionPartiesTest(absltest.TestCase):
@@ -1790,7 +1791,7 @@ class CoalitionPartiesTest(absltest.TestCase):
     )
     element = etree.fromstring(defined_party_string)
 
-    rules.CoalitionParties(None, None).check(element)
+    election_rules.CoalitionParties(None, None).check(element)
 
   def test_coalition_does_not_define_party_id_no_party_id_fails(
       self,
@@ -1799,7 +1800,7 @@ class CoalitionPartiesTest(absltest.TestCase):
     element = etree.fromstring(no_party_string)
 
     with self.assertRaises(loggers.ElectionError):
-      rules.CoalitionParties(None, None).check(element)
+      election_rules.CoalitionParties(None, None).check(element)
 
   def test_coalition_does_not_define_party_id_empty_party_id_fails(
       self,
@@ -1809,7 +1810,7 @@ class CoalitionPartiesTest(absltest.TestCase):
     element = etree.fromstring(empty_party_string)
 
     with self.assertRaises(loggers.ElectionError):
-      rules.CoalitionParties(None, None).check(element)
+      election_rules.CoalitionParties(None, None).check(element)
 
   def test_coalition_does_not_define_party_id_whitespace_fails(
       self,
@@ -1821,7 +1822,7 @@ class CoalitionPartiesTest(absltest.TestCase):
     element = etree.fromstring(all_space_party_string)
 
     with self.assertRaises(loggers.ElectionError):
-      rules.CoalitionParties(None, None).check(element)
+      election_rules.CoalitionParties(None, None).check(element)
 
 
 class UniqueLabelTest(absltest.TestCase):
@@ -1880,7 +1881,9 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
 
   def setUp(self):
     super(CandidatesReferencedInRelatedContestsTest, self).setUp()
-    self.validator = rules.CandidatesReferencedInRelatedContests(None, None)
+    self.validator = election_rules.CandidatesReferencedInRelatedContests(
+        None, None
+    )
 
   # elements test
   def test_election_report_succeeds(self):
@@ -2756,7 +2759,7 @@ class ProperBallotSelectionTest(absltest.TestCase):
 
   def setUp(self):
     super(ProperBallotSelectionTest, self).setUp()
-    self.validator = rules.ProperBallotSelection(None, None)
+    self.validator = election_rules.ProperBallotSelection(None, None)
 
   def test_all_elements_listed_as_keys_in_selection_mapping_succeeds(
       self,
@@ -2807,7 +2810,7 @@ class CorrectCandidateSelectionCountTest(absltest.TestCase):
 
   def setUp(self):
     super(CorrectCandidateSelectionCountTest, self).setUp()
-    self.validator = rules.CorrectCandidateSelectionCount(None, None)
+    self.validator = election_rules.CorrectCandidateSelectionCount(None, None)
 
   def test_candidate_selection_with_missing_candidate_ids_warns(self):
     contest_string = """
@@ -2884,7 +2887,7 @@ class SingularPartySelectionTest(absltest.TestCase):
 
   def setUp(self):
     super(SingularPartySelectionTest, self).setUp()
-    self.validator = rules.SingularPartySelection(None, None)
+    self.validator = election_rules.SingularPartySelection(None, None)
 
   def test_one_party_valid_succeeds(self):
     element_string = """
@@ -3014,7 +3017,7 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
     election_tree = etree.fromstring(test_string)
 
     with self.assertRaises(loggers.ElectionWarning) as context:
-      rules.ValidateDuplicateColors(election_tree, None).check()
+      election_rules.ValidateDuplicateColors(election_tree, None).check()
     self.assertEqual(
         context.exception.log_entry[0].message,
         "Party (par0003) in PartyContest should have either Color or"
@@ -3032,7 +3035,7 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
     election_tree = etree.fromstring(test_string)
 
     with self.assertRaises(loggers.ElectionWarning) as context:
-      rules.ValidateDuplicateColors(election_tree, None).check()
+      election_rules.ValidateDuplicateColors(election_tree, None).check()
     self.assertEqual(
         context.exception.log_entry[0].message,
         "Party (par0003) in PartyContest should have either Color or"
@@ -3050,7 +3053,7 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
     election_tree = etree.fromstring(test_string)
 
     with self.assertRaises(loggers.ElectionWarning) as context:
-      rules.ValidateDuplicateColors(election_tree, None).check()
+      election_rules.ValidateDuplicateColors(election_tree, None).check()
     self.assertEqual(
         context.exception.log_entry[0].message,
         "Party (par0003) in PartyContest should have either Color or"
@@ -3066,7 +3069,7 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
     election_tree = etree.fromstring(test_string)
 
     with self.assertRaises(loggers.ElectionWarning) as context:
-      rules.ValidateDuplicateColors(election_tree, None).check()
+      election_rules.ValidateDuplicateColors(election_tree, None).check()
     self.assertEqual(
         context.exception.log_entry[0].message,
         "Parties have the same Color ff0000.",
@@ -3086,7 +3089,7 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
     )
     election_tree = etree.fromstring(test_string)
 
-    rules.ValidateDuplicateColors(election_tree, None).check()
+    election_rules.ValidateDuplicateColors(election_tree, None).check()
 
   def test_contest_with_parties_with_duplicate_dark_theme_colors_warns(self):
     test_string = self.root_string.format(
@@ -3103,7 +3106,7 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
     election_tree = etree.fromstring(test_string)
 
     with self.assertRaises(loggers.ElectionWarning) as context:
-      rules.ValidateDuplicateColors(election_tree, None).check()
+      election_rules.ValidateDuplicateColors(election_tree, None).check()
     self.assertEqual(
         context.exception.log_entry[0].message,
         "Parties have the same DarkThemeColor ff0000.",
@@ -3130,7 +3133,7 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
     election_tree = etree.fromstring(test_string)
 
     with self.assertRaises(loggers.ElectionWarning) as context:
-      rules.ValidateDuplicateColors(election_tree, None).check()
+      election_rules.ValidateDuplicateColors(election_tree, None).check()
     self.assertEqual(
         context.exception.log_entry[0].message,
         "Parties have the same LightThemeColor ff0000.",
@@ -3161,7 +3164,7 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
     )
     election_tree = etree.fromstring(test_string)
 
-    rules.ValidateDuplicateColors(election_tree, None).check()
+    election_rules.ValidateDuplicateColors(election_tree, None).check()
 
 
 class MultipleCandidatesPointToTheSamePersonInTheSameContestTest(
@@ -3218,8 +3221,10 @@ class MultipleCandidatesPointToTheSamePersonInTheSameContestTest(
         personid1="per1", personid2="per2", personid3="per3", personid4="per4"
     )
     election_tree = etree.fromstring(test_string)
-    validator = rules.MultipleCandidatesPointToTheSamePersonInTheSameContest(
-        election_tree, None
+    validator = (
+        election_rules.MultipleCandidatesPointToTheSamePersonInTheSameContest(
+            election_tree, None
+        )
     )
 
     validator.check()
@@ -3231,8 +3236,10 @@ class MultipleCandidatesPointToTheSamePersonInTheSameContestTest(
         personid1="per1", personid2="per2", personid3="per3", personid4="per3"
     )
     election_tree = etree.fromstring(test_string)
-    validator = rules.MultipleCandidatesPointToTheSamePersonInTheSameContest(
-        election_tree, None
+    validator = (
+        election_rules.MultipleCandidatesPointToTheSamePersonInTheSameContest(
+            election_tree, None
+        )
     )
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -3252,8 +3259,10 @@ class MultipleCandidatesPointToTheSamePersonInTheSameContestTest(
         personid1="per1", personid2="per2", personid3="per3", personid4="per1"
     )
     election_tree = etree.fromstring(test_string)
-    validator = rules.MultipleCandidatesPointToTheSamePersonInTheSameContest(
-        election_tree, None
+    validator = (
+        election_rules.MultipleCandidatesPointToTheSamePersonInTheSameContest(
+            election_tree, None
+        )
     )
 
     validator.check()
@@ -3265,8 +3274,10 @@ class MultipleCandidatesPointToTheSamePersonInTheSameContestTest(
         personid1="per1", personid2="per2", personid3="per1", personid4="per1"
     )
     election_tree = etree.fromstring(test_string)
-    validator = rules.MultipleCandidatesPointToTheSamePersonInTheSameContest(
-        election_tree, None
+    validator = (
+        election_rules.MultipleCandidatesPointToTheSamePersonInTheSameContest(
+            election_tree, None
+        )
     )
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -3291,7 +3302,7 @@ class SelfDeclaredCandidateMethodTest(absltest.TestCase):
 
   def setUp(self):
     super(SelfDeclaredCandidateMethodTest, self).setUp()
-    self.validator = rules.SelfDeclaredCandidateMethod(None, None)
+    self.validator = election_rules.SelfDeclaredCandidateMethod(None, None)
 
   def test_valid_candidate_method_succeeds(self):
     self_declared_method = """
@@ -3384,7 +3395,7 @@ class DuplicatedPartyAbbreviationTest(absltest.TestCase):
 
   def setUp(self):
     super(DuplicatedPartyAbbreviationTest, self).setUp()
-    self.validator = rules.DuplicatedPartyAbbreviation(None, None)
+    self.validator = election_rules.DuplicatedPartyAbbreviation(None, None)
 
   def test_party_collection_without_party_raises_info(self):
     root_string = """
@@ -3652,7 +3663,7 @@ class DuplicatedPartyNameTest(absltest.TestCase):
 
   def setUp(self):
     super(DuplicatedPartyNameTest, self).setUp()
-    self.validator = rules.DuplicatedPartyName(None, None)
+    self.validator = election_rules.DuplicatedPartyName(None, None)
 
   def test_party_collection_without_party_raises_info(self):
     root_string = """
@@ -3767,7 +3778,7 @@ class MissingPartyNameTranslationTest(absltest.TestCase):
 
   def setUp(self):
     super(MissingPartyNameTranslationTest, self).setUp()
-    self.validator = rules.MissingPartyNameTranslation(None, None)
+    self.validator = election_rules.MissingPartyNameTranslation(None, None)
 
   def test_party_collection_without_party_raises_info(self):
     root_string = """
@@ -3908,7 +3919,9 @@ class MissingPartyAbbreviationTranslationTest(absltest.TestCase):
 
   def setUp(self):
     super(MissingPartyAbbreviationTranslationTest, self).setUp()
-    self.validator = rules.MissingPartyAbbreviationTranslation(None, None)
+    self.validator = election_rules.MissingPartyAbbreviationTranslation(
+        None, None
+    )
 
   def test_party_collection_without_party_raises_info(self):
     root_string = """
@@ -4101,7 +4114,7 @@ class DuplicateContestNamesTest(absltest.TestCase):
 
   def setUp(self):
     super(DuplicateContestNamesTest, self).setUp()
-    self.validator = rules.DuplicateContestNames(None, None)
+    self.validator = election_rules.DuplicateContestNames(None, None)
     self._base_report = """
           <ContestCollection>
             <Contest objectId="cc11111">
@@ -4163,7 +4176,9 @@ class DuplicateBallotTitleSeatPairTest(absltest.TestCase):
 
   def setUp(self):
     super(DuplicateBallotTitleSeatPairTest, self).setUp()
-    self.duplicate_validator = rules.DuplicateBallotTitleSeatPair(None, None)
+    self.duplicate_validator = election_rules.DuplicateBallotTitleSeatPair(
+        None, None
+    )
     self._base_report = """
           <ContestCollection>
             <Contest objectId="cc0001">
@@ -5040,7 +5055,7 @@ class ContestHasMultipleOfficesTest(absltest.TestCase):
 
   def setUp(self):
     super(ContestHasMultipleOfficesTest, self).setUp()
-    self.validator = rules.ContestHasMultipleOffices(None, None)
+    self.validator = election_rules.ContestHasMultipleOffices(None, None)
 
   def test_one_office_valid_succeeds(self):
     root_string = self.base_string.format("<OfficeIds>off-ar1-arb</OfficeIds>")
@@ -5528,7 +5543,7 @@ class VoteCountTypesCoherencyTest(absltest.TestCase):
 
   def setUp(self):
     super(VoteCountTypesCoherencyTest, self).setUp()
-    self.validator = rules.VoteCountTypesCoherency(None, None)
+    self.validator = election_rules.VoteCountTypesCoherency(None, None)
     self.base_contest = """
       <Contest objectId="pc1" type="{}">
         <BallotSelection objectId="ps1-0">
@@ -5567,7 +5582,7 @@ class VoteCountTypesCoherencyTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(contest))
-    for vc_type in rules.VoteCountTypesCoherency.CAND_VC_TYPES:
+    for vc_type in election_rules.VoteCountTypesCoherency.CAND_VC_TYPES:
       self.assertIn(vc_type, context.exception.log_entry[0].message)
 
   def test_invalid_not_in_candidate_contest_succeeds(self):
@@ -5631,7 +5646,7 @@ class VoteCountTypesCoherencyTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(contest))
-    for vc_type in rules.VoteCountTypesCoherency.PARTY_VC_TYPES:
+    for vc_type in election_rules.VoteCountTypesCoherency.PARTY_VC_TYPES:
       self.assertIn(vc_type, context.exception.log_entry[0].message)
     self.assertEqual(
         context.exception.log_entry[0].elements[0].get("objectId"), "pc1"
@@ -5650,7 +5665,9 @@ class VoteCountValidSeatsDeltaTypesTest(parameterized.TestCase):
         <xs:element name="NullBallotSelection" type="SpecialBallotSelection"/>
       </xs:schema>
     """)
-    self.validator = rules.VoteCountValidSeatsDeltaTypes(None, schema_tree)
+    self.validator = election_rules.VoteCountValidSeatsDeltaTypes(
+        None, schema_tree
+    )
 
   def test_elements_returns_expected_elements(self):
     self.assertCountEqual(
@@ -7417,8 +7434,8 @@ class OfficeHasjurisdictionSameAsElectoralDistrictTest(absltest.TestCase):
 
   def setUp(self):
     super(OfficeHasjurisdictionSameAsElectoralDistrictTest, self).setUp()
-    self.validator = rules.OfficeHasjurisdictionSameAsElectoralDistrict(
-        None, None
+    self.validator = (
+        election_rules.OfficeHasjurisdictionSameAsElectoralDistrict(None, None)
     )
 
   def test_valid_jurisdiction_and_electoral_district_succeeds(self):
@@ -7770,7 +7787,7 @@ class ContestHasValidContestStageTest(absltest.TestCase):
 
   def setUp(self):
     super(ContestHasValidContestStageTest, self).setUp()
-    self.validator = rules.ContestHasValidContestStage(None, None)
+    self.validator = election_rules.ContestHasValidContestStage(None, None)
 
   def test_contest_has_valid_contest_stage_succeeds(self):
     root_string = """
@@ -7811,7 +7828,7 @@ class GpUnitsHaveSingleRootTest(absltest.TestCase):
 
   def setUp(self):
     super(GpUnitsHaveSingleRootTest, self).setUp()
-    self.validator = rules.GpUnitsHaveSingleRoot(None, None)
+    self.validator = election_rules.GpUnitsHaveSingleRoot(None, None)
 
   def test_single_root_valid_succeeds(self):
     root_string = """
@@ -8109,7 +8126,7 @@ class ElectionContainsStartAndEndDatesTest(absltest.TestCase):
 
   def setUp(self):
     super(ElectionContainsStartAndEndDatesTest, self).setUp()
-    self.validator = rules.ElectionContainsStartAndEndDates(None, None)
+    self.validator = election_rules.ElectionContainsStartAndEndDates(None, None)
 
   def test_election_with_missing_start_date_fails(self):
     election_string = """
@@ -8178,7 +8195,7 @@ class ElectionStartDatesTest(absltest.TestCase):
 
   def setUp(self):
     super(ElectionStartDatesTest, self).setUp()
-    self.validator = rules.ElectionStartDates(None, None)
+    self.validator = election_rules.ElectionStartDates(None, None)
     self.today = datetime.datetime.now(datetime.timezone.utc).date()
     self.election_string = """
     <Election>
@@ -8221,7 +8238,7 @@ class ElectionEndDatesInThePastTest(absltest.TestCase):
 
   def setUp(self):
     super(ElectionEndDatesInThePastTest, self).setUp()
-    self.validator = rules.ElectionEndDatesInThePast(None, None)
+    self.validator = election_rules.ElectionEndDatesInThePast(None, None)
     self.today = datetime.datetime.now(datetime.timezone.utc).date()
     self.election_string = """
     <Election>
@@ -8348,7 +8365,9 @@ class ElectionEndDatesOccurAfterStartDatesTest(absltest.TestCase):
 
   def setUp(self):
     super(ElectionEndDatesOccurAfterStartDatesTest, self).setUp()
-    self.validator = rules.ElectionEndDatesOccurAfterStartDates(None, None)
+    self.validator = election_rules.ElectionEndDatesOccurAfterStartDates(
+        None, None
+    )
     self.today = datetime.datetime.now(datetime.timezone.utc).date()
     self.election_string = """
     <Election>
@@ -8463,7 +8482,7 @@ class ElectionDatesSpanContestDatesTest(absltest.TestCase):
 
   def setUp(self):
     super(ElectionDatesSpanContestDatesTest, self).setUp()
-    self.validator = rules.ElectionDatesSpanContestDates(None, None)
+    self.validator = election_rules.ElectionDatesSpanContestDates(None, None)
 
   def test_election_with_no_dates_succeeds(self):
     election_report_string = """
@@ -8695,7 +8714,7 @@ class ElectionTypesTest(absltest.TestCase):
       """
 
     with self.assertRaises(loggers.ElectionError) as context:
-      rules.ElectionTypesAreCompatible(None, None).check(
+      election_rules.ElectionTypesAreCompatible(None, None).check(
           etree.fromstring(election_string)
       )
     self.assertIn(
@@ -8714,7 +8733,7 @@ class ElectionTypesTest(absltest.TestCase):
       """
 
     with self.assertRaises(loggers.ElectionError) as context:
-      rules.ElectionTypesAreCompatible(None, None).check(
+      election_rules.ElectionTypesAreCompatible(None, None).check(
           etree.fromstring(election_string)
       )
     self.assertIn(
@@ -8733,7 +8752,7 @@ class ElectionTypesTest(absltest.TestCase):
       """
 
     with self.assertRaises(loggers.ElectionError) as context:
-      rules.ElectionTypesAreCompatible(None, None).check(
+      election_rules.ElectionTypesAreCompatible(None, None).check(
           etree.fromstring(election_string)
       )
     self.assertIn(
@@ -8749,7 +8768,7 @@ class ElectionTypesTest(absltest.TestCase):
       </Election>
       """
 
-    rules.ElectionTypesAreCompatible(None, None).check(
+    election_rules.ElectionTypesAreCompatible(None, None).check(
         etree.fromstring(election_string)
     )
 
@@ -8758,8 +8777,10 @@ class ElectionTypesAndCandidateContestTypesAreCompatibleTest(absltest.TestCase):
 
   def setUp(self):
     super(ElectionTypesAndCandidateContestTypesAreCompatibleTest, self).setUp()
-    self.validator = rules.ElectionTypesAndCandidateContestTypesAreCompatible(
-        None, None
+    self.validator = (
+        election_rules.ElectionTypesAndCandidateContestTypesAreCompatible(
+            None, None
+        )
     )
 
   def test_election_includes_contest_with_no_types_succeeds(self):
@@ -8939,7 +8960,7 @@ class DateStatusTest(absltest.TestCase):
 
   def setUp(self):
     super(DateStatusTest, self).setUp()
-    self.validator = rules.DateStatusMatches(None, None)
+    self.validator = election_rules.DateStatusMatches(None, None)
     self.base_report = """
       <Election objectId="el_1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         {}
@@ -10501,7 +10522,7 @@ class ValidateInfoUriAnnotationTest(absltest.TestCase):
 
   def setUp(self):
     super(ValidateInfoUriAnnotationTest, self).setUp()
-    self.validator = rules.ValidateInfoUriAnnotation(None, None)
+    self.validator = election_rules.ValidateInfoUriAnnotation(None, None)
 
   def test_make_sure_valid_info_uri_succeeds(self):
     contest_string = """
@@ -10530,7 +10551,7 @@ class FullTextMaxLengthTest(absltest.TestCase):
 
   def setUp(self):
     super(FullTextMaxLengthTest, self).setUp()
-    self.validator = rules.FullTextMaxLength(None, None)
+    self.validator = election_rules.FullTextMaxLength(None, None)
 
   def test_full_text_is_below_limit_succeeds(self):
     contest_string = """
@@ -10578,7 +10599,7 @@ class FullTextOrBallotTextTest(absltest.TestCase):
 
   def setUp(self):
     super(FullTextOrBallotTextTest, self).setUp()
-    self.validator = rules.FullTextOrBallotText(None, None)
+    self.validator = election_rules.FullTextOrBallotText(None, None)
 
   def test_ballot_text_with_long_full_text_succeeds(self):
     contest_string = """
@@ -10697,7 +10718,7 @@ class BallotTitleTest(absltest.TestCase):
 
   def setUp(self):
     super(BallotTitleTest, self).setUp()
-    self.validator = rules.BallotTitle(None, None)
+    self.validator = election_rules.BallotTitle(None, None)
 
   def test_ballot_title_shorter_than_ballot_text_succeeds(self):
     contest_string = """
@@ -10835,7 +10856,7 @@ class ImproperCandidateContestTest(absltest.TestCase):
       </Contest>
     """
     contest_elem = etree.fromstring(contest)
-    validator = rules.ImproperCandidateContest(None, None)
+    validator = election_rules.ImproperCandidateContest(None, None)
     expected_ids = ["can123", "can987", "can456"]
     actual_ids = validator._gather_contest_candidates(contest_elem)
 
@@ -10847,7 +10868,7 @@ class ImproperCandidateContestTest(absltest.TestCase):
   ):
     candidate_election = self._base_report.format("Yes", "Larry David")
     root = etree.fromstring(candidate_election)
-    validator = rules.ImproperCandidateContest(root, None)
+    validator = election_rules.ImproperCandidateContest(root, None)
     expected_cand = ["can123"]
     actual_cand = validator._gather_invalid_candidates()
 
@@ -10861,14 +10882,14 @@ class ImproperCandidateContestTest(absltest.TestCase):
         "Jerry Seinfeld", "Larry David"
     )
     root = etree.fromstring(candidate_election)
-    validator = rules.ImproperCandidateContest(root, None)
+    validator = election_rules.ImproperCandidateContest(root, None)
 
     validator.check()
 
   def test_candidates_with_ballot_selections_options_get_flagged_warns(self):
     candidate_election = self._base_report.format("Yes", "No")
     root = etree.fromstring(candidate_election)
-    validator = rules.ImproperCandidateContest(root, None)
+    validator = election_rules.ImproperCandidateContest(root, None)
 
     with self.assertRaises(loggers.ElectionWarning) as context:
       validator.check()
@@ -10913,7 +10934,7 @@ class WinnerCountLimitTest(absltest.TestCase):
       </ElectionReport>
     """
     election_tree = etree.fromstring(election_string)
-    validator = rules.WinnerCountLimit(election_tree, None)
+    validator = election_rules.WinnerCountLimit(election_tree, None)
     validator.setup()
 
     validator.check(election_tree.find(".//Contest"))
@@ -10945,7 +10966,7 @@ class WinnerCountLimitTest(absltest.TestCase):
       </ElectionReport>
     """
     election_tree = etree.fromstring(election_string)
-    validator = rules.WinnerCountLimit(election_tree, None)
+    validator = election_rules.WinnerCountLimit(election_tree, None)
     validator.setup()
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -10976,7 +10997,7 @@ class WinnerCountLimitTest(absltest.TestCase):
       </ElectionReport>
     """
     election_tree = etree.fromstring(election_string)
-    validator = rules.WinnerCountLimit(election_tree, None)
+    validator = election_rules.WinnerCountLimit(election_tree, None)
     validator.setup()
 
     validator.check(election_tree.find(".//Contest"))
@@ -11009,7 +11030,7 @@ class WinnerCountLimitTest(absltest.TestCase):
       </ElectionReport>
     """
     election_tree = etree.fromstring(election_string)
-    validator = rules.WinnerCountLimit(election_tree, None)
+    validator = election_rules.WinnerCountLimit(election_tree, None)
     validator.setup()
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -11053,7 +11074,7 @@ class WinnerCountLimitTest(absltest.TestCase):
       </ElectionReport>
     """
     election_tree = etree.fromstring(election_string)
-    validator = rules.WinnerCountLimit(election_tree, None)
+    validator = election_rules.WinnerCountLimit(election_tree, None)
     validator.setup()
 
     validator.check(election_tree.find(".//Contest"))
@@ -11665,7 +11686,7 @@ class SubsequentContestIdIsValidRelatedContestTest(absltest.TestCase):
           """
     root_string = self._base_election_report.format("cc_456", contest_string)
     election_tree = etree.fromstring(root_string)
-    validator = rules.SubsequentContestIdIsValidRelatedContest(
+    validator = election_rules.SubsequentContestIdIsValidRelatedContest(
         election_tree, None
     )
 
@@ -11679,7 +11700,7 @@ class SubsequentContestIdIsValidRelatedContestTest(absltest.TestCase):
           """
     root_string = self._base_election_report.format("cc_456", contest_string)
     election_tree = etree.fromstring(root_string)
-    validator = rules.SubsequentContestIdIsValidRelatedContest(
+    validator = election_rules.SubsequentContestIdIsValidRelatedContest(
         election_tree, None
     )
 
@@ -11701,7 +11722,7 @@ class SubsequentContestIdIsValidRelatedContestTest(absltest.TestCase):
           """
     root_string = self._base_election_report.format("cc_456", contest_string)
     election_tree = etree.fromstring(root_string)
-    validator = rules.SubsequentContestIdIsValidRelatedContest(
+    validator = election_rules.SubsequentContestIdIsValidRelatedContest(
         election_tree, None
     )
 
@@ -11722,7 +11743,7 @@ class SubsequentContestIdIsValidRelatedContestTest(absltest.TestCase):
           """
     root_string = self._base_election_report.format("cc_456", contest_string)
     election_tree = etree.fromstring(root_string)
-    validator = rules.SubsequentContestIdIsValidRelatedContest(
+    validator = election_rules.SubsequentContestIdIsValidRelatedContest(
         election_tree, None
     )
 
@@ -11731,7 +11752,7 @@ class SubsequentContestIdIsValidRelatedContestTest(absltest.TestCase):
   def test_subsequent_contest_with_earlier_end_date_from_election_fails(self):
     root_string = self._base_election_report.format("cc_001", "")
     election_tree = etree.fromstring(root_string)
-    validator = rules.SubsequentContestIdIsValidRelatedContest(
+    validator = election_rules.SubsequentContestIdIsValidRelatedContest(
         election_tree, None
     )
 
@@ -11755,7 +11776,7 @@ class SubsequentContestIdIsValidRelatedContestTest(absltest.TestCase):
           """
     root_string = self._base_election_report.format("cc_002", contest_string)
     election_tree = etree.fromstring(root_string)
-    validator = rules.SubsequentContestIdIsValidRelatedContest(
+    validator = election_rules.SubsequentContestIdIsValidRelatedContest(
         election_tree, None
     )
 
@@ -11780,7 +11801,7 @@ class SubsequentContestIdIsValidRelatedContestTest(absltest.TestCase):
           """
     root_string = self._base_election_report.format("cc_456", contest_string)
     election_tree = etree.fromstring(root_string)
-    validator = rules.SubsequentContestIdIsValidRelatedContest(
+    validator = election_rules.SubsequentContestIdIsValidRelatedContest(
         election_tree, None
     )
 
@@ -11832,7 +11853,7 @@ class ComposingContestIdsTest(absltest.TestCase):
     )
 
     election_tree = etree.fromstring(root_string)
-    validator = rules.ComposingContestIdsAreValidRelatedContests(
+    validator = election_rules.ComposingContestIdsAreValidRelatedContests(
         election_tree, None
     )
 
@@ -11852,7 +11873,7 @@ class ComposingContestIdsTest(absltest.TestCase):
           """
     root_string = self._base_election_report.format(contest_string, "cc_456")
     election_tree = etree.fromstring(root_string)
-    validator = rules.ComposingContestIdsAreValidRelatedContests(
+    validator = election_rules.ComposingContestIdsAreValidRelatedContests(
         election_tree, None
     )
 
@@ -11873,7 +11894,7 @@ class ComposingContestIdsTest(absltest.TestCase):
           """
     root_string = self._base_election_report.format(contest_string, "cc_456")
     election_tree = etree.fromstring(root_string)
-    validator = rules.ComposingContestIdsAreValidRelatedContests(
+    validator = election_rules.ComposingContestIdsAreValidRelatedContests(
         election_tree, None
     )
 
@@ -11893,7 +11914,7 @@ class ComposingContestIdsTest(absltest.TestCase):
           """
     root_string = self._base_election_report.format(contest_string, "cc_456")
     election_tree = etree.fromstring(root_string)
-    validator = rules.ComposingContestIdsAreValidRelatedContests(
+    validator = election_rules.ComposingContestIdsAreValidRelatedContests(
         election_tree, None
     )
 
@@ -11915,7 +11936,7 @@ class ComposingContestIdsTest(absltest.TestCase):
           """
     root_string = self._base_election_report.format(contest_string, "cc_456")
     election_tree = etree.fromstring(root_string)
-    validator = rules.ComposingContestIdsAreValidRelatedContests(
+    validator = election_rules.ComposingContestIdsAreValidRelatedContests(
         election_tree, None
     )
 
@@ -11932,8 +11953,10 @@ class MultipleInternationalizedTextWithSameLanguageCodeTest(absltest.TestCase):
 
   def setUp(self):
     super(MultipleInternationalizedTextWithSameLanguageCodeTest, self).setUp()
-    self.validator = rules.MultipleInternationalizedTextWithSameLanguageCode(
-        None, None
+    self.validator = (
+        election_rules.MultipleInternationalizedTextWithSameLanguageCode(
+            None, None
+        )
     )
 
   def test_multiple_texts_with_same_language_code_fails(self):
@@ -12016,7 +12039,7 @@ class ContestContainsValidStartDateTest(absltest.TestCase):
 
   def setUp(self):
     super(ContestContainsValidStartDateTest, self).setUp()
-    self.validator = rules.ContestContainsValidStartDate(None, None)
+    self.validator = election_rules.ContestContainsValidStartDate(None, None)
     self.today_date = datetime.datetime.now(datetime.timezone.utc)
 
   def test_contest_with_no_start_date_succeeds(self):
@@ -12088,7 +12111,7 @@ class ContestContainsValidEndDateTest(absltest.TestCase):
 
   def setUp(self):
     super(ContestContainsValidEndDateTest, self).setUp()
-    self.validator = rules.ContestContainsValidEndDate(None, None)
+    self.validator = election_rules.ContestContainsValidEndDate(None, None)
     self.today_date = datetime.datetime.now(datetime.timezone.utc)
 
   def test_contest_with_no_end_date_succeeds(self):
@@ -12160,7 +12183,9 @@ class ContestEndDateOccursAfterStartDateTest(absltest.TestCase):
 
   def setUp(self):
     super(ContestEndDateOccursAfterStartDateTest, self).setUp()
-    self.validator = rules.ContestEndDateOccursAfterStartDate(None, None)
+    self.validator = election_rules.ContestEndDateOccursAfterStartDate(
+        None, None
+    )
     self.today_date = datetime.datetime.now(datetime.timezone.utc)
 
   def test_contest_with_no_dates_succeeds(self):
@@ -12240,8 +12265,10 @@ class ContestEndDateOccursBeforeSubsequentContestStartDateTest(
     super(
         ContestEndDateOccursBeforeSubsequentContestStartDateTest, self
     ).setUp()
-    self.validator = rules.ContestEndDateOccursBeforeSubsequentContestStartDate(
-        None, None
+    self.validator = (
+        election_rules.ContestEndDateOccursBeforeSubsequentContestStartDate(
+            None, None
+        )
     )
 
   def test_contest_with_no_subsequent_contest_succeeds(self):
@@ -12402,8 +12429,8 @@ class ContestStartDateContainsCorrespondingEndDateTest(absltest.TestCase):
 
   def setUp(self):
     super(ContestStartDateContainsCorrespondingEndDateTest, self).setUp()
-    self.validator = rules.ContestStartDateContainsCorrespondingEndDate(
-        None, None
+    self.validator = (
+        election_rules.ContestStartDateContainsCorrespondingEndDate(None, None)
     )
 
   def test_contest_with_no_dates_succeeds(self):
@@ -12471,7 +12498,9 @@ class CandidateContestTypesAreCompatibleTest(absltest.TestCase):
 
   def setUp(self):
     super(CandidateContestTypesAreCompatibleTest, self).setUp()
-    self.validator = rules.CandidateContestTypesAreCompatible(None, None)
+    self.validator = election_rules.CandidateContestTypesAreCompatible(
+        None, None
+    )
 
   def test_contest_with_general_and_primary_types_fails(self):
     election_report_string = """
@@ -12580,7 +12609,7 @@ class ValidatePollsCloseDatetimesTest(absltest.TestCase):
 
   def setUp(self):
     super(ValidatePollsCloseDatetimesTest, self).setUp()
-    self.validator = rules.ValidatePollsCloseDatetimes(None, None)
+    self.validator = election_rules.ValidatePollsCloseDatetimes(None, None)
 
   def test_latest_after_earliest_succeeds(self):
     contest_string = """
@@ -12703,7 +12732,7 @@ class ValidateResultsExpectedTest(absltest.TestCase):
 
   def setUp(self):
     super(ValidateResultsExpectedTest, self).setUp()
-    self.validator = rules.ValidateResultsExpected(None, None)
+    self.validator = election_rules.ValidateResultsExpected(None, None)
 
   def test_missing_results_expected_succeeds(self):
     contest_string = """
@@ -12875,7 +12904,7 @@ class ValidateResultsEmbargoEndTest(absltest.TestCase):
 
   def setUp(self):
     super(ValidateResultsEmbargoEndTest, self).setUp()
-    self.validator = rules.ValidateResultsEmbargoEnd(None, None)
+    self.validator = election_rules.ValidateResultsEmbargoEnd(None, None)
 
   def test_missing_results_embargo_end_succeeds(self):
     contest_string = """
@@ -13023,7 +13052,9 @@ class ResultsReportingStagesMustHaveUniqueTypeTest(absltest.TestCase):
 
   def setUp(self):
     super(ResultsReportingStagesMustHaveUniqueTypeTest, self).setUp()
-    self.validator = rules.ResultsReportingStagesMustHaveUniqueType(None, None)
+    self.validator = election_rules.ResultsReportingStagesMustHaveUniqueType(
+        None, None
+    )
 
   def test_empty_collection_succeeds(self):
     collection_string = """
@@ -13140,10 +13171,12 @@ class ValidateResultReportingStagesTest(parameterized.TestCase):
 
   def setUp(self):
     super().setUp()
-    self.validator = rules.ValidateResultReportingStages(None, None)
+    self.validator = election_rules.ValidateResultReportingStages(None, None)
 
   def test_registered_in_election_rules(self):
-    self.assertIn(rules.ValidateResultReportingStages, rules.ELECTION_RULES)
+    self.assertIn(
+        election_rules.ValidateResultReportingStages, rules.ELECTION_RULES
+    )
 
   def _setup_election_with_composed_contest(self, collection_string):
     election_string = f"""
@@ -13161,7 +13194,9 @@ class ValidateResultReportingStagesTest(parameterized.TestCase):
       </ElectionReport>
     """
     election_tree = etree.fromstring(election_string)
-    self.validator = rules.ValidateResultReportingStages(election_tree, None)
+    self.validator = election_rules.ValidateResultReportingStages(
+        election_tree, None
+    )
     self.validator.setup()
     return election_tree.find(".//ResultsReportingStageCollection")
 
@@ -13215,7 +13250,9 @@ class ValidateResultReportingStagesTest(parameterized.TestCase):
       </ElectionReport>
     """
     election_tree = etree.fromstring(election_string)
-    validator = rules.ValidateResultReportingStages(election_tree, None)
+    validator = election_rules.ValidateResultReportingStages(
+        election_tree, None
+    )
     validator.setup()
     collection_element = election_tree.find(
         ".//ResultsReportingStageCollection"
@@ -15300,7 +15337,7 @@ class NotEmptyUniqueDataSourceUrisTest(absltest.TestCase):
 
   def setUp(self):
     super(NotEmptyUniqueDataSourceUrisTest, self).setUp()
-    self.validator = rules.NotEmptyUniqueDataSourceUris(None, None)
+    self.validator = election_rules.NotEmptyUniqueDataSourceUris(None, None)
 
   def test_valid_unique_uris_succeeds(self):
     xml_string = """
@@ -15358,7 +15395,7 @@ class UniqueDataSourceDisplayNamesTest(absltest.TestCase):
 
   def setUp(self):
     super(UniqueDataSourceDisplayNamesTest, self).setUp()
-    self.validator = rules.UniqueDataSourceDisplayNames(None, None)
+    self.validator = election_rules.UniqueDataSourceDisplayNames(None, None)
 
   def test_valid_unique_display_names_succeeds(self):
     xml_string = """
@@ -15420,7 +15457,7 @@ class UniqueDataSourceLanguagesTest(absltest.TestCase):
 
   def setUp(self):
     super(UniqueDataSourceLanguagesTest, self).setUp()
-    self.validator = rules.UniqueDataSourceLanguages(None, None)
+    self.validator = election_rules.UniqueDataSourceLanguages(None, None)
 
   def test_valid_languages_succeeds(self):
     xml_string = """
@@ -15476,7 +15513,7 @@ class LimitAttributionRecursionTest(absltest.TestCase):
 
   def setUp(self):
     super(LimitAttributionRecursionTest, self).setUp()
-    self.validator = rules.AttributionDepthLimit(None, None)
+    self.validator = election_rules.AttributionDepthLimit(None, None)
 
   def test_nesting_depth_one_succeeds(self):
     xml_string = """
@@ -15561,7 +15598,7 @@ class AttributionCyclesValidationTest(absltest.TestCase):
     """
     tree = etree.fromstring(xml_string)
 
-    validator = rules.AttributionContainsNoCycles(tree, None)
+    validator = election_rules.AttributionContainsNoCycles(tree, None)
 
     validator.check()
 
@@ -15582,7 +15619,7 @@ class AttributionCyclesValidationTest(absltest.TestCase):
     """
     tree = etree.fromstring(xml_string)
 
-    validator = rules.AttributionContainsNoCycles(tree, None)
+    validator = election_rules.AttributionContainsNoCycles(tree, None)
 
     with self.assertRaises(loggers.ElectionError) as context:
       validator.check()
@@ -15611,7 +15648,7 @@ class AttributionCyclesValidationTest(absltest.TestCase):
     """
     tree = etree.fromstring(xml_string)
 
-    validator = rules.AttributionContainsNoCycles(tree, None)
+    validator = election_rules.AttributionContainsNoCycles(tree, None)
 
     with self.assertRaises(loggers.ElectionError) as context:
       validator.check()
@@ -15643,7 +15680,7 @@ class AttributionCyclesValidationTest(absltest.TestCase):
     """
     tree = etree.fromstring(xml_string)
 
-    validator = rules.AttributionContainsNoCycles(tree, None)
+    validator = election_rules.AttributionContainsNoCycles(tree, None)
 
     with self.assertRaises(loggers.ElectionError) as context:
       validator.check()
@@ -15675,7 +15712,7 @@ class AttributionCyclesValidationTest(absltest.TestCase):
     """
     tree = etree.fromstring(xml_string)
 
-    validator = rules.AttributionContainsNoCycles(tree, None)
+    validator = election_rules.AttributionContainsNoCycles(tree, None)
 
     with self.assertRaises(loggers.ElectionError) as context:
       validator.check()
@@ -15710,7 +15747,7 @@ class AttributionCyclesValidationTest(absltest.TestCase):
     """
     tree = etree.fromstring(xml_string)
 
-    validator = rules.AttributionContainsNoCycles(tree, None)
+    validator = election_rules.AttributionContainsNoCycles(tree, None)
 
     with self.assertRaises(loggers.ElectionError) as context:
       validator.check()
@@ -15730,9 +15767,11 @@ class ValidateSpecialBallotSelectionCountedInTotalTest(parameterized.TestCase):
 
   def setUp(self):
     super(ValidateSpecialBallotSelectionCountedInTotalTest, self).setUp()
-    self.validator = rules.ValidateSpecialBallotSelectionCountedInTotal(
-        None,
-        None,
+    self.validator = (
+        election_rules.ValidateSpecialBallotSelectionCountedInTotal(
+            None,
+            None,
+        )
     )
 
   @parameterized.parameters(
@@ -15799,8 +15838,8 @@ class ValidateIncludeInAggregationBallotSelectionsTest(parameterized.TestCase):
 
   def setUp(self):
     super(ValidateIncludeInAggregationBallotSelectionsTest, self).setUp()
-    self.validator = rules.ValidateIncludeInAggregationBallotSelections(
-        None, None
+    self.validator = (
+        election_rules.ValidateIncludeInAggregationBallotSelections(None, None)
     )
 
   @parameterized.parameters(
@@ -16268,7 +16307,7 @@ class RulesTest(absltest.TestCase):
     possible_rules = self._subclasses(base.BaseRule)
     possible_rules.remove(base.TreeRule)
     possible_rules.remove(base.ValidReferenceRule)
-    possible_rules.remove(rules.ValidatePartyCollection)
+    possible_rules.remove(election_rules.ValidatePartyCollection)
     possible_rules.remove(base.DateRule)
     possible_rules.remove(base.MissingFieldRule)
     possible_rules.remove(common_rules.UnreferencedEntitiesBase)
