@@ -15,6 +15,7 @@ from civics_cdf_validator.rulesets import committee_rules
 from civics_cdf_validator.rulesets import common_rules
 from civics_cdf_validator.rulesets import election_dates_rules
 from civics_cdf_validator.rulesets import election_rules
+from civics_cdf_validator.rulesets import metadata_rules
 from civics_cdf_validator.rulesets import officeholder_rules
 from civics_cdf_validator.rulesets import rule_util
 from civics_cdf_validator.rulesets import voter_information_rules
@@ -13978,7 +13979,7 @@ class FeedTypeHasValidFeedLongevityTest(absltest.TestCase):
 
   def setUp(self):
     super(FeedTypeHasValidFeedLongevityTest, self).setUp()
-    self.validator = rules.FeedTypeHasValidFeedLongevity(None, None)
+    self.validator = metadata_rules.FeedTypeHasValidFeedLongevity(None, None)
 
   def test_feed_with_valid_type_and_longevity_succeeds(self):
     feed_string = """
@@ -14012,7 +14013,7 @@ class FeedIdsAreUniqueTest(absltest.TestCase):
 
   def setUp(self):
     super(FeedIdsAreUniqueTest, self).setUp()
-    self.validator = rules.FeedIdsAreUnique(None, None)
+    self.validator = metadata_rules.FeedIdsAreUnique(None, None)
 
   def test_unique_feed_ids_succeeds(self):
     feed_collection_string = """
@@ -14060,7 +14061,7 @@ class SourceDirPathsAreUniqueTest(absltest.TestCase):
 
   def setUp(self):
     super(SourceDirPathsAreUniqueTest, self).setUp()
-    self.validator = rules.SourceDirPathsAreUnique(None, None)
+    self.validator = metadata_rules.SourceDirPathsAreUnique(None, None)
 
   def test_unique_source_dir_paths_succeeds(self):
     feed_collection_string = """
@@ -14108,7 +14109,7 @@ class SqsQueueNameIsFullyQualifiedArnTest(absltest.TestCase):
 
   def setUp(self):
     super().setUp()
-    self.validator = rules.SqsQueueNameIsFullyQualifiedArn(None, None)
+    self.validator = metadata_rules.SqsQueueNameIsFullyQualifiedArn(None, None)
 
   def test_no_sqs_queue_name_succeeds(self):
     feed_string = """
@@ -14337,7 +14338,9 @@ class SqsQueueNameRequiresS3SourceDirPathTest(absltest.TestCase):
 
   def setUp(self):
     super(SqsQueueNameRequiresS3SourceDirPathTest, self).setUp()
-    self.validator = rules.SqsQueueNameRequiresS3SourceDirPath(None, None)
+    self.validator = metadata_rules.SqsQueueNameRequiresS3SourceDirPath(
+        None, None
+    )
 
   def test_no_sqs_queue_name_succeeds(self):
     feed_string = """
@@ -14400,7 +14403,7 @@ class ElectionEventDatesAreSequentialTest(absltest.TestCase):
 
   def setUp(self):
     super(ElectionEventDatesAreSequentialTest, self).setUp()
-    self.validator = rules.ElectionEventDatesAreSequential(None, None)
+    self.validator = metadata_rules.ElectionEventDatesAreSequential(None, None)
 
   def test_sequential_start_and_end_dates_succeeds(self):
     election_event_string = """
@@ -14464,8 +14467,10 @@ class SourceDirPathMustBeSetAfterInitialDeliveryDateTest(absltest.TestCase):
 
   def setUp(self):
     super(SourceDirPathMustBeSetAfterInitialDeliveryDateTest, self).setUp()
-    self.validator = rules.SourceDirPathMustBeSetAfterInitialDeliveryDate(
-        None, None
+    self.validator = (
+        metadata_rules.SourceDirPathMustBeSetAfterInitialDeliveryDate(
+            None, None
+        )
     )
 
   @freezegun.freeze_time("2024-08-26")
@@ -14571,7 +14576,9 @@ class OfficeholderSubFeedDatesAreSequentialTest(absltest.TestCase):
 
   def setUp(self):
     super(OfficeholderSubFeedDatesAreSequentialTest, self).setUp()
-    self.validator = rules.OfficeholderSubFeedDatesAreSequential(None, None)
+    self.validator = metadata_rules.OfficeholderSubFeedDatesAreSequential(
+        None, None
+    )
 
   def test_sequential_initial_and_full_delivery_dates_succeeds(self):
     office_holder_sub_feed_string = """
@@ -14606,7 +14613,7 @@ class FeedInactiveDateIsLatestDateTest(absltest.TestCase):
 
   def setUp(self):
     super(FeedInactiveDateIsLatestDateTest, self).setUp()
-    self.validator = rules.FeedInactiveDateIsLatestDate(None, None)
+    self.validator = metadata_rules.FeedInactiveDateIsLatestDate(None, None)
 
   def test_sequential_inactive_and_full_delivery_dates_succeeds(self):
     feed_string = """
@@ -14749,7 +14756,7 @@ class FeedHasValidCountryCodeTest(absltest.TestCase):
 
   def setUp(self):
     super(FeedHasValidCountryCodeTest, self).setUp()
-    self.validator = rules.FeedHasValidCountryCode(None, None)
+    self.validator = metadata_rules.FeedHasValidCountryCode(None, None)
 
   def test_valid_country_code_succeeds(self):
     feed_string = """
@@ -14814,7 +14821,9 @@ class FeedInactiveDateSetForNonEvergreenFeedTest(absltest.TestCase):
 
   def setUp(self):
     super(FeedInactiveDateSetForNonEvergreenFeedTest, self).setUp()
-    self.validator = rules.FeedInactiveDateSetForNonEvergreenFeed(None, None)
+    self.validator = metadata_rules.FeedInactiveDateSetForNonEvergreenFeed(
+        None, None
+    )
 
   def test_evergreen_feed_without_inactive_date_succeeds(self):
     feed_string = """
@@ -14847,7 +14856,9 @@ class FeedInactiveDateNotOlderThanOneYearTest(absltest.TestCase):
 
   def setUp(self):
     super(FeedInactiveDateNotOlderThanOneYearTest, self).setUp()
-    self.validator = rules.FeedInactiveDateNotOlderThanOneYear(None, None)
+    self.validator = metadata_rules.FeedInactiveDateNotOlderThanOneYear(
+        None, None
+    )
 
   @freezegun.freeze_time("2026-01-01")
   def test_feed_without_inactive_date_succeeds(self):
@@ -15214,8 +15225,8 @@ class FeedElementsShouldHaveSubElementsBasedOnTypeTest(parameterized.TestCase):
 
   def setUp(self):
     super(FeedElementsShouldHaveSubElementsBasedOnTypeTest, self).setUp()
-    self.validator = rules.FeedElementsShouldHaveSubElementsBasedOnType(
-        None, None
+    self.validator = (
+        metadata_rules.FeedElementsShouldHaveSubElementsBasedOnType(None, None)
     )
 
   def test_officeholder_feed_with_officeholder_sub_feed_succeeds(self):
@@ -16329,7 +16340,7 @@ class RulesTest(absltest.TestCase):
     possible_rules.remove(base.MissingFieldRule)
     possible_rules.remove(common_rules.UnreferencedEntitiesBase)
     # TODO(b/555757644): Reenable this rule once we are ready to enforce it.
-    possible_rules.remove(rules.SqsQueueNameIsFullyQualifiedArn)
+    possible_rules.remove(metadata_rules.SqsQueueNameIsFullyQualifiedArn)
 
     self.assertSetEqual(all_rules, possible_rules)
 
