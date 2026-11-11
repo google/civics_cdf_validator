@@ -3,6 +3,7 @@
 
 import datetime
 import io
+from unittest.mock import MagicMock
 
 from absl.testing import absltest
 from absl.testing import parameterized
@@ -10,7 +11,6 @@ from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator.rulesets import common_rules
 from lxml import etree
-from mock import MagicMock
 
 
 class SchemaTest(absltest.TestCase):

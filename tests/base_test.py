@@ -4,14 +4,15 @@
 import datetime
 import io
 import sys
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
 from absl.testing import absltest
 from civics_cdf_validator import base
 from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 import freezegun
 from lxml import etree
-from mock import MagicMock
-from mock import patch
 
 _TEST_US_OCD_ID_1 = "ocd-division/country:us"
 _TEST_US_OCD_ID_2 = "ocd-division/country:us/state:ny"

@@ -4,13 +4,13 @@
 import datetime
 import hashlib
 import io
+from unittest.mock import MagicMock
 
 from absl.testing import absltest
 from civics_cdf_validator import loggers
 from civics_cdf_validator.rulesets import officeholder_rules
 import freezegun
 from lxml import etree
-from mock import MagicMock
 
 
 class PersonHasOfficeTest(absltest.TestCase):

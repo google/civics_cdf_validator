@@ -3,13 +3,13 @@
 
 import datetime
 import io
+from unittest.mock import call
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 from absl.testing import absltest
 from absl.testing import parameterized
 from civics_cdf_validator import gpunit_rules
-from mock import call
-from mock import MagicMock
-from mock import patch
 
 
 _US_COUNTRY_CODE = "us"
