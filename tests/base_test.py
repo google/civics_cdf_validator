@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Unit test for base.py."""
 
+import contextlib
 import datetime
 import io
 import sys
@@ -8,6 +9,7 @@ from absl.testing import absltest
 from civics_cdf_validator import base
 from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
+from civics_cdf_validator import stats
 import freezegun
 from lxml import etree
 from mock import MagicMock
@@ -17,6 +19,70 @@ _TEST_US_OCD_ID_1 = "ocd-division/country:us"
 _TEST_US_OCD_ID_2 = "ocd-division/country:us/state:ny"
 _TEST_CA_OCD_ID_1 = "ocd-division/country:ca"
 _TEST_CA_OCD_ID_2 = "ocd-division/country:ca/cd:1207/district:0"
+
+
+class _FakeOptionRule(base.BaseRule):
+  """Fake rule with a configurable option, checking Party elements."""
+
+  def __init__(self, election_tree, schema_tree, ocd_id_validator=None):
+    super().__init__(election_tree, schema_tree, ocd_id_validator)
+    self.fake_option = "default-value"
+
+  def elements(self):
+    return ["Party"]
+
+  def check(self, element):
+    pass
+
+
+class _FakePartyRule(base.BaseRule):
+  """Fake rule raising an error for every Party element."""
+
+  def elements(self):
+    return ["Party", "Party"]
+
+  def check(self, element):
+    raise loggers.ElectionError.from_message(
+        f"Fake error for {element.get('objectId')}.", [element]
+    )
+
+
+class _FakeTreeRule(base.TreeRule):
+  """Fake tree rule always raising a warning."""
+
+  def check(self):
+    raise loggers.ElectionWarning.from_message("Fake tree warning.")
+
+
+class SchemaHandlerTest(absltest.TestCase):
+
+  def test_get_element_class_none_element_returns_none(self):
+    schema_handler = base.SchemaHandler()
+
+    element_class = schema_handler.get_element_class(None)
+
+    self.assertIsNone(element_class)
+
+
+class BaseRuleTest(absltest.TestCase):
+
+  def test_set_option_existing_attribute_sets_value(self):
+    rule = _FakeOptionRule(None, None)
+    option = base.RuleOption("fake_option", "fake-value")
+
+    rule.set_option(option)
+
+    self.assertEqual("fake-value", rule.fake_option)
+
+  def test_set_option_unknown_attribute_raises_election_exception(self):
+    rule = _FakeOptionRule(None, None)
+    option = base.RuleOption("unknown_option", "fake-value")
+
+    with self.assertRaises(loggers.ElectionException) as context:
+      rule.set_option(option)
+
+    self.assertFalse(hasattr(rule, "unknown_option"))
+    self.assertIsInstance(context.exception, loggers.ElectionException)
 
 
 class ValidReferenceRuleTest(absltest.TestCase):
@@ -65,8 +131,9 @@ class DateRuleTest(absltest.TestCase):
     super(DateRuleTest, self).setUp()
     self.date_validator = base.DateRule(None, None)
     self.today = datetime.datetime.now(datetime.timezone.utc).date()
-    self.today_partial_date = base.PartialDate(self.today.year,
-                                               self.today.month, self.today.day)
+    self.today_partial_date = base.PartialDate(
+        self.today.year, self.today.month, self.today.day
+    )
 
     self.election_string = """
     <Election>
@@ -74,6 +141,17 @@ class DateRuleTest(absltest.TestCase):
       <EndDate>{}</EndDate>
     </Election>
     """
+
+  # __init__ test
+  def test_init_stores_election_and_schema_trees(self):
+    election_tree = etree.fromstring("<ElectionReport/>")
+    schema_tree = etree.fromstring("<schema/>")
+
+    date_rule = base.DateRule(election_tree, schema_tree)
+
+    self.assertIs(election_tree, date_rule.election_tree)
+    self.assertIs(schema_tree, date_rule.schema_tree)
+    self.assertEqual([], date_rule.error_log)
 
   # reset_instance_vars test
   def test_reset_instance_vars_resets_state(self):
@@ -92,35 +170,38 @@ class DateRuleTest(absltest.TestCase):
     fresh_validator = base.DateRule(None, None)
 
     self.assertNotEqual(
-        validator_with_values.start_elem, fresh_validator.start_elem)
+        validator_with_values.start_elem, fresh_validator.start_elem
+    )
     self.assertNotEqual(
-        validator_with_values.start_date, fresh_validator.start_date)
+        validator_with_values.start_date, fresh_validator.start_date
+    )
     self.assertNotEqual(
-        validator_with_values.end_elem, fresh_validator.end_elem)
+        validator_with_values.end_elem, fresh_validator.end_elem
+    )
     self.assertNotEqual(
-        validator_with_values.end_date, fresh_validator.end_date)
+        validator_with_values.end_date, fresh_validator.end_date
+    )
     self.assertNotEqual(
-        validator_with_values.error_log, fresh_validator.error_log)
+        validator_with_values.error_log, fresh_validator.error_log
+    )
 
     validator_with_values.reset_instance_vars()
 
     self.assertEqual(
-        validator_with_values.start_elem, fresh_validator.start_elem)
+        validator_with_values.start_elem, fresh_validator.start_elem
+    )
     self.assertEqual(
-        validator_with_values.start_date, fresh_validator.start_date)
-    self.assertEqual(
-        validator_with_values.end_elem, fresh_validator.end_elem)
-    self.assertEqual(
-        validator_with_values.end_date, fresh_validator.end_date)
-    self.assertEqual(
-        validator_with_values.error_log, fresh_validator.error_log)
+        validator_with_values.start_date, fresh_validator.start_date
+    )
+    self.assertEqual(validator_with_values.end_elem, fresh_validator.end_elem)
+    self.assertEqual(validator_with_values.end_date, fresh_validator.end_date)
+    self.assertEqual(validator_with_values.error_log, fresh_validator.error_log)
 
   # gather_dates tests
   def test_gather_dates_sets_start_and_end_dates(self):
     start_date = "2021-12-20"
     end_date = "2021-12-22"
-    election_string = self.election_string.format(
-        start_date, end_date)
+    election_string = self.election_string.format(start_date, end_date)
     election = etree.fromstring(election_string)
     self.date_validator.gather_dates(election)
     self.assertEqual(20, self.date_validator.start_date.day)
@@ -135,16 +216,21 @@ class DateRuleTest(absltest.TestCase):
     end_date_invalid = "05-29"
 
     election_string = self.election_string.format(
-        start_date_invalid, end_date_invalid)
+        start_date_invalid, end_date_invalid
+    )
     election = etree.fromstring(election_string)
     with self.assertRaises(loggers.ElectionError) as ee:
       self.date_validator.gather_dates(election)
     self.assertEqual(
         "The StartDate text should be of the formats: yyyy-mm-dd, or yyyy,"
-        " or yyyy-mm", ee.exception.log_entry[0].message)
+        " or yyyy-mm",
+        ee.exception.log_entry[0].message,
+    )
     self.assertEqual(
         "The EndDate text should be of the formats: "
-        "yyyy-mm-dd, or yyyy, or yyyy-mm", ee.exception.log_entry[1].message)
+        "yyyy-mm-dd, or yyyy, or yyyy-mm",
+        ee.exception.log_entry[1].message,
+    )
 
   def test_gather_dates_missing_elements_remains_none(self):
     election_string = "<Election></Election>"
@@ -205,15 +291,17 @@ class DateRuleTest(absltest.TestCase):
   def test_end_before_start_logs_error(self):
     start_date_year_month = "2021-09"
     end_date_year_month = "2021-01"
-    election_string = self.election_string.format(start_date_year_month,
-                                                  end_date_year_month)
+    election_string = self.election_string.format(
+        start_date_year_month, end_date_year_month
+    )
     election = etree.fromstring(election_string)
     self.date_validator.gather_dates(election)
     self.date_validator.check_end_after_start()
     self.assertLen(self.date_validator.error_log, 1)
     self.assertIn(
         "The end date must be the same or after the start date.",
-        self.date_validator.error_log[0].message)
+        self.date_validator.error_log[0].message,
+    )
 
 
 class PartialDateTest(absltest.TestCase):
@@ -272,9 +360,7 @@ class PartialDateTest(absltest.TestCase):
   def test_is_older_than_returns_difference_in_months(self):
     partial_date_older = base.PartialDate(2021, 3, 12)
     partial_date_younger = base.PartialDate(2021, 11, 2)
-    self.assertEqual(
-        8,
-        partial_date_older.is_older_than(partial_date_younger))
+    self.assertEqual(8, partial_date_older.is_older_than(partial_date_younger))
 
   def test_year_only_is_older_than_complete_date_returns_difference_in_years(
       self,
@@ -288,16 +374,14 @@ class PartialDateTest(absltest.TestCase):
   ):
     complete_start_date = base.PartialDate(2021, 6, 30)
     partial_end_date = base.PartialDate(2021, 11, None)
-    self.assertEqual(
-        5, complete_start_date.is_older_than(partial_end_date))
+    self.assertEqual(5, complete_start_date.is_older_than(partial_end_date))
 
   def test_year_only_is_older_than_partial_date_returns_difference_in_years(
       self,
   ):
     year_only_start_date = base.PartialDate(2020, None, None)
     partial_end_date = base.PartialDate(2021, 11, None)
-    self.assertEqual(
-        1, year_only_start_date.is_older_than(partial_end_date))
+    self.assertEqual(1, year_only_start_date.is_older_than(partial_end_date))
 
   def test_is_only_year_date_returns_true(self):
     partial_date_year = base.PartialDate(2021, None, None)
@@ -313,8 +397,7 @@ class PartialDateTest(absltest.TestCase):
 
   def test_is_month_date_returns_true(self):
     partial_date_year_month = base.PartialDate(2021, 11, None)
-    self.assertTrue(
-        partial_date_year_month.is_month_date())
+    self.assertTrue(partial_date_year_month.is_month_date())
 
   def test_is_month_date_year_only_returns_false(self):
     partial_date_year = base.PartialDate(2021, None, None)
@@ -331,6 +414,54 @@ class PartialDateTest(absltest.TestCase):
   def test_init_invalid_year_returns_none(self):
     partial_date = base.PartialDate.init_partial_date("20313")
     self.assertIsNone(partial_date)
+
+  def test_init_year_month_with_month_above_twelve_returns_none(self):
+    partial_date = base.PartialDate.init_partial_date("2022-13")
+
+    self.assertIsNone(partial_date)
+
+  def test_init_year_month_with_december_returns_date(self):
+    partial_date = base.PartialDate.init_partial_date("2022-12")
+
+    self.assertEqual(12, partial_date.month)
+
+  def test_str_year_only_returns_year(self):
+    partial_date = base.PartialDate(2020)
+
+    self.assertEqual("2020", str(partial_date))
+
+  def test_str_year_month_returns_padded_month(self):
+    partial_date = base.PartialDate(2020, 5)
+
+    self.assertEqual("2020-05", str(partial_date))
+
+  def test_str_complete_date_returns_padded_date(self):
+    partial_date = base.PartialDate(2020, 5, 7)
+
+    self.assertEqual("2020-05-07", str(partial_date))
+
+  def test_str_undefined_date_returns_not_defined(self):
+    partial_date = base.PartialDate()
+
+    self.assertEqual("Not defined", str(partial_date))
+
+  def test_year_only_is_older_than_complete_date_in_same_year_returns_zero(
+      self,
+  ):
+    year_only_date = base.PartialDate(2021)
+    complete_date = base.PartialDate(2021, 6, 30)
+
+    self.assertEqual(0, year_only_date.is_older_than(complete_date))
+    self.assertEqual(0, complete_date.is_older_than(year_only_date))
+
+  def test_month_date_is_older_than_complete_date_in_same_month_returns_zero(
+      self,
+  ):
+    month_date = base.PartialDate(2021, 6)
+    complete_date = base.PartialDate(2021, 6, 30)
+
+    self.assertEqual(0, month_date.is_older_than(complete_date))
+    self.assertEqual(0, complete_date.is_older_than(month_date))
 
 
 class MissingFieldRuleTest(absltest.TestCase):
@@ -364,6 +495,12 @@ class MissingFieldRuleTest(absltest.TestCase):
     self.validator.get_severity = MagicMock(return_value=2)
     self.validator.setup()
     self.assertEqual(loggers.ElectionError, self.validator.exception)
+
+  def test_setup_severity_just_past_fatal_raises_invalid_severity(self):
+    self.validator.get_severity = MagicMock(return_value=4)
+
+    with self.assertRaisesRegex(Exception, "Invalid severity"):
+      self.validator.setup()
 
   def test_setup_invalid_severity_raises_exception(self):
     self.validator.get_severity = MagicMock(return_value=-1)
@@ -415,10 +552,13 @@ class MissingFieldRuleTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionError) as ee:
       self.validator.check(etree.fromstring(person))
-    self.assertEqual(ee.exception.log_entry[0].message,
-                     "The element Person is missing field FullName//Text.")
-    self.assertEqual(ee.exception.log_entry[0].elements[0].get("objectId"),
-                     "123")
+    self.assertEqual(
+        ee.exception.log_entry[0].message,
+        "The element Person is missing field FullName//Text.",
+    )
+    self.assertEqual(
+        ee.exception.log_entry[0].elements[0].get("objectId"), "123"
+    )
 
   def test_missing_field_warns(self):
     person = """
@@ -433,10 +573,13 @@ class MissingFieldRuleTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionWarning) as ew:
       self.validator.check(etree.fromstring(person))
-    self.assertEqual(ew.exception.log_entry[0].message,
-                     "The element Person is missing field FullName//Text.")
-    self.assertEqual(ew.exception.log_entry[0].elements[0].get("objectId"),
-                     "123")
+    self.assertEqual(
+        ew.exception.log_entry[0].message,
+        "The element Person is missing field FullName//Text.",
+    )
+    self.assertEqual(
+        ew.exception.log_entry[0].elements[0].get("objectId"), "123"
+    )
 
   def test_missing_field_raises_info(self):
     person = """
@@ -451,10 +594,13 @@ class MissingFieldRuleTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionInfo) as ei:
       self.validator.check(etree.fromstring(person))
-    self.assertEqual(ei.exception.log_entry[0].message,
-                     "The element Person is missing field FullName//Text.")
-    self.assertEqual(ei.exception.log_entry[0].elements[0].get("objectId"),
-                     "123")
+    self.assertEqual(
+        ei.exception.log_entry[0].message,
+        "The element Person is missing field FullName//Text.",
+    )
+    self.assertEqual(
+        ei.exception.log_entry[0].elements[0].get("objectId"), "123"
+    )
 
   def test_empty_field_fails(self):
     person = """
@@ -472,10 +618,13 @@ class MissingFieldRuleTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionError) as ee:
       self.validator.check(etree.fromstring(person))
-    self.assertEqual(ee.exception.log_entry[0].message,
-                     "The element Person is missing field FullName//Text.")
-    self.assertEqual(ee.exception.log_entry[0].elements[0].get("objectId"),
-                     "123")
+    self.assertEqual(
+        ee.exception.log_entry[0].message,
+        "The element Person is missing field FullName//Text.",
+    )
+    self.assertEqual(
+        ee.exception.log_entry[0].elements[0].get("objectId"), "123"
+    )
 
   def test_whitespace_field_fails(self):
     person = """
@@ -493,10 +642,13 @@ class MissingFieldRuleTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionError) as ee:
       self.validator.check(etree.fromstring(person))
-    self.assertEqual(ee.exception.log_entry[0].message,
-                     "The element Person is missing field FullName//Text.")
-    self.assertEqual(ee.exception.log_entry[0].elements[0].get("objectId"),
-                     "123")
+    self.assertEqual(
+        ee.exception.log_entry[0].message,
+        "The element Person is missing field FullName//Text.",
+    )
+    self.assertEqual(
+        ee.exception.log_entry[0].elements[0].get("objectId"), "123"
+    )
 
   def test_multiple_missing_fields_fails(self):
     person = """
@@ -511,14 +663,20 @@ class MissingFieldRuleTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionError) as ee:
       self.validator.check(etree.fromstring(person))
-    self.assertEqual(ee.exception.log_entry[0].message,
-                     "The element Person is missing field FullName//Text.")
-    self.assertEqual(ee.exception.log_entry[0].elements[0].get("objectId"),
-                     "123")
-    self.assertEqual(ee.exception.log_entry[1].message,
-                     "The element Person is missing field PartyId.")
-    self.assertEqual(ee.exception.log_entry[1].elements[0].get("objectId"),
-                     "123")
+    self.assertEqual(
+        ee.exception.log_entry[0].message,
+        "The element Person is missing field FullName//Text.",
+    )
+    self.assertEqual(
+        ee.exception.log_entry[0].elements[0].get("objectId"), "123"
+    )
+    self.assertEqual(
+        ee.exception.log_entry[1].message,
+        "The element Person is missing field PartyId.",
+    )
+    self.assertEqual(
+        ee.exception.log_entry[1].elements[0].get("objectId"), "123"
+    )
 
 
 class RulesRegistryTest(absltest.TestCase):
@@ -616,7 +774,7 @@ class RulesRegistryTest(absltest.TestCase):
         "Candidate": 1,
         "Office": 2,
         "GpUnit": 3,
-        "Contest": 3
+        "Contest": 3,
     }
 
     # Value: (found_in_n_entities, missing_in_m_entities).
@@ -624,7 +782,7 @@ class RulesRegistryTest(absltest.TestCase):
         "ComposingGpUnitIds": (3, 0),
         "Color": (1, 1),
         "BallotSelection": (1, 2),
-        "InternationalizedAbbreviation": (1, 1)
+        "InternationalizedAbbreviation": (1, 1),
     }
 
     for entity, count in expected_entity_counts.items():
@@ -634,7 +792,142 @@ class RulesRegistryTest(absltest.TestCase):
       count, missing_in = stat
       self.assertIn(
           "{:<30s}{:^8s}{:>15s}".format(attr, str(count), str(missing_in)),
-          output)
+          output,
+      )
+
+  def _capture_output(self, function, *args):
+    output = io.StringIO()
+    with contextlib.redirect_stdout(output):
+      function(*args)
+    return output.getvalue()
+
+  def test_count_stats_prints_header(self):
+    output = self._capture_output(self.registry.count_stats)
+
+    self.assertTrue(
+        output.startswith("\n     Entity and Attribute Counts:\n"), output
+    )
+
+  def test_count_stats_skips_entities_missing_from_feed(self):
+    self.registry.election_tree = etree.fromstring("""
+      <ElectionReport>
+        <PartyCollection>
+          <Party objectId="par-fake"/>
+        </PartyCollection>
+      </ElectionReport>
+    """)
+
+    output = self._capture_output(self.registry.count_stats)
+
+    self.assertIn("Party (Total: 1)", output)
+    self.assertNotIn("Office (Total", output)
+    self.assertNotIn("Person (Total", output)
+
+  def test_count_stats_without_election_tree_prints_nothing(self):
+    registry = base.RulesRegistry("test.xml", "schema.xsd", [], {}, None)
+
+    output = self._capture_output(registry.count_stats)
+
+    self.assertEqual("", output)
+
+  def test_register_rules_applies_rule_options(self):
+    rule_options = {
+        "_FakeOptionRule": [base.RuleOption("fake_option", "fake-value")]
+    }
+    registry = base.RulesRegistry(
+        "test.xml", "schema.xsd", [_FakeOptionRule], rule_options, None
+    )
+    registry.schema_tree = None
+
+    registry.register_rules()
+
+    self.assertEqual("fake-value", registry.registry["Party"][0].fake_option)
+
+  def test_register_rules_without_rule_options_keeps_defaults(self):
+    registry = base.RulesRegistry(
+        "test.xml", "schema.xsd", [_FakeOptionRule], {}, None
+    )
+    registry.schema_tree = None
+
+    registry.register_rules()
+
+    self.assertEqual("default-value", registry.registry["Party"][0].fake_option)
+
+  def test_register_rules_registers_every_rule_for_shared_element(self):
+    registry = base.RulesRegistry(
+        "test.xml", "schema.xsd", [_FakeOptionRule, _FakePartyRule], {}, None
+    )
+    registry.schema_tree = None
+
+    registry.register_rules()
+
+    registered_rule_types = [type(rule) for rule in registry.registry["Party"]]
+    self.assertEqual([_FakeOptionRule, _FakePartyRule], registered_rule_types)
+
+  def test_get_all_exceptions_returns_recorded_exceptions(self):
+    election_file = self.create_tempfile(content="""<ElectionReport>
+  <PartyCollection>
+    <Party objectId="par-fake-1"/>
+  </PartyCollection>
+</ElectionReport>""").full_path
+    schema_file = self.create_tempfile(content="<schema/>").full_path
+    registry = base.RulesRegistry(
+        election_file, schema_file, [_FakePartyRule], {}, None
+    )
+    registry.check_rules()
+
+    all_exceptions = registry.get_all_exceptions()
+
+    error_messages = [
+        log_entry.message
+        for log_entry in all_exceptions[loggers.ElectionError]["_FakePartyRule"]
+    ]
+    self.assertEqual(["Fake error for par-fake-1."], error_messages)
+
+  def test_check_rules_records_tree_and_element_rule_exceptions(self):
+    election_file = self.create_tempfile(content="""<ElectionReport>
+  <PartyCollection>
+    <Party objectId="par-fake-1"/>
+    <Party objectId="par-fake-2"/>
+  </PartyCollection>
+</ElectionReport>""").full_path
+    schema_file = self.create_tempfile(content="<schema/>").full_path
+    registry = base.RulesRegistry(
+        election_file, schema_file, [_FakeTreeRule, _FakePartyRule], {}, None
+    )
+
+    registry.check_rules()
+
+    all_exceptions = registry.exceptions_wrapper.get_all_exceptions()
+    warning_messages = [
+        log_entry.message
+        for log_entry in all_exceptions[loggers.ElectionWarning][
+            "_FakeTreeRule"
+        ]
+    ]
+    error_messages = [
+        log_entry.message
+        for log_entry in all_exceptions[loggers.ElectionError]["_FakePartyRule"]
+    ]
+    self.assertEqual(["Fake tree warning."], warning_messages)
+    self.assertEqual(
+        ["Fake error for par-fake-1.", "Fake error for par-fake-2."],
+        error_messages,
+    )
+
+  def test_print_exceptions_prints_recorded_exceptions(self):
+    self.registry.exceptions_wrapper.exception_handler(
+        loggers.ElectionFatal.from_message("Fake fatal."), "FakeRule"
+    )
+
+    output = self._capture_output(self.registry.print_exceptions, 3, True)
+
+    self.assertEqual(
+        "     1 Fatal message found\n"
+        "         1 FakeRule Fatal message\n"
+        "                  * Fake fatal.\n",
+        output,
+    )
 
   def test_multiple_instances_restrict_validation_to_configured_ocd_ids(self):
     us_ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
@@ -648,6 +941,37 @@ class RulesRegistryTest(absltest.TestCase):
     self.assertFalse(ca_ocd_id_validator.is_valid_ocd_id(_TEST_US_OCD_ID_1))
     self.assertTrue(us_ocd_id_validator.is_valid_ocd_id(_TEST_US_OCD_ID_2))
     self.assertTrue(ca_ocd_id_validator.is_valid_ocd_id(_TEST_CA_OCD_ID_2))
+
+
+class BaseEntityStatsTest(absltest.TestCase):
+
+  def test_str_prints_attribute_table_sorted_by_count(self):
+    party_stats = stats.Party(3)
+    for _ in range(3):
+      party_stats.increment_attribute("Name", 1)
+    party_stats.increment_attribute("Color", 2)
+    party_stats.increment_attribute("Abbreviation", 0)
+    party_stats.increment_attribute("UnknownAttribute", 1)
+
+    output = str(party_stats)
+
+    separator = " " * 8 + "-" * 65
+    self.assertEqual(
+        "\n".join([
+            "\n" + separator,
+            (
+                "        Party (Total: 3)               | # with attribute |"
+                " # missing attribute"
+            ),
+            separator,
+            "        Name                             3                  0",
+            "        Color                            1                  2",
+            "        Abbreviation                     0                  3",
+            "        ExternalIdentifiers              0                  3",
+            "        InternationalizedAbbreviation    0                  3",
+        ]),
+        output,
+    )
 
 
 if __name__ == "__main__":

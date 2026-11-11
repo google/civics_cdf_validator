@@ -19,13 +19,13 @@ import collections
 import re
 
 from civics_cdf_validator import base
+from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator import office_utils
 from civics_cdf_validator.rulesets import rule_util
 import language_tags
 from lxml import etree
 from six.moves.urllib.parse import urlparse
-
 
 _INDEPENDENT_PARTY_NAMES = frozenset(["independent", "nonpartisan"])
 
@@ -82,6 +82,31 @@ _UNTYPED_URI_PLATFORMS = frozenset([
 ])
 
 _ALL_URI_PLATFORMS = _TYPED_URI_PLATFORMS | _UNTYPED_URI_PLATFORMS
+
+_INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE = [
+    # go/keep-sorted start
+    "BallotName",
+    "BallotSubTitle",
+    "BallotText",
+    "BallotTitle",
+    "ConStatement",
+    "Directions",
+    "DisplayName",
+    "EffectOfAbstain",
+    "FullName",
+    "FullText",
+    "InternationalizedAbbreviation",
+    "InternationalizedName",
+    "Name",
+    "PartyLabel",
+    "PassageThreshold",
+    "ProStatement",
+    "Profession",
+    "Selection",
+    "SummaryText",
+    "Title",
+    # go/keep-sorted end
+]
 
 
 def _get_office_roles(element, is_post_office_split_feed=False):
@@ -1707,6 +1732,22 @@ class AllInternationalizedTextHaveEnVersion(base.BaseRule):
       )
 
 
+class MultipleInternationalizedTextWithSameLanguageCode(base.BaseRule):
+  """Checks for multiple InternationalizedText with the same language code."""
+
+  def elements(self):
+    return _INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE
+
+  def check(self, element):
+    language_map = rule_util.get_language_to_text_map(element)
+
+    for language, texts in language_map.items():
+      if len(texts) > 1:
+        raise loggers.ElectionError.from_message(
+            f'Multiple "{language}" texts found for "{texts[0].strip()}"'
+        )
+
+
 class DeprecatedPartyLeadershipSchema(base.BaseRule):
   """Errors if the deprecated party leadership schema is used."""
 
@@ -1816,6 +1857,293 @@ class UnreferencedEntitiesBase(base.TreeRule):
           )
 
 
+class CoalitionParties(base.BaseRule):
+  """Coalitions should always define the Party IDs."""
+
+  def elements(self):
+    return ["Coalition"]
+
+  def check(self, element):
+    party_id = element.find("PartyIds")
+    if party_id is None or not party_id.text or not party_id.text.strip():
+      raise loggers.ElectionError.from_message(
+          "Coalition must define PartyIDs", [element]
+      )
+
+
+class ValidatePartyCollection(base.BaseRule):
+  """Generic party collection validation rule.
+
+  All partyCollection validation rules can inherit from this class since it
+  contains basic checks.
+  """
+
+  def elements(self):
+    return ["PartyCollection"]
+
+  def check_specific(self, parties):
+    """Return a list of info log to be raised."""
+    raise NotImplementedError
+
+  def check(self, element):
+    info_log = []
+    parties = element.findall("Party")
+    if len(parties) < 1:
+      info_message = "<PartyCollection> does not have <Party> objects"
+      info_log.append(loggers.LogEntry(info_message, element))
+    info_log.extend(self.check_specific(parties))
+    if info_log:
+      raise loggers.ElectionInfo(info_log)
+
+
+class DuplicatedPartyAbbreviation(ValidatePartyCollection):
+  """Party abbreviation should be used once in a given language.
+
+  If an abbreviation is duplicated, the corresponding party should be picked up
+  within this class and returned to the user as an Info message.
+  """
+
+  def check_specific(self, parties):
+    info_log = []
+    party_abbreviations_by_language = {}
+    for party in parties:
+      abbreviation_element = party.find("InternationalizedAbbreviation")
+      if abbreviation_element is None:
+        info_log.append(
+            loggers.LogEntry(
+                "<Party> does not have <InternationalizedAbbreviation> objects",
+                [party],
+            )
+        )
+        continue
+      party_abbreviations = abbreviation_element.findall("Text")
+      for party_abbreviation in party_abbreviations:
+        language = party_abbreviation.get("language")
+        abbreviation = party_abbreviation.text
+        if language not in party_abbreviations_by_language:
+          party_abbreviations_by_language[language] = {}
+        if abbreviation in party_abbreviations_by_language[language]:
+          party_abbreviations_by_language[language][abbreviation].append(party)
+        else:
+          party_abbreviations_by_language[language][abbreviation] = [party]
+
+    for language, abbreviations in party_abbreviations_by_language.items():
+      for abbreviation, parties in abbreviations.items():
+        if len(parties) > 1:
+          info_log.append(
+              loggers.LogEntry(
+                  f"Parties have the same abbreviation in {language}.", parties
+              )
+          )
+    return info_log
+
+
+class DuplicatedPartyName(ValidatePartyCollection):
+  """Party name should be used once in a given language.
+
+  If a party name is duplicated, the corresponding party should be picked up
+  within this class and returned to the user as an Info message.
+  """
+
+  def check_specific(self, parties):
+    info_log = []
+    party_names_by_language = {}
+    for party in parties:
+      name_element = party.find("Name")
+      if name_element is None:
+        info_log.append(
+            loggers.LogEntry("<Party> does not have <Name> objects", [party])
+        )
+        continue
+      party_names = name_element.findall("Text")
+      for party_name in party_names:
+        language = party_name.get("language")
+        name = party_name.text
+        if language not in party_names_by_language:
+          party_names_by_language[language] = {}
+        if name in party_names_by_language[language]:
+          party_names_by_language[language][name].append(party)
+        else:
+          party_names_by_language[language][name] = [party]
+
+    for language, names in party_names_by_language.items():
+      for name, parties in names.items():
+        if len(parties) > 1:
+          info_log.append(
+              loggers.LogEntry(
+                  f"Parties have the same name in {language}.", parties
+              )
+          )
+    return info_log
+
+
+class MissingPartyAbbreviationTranslation(ValidatePartyCollection):
+  """Every party's abbreviation should be translated to the same languages.
+
+  If a party is missing a name translation, it should be picked up within this
+  class and returned to the user as an Info message.
+  """
+
+  def check_specific(self, parties):
+    info_log = []
+    feed_languages = set()
+    feed_party_ids = set()
+    for party in parties:
+      party_object_id = party.get("objectId")
+      abbreviation_element = party.find("InternationalizedAbbreviation")
+      if abbreviation_element is None:
+        info_log.append(
+            loggers.LogEntry(
+                "<Party> does not have <InternationalizedAbbreviation> objects",
+                [party],
+            )
+        )
+        continue
+      party_abbreviations = abbreviation_element.findall("Text")
+      party_languages = set()
+      for party_abbreviation in party_abbreviations:
+        language = party_abbreviation.get("language")
+        if language not in feed_languages:
+          feed_languages.add(language)
+          if feed_party_ids:
+            info_log.append(
+                loggers.LogEntry(
+                    "The feed is missing abbreviation translation to"
+                    f" {language} for parties : {feed_party_ids}."
+                )
+            )
+        party_languages.add(language)
+      feed_party_ids.add(party_object_id)
+      if len(party_languages) != len(feed_languages):
+        info_log.append(
+            loggers.LogEntry(
+                "The party abbreviation is not translated to all feed"
+                f" languages {feed_languages}. You only did it for the"
+                f" following languages : {party_languages}.",
+                [party],
+            )
+        )
+    return info_log
+
+
+class MissingPartyNameTranslation(ValidatePartyCollection):
+  """All Parties should have their name translated to the same languages.
+
+  If there is a party name that is not translated to all the feed languages,
+  the party should be picked up within this class and returned to the user as
+  an Info message.
+  """
+
+  def check_specific(self, parties):
+    info_log = []
+    feed_languages = set()
+    feed_party_ids = set()
+    for party in parties:
+      party_object_id = party.get("objectId")
+      name_element = party.find("Name")
+      if name_element is None:
+        info_log.append(
+            loggers.LogEntry("<Party> does not have <Name> objects", [party])
+        )
+        continue
+      party_names = name_element.findall("Text")
+      party_languages = set()
+      for party_name in party_names:
+        language = party_name.get("language")
+        if language not in feed_languages:
+          feed_languages.add(language)
+          if feed_party_ids:
+            info_log.append(
+                loggers.LogEntry(
+                    f"The feed is missing names translation to {language} for"
+                    f" parties : {feed_party_ids}."
+                )
+            )
+        party_languages.add(language)
+      feed_party_ids.add(party_object_id)
+      if len(party_languages) != len(feed_languages):
+        info_log.append(
+            loggers.LogEntry(
+                "The party name is not translated to all feed languages"
+                f" {feed_languages}. You did it only for the following"
+                f" languages : {party_languages}.",
+                [party],
+            )
+        )
+    return info_log
+
+
+class DateOfBirthIsInPast(base.DateRule):
+  """Date of Birth should not be in the future."""
+
+  def elements(self):
+    return ["PersonCollection"]
+
+  def check(self, element):
+    for person_element in element:
+      date_of_birthday = person_element.find("DateOfBirth")
+      if date_of_birthday is not None and date_of_birthday.text:
+        date_of_birthday = base.PartialDate.init_partial_date(
+            date_of_birthday.text
+        )
+        self.check_for_date_in_past(date_of_birthday, person_element)
+        if self.error_log:
+          raise loggers.ElectionError(self.error_log)
+
+
+class GpUnitsHaveSingleRoot(base.TreeRule):
+  """Ensure that GpUnits form a single-rooted tree."""
+
+  def __init__(self, election_tree, schema_tree, **kwargs):
+    super(GpUnitsHaveSingleRoot, self).__init__(
+        election_tree, schema_tree, **kwargs
+    )
+    self.error_log = []
+
+  def check(self):
+    # Make sure there's at most one GpUnit as a root.
+    # The root is defined as having ComposingGpUnitIds but
+    # is not in the ComposingGpUnitIds of any other GpUnit.
+
+    gpunit_ids = dict()
+    composing_gpunits = set()
+    for element in self.get_elements_by_class(self.election_tree, "GpUnit"):
+      object_id = element.get("objectId")
+      if object_id is not None:
+        gpunit_ids[object_id] = element
+      composing_gpunit = element.find("ComposingGpUnitIds")
+      if composing_gpunit is not None and composing_gpunit.text is not None:
+        composing_gpunits.update(composing_gpunit.text.split())
+
+    roots = gpunit_ids.keys() - composing_gpunits
+
+    if not roots:
+      self.error_log.append(
+          loggers.LogEntry(
+              "GpUnits have no geo district root. "
+              "There should be one or more root geo district."
+          )
+      )
+    else:
+      for object_id in roots:
+        element = gpunit_ids.get(object_id)
+        ocd_ids = rule_util.get_external_id_values(element, "ocd-id")
+        for ocd_id in ocd_ids:
+          if not gpunit_rules.GpUnitOcdIdValidator.is_country_or_region_ocd_id(
+              ocd_id
+          ):
+            self.error_log.append(
+                loggers.LogEntry(
+                    "GpUnits tree roots needs to be either a country or the EU"
+                    f" region, please check the value {ocd_id}.",
+                    [element],
+                )
+            )
+
+    if self.error_log:
+      raise loggers.ElectionError(self.error_log)
+
+
 COMMON_RULES = (
     # go/keep-sorted start
     AllCaps,
@@ -1823,11 +2151,15 @@ COMMON_RULES = (
     AllLanguages,
     BadCharactersInPersonFullName,
     CandidateImageInContactInformation,
+    CoalitionParties,
+    DateOfBirthIsInPast,
     DeprecatedPartyLeadershipSchema,
     DiplomaticOfficesHaveCorrespondingGpUnitsSet,
     DuplicateGpUnits,
     DuplicateID,
     DuplicatedGpUnitOcdId,
+    DuplicatedPartyAbbreviation,
+    DuplicatedPartyName,
     EmptyString,
     EmptyText,
     Encoding,
@@ -1835,13 +2167,17 @@ COMMON_RULES = (
     GpUnitOcdId,
     GpUnitsCyclesRefsValidation,
     GpUnitsHaveInternationalizedName,
+    GpUnitsHaveSingleRoot,
     IndependentPartyName,
     LanguageCode,
     MissingFieldsError,
     MissingFieldsInfo,
     MissingFieldsWarning,
     MissingOfficeSelectionMethod,
+    MissingPartyAbbreviationTranslation,
+    MissingPartyNameTranslation,
     MissingStableIds,
+    MultipleInternationalizedTextWithSameLanguageCode,
     NonExecutiveOfficeShouldHaveGovernmentBody,
     OfficesHaveJurisdictionID,
     OfficesHaveValidOfficeLevel,

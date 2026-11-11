@@ -9,6 +9,7 @@ from absl.testing import parameterized
 from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator.rulesets import common_rules
+import freezegun
 from lxml import etree
 from mock import MagicMock
 
@@ -136,6 +137,13 @@ class OptionalAndEmptyTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionWarning):
       self.validator.check(space_element)
+
+  def test_same_empty_element_checked_twice_warns_only_once(self):
+    empty_element = etree.fromstring("<ThingOne></ThingOne>")
+    with self.assertRaises(loggers.ElectionWarning):
+      self.validator.check(empty_element)
+
+    self.validator.check(empty_element)
 
 
 class EncodingTest(absltest.TestCase):
@@ -930,6 +938,46 @@ class BadCharactersInPersonFullNameTest(absltest.TestCase):
         " Aliases should be included in Nickname field.",
     )
 
+  def test_person_without_fullname_succeeds(self):
+    root_string = """
+        <Person objectId="per-fake">
+          <Nickname>Fake</Nickname>
+        </Person>
+    """
+    element = etree.fromstring(root_string)
+
+    self.validator.check(element)
+
+  def test_person_fullname_with_only_empty_text_succeeds(self):
+    root_string = """
+        <Person objectId="per-fake">
+          <FullName>
+            <Text language="en"></Text>
+          </FullName>
+        </Person>
+    """
+    element = etree.fromstring(root_string)
+
+    self.validator.check(element)
+
+  def test_person_fullname_empty_text_before_bad_characters_warns(self):
+    root_string = """
+        <Person objectId="per-fake">
+          <FullName>
+            <Text language="es"></Text>
+            <Text language="en">Richard J@ Washburne</Text>
+          </FullName>
+        </Person>
+    """
+    element = etree.fromstring(root_string)
+
+    with self.assertRaises(loggers.ElectionWarning) as context:
+      self.validator.check(element)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Person has known bad characters in FullName field.",
+    )
+
 
 class DuplicateGpUnitsTest(absltest.TestCase):
 
@@ -1105,6 +1153,66 @@ class DuplicateGpUnitsTest(absltest.TestCase):
         context.exception.log_entry[1].message,
     )
 
+  def test_gp_unit_without_object_id_and_same_composing_ids_is_ignored_succeeds(
+      self,
+  ):
+    test_string = """
+      <GpUnit objectId="ru-fake-1">
+        <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
+      </GpUnit>
+      <GpUnit>
+        <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
+      </GpUnit>
+    """
+
+    self.validator.check(etree.fromstring(self.root_string.format(test_string)))
+
+  def test_duplicated_object_id_with_same_composing_ids_reports_only_duplicate_fails(
+      self,
+  ):
+    test_string = """
+      <GpUnit objectId="ru-fake-1">
+        <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
+      </GpUnit>
+      <GpUnit objectId="ru-fake-1">
+        <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
+      </GpUnit>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(
+          etree.fromstring(self.root_string.format(test_string))
+      )
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message, "GpUnit is duplicated"
+    )
+
+  def test_three_gp_units_with_same_composing_ids_reference_first_fails(self):
+    test_string = """
+      <GpUnit objectId="ru-fake-1">
+        <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
+      </GpUnit>
+      <GpUnit objectId="ru-fake-2">
+        <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
+      </GpUnit>
+      <GpUnit objectId="ru-fake-3">
+        <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
+      </GpUnit>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(
+          etree.fromstring(self.root_string.format(test_string))
+      )
+    self.assertEqual(
+        [entry.message for entry in context.exception.log_entry],
+        [
+            "GpUnits ('ru-fake-1', 'ru-fake-2') are duplicates",
+            "GpUnits ('ru-fake-1', 'ru-fake-3') are duplicates",
+        ],
+    )
+
 
 class OtherTypeTest(absltest.TestCase):
 
@@ -1186,6 +1294,25 @@ class OtherTypeTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError):
       self.validator.check(complex_element)
 
+  def test_complex_type_with_other_type_attribute_is_not_eligible_succeeds(
+      self,
+  ):
+    schema_tree = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8"?>
+      <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:complexType name="Device">
+          <xs:sequence>
+            <xs:element minOccurs="0" name="Type" type="DeviceType" />
+          </xs:sequence>
+          <xs:attribute name="OtherType" type="xs:string" />
+        </xs:complexType>
+      </xs:schema>
+    """)
+    validator = common_rules.OtherType(None, schema_tree)
+
+    eligible_elements = validator.elements()
+
+    self.assertEqual(eligible_elements, [])
+
 
 class UniqueLabelTest(absltest.TestCase):
 
@@ -1237,6 +1364,19 @@ class UniqueLabelTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionError):
       validator.check(element)
+
+  def test_label_seen_in_previous_check_fails(self):
+    first_element = etree.fromstring('<Directions label="label-fake"/>')
+    second_element = etree.fromstring('<Directions label="label-fake"/>')
+    validator = common_rules.UniqueLabel(None, None)
+    validator.check(first_element)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      validator.check(second_element)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Duplicate label 'label-fake'. Label already defined",
+    )
 
 
 class PersonHasUniqueFullNameTest(absltest.TestCase):
@@ -1392,6 +1532,20 @@ class PersonHasUniqueFullNameTest(absltest.TestCase):
 
     self.validator.check(element)
 
+  def test_person_collection_with_single_person_succeeds(self):
+    root_string = """
+      <PersonCollection>
+        <Person objectId="per-fake">
+          <FullName>
+            <Text language="en">Fake Person</Text>
+          </FullName>
+        </Person>
+      </PersonCollection>
+    """
+    element = etree.fromstring(root_string)
+
+    self.validator.check(element)
+
 
 class IndependentPartyNameTest(absltest.TestCase):
 
@@ -1437,6 +1591,16 @@ class IndependentPartyNameTest(absltest.TestCase):
     party_elem = etree.fromstring(party)
 
     self.validator.check(party_elem)
+
+  def test_party_without_name_succeeds(self):
+    party = """
+        <Party objectId="par-fake">
+          <Color>ff0000</Color>
+        </Party>
+        """
+    party_element = etree.fromstring(party)
+
+    self.validator.check(party_element)
 
 
 class ValidStableIDTest(absltest.TestCase):
@@ -1665,6 +1829,83 @@ class UniqueStableIDTest(absltest.TestCase):
         context.exception.log_entry[1].message,
         "Stable ID 04_A is not unique as it is mapped in ['off04_A', 'can2',"
         " 'can3']",
+    )
+
+  def test_duplicated_stable_id_on_element_without_object_id_uses_english_name_fails(
+      self,
+  ):
+    test_string = """
+      <ElectionReport>
+        <Party>
+          <Name>
+            <Text language="es">Partido Falso</Text>
+            <Text language="en">Fake Party</Text>
+          </Name>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-fake</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Party>
+        <Party objectId="par-fake">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-fake</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Party>
+      </ElectionReport>
+    """
+    election_tree = etree.fromstring(test_string)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      common_rules.UniqueStableID(election_tree, None).check()
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Stable ID stable-fake is not unique as it is mapped in ['Fake Party',"
+        " 'par-fake']",
+    )
+
+  def test_duplicated_stable_id_on_element_without_english_name_uses_first_name_fails(
+      self,
+  ):
+    test_string = """
+      <ElectionReport>
+        <Party>
+          <Name>
+            <Text language="es">Partido Falso</Text>
+          </Name>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-fake</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Party>
+        <Party objectId="par-fake">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-fake</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Party>
+      </ElectionReport>
+    """
+    election_tree = etree.fromstring(test_string)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      common_rules.UniqueStableID(election_tree, None).check()
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Stable ID stable-fake is not unique as it is mapped in"
+        " ['Partido Falso', 'par-fake']",
     )
 
 
@@ -2004,6 +2245,14 @@ class AllLanguagesTest(absltest.TestCase):
 
     self.validator.check(etree.fromstring(empty_element_string))
 
+  def test_element_without_text_elements_and_required_languages_succeeds(
+      self,
+  ):
+    empty_element = etree.fromstring("<BallotName/>")
+    self.validator.required_languages = ["en"]
+
+    self.validator.check(empty_element)
+
 
 class ValidEnumerationsTest(absltest.TestCase):
 
@@ -2118,6 +2367,54 @@ class ValidEnumerationsTest(absltest.TestCase):
       </ExternalIdentifier>
     """
     element = etree.fromstring(no_other_type_string)
+    self.validator.check(element)
+
+  def test_external_identifiers_complex_type_maps_to_external_identifier_succeeds(
+      self,
+  ):
+    schema_tree = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8"?>
+      <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:complexType name="ExternalIdentifiers">
+          <xs:sequence>
+            <xs:element minOccurs="0" type="xs:string" name="OtherType" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:schema>
+    """)
+    validator = common_rules.ValidEnumerations(None, schema_tree)
+
+    eligible_elements = validator.elements()
+
+    self.assertEqual(eligible_elements, ["ExternalIdentifier"])
+
+  def test_complex_type_with_other_type_attribute_is_not_eligible_succeeds(
+      self,
+  ):
+    schema_tree = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8"?>
+      <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:complexType name="Device">
+          <xs:attribute name="OtherType" type="xs:string" />
+        </xs:complexType>
+      </xs:schema>
+    """)
+    validator = common_rules.ValidEnumerations(None, schema_tree)
+
+    eligible_elements = validator.elements()
+
+    self.assertEqual(eligible_elements, [])
+
+  def test_valid_enumeration_in_other_type_when_type_is_not_other_succeeds(
+      self,
+  ):
+    type_not_other_string = """
+      <GpUnit objectId="ru-fake">
+        <Type>state</Type>
+        <OtherType>state</OtherType>
+      </GpUnit>
+    """
+    element = etree.fromstring(type_not_other_string)
+    self.validator.valid_enumerations = ["state"]
+
     self.validator.check(element)
 
 
@@ -2832,6 +3129,35 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
 
     validator.check()
 
+  def test_exactly_two_uris_with_same_annotation_and_value_warns(self):
+    election_feed = """
+      <ElectionReport>
+        <PersonCollection>
+          <Person objectId="per-fake-1">
+            <ContactInformation>
+              <Uri Annotation="personal-facebook">http://www.facebook.com/fake</Uri>
+            </ContactInformation>
+          </Person>
+          <Person objectId="per-fake-2">
+            <ContactInformation>
+              <Uri Annotation="personal-facebook">http://www.facebook.com/fake</Uri>
+            </ContactInformation>
+          </Person>
+        </PersonCollection>
+      </ElectionReport>
+    """
+    election_tree = etree.fromstring(election_feed)
+    validator = common_rules.UniqueURIPerAnnotationCategory(election_tree, None)
+
+    with self.assertRaises(loggers.ElectionWarning) as context:
+      validator.check()
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "The Uris contain the annotation type 'facebook' with the same value"
+        " 'http://www.facebook.com/fake'.",
+    )
+    self.assertLen(context.exception.log_entry[0].elements, 2)
+
 
 class ValidYoutubeURLTest(absltest.TestCase):
 
@@ -3229,6 +3555,51 @@ class ValidURIAnnotationTest(absltest.TestCase):
 
     self.validator.check(etree.fromstring(root_string))
 
+  def test_facebook_annotation_on_non_facebook_url_fails(self):
+    root_string = """
+      <ContactInformation>
+        <Uri Annotation="official-facebook">https://www.fake.com/per-fake</Uri>
+      </ContactInformation>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(root_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Annotation 'official-facebook' is incorrect for URI"
+        " b'https://www.fake.com/per-fake'.",
+    )
+
+  def test_unknown_single_platform_annotation_fails(self):
+    root_string = """
+      <ContactInformation>
+        <Uri Annotation="fakeplatform">https://www.fake.com/per-fake</Uri>
+      </ContactInformation>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(root_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Annotation 'fakeplatform' is not a valid annotation for URI"
+        " b'https://www.fake.com/per-fake'.",
+    )
+
+  def test_annotation_with_more_than_two_parts_fails(self):
+    root_string = """
+      <ContactInformation>
+        <Uri Annotation="official-fake-facebook">https://www.facebook.com/fake</Uri>
+      </ContactInformation>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(root_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Annotation 'official-fake-facebook' is invalid for URI"
+        " b'https://www.facebook.com/fake'.",
+    )
+
 
 class CandidateImageInContactInformationTest(absltest.TestCase):
 
@@ -3432,6 +3803,12 @@ class UniqueCandidateImageUrisTest(absltest.TestCase):
       </ElectionReport>
     """
     election_tree = etree.ElementTree(etree.fromstring(root_string))
+    validator = common_rules.UniqueCandidateImageUris(election_tree, None)
+
+    validator.check()
+
+  def test_election_tree_without_root_succeeds(self):
+    election_tree = etree.ElementTree()
     validator = common_rules.UniqueCandidateImageUris(election_tree, None)
 
     validator.check()
@@ -4355,6 +4732,78 @@ class GpUnitsCyclesRefsValidationTest(absltest.TestCase):
 
     self.validator.check()
 
+  def test_cycle_reached_again_from_another_root_reports_each_node_once_fails(
+      self,
+  ):
+    root_string = """
+    <xml>
+      <GpUnitCollection>
+        <GpUnit objectId="ru-fake-a">
+          <ComposingGpUnitIds>ru-fake-b</ComposingGpUnitIds>
+        </GpUnit>
+        <GpUnit objectId="ru-fake-b">
+          <ComposingGpUnitIds>ru-fake-a</ComposingGpUnitIds>
+        </GpUnit>
+        <GpUnit objectId="ru-fake-c">
+          <ComposingGpUnitIds>ru-fake-a</ComposingGpUnitIds>
+        </GpUnit>
+      </GpUnitCollection>
+    </xml>
+    """
+    self.validator.election_tree = etree.ElementTree(
+        etree.fromstring(root_string)
+    )
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check()
+    self.assertEqual(
+        [entry.message for entry in context.exception.log_entry],
+        [
+            "Cycle detected at node ru-fake-a",
+            "Cycle detected at node ru-fake-b",
+        ],
+    )
+
+  def test_composing_gp_unit_missing_from_file_fails(self):
+    root_string = """
+    <xml>
+      <GpUnitCollection>
+        <GpUnit objectId="ru-fake-parent">
+          <ComposingGpUnitIds>ru-fake-missing</ComposingGpUnitIds>
+        </GpUnit>
+      </GpUnitCollection>
+    </xml>
+    """
+    self.validator.election_tree = etree.ElementTree(
+        etree.fromstring(root_string)
+    )
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check()
+    self.assertEqual(
+        [entry.message for entry in context.exception.log_entry],
+        [
+            "Node ru-fake-missing is not present in the file as a GpUnit"
+            " element."
+        ],
+    )
+
+  def test_gp_unit_without_object_id_is_ignored_succeeds(self):
+    root_string = """
+    <xml>
+      <GpUnitCollection>
+        <GpUnit>
+          <ComposingGpUnitIds>ru-fake-missing</ComposingGpUnitIds>
+        </GpUnit>
+      </GpUnitCollection>
+    </xml>
+    """
+    self.validator.election_tree = etree.ElementTree(
+        etree.fromstring(root_string)
+    )
+
+    self.validator.check()
+
 
 class ValidPartyLeadershipDatesTest(absltest.TestCase):
 
@@ -4424,6 +4873,18 @@ class ValidPartyLeadershipDatesTest(absltest.TestCase):
         <EndDate>2012-01-01</EndDate>
       </PartyLeadership>
     """))
+
+  def test_valid_dates_after_invalid_dates_on_same_validator_succeeds(self):
+    invalid_party_leadership = etree.fromstring(
+        self.party_leadership_string.format("2012-01-02", "2012-01-01")
+    )
+    valid_party_leadership = etree.fromstring(
+        self.party_leadership_string.format("2012-01-01", "2012-01-02")
+    )
+    with self.assertRaises(loggers.ElectionError):
+      self.validator.check(invalid_party_leadership)
+
+    self.validator.check(valid_party_leadership)
 
 
 class GpUnitsHaveInternationalizedNameTest(absltest.TestCase):
@@ -4856,6 +5317,55 @@ class PartySpanMultipleCountriesTest(absltest.TestCase):
     self.assertIn("ru0002", context.exception.log_entry[0].message)
     self.assertIn("ru0003", context.exception.log_entry[0].message)
 
+  def test_multiple_gp_units_per_country_are_grouped_in_message_warns(self):
+    referenced_gpunits = "ru0001 ru0002 ru0003"
+    election_string = self.base_report.format(referenced_gpunits)
+    election_tree = etree.fromstring(election_string)
+    validator = common_rules.PartySpanMultipleCountries(election_tree, None)
+    element = election_tree.find(
+        "Election//PartyCollection//Party//PartyScopeGpUnitIds"
+    )
+
+    with self.assertRaises(loggers.ElectionWarning) as context:
+      validator.check(element)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "PartyScopeGpUnitIds refer to GpUnit from different countries:"
+        " country:us -> ['ru0001', 'ru0002'] / country:fr -> ['ru0003']."
+        " Please double check.",
+    )
+
+  def test_empty_party_scope_gp_unit_ids_succeeds(self):
+    election_string = self.base_report.format("")
+    election_tree = etree.fromstring(election_string)
+    validator = common_rules.PartySpanMultipleCountries(election_tree, None)
+    element = election_tree.find(
+        "Election//PartyCollection//Party//PartyScopeGpUnitIds"
+    )
+
+    validator.check(element)
+
+  def test_gp_unit_with_non_country_ocd_id_is_not_mapped_succeeds(self):
+    election_string = """
+      <ElectionReport>
+        <GpUnitCollection>
+          <GpUnit objectId="ru-fake">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>ocd-id</Type>
+                <Value>ocd-division/fake:region</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </GpUnit>
+        </GpUnitCollection>
+      </ElectionReport>
+    """
+    election_tree = etree.fromstring(election_string)
+
+    validator = common_rules.PartySpanMultipleCountries(election_tree, None)
+
+    self.assertEqual(validator.existing_gpunits, {})
+
 
 class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
 
@@ -4997,6 +5507,51 @@ class NonExecutiveOfficeShouldHaveGovernmentBodyTest(absltest.TestCase):
     """
 
     self.post_office_split_validator.check(etree.fromstring(office_string))
+
+  def test_exec_office_role_in_external_identifier_without_government_body_succeeds(
+      self,
+  ):
+    office_string = """
+      <Office>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>office-role</OtherType>
+            <Value>head of state</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Office>
+    """
+
+    self.gov_validator.check(etree.fromstring(office_string))
+
+  def test_post_split_exec_office_without_government_body_succeeds(self):
+    office_string = """
+      <Office>
+        <Role>head of state</Role>
+      </Office>
+    """
+
+    self.post_office_split_validator.check(etree.fromstring(office_string))
+
+  def test_feed_with_role_but_no_tenure_collection_is_post_split_succeeds(
+      self,
+  ):
+    root_string = """
+      <Report>
+        <OfficeCollection>
+          <Office>
+            <Role>head of state</Role>
+          </Office>
+        </OfficeCollection>
+      </Report>
+    """
+    election_tree = etree.fromstring(root_string)
+    validator = common_rules.NonExecutiveOfficeShouldHaveGovernmentBody(
+        election_tree, None
+    )
+
+    validator.check(election_tree.find("OfficeCollection/Office"))
 
 
 class ExecutiveOfficeShouldNotHaveGovernmentBodyTest(absltest.TestCase):
@@ -5171,6 +5726,61 @@ class AllInternationalizedTextHaveEnVersionTest(absltest.TestCase):
     self.validator.check(etree.fromstring(election_string))
 
 
+class MultipleInternationalizedTextWithSameLanguageCodeTest(
+    parameterized.TestCase
+):
+
+  def setUp(self):
+    super(MultipleInternationalizedTextWithSameLanguageCodeTest, self).setUp()
+    self.validator = (
+        common_rules.MultipleInternationalizedTextWithSameLanguageCode(
+            None, None
+        )
+    )
+
+  @parameterized.parameters(
+      *common_rules._INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE
+  )
+  def test_multiple_texts_with_same_language_code_fails(self, element_name):
+    election_string = f"""
+      <{element_name}>
+        <Text language="en">
+          <![CDATA[Jamaica General Election, 2022]]>
+        </Text>
+        <Text language="en">
+          <![CDATA[Other Jamaica General Election, 2022]]>
+        </Text>
+        <Text language="es">
+          <![CDATA[Elecciones Generales de Jamaica, 2022]]>
+        </Text>
+      </{element_name}>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        'Multiple "en" texts found for "Jamaica General Election, 2022"',
+    )
+
+  @parameterized.parameters(
+      *common_rules._INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE
+  )
+  def test_one_text_per_language_code_succeeds(self, element_name):
+    election_string = f"""
+      <{element_name}>
+        <Text language="en">
+          <![CDATA[Jamaica General Election, 2022]]>
+        </Text>
+        <Text language="es">
+          <![CDATA[Elecciones Generales de Jamaica, 2022]]>
+        </Text>
+      </{element_name}>
+    """
+
+    self.validator.check(etree.fromstring(election_string))
+
+
 class DeprecatedPartyLeadershipSchemaTest(absltest.TestCase):
 
   def setUp(self):
@@ -5229,6 +5839,915 @@ class DeprecatedPartyLeadershipSchemaTest(absltest.TestCase):
         context.exception.log_entry[0].message,
         "Specifying party leadership via external identifiers is deprecated."
         " Please use the PartyLeadership element instead.",
+    )
+
+
+class CoalitionPartiesTest(absltest.TestCase):
+
+  _base_election_coalition = """
+      <Coalition>
+        {}
+      </Coalition>
+  """
+
+  def test_each_coalition_has_defined_party_id_succeeds(self):
+    coalition_details = "<PartyIds>abc123</PartyIds>"
+    defined_party_string = self._base_election_coalition.format(
+        coalition_details
+    )
+    element = etree.fromstring(defined_party_string)
+
+    common_rules.CoalitionParties(None, None).check(element)
+
+  def test_coalition_does_not_define_party_id_no_party_id_fails(
+      self,
+  ):
+    no_party_string = self._base_election_coalition.format("")
+    element = etree.fromstring(no_party_string)
+
+    with self.assertRaises(loggers.ElectionError):
+      common_rules.CoalitionParties(None, None).check(element)
+
+  def test_coalition_does_not_define_party_id_empty_party_id_fails(
+      self,
+  ):
+    coalition_details = "<PartyIds></PartyIds>"
+    empty_party_string = self._base_election_coalition.format(coalition_details)
+    element = etree.fromstring(empty_party_string)
+
+    with self.assertRaises(loggers.ElectionError):
+      common_rules.CoalitionParties(None, None).check(element)
+
+  def test_coalition_does_not_define_party_id_whitespace_fails(
+      self,
+  ):
+    coalition_details = "<PartyIds>     </PartyIds>"
+    all_space_party_string = self._base_election_coalition.format(
+        coalition_details
+    )
+    element = etree.fromstring(all_space_party_string)
+
+    with self.assertRaises(loggers.ElectionError):
+      common_rules.CoalitionParties(None, None).check(element)
+
+
+class DuplicatedPartyAbbreviationTest(absltest.TestCase):
+
+  def setUp(self):
+    super(DuplicatedPartyAbbreviationTest, self).setUp()
+    self.validator = common_rules.DuplicatedPartyAbbreviation(None, None)
+
+  def test_party_collection_without_party_raises_info(self):
+    root_string = """
+      <PartyCollection>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+
+    with self.assertRaises(loggers.ElectionInfo) as context:
+      self.validator.check(element)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "<PartyCollection> does not have <Party> objects",
+    )
+
+  def test_party_without_internationalized_abbreviation_raises_info(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+        </Party>
+        <Party objectId="par0002">
+          <InternationalizedAbbreviation>
+            <Text language="en">Democratic</Text>
+            <Text language="ro">Democratic</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0003">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+
+    with self.assertRaises(loggers.ElectionInfo) as context:
+      self.validator.check(element)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "<Party> does not have <InternationalizedAbbreviation> objects",
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements[0].get("objectId"), "par0001"
+    )
+
+  def test_duplicate_internationalized_abbreviation_raises_info(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Republican</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0002">
+          <InternationalizedAbbreviation>
+            <Text language="en">Democratic</Text>
+            <Text language="ro">Democratic</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0003">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+
+    with self.assertRaises(loggers.ElectionInfo) as context:
+      self.validator.check(element)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Parties have the same abbreviation in en.",
+    )
+    self.assertLen(context.exception.log_entry[0].elements, 2)
+    duplicated_parties = [
+        context.exception.log_entry[0].elements[0].get("objectId"),
+        context.exception.log_entry[0].elements[1].get("objectId"),
+    ]
+    self.assertEqual(duplicated_parties, ["par0001", "par0003"])
+
+  def test_no_duplicated_internationalized_abbreviation_succeeds(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0002">
+          <InternationalizedAbbreviation>
+            <Text language="en">Democratic</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0003">
+          <InternationalizedAbbreviation>
+            <Text language="en">Green</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+
+    self.validator.check(element)
+
+
+class DuplicatedPartyNameTest(absltest.TestCase):
+
+  def setUp(self):
+    super(DuplicatedPartyNameTest, self).setUp()
+    self.validator = common_rules.DuplicatedPartyName(None, None)
+
+  def test_party_collection_without_party_raises_info(self):
+    root_string = """
+      <PartyCollection>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+
+    with self.assertRaises(loggers.ElectionInfo) as context:
+      self.validator.check(element)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "<PartyCollection> does not have <Party> objects",
+    )
+
+  def test_party_without_name_raises_info(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+        </Party>
+        <Party objectId="par0002">
+          <Name>
+            <Text language="en">Democratic</Text>
+            <Text language="ro">Democratic</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0003">
+          <Name>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </Name>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+
+    with self.assertRaises(loggers.ElectionInfo) as context:
+      self.validator.check(element)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "<Party> does not have <Name> objects",
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements[0].get("objectId"),
+        "par0001",
+    )
+
+  def test_duplicate_party_name_raises_info(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <Name>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Republican</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0002">
+          <Name>
+            <Text language="en">Democratic</Text>
+            <Text language="ro">Democratic</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0003">
+          <Name>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </Name>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+
+    with self.assertRaises(loggers.ElectionInfo) as context:
+      self.validator.check(element)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Parties have the same name in en.",
+    )
+    self.assertLen(context.exception.log_entry[0].elements, 2)
+    duplicated_parties = [
+        context.exception.log_entry[0].elements[0].get("objectId"),
+        context.exception.log_entry[0].elements[1].get("objectId"),
+    ]
+    self.assertEqual(duplicated_parties, ["par0001", "par0003"])
+
+  def test_unique_party_name_succeeds(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <Name>
+            <Text language="en">Republican</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0002">
+          <Name>
+            <Text language="en">Democratic</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0003">
+          <Name>
+            <Text language="en">Green</Text>
+          </Name>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+
+    self.validator.check(element)
+
+  def test_party_collection_with_single_named_party_succeeds(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par-fake">
+          <Name>
+            <Text language="en">Fake Party</Text>
+          </Name>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+
+    self.validator.check(element)
+
+
+class MissingPartyAbbreviationTranslationTest(absltest.TestCase):
+
+  def setUp(self):
+    super(MissingPartyAbbreviationTranslationTest, self).setUp()
+    self.validator = common_rules.MissingPartyAbbreviationTranslation(
+        None, None
+    )
+
+  def test_party_collection_without_party_raises_info(self):
+    root_string = """
+      <PartyCollection>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+
+    with self.assertRaises(loggers.ElectionInfo) as context:
+      self.validator.check(element)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "<PartyCollection> does not have <Party> objects",
+    )
+
+  def test_party_without_internationalized_abbreviation_raises_info(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+        </Party>
+        <Party objectId="par0002">
+          <InternationalizedAbbreviation>
+            <Text language="en">Democratic</Text>
+            <Text language="ro">Democratic</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0003">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+
+    with self.assertRaises(loggers.ElectionInfo) as context:
+      self.validator.check(element)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "<Party> does not have <InternationalizedAbbreviation> objects",
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements[0].get("objectId"), "par0001"
+    )
+
+  def test_missing_translation_at_the_beginning_raises_info(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0002">
+          <InternationalizedAbbreviation>
+            <Text language="en">Democratic</Text>
+            <Text language="ro">Democratico</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0003">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+
+    with self.assertRaises(loggers.ElectionInfo) as context:
+      self.validator.check(element)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        (
+            "The feed is missing abbreviation translation to ro for "
+            "parties : {'par0001'}."
+        ),
+    )
+
+  def test_missing_translation_in_the_middle_raises_info(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Republican</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0002">
+          <InternationalizedAbbreviation>
+            <Text language="en">Democratic</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0003">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+
+    with self.assertRaises(loggers.ElectionInfo) as context:
+      self.validator.check(element)
+    self.assertIn(
+        "The party abbreviation is not translated to all feed languages ",
+        context.exception.log_entry[0].message,
+    )
+    self.assertIn("en", context.exception.log_entry[0].message)
+    self.assertIn("ro", context.exception.log_entry[0].message)
+    self.assertIn(
+        "You only did it for the following languages : {'en'}.",
+        context.exception.log_entry[0].message,
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements[0].get("objectId"), "par0002"
+    )
+
+  def test_with_all_good_translation_succeeds(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Republican</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+        <Party objectId="par0003">
+          <InternationalizedAbbreviation>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </InternationalizedAbbreviation>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+
+    self.validator.check(element)
+
+
+class MissingPartyNameTranslationTest(absltest.TestCase):
+
+  def setUp(self):
+    super(MissingPartyNameTranslationTest, self).setUp()
+    self.validator = common_rules.MissingPartyNameTranslation(None, None)
+
+  def test_party_collection_without_party_raises_info(self):
+    root_string = """
+      <PartyCollection>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+
+    with self.assertRaises(loggers.ElectionInfo) as context:
+      self.validator.check(element)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "<PartyCollection> does not have <Party> objects",
+    )
+
+  def test_party_without_name_raises_info(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+        </Party>
+        <Party objectId="par0002">
+          <Name>
+            <Text language="en">Democratic</Text>
+            <Text language="ro">Democratic</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0003">
+          <Name>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </Name>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+
+    with self.assertRaises(loggers.ElectionInfo) as context:
+      self.validator.check(element)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "<Party> does not have <Name> objects",
+    )
+
+  def test_missing_translation_at_the_beginning_raises_info(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <Name>
+            <Text language="en">Republican</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0002">
+          <Name>
+            <Text language="en">Democratic</Text>
+            <Text language="ro">Democratico</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0003">
+          <Name>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </Name>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+
+    with self.assertRaises(loggers.ElectionInfo) as context:
+      self.validator.check(element)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        (
+            "The feed is missing names translation to ro for parties "
+            ": {'par0001'}."
+        ),
+    )
+
+  def test_missing_translation_in_the_middle_raises_info(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <Name>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Republican</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0002">
+          <Name>
+            <Text language="en">Democratic</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0003">
+          <Name>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </Name>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+
+    with self.assertRaises(loggers.ElectionInfo) as context:
+      self.validator.check(element)
+    self.assertIn(
+        "The party name is not translated to all feed languages",
+        context.exception.log_entry[0].message,
+    )
+    self.assertIn("en", context.exception.log_entry[0].message)
+    self.assertIn("ro", context.exception.log_entry[0].message)
+    self.assertIn(
+        "You did it only for the following languages : {'en'}.",
+        context.exception.log_entry[0].message,
+    )
+
+  def test_with_all_good_translation_succeeds(self):
+    root_string = """
+      <PartyCollection>
+        <Party objectId="par0001">
+          <Name>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Republican</Text>
+          </Name>
+        </Party>
+        <Party objectId="par0003">
+          <Name>
+            <Text language="en">Republican</Text>
+            <Text language="ro">Others</Text>
+          </Name>
+        </Party>
+      </PartyCollection>
+    """
+    element = etree.fromstring(root_string)
+
+    self.validator.check(element)
+
+
+class DateOfBirthIsInPastTest(absltest.TestCase):
+
+  def setUp(self):
+    super(DateOfBirthIsInPastTest, self).setUp()
+    self.date_of_birth_string = """
+      <PersonCollection>
+        <Person objectId="per_gb_6456562">
+          <FirstName>Jamie</FirstName>
+          <FullName>
+            <Text language="en">Jamie David Adams</Text>
+          </FullName>
+          <Gender>M</Gender>
+          <LastName>Adams</LastName>
+          <MiddleName>David</MiddleName>
+          <DateOfBirth>{}</DateOfBirth>
+        </Person>
+      </PersonCollection>
+    """
+    self.validator = common_rules.DateOfBirthIsInPast(None, None)
+
+  @freezegun.freeze_time("2023-01-01")
+  def test_valid_date_of_birth_succeeds(self):
+    date_of_birth_string = self.date_of_birth_string.format("1975-01-15")
+    element = etree.fromstring(date_of_birth_string)
+
+    self.validator.check(element)
+    self.assertEmpty(self.validator.error_log)
+
+  @freezegun.freeze_time("2023-01-01")
+  def test_invalid_date_of_birth_fails(self):
+    date_of_birth_string = self.date_of_birth_string.format("2100-11-11")
+    element = etree.fromstring(date_of_birth_string)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(element)
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertIn(
+        "The date 2100-11-11 is not in the past.",
+        context.exception.log_entry[0].message,
+    )
+
+
+class GpUnitsHaveSingleRootTest(absltest.TestCase):
+
+  def setUp(self):
+    super(GpUnitsHaveSingleRootTest, self).setUp()
+    self.validator = common_rules.GpUnitsHaveSingleRoot(None, None)
+
+  def test_single_root_valid_succeeds(self):
+    root_string = """
+    <xml>
+      <GpUnitCollection>
+        <GpUnit objectId="ru000us">
+          <ComposingGpUnitIds>ru_pre92426</ComposingGpUnitIds>
+          <ExternalIdentifier>
+            <Type>ocd-id</Type>
+            <Value>ocd-division/country:us</Value>
+          </ExternalIdentifier>
+        </GpUnit>
+        <GpUnit objectId="ru_pre92426">
+          <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+          <ExternalIdentifier>
+            <Type>ocd-id</Type>
+            <Value>ocd-division/country:us/state:ve</Value>
+          </ExternalIdentifier>
+        </GpUnit>
+        <GpUnit objectId="ru_temp_id">
+          <ExternalIdentifier>
+            <Type>ocd-id</Type>
+            <Value>ocd-division/country:us/state:ve/county:narok</Value>
+          </ExternalIdentifier>
+        </GpUnit>
+      </GpUnitCollection>
+    </xml>
+    """
+    self.validator.election_tree = etree.ElementTree(
+        etree.fromstring(root_string)
+    )
+
+    self.validator.check()
+
+  def test_multiple_root_tree_valid_succeeds(self):
+    root_string = """
+    <xml>
+      <GpUnitCollection>
+        <GpUnit objectId="ru_germany">
+          <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-gu-0081</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:de</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>national-level</Type>
+              <Value>33</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </GpUnit>
+        <GpUnit objectId="ru000us">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-gu-0081</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:us</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>national-level</Type>
+              <Value>33</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </GpUnit>
+        <GpUnit objectId="ru_temp_id">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-gu-0081</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:de/state:dh</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>state-level</Type>
+              <Value>33</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </GpUnit>
+      </GpUnitCollection>
+    </xml>
+    """
+    self.validator.election_tree = etree.ElementTree(
+        etree.fromstring(root_string)
+    )
+
+    self.validator.check()
+
+  def test_multiple_root_tree_fails(self):
+    root_string = """
+    <xml>
+      <GpUnitCollection>
+        <GpUnit objectId="ru_germany">
+          <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-gu-0081</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:de</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>national-level</Type>
+              <Value>33</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </GpUnit>
+        <GpUnit objectId="ru_pre92426">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-gu-0081</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:abc</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>national-level</Type>
+              <Value>33</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </GpUnit>
+        <GpUnit objectId="ru_temp_id">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-gu-0081</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:us/state:tx</Value>
+            </ExternalIdentifier>
+            <ExternalIdentifier>
+              <Type>state-level</Type>
+              <Value>33</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </GpUnit>
+      </GpUnitCollection>
+    </xml>
+    """
+    self.validator.election_tree = etree.ElementTree(
+        etree.fromstring(root_string)
+    )
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check()
+    self.assertIn(
+        "GpUnits tree roots needs to be either a country or the EU region, "
+        "please check the value ocd-division/country:abc.",
+        context.exception.log_entry[0].message,
+    )
+
+  def test_no_roots_tree_fails(self):
+    root_string = """
+    <xml>
+      <GpUnitCollection>
+        <GpUnit objectId="ru0003">
+          <ComposingGpUnitIds>ru_temp_id</ComposingGpUnitIds>
+        </GpUnit>
+        <GpUnit objectId="ru_pre92426">
+          <ComposingGpUnitIds>ru0003</ComposingGpUnitIds>
+        </GpUnit>
+        <GpUnit objectId="ru_temp_id">
+          <ComposingGpUnitIds>ru_pre92426</ComposingGpUnitIds>
+        </GpUnit>
+      </GpUnitCollection>
+    </xml>
+    """
+    self.validator.election_tree = etree.ElementTree(
+        etree.fromstring(root_string)
+    )
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check()
+    self.assertIn(
+        "GpUnits have no geo district root.",
+        context.exception.log_entry[0].message,
+    )
+
+  def test_gp_unit_without_object_id_is_not_a_root_succeeds(self):
+    root_string = """
+    <xml>
+      <GpUnitCollection>
+        <GpUnit objectId="ru-fake-country">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:us</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </GpUnit>
+        <GpUnit>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>ocd-id</Type>
+              <Value>ocd-division/country:us/state:va</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </GpUnit>
+      </GpUnitCollection>
+    </xml>
+    """
+    self.validator.election_tree = etree.ElementTree(
+        etree.fromstring(root_string)
+    )
+
+    self.validator.check()
+
+
+class UnreferencedEntitiesBaseTest(absltest.TestCase):
+
+  _schema_tree = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8"?>
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element minOccurs="0" name="PersonId" type="xs:IDREF" />
+    </xs:schema>
+  """)
+
+  def test_entity_referenced_by_idref_with_empty_elements_in_feed_succeeds(
+      self,
+  ):
+    root_string = """
+      <ElectionReport>
+        <Person objectId="per-fake"/>
+        <Candidate objectId="can-fake">
+          <PersonId>per-fake</PersonId>
+        </Candidate>
+      </ElectionReport>
+    """
+    validator = common_rules.UnreferencedEntitiesBase(
+        etree.fromstring(root_string),
+        self._schema_tree,
+        top_level_entity_types=["Candidate"],
+        warned_entity_types=[],
+    )
+
+    validator.check()
+
+  def test_object_id_only_in_non_idref_text_fails(self):
+    root_string = """
+      <ElectionReport>
+        <Person objectId="per-fake"/>
+        <Candidate objectId="can-fake">
+          <BallotName>per-fake</BallotName>
+        </Candidate>
+      </ElectionReport>
+    """
+    validator = common_rules.UnreferencedEntitiesBase(
+        etree.fromstring(root_string),
+        self._schema_tree,
+        top_level_entity_types=["Candidate"],
+        warned_entity_types=[],
+    )
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      validator.check()
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Element of type Person with object id per-fake is not referenced by"
+        " anything else in the feed.",
     )
 
 

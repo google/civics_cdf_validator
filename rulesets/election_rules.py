@@ -19,12 +19,10 @@ import collections
 import datetime
 
 from civics_cdf_validator import base
-from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator.rulesets import common_rules
 from civics_cdf_validator.rulesets import rule_util
 import networkx
-
 
 _CONTEST_STAGE_TYPES = frozenset([
     "exit-polls",
@@ -34,31 +32,6 @@ _CONTEST_STAGE_TYPES = frozenset([
     "official",
     "unnamed",
 ])
-
-_INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE = [
-    # go/keep-sorted start
-    "BallotName",
-    "BallotSubTitle",
-    "BallotText",
-    "BallotTitle",
-    "ConStatement",
-    "Directions",
-    "DisplayName",
-    "EffectOfAbstain",
-    "FullName",
-    "FullText",
-    "InternationalizedAbbreviation",
-    "InternationalizedName",
-    "Name",
-    "PartyLabel",
-    "PassageThreshold",
-    "ProStatement",
-    "Profession",
-    "Selection",
-    "SummaryText",
-    "Title",
-    # go/keep-sorted end
-]
 
 
 _WINNER_POST_ELECTION_STATUSES = frozenset([
@@ -110,57 +83,6 @@ class PercentSum(base.BaseRule):
           "Contest percents do not sum to 0 or 100: %f" % sum_percents,
           [element],
       )
-
-
-class GpUnitsHaveSingleRoot(base.TreeRule):
-  """Ensure that GpUnits form a single-rooted tree."""
-
-  def __init__(self, election_tree, schema_tree, **kwargs):
-    super(GpUnitsHaveSingleRoot, self).__init__(
-        election_tree, schema_tree, **kwargs
-    )
-    self.error_log = []
-
-  def check(self):
-    # Make sure there's at most one GpUnit as a root.
-    # The root is defined as having ComposingGpUnitIds but
-    # is not in the ComposingGpUnitIds of any other GpUnit.
-
-    gpunit_ids = dict()
-    composing_gpunits = set()
-    for element in self.get_elements_by_class(self.election_tree, "GpUnit"):
-      object_id = element.get("objectId")
-      if object_id is not None:
-        gpunit_ids[object_id] = element
-      composing_gpunit = element.find("ComposingGpUnitIds")
-      if composing_gpunit is not None and composing_gpunit.text is not None:
-        composing_gpunits.update(composing_gpunit.text.split())
-
-    roots = gpunit_ids.keys() - composing_gpunits
-
-    if not roots:
-      self.error_log.append(
-          loggers.LogEntry(
-              "GpUnits have no geo district root. "
-              "There should be one or more root geo district."
-          )
-      )
-    else:
-      for object_id in roots:
-        element = gpunit_ids.get(object_id)
-        ocd_ids = rule_util.get_external_id_values(element, "ocd-id")
-        for ocd_id in ocd_ids:
-          if not gpunit_rules.GpUnitOcdIdValidator.is_country_or_region_ocd_id(
-              ocd_id
-          ):
-            msg = (
-                "GpUnits tree roots needs to be either a country or the EU"
-                " region, please check the value %s." % (ocd_id)
-            )
-            self.error_log.append(loggers.LogEntry(msg, [element]))
-
-    if self.error_log:
-      raise loggers.ElectionError(self.error_log)
 
 
 class PartisanPrimary(base.BaseRule):
@@ -243,20 +165,6 @@ class PartisanPrimaryHeuristic(base.BaseRule):
                 % (contest_name.text)
             )
             raise loggers.ElectionWarning.from_message(msg, [contest_elem])
-
-
-class CoalitionParties(base.BaseRule):
-  """Coalitions should always define the Party IDs."""
-
-  def elements(self):
-    return ["Coalition"]
-
-  def check(self, element):
-    party_id = element.find("PartyIds")
-    if party_id is None or not party_id.text or not party_id.text.strip():
-      raise loggers.ElectionError.from_message(
-          "Coalition must define PartyIDs", [element]
-      )
 
 
 class CandidatesReferencedInRelatedContests(base.BaseRule):
@@ -503,31 +411,6 @@ class SingularPartySelection(base.BaseRule):
       )
 
 
-class ValidatePartyCollection(base.BaseRule):
-  """Generic party collection validation rule.
-
-  All partyCollection validation rules can inherit from this class since it
-  contains basic checks.
-  """
-
-  def elements(self):
-    return ["PartyCollection"]
-
-  def check_specific(self, parties):
-    """Return a list of info log to be raised."""
-    raise NotImplementedError
-
-  def check(self, element):
-    info_log = []
-    parties = element.findall("Party")
-    if len(parties) < 1:
-      info_message = "<PartyCollection> does not have <Party> objects"
-      info_log.append(loggers.LogEntry(info_message, element))
-    info_log.extend(self.check_specific(parties))
-    if info_log:
-      raise loggers.ElectionInfo(info_log)
-
-
 class ValidateDuplicateColors(base.TreeRule):
   """Parties under the same contest should have unique color.
 
@@ -603,163 +486,6 @@ class ValidateDuplicateColors(base.TreeRule):
             )
     if warning_log:
       raise loggers.ElectionWarning(warning_log)
-
-
-class DuplicatedPartyAbbreviation(ValidatePartyCollection):
-  """Party abbreviation should be used once in a given language.
-
-  If an abbreviation is duplicated, the corresponding party should be picked up
-  within this class and returned to the user as an Info message.
-  """
-
-  def check_specific(self, parties):
-    info_log = []
-    party_abbrs_by_language = {}
-    for party in parties:
-      abbr_element = party.find("InternationalizedAbbreviation")
-      if abbr_element is None:
-        info_message = (
-            "<Party> does not have <InternationalizedAbbreviation> objects"
-        )
-        info_log.append(loggers.LogEntry(info_message, [party]))
-        continue
-      party_abbrs = abbr_element.findall("Text")
-      for party_abbr in party_abbrs:
-        language = party_abbr.get("language")
-        abbr = party_abbr.text
-        if language not in party_abbrs_by_language:
-          party_abbrs_by_language[language] = {}
-        if abbr in party_abbrs_by_language[language]:
-          party_abbrs_by_language[language][abbr].append(party)
-        else:
-          party_abbrs_by_language[language][abbr] = [party]
-
-    for language, abbrs in party_abbrs_by_language.items():
-      for abbr, parties in abbrs.items():
-        if len(parties) > 1:
-          info_message = "Parties have the same abbreviation in %s." % language
-          info_log.append(loggers.LogEntry(info_message, parties))
-    return info_log
-
-
-class DuplicatedPartyName(ValidatePartyCollection):
-  """Party name should be used once in a given language.
-
-  If a party name is duplicated, the corresponding party should be picked up
-  within this class and returned to the user as an Info message.
-  """
-
-  def check_specific(self, parties):
-    info_log = []
-    party_names_by_language = {}
-    for party in parties:
-      name_element = party.find("Name")
-      if name_element is None:
-        info_message = "<Party> does not have <Name> objects"
-        info_log.append(loggers.LogEntry(info_message, [party]))
-        continue
-      party_names = name_element.findall("Text")
-      for party_name in party_names:
-        language = party_name.get("language")
-        name = party_name.text
-        if language not in party_names_by_language:
-          party_names_by_language[language] = {}
-        if name in party_names_by_language[language]:
-          party_names_by_language[language][name].append(party)
-        else:
-          party_names_by_language[language][name] = [party]
-
-    for language, names in party_names_by_language.items():
-      for name, parties in names.items():
-        if len(parties) > 1:
-          info_message = "Parties have the same name in %s." % language
-          info_log.append(loggers.LogEntry(info_message, parties))
-    return info_log
-
-
-class MissingPartyNameTranslation(ValidatePartyCollection):
-  """All Parties should have their name translated to the same languages.
-
-  If there is a party name that is not translated to all the feed languages,
-  the party should be picked up within this class and returned to the user as
-  an Info message.
-  """
-
-  def check_specific(self, parties):
-    info_log = []
-    feed_languages, feed_party_ids = set(), set()
-    for party in parties:
-      party_object_id = party.get("objectId")
-      name_element = party.find("Name")
-      if name_element is None:
-        info_message = "<Party> does not have <Name> objects"
-        info_log.append(loggers.LogEntry(info_message, [party]))
-        continue
-      party_names = name_element.findall("Text")
-      party_languages = set()
-      for party_name in party_names:
-        language = party_name.get("language")
-        if language not in feed_languages:
-          feed_languages.add(language)
-          if feed_party_ids:
-            info_message = (
-                "The feed is missing names translation to %s for parties : %s."
-                % (language, feed_party_ids)
-            )
-            info_log.append(loggers.LogEntry(info_message))
-        party_languages.add(language)
-      feed_party_ids.add(party_object_id)
-      if len(party_languages) != len(feed_languages):
-        info_message = (
-            "The party name is not translated to all feed languages %s. You "
-            "did it only for the following languages : %s."
-            % (feed_languages, party_languages)
-        )
-        info_log.append(loggers.LogEntry(info_message, [party]))
-    return info_log
-
-
-class MissingPartyAbbreviationTranslation(ValidatePartyCollection):
-  """Every party's abbreviation should be translated to the same languages.
-
-  If a party is missing a name translation, it should be picked up within this
-  class and returned to the user as an Info message.
-  """
-
-  def check_specific(self, parties):
-    info_log = []
-    feed_languages, feed_party_ids = set(), set()
-    for party in parties:
-      party_object_id = party.get("objectId")
-      abbr_element = party.find("InternationalizedAbbreviation")
-      if abbr_element is None:
-        info_message = (
-            "<Party> does not have <InternationalizedAbbreviation> objects"
-        )
-        info_log.append(loggers.LogEntry(info_message, [party]))
-        continue
-      party_abbrs = abbr_element.findall("Text")
-      party_languages = set()
-      for party_abbr in party_abbrs:
-        language = party_abbr.get("language")
-        if language not in feed_languages:
-          feed_languages.add(language)
-          if feed_party_ids:
-            info_message = (
-                "The feed is missing abbreviation translation to %s for parties"
-                " : %s." % (language, feed_party_ids)
-            )
-            info_log.append(loggers.LogEntry(info_message))
-        party_languages.add(language)
-      feed_party_ids.add(party_object_id)
-      if len(party_languages) != len(feed_languages):
-        info_message = (
-            "The party abbreviation is not translated to all feed languages %s."
-            " You only did it for the following languages : %s."
-            % (feed_languages, party_languages)
-        )
-        info_log.append(loggers.LogEntry(info_message, [party]))
-    return info_log
 
 
 class DuplicateContestNames(base.BaseRule):
@@ -1191,7 +917,9 @@ class ElectionDatesSpanContestDates(base.DateRule):
   def elements(self):
     return ["ElectionReport"]
 
-  def _validate_contest_dates_within_election(self, election, contest):
+  def _validate_contest_dates_within_election(
+      self, election, contest, error_log
+  ):
     self.reset_instance_vars()
     self.gather_dates(election)
     election_start_date = self.start_date
@@ -1211,7 +939,7 @@ class ElectionDatesSpanContestDates(base.DateRule):
             or contest_date_status.text.lower() != "canceled"
         )
     ):
-      self.error_log.append(
+      error_log.append(
           loggers.LogEntry(
               "Contest {} with end date {} occurs after Election {} with"
               " end date {}. Election end date should be on or after any"
@@ -1228,7 +956,7 @@ class ElectionDatesSpanContestDates(base.DateRule):
         and self.start_date is not None
         and self.start_date < election_start_date
     ):
-      self.error_log.append(
+      error_log.append(
           loggers.LogEntry(
               "Contest {} with start date {} occurs before Election {} with"
               " start date {}. Election start date should be on or before"
@@ -1242,14 +970,17 @@ class ElectionDatesSpanContestDates(base.DateRule):
       )
 
   def check(self, election_report_element):
+    error_log = []
     for election in self.get_elements_by_class(
         election_report_element, "Election"
     ):
       for contest in self.get_elements_by_class(election, "Contest"):
-        self._validate_contest_dates_within_election(election, contest)
+        self._validate_contest_dates_within_election(
+            election, contest, error_log
+        )
 
-    if self.error_log:
-      raise loggers.ElectionError(self.error_log)
+    if error_log:
+      raise loggers.ElectionError(error_log)
 
 
 class ElectionTypesAreCompatible(base.BaseRule):
@@ -1635,6 +1366,7 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
     for election in self.get_elements_by_class(
         election_report_element, "Election"
     ):
+      self.reset_instance_vars()
       self.gather_dates(election)
       election_end_date = self.end_date
       for contest in self.get_elements_by_class(election, "Contest"):
@@ -1668,7 +1400,11 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
         subsequent_contest_end_date = contest_end_date_by_id[
             subsequent_contest_id
         ]
-        if subsequent_contest_end_date < contest_end_date:
+        if (
+            contest_end_date is not None
+            and subsequent_contest_end_date is not None
+            and subsequent_contest_end_date < contest_end_date
+        ):
           error_log.append(
               loggers.LogEntry(
                   f"Contest {contest_id} references a subsequent contest with"
@@ -1788,8 +1524,8 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
         if cc_id not in contest_ids.keys():
           error_log.append(
               loggers.LogEntry(
-                  "Could not find ComposingContest % referenced by Contest %s."
-                  % (contest_id, cc_id)
+                  f"Could not find ComposingContest {cc_id} referenced by"
+                  f" Contest {contest_id}."
               )
           )
           continue
@@ -1845,22 +1581,6 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
 
     if error_log:
       raise loggers.ElectionError(error_log)
-
-
-class MultipleInternationalizedTextWithSameLanguageCode(base.BaseRule):
-  """Checks for multiple InternationalizedText with the same language code."""
-
-  def elements(self):
-    return _INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE
-
-  def check(self, element):
-    language_map = rule_util.get_language_to_text_map(element)
-
-    for language, texts in language_map.items():
-      if len(texts) > 1:
-        raise loggers.ElectionError.from_message(
-            'Multiple "%s" texts found for "%s"' % (language, texts[0].strip())
-        )
 
 
 class ContestContainsValidStartDate(base.DateRule):
@@ -2680,7 +2400,6 @@ ELECTION_RULES = common_rules.COMMON_RULES + (
     BallotTitle,
     CandidateContestTypesAreCompatible,
     CandidatesReferencedInRelatedContests,
-    CoalitionParties,
     ComposingContestIdsAreValidRelatedContests,
     ContestContainsValidEndDate,
     ContestContainsValidStartDate,
@@ -2693,8 +2412,6 @@ ELECTION_RULES = common_rules.COMMON_RULES + (
     DateStatusMatches,
     DuplicateBallotTitleSeatPair,
     DuplicateContestNames,
-    DuplicatedPartyAbbreviation,
-    DuplicatedPartyName,
     ElectionContainsStartAndEndDates,
     ElectionDatesSpanContestDates,
     ElectionEndDatesInThePast,
@@ -2704,12 +2421,8 @@ ELECTION_RULES = common_rules.COMMON_RULES + (
     ElectionTypesAreCompatible,
     FullTextMaxLength,
     FullTextOrBallotText,
-    GpUnitsHaveSingleRoot,
     ImproperCandidateContest,
-    MissingPartyAbbreviationTranslation,
-    MissingPartyNameTranslation,
     MultipleCandidatesPointToTheSamePersonInTheSameContest,
-    MultipleInternationalizedTextWithSameLanguageCode,
     NotEmptyUniqueDataSourceUris,
     OfficeHasjurisdictionSameAsElectoralDistrict,
     PartisanPrimary,

@@ -365,7 +365,7 @@ class MissingFieldRule(BaseRule):
   def setup(self):
     severity = self.get_severity()
     handled_severities = loggers.handled_severities()
-    if (severity > len(handled_severities)
+    if (severity >= len(handled_severities)
         or severity < 0):
       raise Exception(("Invalid severity. Must be either 0 (Info), "
                        "1 (Warning), or 2 (Error)"))
@@ -449,7 +449,7 @@ class RulesRegistry(SchemaHandler):
     self.exceptions_wrapper.print_exceptions(severity, verbose)
 
   def get_all_exceptions(self):
-    self.exceptions_wrapper.get_all_exceptions()
+    return self.exceptions_wrapper.get_all_exceptions()
 
   def count_stats(self):
     """Aggregates the counts for each top level entity."""

@@ -128,7 +128,7 @@ class ExceptionListWrapper:
   def _select_exception_types(self, severity):
     if not severity:
       severity = 0
-    elif severity > len(self.SUPPORTED_SEVERITIES):
+    elif severity >= len(self.SUPPORTED_SEVERITIES):
       severity = len(self.SUPPORTED_SEVERITIES) - 1
     return self.SUPPORTED_SEVERITIES[severity:]
 
