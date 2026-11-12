@@ -298,48 +298,6 @@ class PersonHasOfficeTest(absltest.TestCase):
     )
 
 
-class DateOfBirthIsInPastTest(absltest.TestCase):
-
-  def setUp(self):
-    super(DateOfBirthIsInPastTest, self).setUp()
-    self.date_of_birth_string = """
-      <PersonCollection>
-        <Person objectId="per_gb_6456562">
-          <FirstName>Jamie</FirstName>
-          <FullName>
-            <Text language="en">Jamie David Adams</Text>
-          </FullName>
-          <Gender>M</Gender>
-          <LastName>Adams</LastName>
-          <MiddleName>David</MiddleName>
-          <DateOfBirth>{}</DateOfBirth>
-        </Person>
-      </PersonCollection>
-    """
-    self.validator = officeholder_rules.DateOfBirthIsInPast(None, None)
-
-  @freezegun.freeze_time("2023-01-01")
-  def test_valid_date_of_birth_succeeds(self):
-    date_of_birth_string = self.date_of_birth_string.format("1975-01-15")
-    element = etree.fromstring(date_of_birth_string)
-
-    self.validator.check(element)
-    self.assertEmpty(self.validator.error_log)
-
-  @freezegun.freeze_time("2023-01-01")
-  def test_invalid_date_of_birth_fails(self):
-    date_of_birth_string = self.date_of_birth_string.format("2100-11-11")
-    element = etree.fromstring(date_of_birth_string)
-
-    with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(element)
-    self.assertLen(context.exception.log_entry, 1)
-    self.assertIn(
-        "The date 2100-11-11 is not in the past.",
-        context.exception.log_entry[0].message,
-    )
-
-
 class OfficeSelectionMethodMatchTest(absltest.TestCase):
 
   def setUp(self):

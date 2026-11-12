@@ -81,24 +81,6 @@ class PersonHasOffice(base.ValidReferenceRule):
     return person_reference_ids
 
 
-class DateOfBirthIsInPast(base.DateRule):
-  """Date of Birth should not be in the future."""
-
-  def elements(self):
-    return ["PersonCollection"]
-
-  def check(self, element):
-    for person_element in element:
-      date_of_birthday = person_element.find("DateOfBirth")
-      if date_of_birthday is not None and date_of_birthday.text:
-        date_of_birthday = base.PartialDate.init_partial_date(
-            date_of_birthday.text
-        )
-        self.check_for_date_in_past(date_of_birthday, person_element)
-        if self.error_log:
-          raise loggers.ElectionError(self.error_log)
-
-
 class OfficeSelectionMethodMatch(base.BaseRule):
   """Office and OfficeHolderTenure need to have matching selection methods.
 
@@ -471,7 +453,6 @@ class UnreferencedEntitiesOfficeholders(common_rules.UnreferencedEntitiesBase):
 
 OFFICEHOLDER_RULES = common_rules.COMMON_RULES + (
     # go/keep-sorted start
-    DateOfBirthIsInPast,
     OfficeHolderTenureTermDates,
     OfficeSelectionMethodMatch,
     OfficeTermDates,
