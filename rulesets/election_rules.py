@@ -541,48 +541,6 @@ class ValidateDuplicateColors(base.TreeRule):
       raise loggers.ElectionWarning(warning_log)
 
 
-class MissingPartyNameTranslation(common_rules.ValidatePartyCollection):
-  """All Parties should have their name translated to the same languages.
-
-  If there is a party name that is not translated to all the feed languages,
-  the party should be picked up within this class and returned to the user as
-  an Info message.
-  """
-
-  def check_specific(self, parties):
-    info_log = []
-    feed_languages, feed_party_ids = set(), set()
-    for party in parties:
-      party_object_id = party.get("objectId")
-      name_element = party.find("Name")
-      if name_element is None:
-        info_message = "<Party> does not have <Name> objects"
-        info_log.append(loggers.LogEntry(info_message, [party]))
-        continue
-      party_names = name_element.findall("Text")
-      party_languages = set()
-      for party_name in party_names:
-        language = party_name.get("language")
-        if language not in feed_languages:
-          feed_languages.add(language)
-          if feed_party_ids:
-            info_message = (
-                "The feed is missing names translation to %s for parties : %s."
-                % (language, feed_party_ids)
-            )
-            info_log.append(loggers.LogEntry(info_message))
-        party_languages.add(language)
-      feed_party_ids.add(party_object_id)
-      if len(party_languages) != len(feed_languages):
-        info_message = (
-            "The party name is not translated to all feed languages %s. You "
-            "did it only for the following languages : %s."
-            % (feed_languages, party_languages)
-        )
-        info_log.append(loggers.LogEntry(info_message, [party]))
-    return info_log
-
-
 class DuplicateContestNames(base.BaseRule):
   """Check that an election contains unique ContestNames.
 
@@ -2508,7 +2466,6 @@ ELECTION_RULES = common_rules.COMMON_RULES + (
     FullTextOrBallotText,
     GpUnitsHaveSingleRoot,
     ImproperCandidateContest,
-    MissingPartyNameTranslation,
     MultipleCandidatesPointToTheSamePersonInTheSameContest,
     NotEmptyUniqueDataSourceUris,
     OfficeHasjurisdictionSameAsElectoralDistrict,
