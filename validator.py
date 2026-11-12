@@ -275,7 +275,9 @@ def filter_all_rules_using_user_arg(rules_allowlist, rule_set, rules_blocklist):
 
 
 def compute_max_found_severity(exceptions_wrapper):
-  if exceptions_wrapper.count_logs_with_exception_type(loggers.ElectionError):
+  if exceptions_wrapper.count_logs_with_exception_type(loggers.ElectionFatal):
+    return 4
+  elif exceptions_wrapper.count_logs_with_exception_type(loggers.ElectionError):
     return 3
   elif exceptions_wrapper.count_logs_with_exception_type(loggers.
                                                          ElectionWarning):
