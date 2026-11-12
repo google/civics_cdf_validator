@@ -5171,6 +5171,64 @@ class AllInternationalizedTextHaveEnVersionTest(absltest.TestCase):
     self.validator.check(etree.fromstring(election_string))
 
 
+class MultipleInternationalizedTextWithSameLanguageCodeTest(
+    parameterized.TestCase
+):
+
+  def setUp(self):
+    super(MultipleInternationalizedTextWithSameLanguageCodeTest, self).setUp()
+    self.validator = (
+        common_rules.MultipleInternationalizedTextWithSameLanguageCode(
+            None, None
+        )
+    )
+
+  @parameterized.parameters(
+      *common_rules._INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE
+  )
+  def test_multiple_texts_with_same_language_code_fails(self, element_name):
+    election_string = f"""
+      <{element_name}>
+        <Text language="en">
+          <![CDATA[Jamaica General Election, 2022]]>
+        </Text>
+        <Text language="en">
+          <![CDATA[Other Jamaica General Election, 2022]]>
+        </Text>
+        <Text language="es">
+          <![CDATA[Elecciones Generales de Jamaica, 2022]]>
+        </Text>
+      </{element_name}>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(election_string))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        'Multiple "en" texts found for "Jamaica General Election, 2022"',
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements[0].tag, element_name
+    )
+
+  @parameterized.parameters(
+      *common_rules._INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE
+  )
+  def test_one_text_per_language_code_succeeds(self, element_name):
+    election_string = f"""
+      <{element_name}>
+        <Text language="en">
+          <![CDATA[Jamaica General Election, 2022]]>
+        </Text>
+        <Text language="es">
+          <![CDATA[Elecciones Generales de Jamaica, 2022]]>
+        </Text>
+      </{element_name}>
+    """
+
+    self.validator.check(etree.fromstring(election_string))
+
+
 class DeprecatedPartyLeadershipSchemaTest(absltest.TestCase):
 
   def setUp(self):

@@ -35,31 +35,6 @@ _CONTEST_STAGE_TYPES = frozenset([
     "unnamed",
 ])
 
-_INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE = [
-    # go/keep-sorted start
-    "BallotName",
-    "BallotSubTitle",
-    "BallotText",
-    "BallotTitle",
-    "ConStatement",
-    "Directions",
-    "DisplayName",
-    "EffectOfAbstain",
-    "FullName",
-    "FullText",
-    "InternationalizedAbbreviation",
-    "InternationalizedName",
-    "Name",
-    "PartyLabel",
-    "PassageThreshold",
-    "ProStatement",
-    "Profession",
-    "Selection",
-    "SummaryText",
-    "Title",
-    # go/keep-sorted end
-]
-
 
 _WINNER_POST_ELECTION_STATUSES = frozenset([
     "winner",
@@ -1847,22 +1822,6 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
       raise loggers.ElectionError(error_log)
 
 
-class MultipleInternationalizedTextWithSameLanguageCode(base.BaseRule):
-  """Checks for multiple InternationalizedText with the same language code."""
-
-  def elements(self):
-    return _INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE
-
-  def check(self, element):
-    language_map = rule_util.get_language_to_text_map(element)
-
-    for language, texts in language_map.items():
-      if len(texts) > 1:
-        raise loggers.ElectionError.from_message(
-            'Multiple "%s" texts found for "%s"' % (language, texts[0].strip())
-        )
-
-
 class ContestContainsValidStartDate(base.DateRule):
   """Contest elements should contain valid start dates.
 
@@ -2709,7 +2668,6 @@ ELECTION_RULES = common_rules.COMMON_RULES + (
     MissingPartyAbbreviationTranslation,
     MissingPartyNameTranslation,
     MultipleCandidatesPointToTheSamePersonInTheSameContest,
-    MultipleInternationalizedTextWithSameLanguageCode,
     NotEmptyUniqueDataSourceUris,
     OfficeHasjurisdictionSameAsElectoralDistrict,
     PartisanPrimary,

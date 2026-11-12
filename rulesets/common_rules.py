@@ -83,6 +83,31 @@ _UNTYPED_URI_PLATFORMS = frozenset([
 
 _ALL_URI_PLATFORMS = _TYPED_URI_PLATFORMS | _UNTYPED_URI_PLATFORMS
 
+_INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE = [
+    # go/keep-sorted start
+    "BallotName",
+    "BallotSubTitle",
+    "BallotText",
+    "BallotTitle",
+    "ConStatement",
+    "Directions",
+    "DisplayName",
+    "EffectOfAbstain",
+    "FullName",
+    "FullText",
+    "InternationalizedAbbreviation",
+    "InternationalizedName",
+    "Name",
+    "PartyLabel",
+    "PassageThreshold",
+    "ProStatement",
+    "Profession",
+    "Selection",
+    "SummaryText",
+    "Title",
+    # go/keep-sorted end
+]
+
 
 def _get_office_roles(element, is_post_office_split_feed=False):
   if is_post_office_split_feed:
@@ -1707,6 +1732,23 @@ class AllInternationalizedTextHaveEnVersion(base.BaseRule):
       )
 
 
+class MultipleInternationalizedTextWithSameLanguageCode(base.BaseRule):
+  """Checks for multiple InternationalizedText with the same language code."""
+
+  def elements(self):
+    return _INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE
+
+  def check(self, element):
+    language_map = rule_util.get_language_to_text_map(element)
+
+    for language, texts in language_map.items():
+      if len(texts) > 1:
+        raise loggers.ElectionError.from_message(
+            f'Multiple "{language}" texts found for "{texts[0].strip()}"',
+            [element],
+        )
+
+
 class DeprecatedPartyLeadershipSchema(base.BaseRule):
   """Errors if the deprecated party leadership schema is used."""
 
@@ -1842,6 +1884,7 @@ COMMON_RULES = (
     MissingFieldsWarning,
     MissingOfficeSelectionMethod,
     MissingStableIds,
+    MultipleInternationalizedTextWithSameLanguageCode,
     NonExecutiveOfficeShouldHaveGovernmentBody,
     OfficesHaveJurisdictionID,
     OfficesHaveValidOfficeLevel,
