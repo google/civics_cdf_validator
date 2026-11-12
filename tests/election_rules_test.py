@@ -373,55 +373,6 @@ class PartisanPrimaryHeuristicTest(absltest.TestCase):
       election_rules.PartisanPrimaryHeuristic(root, None).check(election)
 
 
-class CoalitionPartiesTest(absltest.TestCase):
-
-  _base_election_coalition = """
-      <Coalition>
-        {}
-      </Coalition>
-  """
-
-  def test_each_coalition_has_defined_party_id_succeeds(self):
-    coalition_details = "<PartyIds>abc123</PartyIds>"
-    defined_party_string = self._base_election_coalition.format(
-        coalition_details
-    )
-    element = etree.fromstring(defined_party_string)
-
-    election_rules.CoalitionParties(None, None).check(element)
-
-  def test_coalition_does_not_define_party_id_no_party_id_fails(
-      self,
-  ):
-    no_party_string = self._base_election_coalition.format("")
-    element = etree.fromstring(no_party_string)
-
-    with self.assertRaises(loggers.ElectionError):
-      election_rules.CoalitionParties(None, None).check(element)
-
-  def test_coalition_does_not_define_party_id_empty_party_id_fails(
-      self,
-  ):
-    coalition_details = "<PartyIds></PartyIds>"
-    empty_party_string = self._base_election_coalition.format(coalition_details)
-    element = etree.fromstring(empty_party_string)
-
-    with self.assertRaises(loggers.ElectionError):
-      election_rules.CoalitionParties(None, None).check(element)
-
-  def test_coalition_does_not_define_party_id_whitespace_fails(
-      self,
-  ):
-    coalition_details = "<PartyIds>     </PartyIds>"
-    all_space_party_string = self._base_election_coalition.format(
-        coalition_details
-    )
-    element = etree.fromstring(all_space_party_string)
-
-    with self.assertRaises(loggers.ElectionError):
-      election_rules.CoalitionParties(None, None).check(element)
-
-
 class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
 
   def setUp(self):

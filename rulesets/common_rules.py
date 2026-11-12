@@ -1858,6 +1858,20 @@ class UnreferencedEntitiesBase(base.TreeRule):
           )
 
 
+class CoalitionParties(base.BaseRule):
+  """Coalitions should always define the Party IDs."""
+
+  def elements(self):
+    return ["Coalition"]
+
+  def check(self, element):
+    party_id = element.find("PartyIds")
+    if party_id is None or not party_id.text or not party_id.text.strip():
+      raise loggers.ElectionError.from_message(
+          "Coalition must define PartyIDs", [element]
+      )
+
+
 COMMON_RULES = (
     # go/keep-sorted start
     AllCaps,
@@ -1865,6 +1879,7 @@ COMMON_RULES = (
     AllLanguages,
     BadCharactersInPersonFullName,
     CandidateImageInContactInformation,
+    CoalitionParties,
     DeprecatedPartyLeadershipSchema,
     DiplomaticOfficesHaveCorrespondingGpUnitsSet,
     DuplicateGpUnits,
