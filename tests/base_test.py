@@ -20,6 +20,18 @@ _TEST_CA_OCD_ID_1 = "ocd-division/country:ca"
 _TEST_CA_OCD_ID_2 = "ocd-division/country:ca/cd:1207/district:0"
 
 
+class _FakePartyRule(base.BaseRule):
+  """Fake rule raising an error for every Party element."""
+
+  def elements(self) -> list[str]:
+    return ["Party"]
+
+  def check(self, element: etree._Element) -> None:
+    raise loggers.ElectionError.from_message(
+        f"Fake error for {element.get('objectId')}.", [element]
+    )
+
+
 class ValidReferenceRuleTest(absltest.TestCase):
 
   def test_extends_tree_rule_returns_true(self):
@@ -649,6 +661,26 @@ class RulesRegistryTest(absltest.TestCase):
     self.assertFalse(ca_ocd_id_validator.is_valid_ocd_id(_TEST_US_OCD_ID_1))
     self.assertTrue(us_ocd_id_validator.is_valid_ocd_id(_TEST_US_OCD_ID_2))
     self.assertTrue(ca_ocd_id_validator.is_valid_ocd_id(_TEST_CA_OCD_ID_2))
+
+  def test_get_all_exceptions_returns_recorded_exceptions(self):
+    election_file = self.create_tempfile(content="""<ElectionReport>
+  <PartyCollection>
+    <Party objectId="par-fake-1"/>
+  </PartyCollection>
+</ElectionReport>""").full_path
+    schema_file = self.create_tempfile(content="<schema/>").full_path
+    registry = base.RulesRegistry(
+        election_file, schema_file, [_FakePartyRule], {}, None
+    )
+    registry.check_rules()
+
+    all_exceptions = registry.get_all_exceptions()
+
+    error_messages = [
+        log_entry.message
+        for log_entry in all_exceptions[loggers.ElectionError]["_FakePartyRule"]
+    ]
+    self.assertEqual(error_messages, ["Fake error for par-fake-1."])
 
 
 if __name__ == "__main__":
