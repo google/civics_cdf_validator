@@ -583,49 +583,6 @@ class MissingPartyNameTranslation(common_rules.ValidatePartyCollection):
     return info_log
 
 
-class MissingPartyAbbreviationTranslation(common_rules.ValidatePartyCollection):
-  """Every party's abbreviation should be translated to the same languages.
-
-  If a party is missing a name translation, it should be picked up within this
-  class and returned to the user as an Info message.
-  """
-
-  def check_specific(self, parties):
-    info_log = []
-    feed_languages, feed_party_ids = set(), set()
-    for party in parties:
-      party_object_id = party.get("objectId")
-      abbr_element = party.find("InternationalizedAbbreviation")
-      if abbr_element is None:
-        info_message = (
-            "<Party> does not have <InternationalizedAbbreviation> objects"
-        )
-        info_log.append(loggers.LogEntry(info_message, [party]))
-        continue
-      party_abbrs = abbr_element.findall("Text")
-      party_languages = set()
-      for party_abbr in party_abbrs:
-        language = party_abbr.get("language")
-        if language not in feed_languages:
-          feed_languages.add(language)
-          if feed_party_ids:
-            info_message = (
-                "The feed is missing abbreviation translation to %s for parties"
-                " : %s." % (language, feed_party_ids)
-            )
-            info_log.append(loggers.LogEntry(info_message))
-        party_languages.add(language)
-      feed_party_ids.add(party_object_id)
-      if len(party_languages) != len(feed_languages):
-        info_message = (
-            "The party abbreviation is not translated to all feed languages %s."
-            " You only did it for the following languages : %s."
-            % (feed_languages, party_languages)
-        )
-        info_log.append(loggers.LogEntry(info_message, [party]))
-    return info_log
-
-
 class DuplicateContestNames(base.BaseRule):
   """Check that an election contains unique ContestNames.
 
@@ -2551,7 +2508,6 @@ ELECTION_RULES = common_rules.COMMON_RULES + (
     FullTextOrBallotText,
     GpUnitsHaveSingleRoot,
     ImproperCandidateContest,
-    MissingPartyAbbreviationTranslation,
     MissingPartyNameTranslation,
     MultipleCandidatesPointToTheSamePersonInTheSameContest,
     NotEmptyUniqueDataSourceUris,

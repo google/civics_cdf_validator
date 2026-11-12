@@ -1977,6 +1977,55 @@ class DuplicatedPartyName(ValidatePartyCollection):
     return info_log
 
 
+class MissingPartyAbbreviationTranslation(ValidatePartyCollection):
+  """Every party's abbreviation should be translated to the same languages.
+
+  If a party is missing a name translation, it should be picked up within this
+  class and returned to the user as an Info message.
+  """
+
+  def check_specific(self, parties):
+    info_log = []
+    feed_languages = set()
+    feed_party_ids = set()
+    for party in parties:
+      party_object_id = party.get("objectId")
+      abbreviation_element = party.find("InternationalizedAbbreviation")
+      if abbreviation_element is None:
+        info_log.append(
+            loggers.LogEntry(
+                "<Party> does not have <InternationalizedAbbreviation> objects",
+                [party],
+            )
+        )
+        continue
+      party_abbreviations = abbreviation_element.findall("Text")
+      party_languages = set()
+      for party_abbreviation in party_abbreviations:
+        language = party_abbreviation.get("language")
+        if language not in feed_languages:
+          feed_languages.add(language)
+          if feed_party_ids:
+            info_log.append(
+                loggers.LogEntry(
+                    "The feed is missing abbreviation translation to"
+                    f" {language} for parties : {feed_party_ids}."
+                )
+            )
+        party_languages.add(language)
+      feed_party_ids.add(party_object_id)
+      if len(party_languages) != len(feed_languages):
+        info_log.append(
+            loggers.LogEntry(
+                "The party abbreviation is not translated to all feed"
+                f" languages {feed_languages}. You only did it for the"
+                f" following languages : {party_languages}.",
+                [party],
+            )
+        )
+    return info_log
+
+
 COMMON_RULES = (
     # go/keep-sorted start
     AllCaps,
@@ -2005,6 +2054,7 @@ COMMON_RULES = (
     MissingFieldsInfo,
     MissingFieldsWarning,
     MissingOfficeSelectionMethod,
+    MissingPartyAbbreviationTranslation,
     MissingStableIds,
     MultipleInternationalizedTextWithSameLanguageCode,
     NonExecutiveOfficeShouldHaveGovernmentBody,
