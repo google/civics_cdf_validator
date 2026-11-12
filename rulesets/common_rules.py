@@ -1938,6 +1938,45 @@ class DuplicatedPartyAbbreviation(ValidatePartyCollection):
     return info_log
 
 
+class DuplicatedPartyName(ValidatePartyCollection):
+  """Party name should be used once in a given language.
+
+  If a party name is duplicated, the corresponding party should be picked up
+  within this class and returned to the user as an Info message.
+  """
+
+  def check_specific(self, parties):
+    info_log = []
+    party_names_by_language = {}
+    for party in parties:
+      name_element = party.find("Name")
+      if name_element is None:
+        info_log.append(
+            loggers.LogEntry("<Party> does not have <Name> objects", [party])
+        )
+        continue
+      party_names = name_element.findall("Text")
+      for party_name in party_names:
+        language = party_name.get("language")
+        name = party_name.text
+        if language not in party_names_by_language:
+          party_names_by_language[language] = {}
+        if name in party_names_by_language[language]:
+          party_names_by_language[language][name].append(party)
+        else:
+          party_names_by_language[language][name] = [party]
+
+    for language, names in party_names_by_language.items():
+      for name, parties in names.items():
+        if len(parties) > 1:
+          info_log.append(
+              loggers.LogEntry(
+                  f"Parties have the same name in {language}.", parties
+              )
+          )
+    return info_log
+
+
 COMMON_RULES = (
     # go/keep-sorted start
     AllCaps,
@@ -1952,6 +1991,7 @@ COMMON_RULES = (
     DuplicateID,
     DuplicatedGpUnitOcdId,
     DuplicatedPartyAbbreviation,
+    DuplicatedPartyName,
     EmptyString,
     EmptyText,
     Encoding,
