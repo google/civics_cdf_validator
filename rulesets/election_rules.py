@@ -464,31 +464,6 @@ class SingularPartySelection(base.BaseRule):
       )
 
 
-class ValidatePartyCollection(base.BaseRule):
-  """Generic party collection validation rule.
-
-  All partyCollection validation rules can inherit from this class since it
-  contains basic checks.
-  """
-
-  def elements(self):
-    return ["PartyCollection"]
-
-  def check_specific(self, parties):
-    """Return a list of info log to be raised."""
-    raise NotImplementedError
-
-  def check(self, element):
-    info_log = []
-    parties = element.findall("Party")
-    if len(parties) < 1:
-      info_message = "<PartyCollection> does not have <Party> objects"
-      info_log.append(loggers.LogEntry(info_message, element))
-    info_log.extend(self.check_specific(parties))
-    if info_log:
-      raise loggers.ElectionInfo(info_log)
-
-
 class ValidateDuplicateColors(base.TreeRule):
   """Parties under the same contest should have unique color.
 
@@ -566,44 +541,7 @@ class ValidateDuplicateColors(base.TreeRule):
       raise loggers.ElectionWarning(warning_log)
 
 
-class DuplicatedPartyAbbreviation(ValidatePartyCollection):
-  """Party abbreviation should be used once in a given language.
-
-  If an abbreviation is duplicated, the corresponding party should be picked up
-  within this class and returned to the user as an Info message.
-  """
-
-  def check_specific(self, parties):
-    info_log = []
-    party_abbrs_by_language = {}
-    for party in parties:
-      abbr_element = party.find("InternationalizedAbbreviation")
-      if abbr_element is None:
-        info_message = (
-            "<Party> does not have <InternationalizedAbbreviation> objects"
-        )
-        info_log.append(loggers.LogEntry(info_message, [party]))
-        continue
-      party_abbrs = abbr_element.findall("Text")
-      for party_abbr in party_abbrs:
-        language = party_abbr.get("language")
-        abbr = party_abbr.text
-        if language not in party_abbrs_by_language:
-          party_abbrs_by_language[language] = {}
-        if abbr in party_abbrs_by_language[language]:
-          party_abbrs_by_language[language][abbr].append(party)
-        else:
-          party_abbrs_by_language[language][abbr] = [party]
-
-    for language, abbrs in party_abbrs_by_language.items():
-      for abbr, parties in abbrs.items():
-        if len(parties) > 1:
-          info_message = "Parties have the same abbreviation in %s." % language
-          info_log.append(loggers.LogEntry(info_message, parties))
-    return info_log
-
-
-class DuplicatedPartyName(ValidatePartyCollection):
+class DuplicatedPartyName(common_rules.ValidatePartyCollection):
   """Party name should be used once in a given language.
 
   If a party name is duplicated, the corresponding party should be picked up
@@ -638,7 +576,7 @@ class DuplicatedPartyName(ValidatePartyCollection):
     return info_log
 
 
-class MissingPartyNameTranslation(ValidatePartyCollection):
+class MissingPartyNameTranslation(common_rules.ValidatePartyCollection):
   """All Parties should have their name translated to the same languages.
 
   If there is a party name that is not translated to all the feed languages,
@@ -680,7 +618,7 @@ class MissingPartyNameTranslation(ValidatePartyCollection):
     return info_log
 
 
-class MissingPartyAbbreviationTranslation(ValidatePartyCollection):
+class MissingPartyAbbreviationTranslation(common_rules.ValidatePartyCollection):
   """Every party's abbreviation should be translated to the same languages.
 
   If a party is missing a name translation, it should be picked up within this
@@ -2637,7 +2575,6 @@ ELECTION_RULES = common_rules.COMMON_RULES + (
     DateStatusMatches,
     DuplicateBallotTitleSeatPair,
     DuplicateContestNames,
-    DuplicatedPartyAbbreviation,
     DuplicatedPartyName,
     ElectionContainsStartAndEndDates,
     ElectionDatesSpanContestDates,

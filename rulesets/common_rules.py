@@ -26,7 +26,6 @@ import language_tags
 from lxml import etree
 from six.moves.urllib.parse import urlparse
 
-
 _INDEPENDENT_PARTY_NAMES = frozenset(["independent", "nonpartisan"])
 
 _GPUNIT_TYPES_WITHOUT_OCD_IDS = frozenset([
@@ -1872,6 +1871,73 @@ class CoalitionParties(base.BaseRule):
       )
 
 
+class ValidatePartyCollection(base.BaseRule):
+  """Generic party collection validation rule.
+
+  All partyCollection validation rules can inherit from this class since it
+  contains basic checks.
+  """
+
+  def elements(self):
+    return ["PartyCollection"]
+
+  def check_specific(self, parties):
+    """Return a list of info log to be raised."""
+    raise NotImplementedError
+
+  def check(self, element):
+    info_log = []
+    parties = element.findall("Party")
+    if len(parties) < 1:
+      info_message = "<PartyCollection> does not have <Party> objects"
+      info_log.append(loggers.LogEntry(info_message, element))
+    info_log.extend(self.check_specific(parties))
+    if info_log:
+      raise loggers.ElectionInfo(info_log)
+
+
+class DuplicatedPartyAbbreviation(ValidatePartyCollection):
+  """Party abbreviation should be used once in a given language.
+
+  If an abbreviation is duplicated, the corresponding party should be picked up
+  within this class and returned to the user as an Info message.
+  """
+
+  def check_specific(self, parties):
+    info_log = []
+    party_abbreviations_by_language = {}
+    for party in parties:
+      abbreviation_element = party.find("InternationalizedAbbreviation")
+      if abbreviation_element is None:
+        info_log.append(
+            loggers.LogEntry(
+                "<Party> does not have <InternationalizedAbbreviation> objects",
+                [party],
+            )
+        )
+        continue
+      party_abbreviations = abbreviation_element.findall("Text")
+      for party_abbreviation in party_abbreviations:
+        language = party_abbreviation.get("language")
+        abbreviation = party_abbreviation.text
+        if language not in party_abbreviations_by_language:
+          party_abbreviations_by_language[language] = {}
+        if abbreviation in party_abbreviations_by_language[language]:
+          party_abbreviations_by_language[language][abbreviation].append(party)
+        else:
+          party_abbreviations_by_language[language][abbreviation] = [party]
+
+    for language, abbreviations in party_abbreviations_by_language.items():
+      for abbreviation, parties in abbreviations.items():
+        if len(parties) > 1:
+          info_log.append(
+              loggers.LogEntry(
+                  f"Parties have the same abbreviation in {language}.", parties
+              )
+          )
+    return info_log
+
+
 COMMON_RULES = (
     # go/keep-sorted start
     AllCaps,
@@ -1885,6 +1951,7 @@ COMMON_RULES = (
     DuplicateGpUnits,
     DuplicateID,
     DuplicatedGpUnitOcdId,
+    DuplicatedPartyAbbreviation,
     EmptyString,
     EmptyText,
     Encoding,
