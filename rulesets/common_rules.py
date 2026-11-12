@@ -143,7 +143,7 @@ class Schema(base.TreeRule):
     try:
       schema = etree.XMLSchema(etree=self.schema_tree)
     except etree.XMLSchemaParseError as e:
-      raise loggers.ElectionError.from_message(
+      raise loggers.ElectionFatal.from_message(
           "The schema file could not be parsed correctly %s" % str(e)
       )
     valid_xml = True
@@ -163,7 +163,7 @@ class Schema(base.TreeRule):
                 ),
             )
         )
-      raise loggers.ElectionError(errors)
+      raise loggers.ElectionFatal(errors)
 
 
 class OptionalAndEmpty(base.BaseRule):

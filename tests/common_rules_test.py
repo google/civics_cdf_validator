@@ -52,7 +52,7 @@ class SchemaTest(absltest.TestCase):
     election_tree = etree.fromstring("<Report/>")
     validator = common_rules.Schema(election_tree, schema_tree)
 
-    with self.assertRaises(loggers.ElectionError) as context:
+    with self.assertRaises(loggers.ElectionFatal) as context:
       validator.check()
     self.assertIn(
         "The schema file could not be parsed correctly",
@@ -70,7 +70,7 @@ class SchemaTest(absltest.TestCase):
     election_tree = etree.fromstring(root_string)
     validator = common_rules.Schema(election_tree, SchemaTest._schema_tree)
 
-    with self.assertRaises(loggers.ElectionError) as context:
+    with self.assertRaises(loggers.ElectionFatal) as context:
       validator.check()
     self.assertIn(
         "The election file didn't validate against schema",
