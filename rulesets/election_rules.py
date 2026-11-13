@@ -24,7 +24,6 @@ from civics_cdf_validator.rulesets import common_rules
 from civics_cdf_validator.rulesets import rule_util
 import networkx
 
-
 _CONTEST_STAGE_TYPES = frozenset([
     "exit-polls",
     "estimates",
@@ -918,7 +917,9 @@ class ElectionDatesSpanContestDates(base.DateRule):
   def elements(self):
     return ["ElectionReport"]
 
-  def _validate_contest_dates_within_election(self, election, contest):
+  def _validate_contest_dates_within_election(
+      self, election, contest, error_log
+  ):
     self.reset_instance_vars()
     self.gather_dates(election)
     election_start_date = self.start_date
@@ -938,7 +939,7 @@ class ElectionDatesSpanContestDates(base.DateRule):
             or contest_date_status.text.lower() != "canceled"
         )
     ):
-      self.error_log.append(
+      error_log.append(
           loggers.LogEntry(
               "Contest {} with end date {} occurs after Election {} with"
               " end date {}. Election end date should be on or after any"
@@ -955,7 +956,7 @@ class ElectionDatesSpanContestDates(base.DateRule):
         and self.start_date is not None
         and self.start_date < election_start_date
     ):
-      self.error_log.append(
+      error_log.append(
           loggers.LogEntry(
               "Contest {} with start date {} occurs before Election {} with"
               " start date {}. Election start date should be on or before"
@@ -969,14 +970,17 @@ class ElectionDatesSpanContestDates(base.DateRule):
       )
 
   def check(self, election_report_element):
+    error_log = []
     for election in self.get_elements_by_class(
         election_report_element, "Election"
     ):
       for contest in self.get_elements_by_class(election, "Contest"):
-        self._validate_contest_dates_within_election(election, contest)
+        self._validate_contest_dates_within_election(
+            election, contest, error_log
+        )
 
-    if self.error_log:
-      raise loggers.ElectionError(self.error_log)
+    if error_log:
+      raise loggers.ElectionError(error_log)
 
 
 class ElectionTypesAreCompatible(base.BaseRule):
@@ -1362,6 +1366,7 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
     for election in self.get_elements_by_class(
         election_report_element, "Election"
     ):
+      self.reset_instance_vars()
       self.gather_dates(election)
       election_end_date = self.end_date
       for contest in self.get_elements_by_class(election, "Contest"):
@@ -1395,7 +1400,11 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
         subsequent_contest_end_date = contest_end_date_by_id[
             subsequent_contest_id
         ]
-        if subsequent_contest_end_date < contest_end_date:
+        if (
+            contest_end_date is not None
+            and subsequent_contest_end_date is not None
+            and subsequent_contest_end_date < contest_end_date
+        ):
           error_log.append(
               loggers.LogEntry(
                   f"Contest {contest_id} references a subsequent contest with"
@@ -1510,18 +1519,18 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
 
     for contest_id, composing_contest_ids in composing_contests.items():
       contest = contest_ids[contest_id]
-      for cc_id in composing_contest_ids:
+      for composing_contest_id in composing_contest_ids:
         # Check that the composing contests exist
-        if cc_id not in contest_ids.keys():
+        if composing_contest_id not in contest_ids.keys():
           error_log.append(
               loggers.LogEntry(
-                  "Could not find ComposingContest % referenced by Contest %s."
-                  % (contest_id, cc_id)
+                  "Could not find ComposingContest"
+                  f" {composing_contest_id} referenced by Contest {contest_id}."
               )
           )
           continue
 
-        composing_contest = contest_ids[cc_id]
+        composing_contest = contest_ids[composing_contest_id]
         # Check that the office ids match
         c_office_id = None
         cc_office_id = None
@@ -1535,8 +1544,8 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
         if c_office_id != cc_office_id:
           error_log.append(
               loggers.LogEntry(
-                  "Contest %s and composing contest %s have different office "
-                  "ids." % (contest_id, cc_id)
+                  f"Contest {contest_id} and composing contest"
+                  f" {composing_contest_id} have different office ids."
               )
           )
 
@@ -1553,20 +1562,20 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
         if c_primary_party_ids != cc_primary_party_ids:
           error_log.append(
               loggers.LogEntry(
-                  "Contest %s and composing contest %s have different primary "
-                  "party ids." % (contest_id, cc_id)
+                  f"Contest {contest_id} and composing contest"
+                  f" {composing_contest_id} have different primary party ids."
               )
           )
 
         # Check that composing contests don't reference each other
         if (
-            cc_id in composing_contests
-            and contest_id in composing_contests[cc_id]
+            composing_contest_id in composing_contests
+            and contest_id in composing_contests[composing_contest_id]
         ):
           error_log.append(
               loggers.LogEntry(
-                  "Contest %s and contest %s reference each other as composing "
-                  "contests." % (contest_id, cc_id)
+                  f"Contest {contest_id} and contest {composing_contest_id}"
+                  " reference each other as composing contests."
               )
           )
 
