@@ -24,6 +24,22 @@ class RulesTest(absltest.TestCase):
 
     self.assertSetEqual(all_rules, possible_rules)
 
+  def test_rule_set_names_match_supported_feed_types(self):
+    rule_set_names = [rule_set.name for rule_set in rules.RuleSet]
+
+    self.assertEqual(
+        rule_set_names,
+        [
+            "ELECTION",
+            "OFFICEHOLDER",
+            "COMMITTEE",
+            "ELECTION_DATES",
+            "ELECTION_RESULTS",
+            "METADATA",
+            "VOTER_INFORMATION",
+        ],
+    )
+
   def _subclasses(self, cls):
     children = cls.__subclasses__()
     subclasses = set(children)
