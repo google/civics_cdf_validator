@@ -216,7 +216,8 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
               (
                   "A Candidate should be referenced in a Contest. Candidate {} "
                   "is not referenced."
-              ).format(candidate_id)
+              ).format(candidate_id),
+              [candidate],
           )
         contest_list = candidate_to_contest_mapping[candidate_id]
         person_candidate_contest_mapping.setdefault(person_id.text, {})[
@@ -805,7 +806,8 @@ class ElectionContainsStartAndEndDates(base.DateRule):
           loggers.LogEntry(
               "Election {} is missing a start date.".format(
                   element.get("objectId")
-              )
+              ),
+              [element],
           )
       )
 
@@ -814,7 +816,8 @@ class ElectionContainsStartAndEndDates(base.DateRule):
           loggers.LogEntry(
               "Election {} is missing an end date.".format(
                   element.get("objectId")
-              )
+              ),
+              [element],
           )
       )
 
@@ -948,7 +951,8 @@ class ElectionDatesSpanContestDates(base.DateRule):
                   self.end_date,
                   election_id,
                   election_end_date,
-              )
+              ),
+              [contest],
           )
       )
     if (
@@ -965,7 +969,8 @@ class ElectionDatesSpanContestDates(base.DateRule):
                   self.start_date,
                   election_id,
                   election_start_date,
-              )
+              ),
+              [contest],
           )
       )
 
@@ -1256,6 +1261,7 @@ class ImproperCandidateContest(base.TreeRule):
 
   def check(self):
     candidate_contest_mapping = {}
+    contest_by_id = {}
     candidate_contests = self.get_elements_by_class(
         self.election_tree, "CandidateContest"
     )
@@ -1263,6 +1269,7 @@ class ImproperCandidateContest(base.TreeRule):
       cand_ids = self._gather_contest_candidates(cc)
       contest_id = cc.get("objectId")
       candidate_contest_mapping[contest_id] = cand_ids
+      contest_by_id[contest_id] = cc
 
     invalid_candidates = self._gather_invalid_candidates()
 
@@ -1279,7 +1286,9 @@ class ImproperCandidateContest(base.TreeRule):
             "to a BallotMeasureContest instead of a "
             "CandidateContest."
         ).format(", ".join(flagged_candidates), contest_id)
-        warning_log.append(loggers.LogEntry(warning_message))
+        warning_log.append(
+            loggers.LogEntry(warning_message, [contest_by_id[contest_id]])
+        )
     if invalid_candidates:
       warning_message = (
           "There are CandidateContests that appear to be "
@@ -1388,7 +1397,8 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
         error_log.append(
             loggers.LogEntry(
                 "Could not find SubsequentContest"
-                f" {subsequent_contest_id} referenced by Contest {contest_id}."
+                f" {subsequent_contest_id} referenced by Contest {contest_id}.",
+                [contest],
             )
         )
         continue
@@ -1504,7 +1514,7 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
 
     # Check for composing contests that appear more than once
     unique_contests = set()
-    for contest_list in composing_contests.values():
+    for parent_contest_id, contest_list in composing_contests.items():
       for contest_id in contest_list:
         if contest_id not in unique_contests:
           unique_contests.add(contest_id)
@@ -1513,7 +1523,8 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
               loggers.LogEntry(
                   "Contest %s is listed as a ComposingContest for more "
                   "than one parent contest.  ComposingContests should be a "
-                  "strict hierarchy." % contest_id
+                  "strict hierarchy." % contest_id,
+                  [contest_ids[parent_contest_id]],
               )
           )
 
@@ -1525,7 +1536,9 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
           error_log.append(
               loggers.LogEntry(
                   "Could not find ComposingContest"
-                  f" {composing_contest_id} referenced by Contest {contest_id}."
+                  f" {composing_contest_id} referenced by Contest"
+                  f" {contest_id}.",
+                  [contest],
               )
           )
           continue
@@ -1545,7 +1558,8 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
           error_log.append(
               loggers.LogEntry(
                   f"Contest {contest_id} and composing contest"
-                  f" {composing_contest_id} have different office ids."
+                  f" {composing_contest_id} have different office ids.",
+                  [contest, composing_contest],
               )
           )
 
@@ -1563,7 +1577,8 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
           error_log.append(
               loggers.LogEntry(
                   f"Contest {contest_id} and composing contest"
-                  f" {composing_contest_id} have different primary party ids."
+                  f" {composing_contest_id} have different primary party ids.",
+                  [contest, composing_contest],
               )
           )
 
@@ -1575,7 +1590,8 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
           error_log.append(
               loggers.LogEntry(
                   f"Contest {contest_id} and contest {composing_contest_id}"
-                  " reference each other as composing contests."
+                  " reference each other as composing contests.",
+                  [contest, composing_contest],
               )
           )
 
@@ -1687,7 +1703,8 @@ class ContestEndDateOccursBeforeSubsequentContestStartDate(base.DateRule):
                       contest_end,
                       subsequent_contest_id,
                       subsequent_contest_start,
-                  )
+                  ),
+                  [contest, contest_by_contest_id[subsequent_contest_id]],
               )
           )
 
@@ -2215,10 +2232,14 @@ class AttributionContainsNoCycles(base.TreeRule):
     graph = networkx.DiGraph()
 
     attributions = self.get_elements_by_class(self.election_tree, "Attribution")
+    attributions_by_data_source = {}
     for attribution in attributions:
       data_source = _get_datasource_id(attribution)
       if not data_source:
         continue
+      attributions_by_data_source.setdefault(data_source, []).append(
+          attribution
+      )
       graph.add_node(data_source)
       for child in attribution.findall("Attribution"):
         child_data_source = _get_datasource_id(child)
@@ -2246,11 +2267,15 @@ class AttributionContainsNoCycles(base.TreeRule):
     all_cycles_subgraph = graph.subgraph(sorted(nodes_in_a_cycle))
     for cycle in networkx.simple_cycles(all_cycles_subgraph):
       canonical = _canonicalize_cycle(cycle)
+      cycle_attributions = []
+      for data_source in canonical:
+        cycle_attributions.extend(attributions_by_data_source[data_source])
       # Append the starting node to the end to represent a closed loop.
       error_log.append(
           loggers.LogEntry(
               f"Cycle detected in Attribution: {' -> '.join(canonical)} ->"
-              f" {canonical[0]}"
+              f" {canonical[0]}",
+              cycle_attributions,
           )
       )
     raise loggers.ElectionError(error_log)

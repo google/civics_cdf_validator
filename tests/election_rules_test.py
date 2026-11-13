@@ -6985,6 +6985,36 @@ class LimitAttributionRecursionTest(absltest.TestCase):
 
 class AttributionCyclesValidationTest(absltest.TestCase):
 
+  def test_cycle_points_at_attributions_in_the_cycle(self):
+    xml_string = """
+      <ElectionReport>
+        <ResultsReportingStageCollection>
+          <ResultsReportingStage>
+            <Attribution>
+              <DataSourceId>ds-fake-1</DataSourceId>
+              <Attribution>
+                <DataSourceId>ds-fake-2</DataSourceId>
+                <Attribution>
+                  <DataSourceId>ds-fake-1</DataSourceId>
+                </Attribution>
+              </Attribution>
+            </Attribution>
+          </ResultsReportingStage>
+        </ResultsReportingStageCollection>
+      </ElectionReport>
+    """
+    tree = etree.fromstring(xml_string)
+    validator = election_rules.AttributionContainsNoCycles(tree, None)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      validator.check()
+
+    attributions = tree.findall(".//Attribution")
+    self.assertEqual(
+        context.exception.log_entry[0].elements,
+        [attributions[0], attributions[2], attributions[1]],
+    )
+
   def test_attribution_graph_without_cycles_succeeds(self):
     xml_string = """
       <ElectionReport>

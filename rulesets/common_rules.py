@@ -162,9 +162,21 @@ class Schema(base.TreeRule):
                     "The election file didn't validate "
                     "against schema : {0}".format(error.message.encode("utf-8"))
                 ),
+                elements=self._get_error_elements(error),
             )
         )
       raise loggers.ElectionFatal(errors)
+
+  def _get_error_elements(self, error):
+    """Returns the elements a schema error points to, or the root element."""
+    if error.path:
+      try:
+        elements = self.election_tree.xpath(error.path)
+      except etree.XPathError:
+        elements = []
+      if elements:
+        return elements
+    return [self.election_tree.getroot()]
 
 
 class OptionalAndEmpty(base.BaseRule):
@@ -199,7 +211,9 @@ class Encoding(base.TreeRule):
   def check(self):
     docinfo = self.election_tree.docinfo
     if docinfo.encoding != "UTF-8":
-      raise loggers.ElectionError.from_message("Encoding on file is not UTF-8")
+      raise loggers.ElectionError.from_message(
+          "Encoding on file is not UTF-8", [self.election_tree.getroot()]
+      )
 
 
 class LanguageCode(base.BaseRule):
@@ -472,16 +486,18 @@ class DuplicateGpUnits(base.BaseRule):
       if composing_gpunits is None or not composing_gpunits.text:
         continue
       composing_ids = frozenset(composing_gpunits.text.split())
-      if children.get(composing_ids):
+      if children.get(composing_ids) is not None:
+        duplicate_gpunit = children[composing_ids]
         error_log.append(
             loggers.LogEntry(
                 "GpUnits {} are duplicates".format(
-                    str((children[composing_ids], object_id))
-                )
+                    str((duplicate_gpunit.get("objectId"), object_id))
+                ),
+                [duplicate_gpunit, gpunit],
             )
         )
         continue
-      children[composing_ids] = object_id
+      children[composing_ids] = gpunit
     if error_log:
       raise loggers.ElectionError(error_log)
 
@@ -497,13 +513,17 @@ class GpUnitsCyclesRefsValidation(base.TreeRule):
     self.visited = {}  # Used to store status of the nodes as visited or not.
     self.error_log = []
     self.bad_nodes = []
+    self.gpunit_by_object_id = {}
 
   def build_tree(self, gpunit):
     # Check if the node is already visited
     if gpunit in self.visited:
       if gpunit not in self.bad_nodes:
         self.error_log.append(
-            loggers.LogEntry("Cycle detected at node {0}".format(gpunit))
+            loggers.LogEntry(
+                "Cycle detected at node {0}".format(gpunit),
+                [self.gpunit_by_object_id[gpunit]],
+            )
         )
         self.bad_nodes.append(gpunit)
       return
@@ -516,7 +536,8 @@ class GpUnitsCyclesRefsValidation(base.TreeRule):
         self.error_log.append(
             loggers.LogEntry(
                 "Node {0} is not present in the file as a GpUnit element."
-                .format(child_unit)
+                .format(child_unit),
+                [self.gpunit_by_object_id[gpunit]],
             )
         )
 
@@ -525,6 +546,7 @@ class GpUnitsCyclesRefsValidation(base.TreeRule):
       object_id = element.get("objectId")
       if object_id is None:
         continue
+      self.gpunit_by_object_id[object_id] = element
       self.edges[object_id] = []
       composing_gp_unit = element.find("ComposingGpUnitIds")
       if composing_gp_unit is None or composing_gp_unit.text is None:
@@ -703,7 +725,8 @@ class IndependentPartyName(base.BaseRule):
         raise loggers.ElectionWarning.from_message(
             f"Party name '{party_name.text}' indicates an independent party."
             " Please use the IsIndependent attribute on the party element to"
-            " specify this."
+            " specify this.",
+            [party],
         )
 
 
@@ -716,6 +739,7 @@ class UniqueStableID(base.TreeRule):
   def check(self):
     error_log = []
     stable_obj_dict = dict()
+    stable_elements_dict = dict()
     for _, element in etree.iterwalk(self.election_tree, events=("end",)):
       stable_ids = rule_util.get_external_id_values(
           element, "stable", search_subelements=False
@@ -724,6 +748,7 @@ class UniqueStableID(base.TreeRule):
         continue
       elem_id = self._get_object_id_or_name(element)
       for stable_id in stable_ids:
+        stable_elements_dict.setdefault(stable_id, []).append(element)
         if stable_id in stable_obj_dict.keys():
           stable_obj_dict.get(stable_id).append(elem_id)
         else:
@@ -735,7 +760,9 @@ class UniqueStableID(base.TreeRule):
         error_message = (
             "Stable ID {} is not unique as it is mapped in {}".format(k, v)
         )
-        error_log.append(loggers.LogEntry(error_message))
+        error_log.append(
+            loggers.LogEntry(error_message, stable_elements_dict[k])
+        )
     if error_log:
       raise loggers.ElectionError(error_log)
 
@@ -1761,7 +1788,8 @@ class DeprecatedPartyLeadershipSchema(base.BaseRule):
     ):
       raise loggers.ElectionError.from_message(
           "Specifying party leadership via external identifiers is deprecated."
-          " Please use the PartyLeadership element instead."
+          " Please use the PartyLeadership element instead.",
+          [element],
       )
 
 
@@ -1780,7 +1808,8 @@ class ProhibitElectionData(base.TreeRule):
     root = self.election_tree.getroot()
     if root is not None and root.find("Election") is not None:
       raise loggers.ElectionError.from_message(
-          "Election data is prohibited in officeholder feeds."
+          "Election data is prohibited in officeholder feeds.",
+          [root.find("Election")],
       )
 
 
@@ -1839,7 +1868,9 @@ class UnreferencedEntitiesBase(base.TreeRule):
           raise loggers.ElectionWarning.from_message(
               f"Element of type {element_name} with object id {obj_id} is not"
               " referenced by anything else in the feed. This is only ok if"
-              " there are explicit instructions to include this entity anyways."
+              " there are explicit instructions to include this entity"
+              " anyways.",
+              [element],
           )
         elif (
             element_name == "GpUnit"
@@ -1854,7 +1885,8 @@ class UnreferencedEntitiesBase(base.TreeRule):
         else:
           raise loggers.ElectionError.from_message(
               f"Element of type {element_name} with object id {obj_id} is not"
-              " referenced by anything else in the feed."
+              " referenced by anything else in the feed.",
+              [element],
           )
 
 
@@ -2122,7 +2154,8 @@ class GpUnitsHaveSingleRoot(base.TreeRule):
       self.error_log.append(
           loggers.LogEntry(
               "GpUnits have no geo district root. "
-              "There should be one or more root geo district."
+              "There should be one or more root geo district.",
+              [self._get_gpunit_collection()],
           )
       )
     else:
@@ -2143,6 +2176,14 @@ class GpUnitsHaveSingleRoot(base.TreeRule):
 
     if self.error_log:
       raise loggers.ElectionError(self.error_log)
+
+  def _get_gpunit_collection(self):
+    """Returns the GpUnitCollection element, or the root if there is none."""
+    root = self.election_tree.getroot()
+    gpunit_collection = root.find("GpUnitCollection")
+    if gpunit_collection is None:
+      return root
+    return gpunit_collection
 
 
 COMMON_RULES = (

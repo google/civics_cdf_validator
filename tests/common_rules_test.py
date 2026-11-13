@@ -29,6 +29,44 @@ class SchemaTest(absltest.TestCase):
     </xs:schema>
   """)
 
+  def test_invalid_tree_points_at_failing_element(self):
+    election_tree = etree.ElementTree(etree.fromstring("<Person/>"))
+    validator = common_rules.Schema(election_tree, SchemaTest._schema_tree)
+
+    with self.assertRaises(loggers.ElectionFatal) as context:
+      validator.check()
+
+    self.assertEqual(
+        context.exception.log_entry[0].elements, [election_tree.getroot()]
+    )
+
+  def test_error_without_path_points_at_root(self):
+    election_tree = etree.ElementTree(etree.fromstring("<Person/>"))
+    validator = common_rules.Schema(election_tree, SchemaTest._schema_tree)
+    error = MagicMock(path=None)
+
+    elements = validator._get_error_elements(error)
+
+    self.assertEqual(elements, [election_tree.getroot()])
+
+  def test_error_with_unmatched_path_points_at_root(self):
+    election_tree = etree.ElementTree(etree.fromstring("<Person/>"))
+    validator = common_rules.Schema(election_tree, SchemaTest._schema_tree)
+    error = MagicMock(path="/Report")
+
+    elements = validator._get_error_elements(error)
+
+    self.assertEqual(elements, [election_tree.getroot()])
+
+  def test_error_with_invalid_path_points_at_root(self):
+    election_tree = etree.ElementTree(etree.fromstring("<Person/>"))
+    validator = common_rules.Schema(election_tree, SchemaTest._schema_tree)
+    error = MagicMock(path="/Person[")
+
+    elements = validator._get_error_elements(error)
+
+    self.assertEqual(elements, [election_tree.getroot()])
+
   def test_valid_schema_and_tree_succeeds(self):
     root_string = """
       <Report>
@@ -990,6 +1028,24 @@ class DuplicateGpUnitsTest(absltest.TestCase):
     </GpUnitCollection>
     """
 
+  def test_duplicate_composing_gp_units_points_at_both_gp_units(self):
+    test_string = """
+      <GpUnit objectId="ru-fake-1">
+        <ComposingGpUnitIds>ru-fake-3</ComposingGpUnitIds>
+      </GpUnit>
+      <GpUnit objectId="ru-fake-2">
+        <ComposingGpUnitIds>ru-fake-3</ComposingGpUnitIds>
+      </GpUnit>
+    """
+    element = etree.fromstring(self.root_string.format(test_string))
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(element)
+
+    self.assertEqual(
+        context.exception.log_entry[0].elements, element.findall("GpUnit")
+    )
+
   def test_no_gp_units_succeeds(self):
     self.validator.check(etree.fromstring(self.root_string))
 
@@ -1672,6 +1728,40 @@ class ValidStableIDTest(absltest.TestCase):
 
 
 class UniqueStableIDTest(absltest.TestCase):
+
+  def test_duplicate_stable_id_points_at_every_element_using_it(self):
+    root_string = """
+    <ElectionReport>
+      <Office objectId="off-fake-1">
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>stable-fake</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Office>
+      <Office objectId="off-fake-2">
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>stable</OtherType>
+            <Value>stable-fake</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Office>
+    </ElectionReport>
+    """
+    election_tree = etree.ElementTree(etree.fromstring(root_string))
+    validator = common_rules.UniqueStableID(election_tree, None)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      validator.check()
+
+    self.assertEqual(
+        context.exception.log_entry[0].elements,
+        election_tree.findall("Office"),
+    )
 
   def setUp(self):
     super(UniqueStableIDTest, self).setUp()
@@ -4688,6 +4778,28 @@ class GpUnitsCyclesRefsValidationTest(absltest.TestCase):
     super(GpUnitsCyclesRefsValidationTest, self).setUp()
     self.validator = common_rules.GpUnitsCyclesRefsValidation(None, None)
 
+  def test_cycle_and_missing_node_point_at_gp_units(self):
+    root_string = """
+    <xml>
+      <GpUnitCollection>
+        <GpUnit objectId="ru-fake-a">
+          <ComposingGpUnitIds>ru-fake-a ru-fake-missing</ComposingGpUnitIds>
+        </GpUnit>
+      </GpUnitCollection>
+    </xml>
+    """
+    self.validator.election_tree = etree.ElementTree(
+        etree.fromstring(root_string)
+    )
+    gpunit = self.validator.election_tree.find(".//GpUnit")
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check()
+
+    self.assertLen(context.exception.log_entry, 2)
+    self.assertEqual(context.exception.log_entry[0].elements, [gpunit])
+    self.assertEqual(context.exception.log_entry[1].elements, [gpunit])
+
   def test_cycles_formed_fails(self):
     root_string = """
     <xml>
@@ -6496,6 +6608,42 @@ class GpUnitsHaveSingleRootTest(absltest.TestCase):
   def setUp(self):
     super(GpUnitsHaveSingleRootTest, self).setUp()
     self.validator = common_rules.GpUnitsHaveSingleRoot(None, None)
+
+  def test_no_root_points_at_gp_unit_collection(self):
+    root_string = """
+    <xml>
+      <GpUnitCollection>
+        <GpUnit objectId="ru-fake-a">
+          <ComposingGpUnitIds>ru-fake-b</ComposingGpUnitIds>
+        </GpUnit>
+        <GpUnit objectId="ru-fake-b">
+          <ComposingGpUnitIds>ru-fake-a</ComposingGpUnitIds>
+        </GpUnit>
+      </GpUnitCollection>
+    </xml>
+    """
+    self.validator.election_tree = etree.ElementTree(
+        etree.fromstring(root_string)
+    )
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check()
+
+    self.assertEqual(
+        context.exception.log_entry[0].elements,
+        [self.validator.election_tree.find("GpUnitCollection")],
+    )
+
+  def test_no_gp_unit_collection_points_at_root(self):
+    self.validator.election_tree = etree.ElementTree(etree.fromstring("<xml/>"))
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check()
+
+    self.assertEqual(
+        context.exception.log_entry[0].elements,
+        [self.validator.election_tree.getroot()],
+    )
 
   def test_single_root_valid_succeeds(self):
     root_string = """

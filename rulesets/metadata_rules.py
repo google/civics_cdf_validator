@@ -436,18 +436,21 @@ class FeedElementsShouldHaveSubElementsBasedOnType(base.BaseRule):
       if element.find("OfficeholderSubFeed") is None:
         raise loggers.ElectionError.from_message(
             "OfficeholderSubFeed should exist for %s feed %s."
-            % (feed_type, feed_id)
+            % (feed_type, feed_id),
+            [element],
         )
     elif feed_type == "pre-election" or feed_type == "election-results":
       if element.find("ElectionEventCollection") is None:
         raise loggers.ElectionError.from_message(
             "ElectionEventCollection should exist for %s feed %s."
-            % (feed_type, feed_id)
+            % (feed_type, feed_id),
+            [element],
         )
       if not element.find("ElectionEventCollection").findall("ElectionEvent"):
         raise loggers.ElectionError.from_message(
             "ElectionEventCollection should have at least one ElectionEvent"
-            " for %s feed %s." % (feed_type, feed_id)
+            " for %s feed %s." % (feed_type, feed_id),
+            [element],
         )
 
 

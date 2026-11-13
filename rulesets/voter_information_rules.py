@@ -29,7 +29,7 @@ class ElectoralCommissionCollectionExists(base.BaseRule):
   def check(self, element):
     if element.find("ElectoralCommissionCollection") is None:
       raise loggers.ElectionError.from_message(
-          "ElectoralCommissionCollection should exist."
+          "ElectoralCommissionCollection should exist.", [element]
       )
 
 
@@ -42,7 +42,7 @@ class VoterInformationCollectionExists(base.BaseRule):
   def check(self, element):
     if element.find("VoterInformationCollection") is None:
       raise loggers.ElectionWarning.from_message(
-          "VoterInformationCollection should exist."
+          "VoterInformationCollection should exist.", [element]
       )
 
 
@@ -59,20 +59,22 @@ class NoExtraElectionElements(base.BaseRule):
   def check(self, element):
     if element.find("BallotStyleCollection") is not None:
       raise loggers.ElectionError.from_message(
-          "BallotStyleCollection should not exist."
+          "BallotStyleCollection should not exist.", [element]
       )
 
     if element.find("CandidateCollection") is not None:
       raise loggers.ElectionError.from_message(
-          "CandidateCollection should not exist."
+          "CandidateCollection should not exist.", [element]
       )
     if element.find("ContestCollection") is not None:
       raise loggers.ElectionError.from_message(
-          "ContestCollection should not exist."
+          "ContestCollection should not exist.", [element]
       )
 
     if element.find("CountStatus") is not None:
-      raise loggers.ElectionError.from_message("CountStatus should not exist.")
+      raise loggers.ElectionError.from_message(
+          "CountStatus should not exist.", [element]
+      )
 
 
 class WarnOnElementsNotRecommendedForElection(base.BaseRule):
@@ -85,7 +87,8 @@ class WarnOnElementsNotRecommendedForElection(base.BaseRule):
     if element.find("ContactInformation") is not None:
       raise loggers.ElectionWarning.from_message(
           "ContactInformation is not recommended for Election, prefer using an"
-          " ElectionAdministration."
+          " ElectionAdministration.",
+          [element],
       )
 
 
@@ -103,32 +106,32 @@ class NoExtraElectionReportCollections(base.BaseRule):
   def check(self, element):
     if element.find("CommitteeCollection") is not None:
       raise loggers.ElectionError.from_message(
-          "CommitteeCollection should not exist."
+          "CommitteeCollection should not exist.", [element]
       )
 
     if element.find("GovernmentBodyCollection") is not None:
       raise loggers.ElectionError.from_message(
-          "GovernmentBodyCollection should not exist."
+          "GovernmentBodyCollection should not exist.", [element]
       )
 
     if element.find("OfficeCollection") is not None:
       raise loggers.ElectionError.from_message(
-          "OfficeCollection should not exist."
+          "OfficeCollection should not exist.", [element]
       )
 
     if element.find("OfficeHolderTenureCollection") is not None:
       raise loggers.ElectionError.from_message(
-          "OfficeHolderTenureCollection should not exist."
+          "OfficeHolderTenureCollection should not exist.", [element]
       )
 
     if element.find("PartyCollection") is not None:
       raise loggers.ElectionError.from_message(
-          "PartyCollection should not exist."
+          "PartyCollection should not exist.", [element]
       )
 
     if element.find("PersonCollection") is not None:
       raise loggers.ElectionError.from_message(
-          "PersonCollection should not exist."
+          "PersonCollection should not exist.", [element]
       )
 
 
