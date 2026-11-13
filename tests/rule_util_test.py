@@ -538,6 +538,22 @@ class GetExternalIDValuesTest(absltest.TestCase):
 
     self.assertEmpty(elements, 0)
 
+  def test_get_external_id_values_ignores_other_type_of_non_other_identifier(
+      self,
+  ):
+    non_other_identifier = """
+    <ExternalIdentifier>
+      <Type>ocd-id</Type>
+      <OtherType>fake-type</OtherType>
+      <Value>fake-value</Value>
+    </ExternalIdentifier>
+    """
+    root = etree.fromstring(self.gpunit.format(non_other_identifier))
+
+    values = rule_util.get_external_id_values(root, "fake-type")
+
+    self.assertEmpty(values)
+
   def test_get_external_id_values_when_value_is_whitespace_returns_non_empty_list(
       self,
   ):
@@ -659,6 +675,55 @@ class GetExternalIDValuesTest(absltest.TestCase):
       for el in elements:
         self.assertIsInstance(el, str)
         self.assertIn(el, test_values)
+
+
+class GetLanguageToTextMapTest(absltest.TestCase):
+
+  def test_get_language_to_text_map_groups_text_by_language(self):
+    name = etree.fromstring("""
+      <Name>
+        <Text language="en">Fake Name</Text>
+        <Text language="es">Nombre Falso</Text>
+        <Text language="en">Other Fake Name</Text>
+      </Name>
+    """)
+
+    language_map = rule_util.get_language_to_text_map(name)
+
+    self.assertEqual(
+        language_map,
+        {"en": ["Fake Name", "Other Fake Name"], "es": ["Nombre Falso"]},
+    )
+
+  def test_get_language_to_text_map_skips_text_without_content(self):
+    name = etree.fromstring("""
+      <Name>
+        <Text language="en"></Text>
+        <Text language="es">Nombre Falso</Text>
+      </Name>
+    """)
+
+    language_map = rule_util.get_language_to_text_map(name)
+
+    self.assertEqual(language_map, {"es": ["Nombre Falso"]})
+
+  def test_get_language_to_text_map_skips_text_without_language(self):
+    name = etree.fromstring("""
+      <Name>
+        <Text>Fake Name</Text>
+        <Text language="">Other Fake Name</Text>
+        <Text language="es">Nombre Falso</Text>
+      </Name>
+    """)
+
+    language_map = rule_util.get_language_to_text_map(name)
+
+    self.assertEqual(language_map, {"es": ["Nombre Falso"]})
+
+  def test_get_language_to_text_map_none_element_returns_empty_map(self):
+    language_map = rule_util.get_language_to_text_map(None)
+
+    self.assertEmpty(language_map)
 
 
 if __name__ == "__main__":
