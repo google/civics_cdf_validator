@@ -128,6 +128,12 @@ class ValidateSeverityTest(absltest.TestCase):
 
 class ValidateCountryCodesTest(absltest.TestCase):
 
+  def test_empty_country_code_returns_none(self):
+    parser = argparse.ArgumentParser(prog="fake_validator")
+
+    self.assertIsNone(validator._validate_country_codes(parser, ""))
+    self.assertIsNone(validator._validate_country_codes(parser, "   "))
+
   def test_valid_country_code_returns_lowercase_code(self):
     parser = argparse.ArgumentParser(prog="fake_validator")
 
@@ -169,13 +175,27 @@ class ArgParserTest(absltest.TestCase):
     self.assertFalse(options.verbose)
     self.assertIsNone(options.severity)
     self.assertIsNone(options.ocdid_file)
-    self.assertEqual(options.c, "us")
+    self.assertIsNone(options.c)
     self.assertFalse(options.g)
     self.assertIsNone(options.exclude)
     self.assertIsNone(options.include)
     self.assertEqual(options.rule_set, rules.RuleSet.ELECTION)
     self.assertIsNone(options.required_languages)
     self.assertIsNone(options.profile_report)
+
+  def test_validate_with_empty_country_flag_returns_none(self):
+    parser = validator.arg_parser()
+
+    options = parser.parse_args([
+        "validate",
+        "-x",
+        self.xsd_file.full_path,
+        "-c",
+        "",
+        self.election_file.full_path,
+    ])
+
+    self.assertIsNone(options.c)
 
   def test_validate_with_all_args_parses_values(self):
     parser = validator.arg_parser()

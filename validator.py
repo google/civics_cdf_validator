@@ -81,6 +81,8 @@ def _validate_country_codes(parser, arg):
   Check if the provided country code is listed in ISO 3166-1 alpha-2 codes
   """
   country_code = arg.strip().lower()
+  if not country_code:
+    return None
 
   if rule_util.country_code_is_valid(country_code):
     return country_code
@@ -164,11 +166,15 @@ def add_validate_parser_ocd_id_args(parser, parser_validate):
       type=lambda x: _validate_path(parser, x))
   parser_validate.add_argument(
       "-c",
-      help="Two letter country code for OCD IDs.",
+      help=(
+          "Two letter country code for OCD IDs. If omitted, OCD IDs for all"
+          " countries are used."
+      ),
       metavar="country",
       type=lambda x: _validate_country_codes(parser, x),
       required=False,
-      default="us")
+      default=None,
+  )
   # This flag is no longer being used, will be removed in a future release.
   parser_validate.add_argument(
       "-g",
