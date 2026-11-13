@@ -5,4 +5,4 @@ No dependencies should be added to this module.
 See https://packaging.python.org/guides/single-sourcing-package-version/
 """
 
-__version__ = '1.67.dev27'
+__version__ = '1.67.dev28'

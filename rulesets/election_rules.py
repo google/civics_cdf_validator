@@ -19,7 +19,6 @@ import collections
 import datetime
 
 from civics_cdf_validator import base
-from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator.rulesets import common_rules
 from civics_cdf_validator.rulesets import rule_util
@@ -85,57 +84,6 @@ class PercentSum(base.BaseRule):
           "Contest percents do not sum to 0 or 100: %f" % sum_percents,
           [element],
       )
-
-
-class GpUnitsHaveSingleRoot(base.TreeRule):
-  """Ensure that GpUnits form a single-rooted tree."""
-
-  def __init__(self, election_tree, schema_tree, **kwargs):
-    super(GpUnitsHaveSingleRoot, self).__init__(
-        election_tree, schema_tree, **kwargs
-    )
-    self.error_log = []
-
-  def check(self):
-    # Make sure there's at most one GpUnit as a root.
-    # The root is defined as having ComposingGpUnitIds but
-    # is not in the ComposingGpUnitIds of any other GpUnit.
-
-    gpunit_ids = dict()
-    composing_gpunits = set()
-    for element in self.get_elements_by_class(self.election_tree, "GpUnit"):
-      object_id = element.get("objectId")
-      if object_id is not None:
-        gpunit_ids[object_id] = element
-      composing_gpunit = element.find("ComposingGpUnitIds")
-      if composing_gpunit is not None and composing_gpunit.text is not None:
-        composing_gpunits.update(composing_gpunit.text.split())
-
-    roots = gpunit_ids.keys() - composing_gpunits
-
-    if not roots:
-      self.error_log.append(
-          loggers.LogEntry(
-              "GpUnits have no geo district root. "
-              "There should be one or more root geo district."
-          )
-      )
-    else:
-      for object_id in roots:
-        element = gpunit_ids.get(object_id)
-        ocd_ids = rule_util.get_external_id_values(element, "ocd-id")
-        for ocd_id in ocd_ids:
-          if not gpunit_rules.GpUnitOcdIdValidator.is_country_or_region_ocd_id(
-              ocd_id
-          ):
-            msg = (
-                "GpUnits tree roots needs to be either a country or the EU"
-                " region, please check the value %s." % (ocd_id)
-            )
-            self.error_log.append(loggers.LogEntry(msg, [element]))
-
-    if self.error_log:
-      raise loggers.ElectionError(self.error_log)
 
 
 class PartisanPrimary(base.BaseRule):
@@ -2464,7 +2412,6 @@ ELECTION_RULES = common_rules.COMMON_RULES + (
     ElectionTypesAreCompatible,
     FullTextMaxLength,
     FullTextOrBallotText,
-    GpUnitsHaveSingleRoot,
     ImproperCandidateContest,
     MultipleCandidatesPointToTheSamePersonInTheSameContest,
     NotEmptyUniqueDataSourceUris,
