@@ -2078,18 +2078,18 @@ class DateOfBirthIsInPast(base.DateRule):
   """Date of Birth should not be in the future."""
 
   def elements(self):
-    return ["PersonCollection"]
+    return ["Person"]
 
   def check(self, element):
-    for person_element in element:
-      date_of_birthday = person_element.find("DateOfBirth")
-      if date_of_birthday is not None and date_of_birthday.text:
-        date_of_birthday = base.PartialDate.init_partial_date(
-            date_of_birthday.text
-        )
-        self.check_for_date_in_past(date_of_birthday, person_element)
-        if self.error_log:
-          raise loggers.ElectionError(self.error_log)
+    self.reset_instance_vars()
+    date_of_birth_element = element.find("DateOfBirth")
+    if date_of_birth_element is not None and date_of_birth_element.text:
+      date_of_birth = base.PartialDate.init_partial_date(
+          date_of_birth_element.text
+      )
+      self.check_for_date_in_past(date_of_birth, element)
+      if self.error_log:
+        raise loggers.ElectionError(self.error_log)
 
 
 class GpUnitsHaveSingleRoot(base.TreeRule):

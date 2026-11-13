@@ -2080,37 +2080,34 @@ class UniqueDataSourceLanguages(base.BaseRule):
   """Checks that Uri elements have unique languages within a DataSource."""
 
   def elements(self):
-    return ["DataSourceCollection"]
+    return ["DataSource"]
 
   def check(self, element):
     error_log = []
-
-    for data_source in element.findall("DataSource"):
-      data_source_id = data_source.get("objectId")
-      seen_uri_languages = set()
-      for uri_element in data_source.findall("Uri"):
-        language = uri_element.get("language")
-        if not language:
-          error_log.append(
-              loggers.LogEntry(
-                  "DataSource {} has a Uri element without a language.".format(
-                      data_source_id
-                  ),
-                  [uri_element],
-              )
-          )
-          continue
-        language = language.strip()
-        if language in seen_uri_languages:
-          error_log.append(
-              loggers.LogEntry(
-                  "DataSource {} has multiple Uri elements with the same"
-                  " language '{}'.".format(data_source_id, language),
-                  [element],
-              )
-          )
-        else:
-          seen_uri_languages.add(language)
+    data_source_id = element.get("objectId")
+    seen_uri_languages = set()
+    for uri_element in element.findall("Uri"):
+      language = uri_element.get("language")
+      if not language:
+        error_log.append(
+            loggers.LogEntry(
+                f"DataSource {data_source_id} has a Uri element without a"
+                " language.",
+                [uri_element],
+            )
+        )
+        continue
+      language = language.strip()
+      if language in seen_uri_languages:
+        error_log.append(
+            loggers.LogEntry(
+                f"DataSource {data_source_id} has multiple Uri elements with"
+                f" the same language '{language}'.",
+                [uri_element],
+            )
+        )
+      else:
+        seen_uri_languages.add(language)
 
     if error_log:
       raise loggers.ElectionError(error_log)

@@ -6438,20 +6438,21 @@ class DateOfBirthIsInPastTest(absltest.TestCase):
   def setUp(self):
     super(DateOfBirthIsInPastTest, self).setUp()
     self.date_of_birth_string = """
-      <PersonCollection>
-        <Person objectId="per_gb_6456562">
-          <FirstName>Jamie</FirstName>
-          <FullName>
-            <Text language="en">Jamie David Adams</Text>
-          </FullName>
-          <Gender>M</Gender>
-          <LastName>Adams</LastName>
-          <MiddleName>David</MiddleName>
-          <DateOfBirth>{}</DateOfBirth>
-        </Person>
-      </PersonCollection>
+      <Person objectId="per_gb_6456562">
+        <FirstName>Jamie</FirstName>
+        <FullName>
+          <Text language="en">Jamie David Adams</Text>
+        </FullName>
+        <Gender>M</Gender>
+        <LastName>Adams</LastName>
+        <MiddleName>David</MiddleName>
+        <DateOfBirth>{}</DateOfBirth>
+      </Person>
     """
     self.validator = common_rules.DateOfBirthIsInPast(None, None)
+
+  def test_elements_returns_person(self):
+    self.assertEqual(self.validator.elements(), ["Person"])
 
   @freezegun.freeze_time("2023-01-01")
   def test_valid_date_of_birth_succeeds(self):
@@ -6473,6 +6474,21 @@ class DateOfBirthIsInPastTest(absltest.TestCase):
         "The date 2100-11-11 is not in the past.",
         context.exception.log_entry[0].message,
     )
+
+  @freezegun.freeze_time("2023-01-01")
+  def test_valid_person_after_invalid_person_succeeds(self):
+    invalid_person = etree.fromstring(
+        self.date_of_birth_string.format("2100-11-11")
+    )
+    valid_person = etree.fromstring(
+        self.date_of_birth_string.format("1975-01-15")
+    )
+    with self.assertRaises(loggers.ElectionError):
+      self.validator.check(invalid_person)
+
+    self.validator.check(valid_person)
+
+    self.assertEmpty(self.validator.error_log)
 
 
 class GpUnitsHaveSingleRootTest(absltest.TestCase):

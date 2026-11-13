@@ -6834,30 +6834,29 @@ class UniqueDataSourceLanguagesTest(absltest.TestCase):
     super(UniqueDataSourceLanguagesTest, self).setUp()
     self.validator = election_rules.UniqueDataSourceLanguages(None, None)
 
+  def test_elements_returns_data_source(self):
+    self.assertEqual(self.validator.elements(), ["DataSource"])
+
   def test_valid_languages_succeeds(self):
     xml_string = """
-      <DataSourceCollection>
-        <DataSource objectId="ds1">
-          <DisplayName>
-            <Text language="en">Source 1</Text>
-            <Text language="es">Origen 1</Text>
-          </DisplayName>
-          <Uri language="en">http://source1.com</Uri>
-          <Uri language="es">http://source1.com</Uri>
-        </DataSource>
-      </DataSourceCollection>
+      <DataSource objectId="ds1">
+        <DisplayName>
+          <Text language="en">Source 1</Text>
+          <Text language="es">Origen 1</Text>
+        </DisplayName>
+        <Uri language="en">http://source1.com</Uri>
+        <Uri language="es">http://source1.com</Uri>
+      </DataSource>
     """
 
     self.validator.check(etree.fromstring(xml_string))
 
   def test_duplicate_uri_languages_within_same_data_source_fails(self):
     xml_string = """
-      <DataSourceCollection>
-        <DataSource objectId="ds1">
-          <Uri language="en">http://source1.com</Uri>
-          <Uri language="en">http://source2.com</Uri>
-        </DataSource>
-      </DataSourceCollection>
+      <DataSource objectId="ds1">
+        <Uri language="en">http://source1.com</Uri>
+        <Uri language="en">http://source2.com</Uri>
+      </DataSource>
     """
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -6869,11 +6868,9 @@ class UniqueDataSourceLanguagesTest(absltest.TestCase):
 
   def test_uri_without_language_fails(self):
     xml_string = """
-      <DataSourceCollection>
-        <DataSource objectId="ds1">
-          <Uri>http://source1.com</Uri>
-        </DataSource>
-      </DataSourceCollection>
+      <DataSource objectId="ds1">
+        <Uri>http://source1.com</Uri>
+      </DataSource>
     """
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -6885,12 +6882,10 @@ class UniqueDataSourceLanguagesTest(absltest.TestCase):
 
   def test_duplicate_uri_languages_with_surrounding_whitespace_fails(self):
     xml_string = """
-      <DataSourceCollection>
-        <DataSource objectId="ds-fake">
-          <Uri language="en">http://www.fake.com/one</Uri>
-          <Uri language=" en ">http://www.fake.com/two</Uri>
-        </DataSource>
-      </DataSourceCollection>
+      <DataSource objectId="ds-fake">
+        <Uri language="en">http://www.fake.com/one</Uri>
+        <Uri language=" en ">http://www.fake.com/two</Uri>
+      </DataSource>
     """
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -6901,6 +6896,21 @@ class UniqueDataSourceLanguagesTest(absltest.TestCase):
         "DataSource ds-fake has multiple Uri elements with the same language"
         " 'en'.",
     )
+
+  def test_duplicate_uri_languages_reports_duplicate_uri(self):
+    xml_string = """
+      <DataSource objectId="ds-fake">
+        <Uri language="en">http://www.fake.com/one</Uri>
+        <Uri language="en">http://www.fake.com/two</Uri>
+      </DataSource>
+    """
+    element = etree.fromstring(xml_string)
+    duplicate_uri = element.findall("Uri")[1]
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(element)
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(context.exception.log_entry[0].elements, [duplicate_uri])
 
 
 class LimitAttributionRecursionTest(absltest.TestCase):
