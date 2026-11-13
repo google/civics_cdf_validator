@@ -86,6 +86,106 @@ class CommitteeClassificationEndDateOccursAfterStartDateTest(absltest.TestCase):
     self.validator.check(etree.fromstring(committee_string))
     self.assertEmpty(self.validator.error_log)
 
+  def test_valid_dates_after_invalid_dates_on_same_validator_succeeds(self):
+    invalid_committee_string = """
+      <CommitteeClassification objectId="com-fake-1">
+        <StartDate>2024-05-02</StartDate>
+        <EndDate>2024-05-01</EndDate>
+      </CommitteeClassification>
+      """
+    valid_committee_string = """
+      <CommitteeClassification objectId="com-fake-2">
+        <StartDate>2024-05-01</StartDate>
+        <EndDate>2024-05-01</EndDate>
+      </CommitteeClassification>
+      """
+
+    with self.assertRaises(loggers.ElectionError):
+      self.validator.check(etree.fromstring(invalid_committee_string))
+
+    self.validator.check(etree.fromstring(valid_committee_string))
+
+    self.assertEmpty(self.validator.error_log)
+
+
+class AffiliationEndDateOccursAfterStartDateTest(absltest.TestCase):
+
+  def setUp(self):
+    super().setUp()
+    self.validator = committee_rules.AffiliationEndDateOccursAfterStartDate(
+        None, None
+    )
+
+  def test_elements_returns_affiliation(self):
+    self.assertEqual(self.validator.elements(), ["Affiliation"])
+
+  def test_affiliation_with_no_dates_succeeds(self):
+    affiliation_string = """
+      <Affiliation>
+        <PersonId>per-fake</PersonId>
+      </Affiliation>
+      """
+
+    self.validator.check(etree.fromstring(affiliation_string))
+
+    self.assertEmpty(self.validator.error_log)
+
+  def test_affiliation_with_end_date_before_start_date_fails(self):
+    affiliation_string = """
+      <Affiliation>
+        <PersonId>per-fake</PersonId>
+        <StartDate>2024-05-02</StartDate>
+        <EndDate>2024-05-01</EndDate>
+      </Affiliation>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(affiliation_string))
+
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        """The dates (start: 2024-05-02, end: 2024-05-01) are invalid.
+      The end date must be the same or after the start date.""",
+    )
+    self.assertEqual(context.exception.log_entry[0].elements[0].tag, "EndDate")
+
+  def test_affiliation_with_same_start_and_end_date_succeeds(self):
+    affiliation_string = """
+      <Affiliation>
+        <PersonId>per-fake</PersonId>
+        <StartDate>2024-05-01</StartDate>
+        <EndDate>2024-05-01</EndDate>
+      </Affiliation>
+      """
+
+    self.validator.check(etree.fromstring(affiliation_string))
+
+    self.assertEmpty(self.validator.error_log)
+
+  def test_valid_dates_after_invalid_dates_on_same_validator_succeeds(self):
+    invalid_affiliation_string = """
+      <Affiliation>
+        <PersonId>per-fake-1</PersonId>
+        <StartDate>2024-05-02</StartDate>
+        <EndDate>2024-05-01</EndDate>
+      </Affiliation>
+      """
+    valid_affiliation_string = """
+      <Affiliation>
+        <PersonId>per-fake-2</PersonId>
+        <StartDate>2024-05-01</StartDate>
+        <EndDate>2024-05-03</EndDate>
+      </Affiliation>
+      """
+
+    with self.assertRaises(loggers.ElectionError):
+      self.validator.check(etree.fromstring(invalid_affiliation_string))
+
+    self.validator.check(etree.fromstring(valid_affiliation_string))
+
+    self.assertEmpty(self.validator.error_log)
+
 
 class EinMatchesFormatTest(absltest.TestCase):
 
@@ -139,6 +239,22 @@ class EinMatchesFormatTest(absltest.TestCase):
     self.assertEqual(
         context.exception.log_entry[0].elements[0].tag, "Committee"
     )
+
+  def test_committee_without_external_identifiers_succeeds(self):
+    committee_string = """
+      <Committee objectId="com-fake">
+        <Name>Fake Committee</Name>
+      </Committee>
+    """
+
+    self.validator.check(etree.fromstring(committee_string))
+
+  def test_committee_without_ein_external_identifier_succeeds(self):
+    test_string = self.root_string.format(
+        "other", "<OtherType>fec-id</OtherType>", "not-an-ein"
+    )
+
+    self.validator.check(etree.fromstring(test_string))
 
 
 class AffiliationHasEitherPartyOrPersonTest(absltest.TestCase):
