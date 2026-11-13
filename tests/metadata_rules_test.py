@@ -42,6 +42,24 @@ class FeedTypeHasValidFeedLongevityTest(absltest.TestCase):
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
+  def test_feed_with_type_but_no_longevity_succeeds(self):
+    feed_string = """
+      <Feed>
+        <FeedType>pre-election</FeedType>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def test_feed_with_longevity_but_no_type_succeeds(self):
+    feed_string = """
+      <Feed>
+        <FeedLongevity>evergreen</FeedLongevity>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
 
 class FeedIdsAreUniqueTest(absltest.TestCase):
 
@@ -84,11 +102,28 @@ class FeedIdsAreUniqueTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(feed_collection_string))
     self.assertEqual(
+        context.exception.log_entry[0].message,
         "FeedId 111 appears multiple times in the metadata feed. Feed ids must"
         " be unique.",
-        context.exception.log_entry[0].message,
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def test_feeds_without_feed_id_succeeds(self):
+    feed_collection_string = """
+      <FeedCollection>
+        <Feed>
+          <FeedId>111</FeedId>
+        </Feed>
+        <Feed>
+          <SourceDirPath>test_path_1</SourceDirPath>
+        </Feed>
+        <Feed>
+          <SourceDirPath>test_path_2</SourceDirPath>
+        </Feed>
+      </FeedCollection>
+      """
+
+    self.validator.check(etree.fromstring(feed_collection_string))
 
 
 class SourceDirPathsAreUniqueTest(absltest.TestCase):
@@ -132,11 +167,28 @@ class SourceDirPathsAreUniqueTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(feed_collection_string))
     self.assertEqual(
+        context.exception.log_entry[0].message,
         "SourceDirPath test_path_1 appears multiple times in the metadata feed."
         " SourceDirPaths must be unique.",
-        context.exception.log_entry[0].message,
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+  def test_feeds_without_source_dir_path_succeeds(self):
+    feed_collection_string = """
+      <FeedCollection>
+        <Feed>
+          <SourceDirPath>test_path_1</SourceDirPath>
+        </Feed>
+        <Feed>
+          <FeedId>111</FeedId>
+        </Feed>
+        <Feed>
+          <FeedId>222</FeedId>
+        </Feed>
+      </FeedCollection>
+      """
+
+    self.validator.check(etree.fromstring(feed_collection_string))
 
 
 class SqsQueueNameIsFullyQualifiedArnTest(absltest.TestCase):
@@ -144,6 +196,9 @@ class SqsQueueNameIsFullyQualifiedArnTest(absltest.TestCase):
   def setUp(self):
     super().setUp()
     self.validator = metadata_rules.SqsQueueNameIsFullyQualifiedArn(None, None)
+
+  def test_elements_returns_feed(self):
+    self.assertEqual(self.validator.elements(), ["Feed"])
 
   def test_no_sqs_queue_name_succeeds(self):
     feed_string = """
@@ -208,9 +263,9 @@ class SqsQueueNameIsFullyQualifiedArnTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(feed_string))
     self.assertEqual(
+        context.exception.log_entry[0].message,
         "SqsQueueName 'my-queue' is not a valid fully qualified ARN for feed"
         " test-feed.",
-        context.exception.log_entry[0].message,
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
     self.assertEqual(context.exception.log_entry[0].lines, [4])
@@ -226,9 +281,9 @@ class SqsQueueNameIsFullyQualifiedArnTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(feed_string))
     self.assertEqual(
+        context.exception.log_entry[0].message,
         "SqsQueueName 'arn:aws:sqs:us-east-1' is not a valid fully qualified"
         " ARN for feed test-feed.",
-        context.exception.log_entry[0].message,
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
@@ -243,9 +298,9 @@ class SqsQueueNameIsFullyQualifiedArnTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(feed_string))
     self.assertEqual(
+        context.exception.log_entry[0].message,
         "SqsQueueName 'arn:aws:sns:us-east-1:123456789012:my-topic' is not a"
         " valid fully qualified ARN for feed test-feed.",
-        context.exception.log_entry[0].message,
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
@@ -260,9 +315,9 @@ class SqsQueueNameIsFullyQualifiedArnTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(feed_string))
     self.assertEqual(
+        context.exception.log_entry[0].message,
         "SqsQueueName 'arn:aws:sqs::123456789012:my-queue' is not a valid"
         " fully qualified ARN for feed test-feed.",
-        context.exception.log_entry[0].message,
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
@@ -277,9 +332,9 @@ class SqsQueueNameIsFullyQualifiedArnTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(feed_string))
     self.assertEqual(
+        context.exception.log_entry[0].message,
         "SqsQueueName 'arn:aws:sqs:us-east-1::my-queue' is not a valid fully"
         " qualified ARN for feed test-feed.",
-        context.exception.log_entry[0].message,
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
@@ -294,9 +349,9 @@ class SqsQueueNameIsFullyQualifiedArnTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(feed_string))
     self.assertEqual(
+        context.exception.log_entry[0].message,
         "SqsQueueName 'arn:aws:sqs:us-east-1:123456789012:' is not a valid"
         " fully qualified ARN for feed test-feed.",
-        context.exception.log_entry[0].message,
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
@@ -311,9 +366,9 @@ class SqsQueueNameIsFullyQualifiedArnTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(feed_string))
     self.assertEqual(
+        context.exception.log_entry[0].message,
         "SqsQueueName 'not-arn:aws:sqs:us-east-1:123456789012:my-queue' is not"
         " a valid fully qualified ARN for feed test-feed.",
-        context.exception.log_entry[0].message,
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
@@ -327,8 +382,8 @@ class SqsQueueNameIsFullyQualifiedArnTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(feed_string))
     self.assertEqual(
-        "SqsQueueName 'my-queue' is not a valid fully qualified ARN.",
         context.exception.log_entry[0].message,
+        "SqsQueueName 'my-queue' is not a valid fully qualified ARN.",
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
@@ -344,9 +399,9 @@ class SqsQueueNameIsFullyQualifiedArnTest(absltest.TestCase):
       with self.assertRaises(loggers.ElectionError) as context:
         self.validator.check(etree.fromstring(feed_string))
       self.assertEqual(
+          context.exception.log_entry[0].message,
           f"SqsQueueName 'arn:{partition}:sqs:us-east-1:123456789012:my-queue'"
           " is not a valid fully qualified ARN for feed test-feed.",
-          context.exception.log_entry[0].message,
       )
       self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
@@ -361,9 +416,9 @@ class SqsQueueNameIsFullyQualifiedArnTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(feed_string))
     self.assertEqual(
+        context.exception.log_entry[0].message,
         "SqsQueueName 'arn:aws' is not a valid fully qualified ARN for feed"
         " test-feed.",
-        context.exception.log_entry[0].message,
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
@@ -408,9 +463,9 @@ class SqsQueueNameRequiresS3SourceDirPathTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(feed_string))
     self.assertEqual(
+        context.exception.log_entry[0].message,
         "If SqsQueueName is set, SourceDirPath must also be set and must be an"
         " s3 path for feed test-feed.",
-        context.exception.log_entry[0].message,
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
@@ -426,9 +481,9 @@ class SqsQueueNameRequiresS3SourceDirPathTest(absltest.TestCase):
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(feed_string))
     self.assertEqual(
+        context.exception.log_entry[0].message,
         "If SqsQueueName is set, SourceDirPath must also be set and must be an"
         " s3 path for feed test-feed.",
-        context.exception.log_entry[0].message,
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
@@ -495,6 +550,26 @@ class ElectionEventDatesAreSequentialTest(absltest.TestCase):
     self.assertEqual(
         context.exception.log_entry[0].elements[0].tag, "ElectionEvent"
     )
+
+  def test_valid_dates_after_invalid_dates_on_same_validator_succeeds(self):
+    invalid_election_event_string = """
+      <ElectionEvent>
+        <StartDate>2024-01-02</StartDate>
+        <EndDate>2024-01-01</EndDate>
+      </ElectionEvent>
+      """
+    valid_election_event_string = """
+      <ElectionEvent>
+        <StartDate>2024-02-01</StartDate>
+        <EndDate>2024-02-02</EndDate>
+      </ElectionEvent>
+      """
+    with self.assertRaises(loggers.ElectionError):
+      self.validator.check(etree.fromstring(invalid_election_event_string))
+
+    self.validator.check(etree.fromstring(valid_election_event_string))
+
+    self.assertEmpty(self.validator.error_log)
 
 
 class SourceDirPathMustBeSetAfterInitialDeliveryDateTest(absltest.TestCase):
@@ -605,6 +680,21 @@ class SourceDirPathMustBeSetAfterInitialDeliveryDateTest(absltest.TestCase):
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
+  @freezegun.freeze_time("2024-08-26")
+  def test_initial_delivery_date_today_no_source_dir_path_succeeds(self):
+    feed_string = """
+      <Feed>
+        <FeedId>fake_feed_id</FeedId>
+        <ElectionEventCollection>
+          <ElectionEvent>
+            <InitialDeliveryDate>2024-08-26</InitialDeliveryDate>
+          </ElectionEvent>
+        </ElectionEventCollection>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
 
 class OfficeholderSubFeedDatesAreSequentialTest(absltest.TestCase):
 
@@ -641,6 +731,34 @@ class OfficeholderSubFeedDatesAreSequentialTest(absltest.TestCase):
     self.assertEqual(
         context.exception.log_entry[0].elements[0].tag, "OfficeholderSubFeed"
     )
+
+  def test_same_initial_and_full_delivery_dates_succeeds(self):
+    office_holder_sub_feed_string = """
+      <OfficeholderSubFeed>
+        <InitialDeliveryDate>2024-01-01</InitialDeliveryDate>
+        <FullDeliveryDate>2024-01-01</FullDeliveryDate>
+      </OfficeholderSubFeed>
+      """
+
+    self.validator.check(etree.fromstring(office_holder_sub_feed_string))
+
+  def test_initial_delivery_date_only_succeeds(self):
+    office_holder_sub_feed_string = """
+      <OfficeholderSubFeed>
+        <InitialDeliveryDate>2024-01-01</InitialDeliveryDate>
+      </OfficeholderSubFeed>
+      """
+
+    self.validator.check(etree.fromstring(office_holder_sub_feed_string))
+
+  def test_full_delivery_date_only_succeeds(self):
+    office_holder_sub_feed_string = """
+      <OfficeholderSubFeed>
+        <FullDeliveryDate>2024-01-01</FullDeliveryDate>
+      </OfficeholderSubFeed>
+      """
+
+    self.validator.check(etree.fromstring(office_holder_sub_feed_string))
 
 
 class FeedInactiveDateIsLatestDateTest(absltest.TestCase):
@@ -780,6 +898,22 @@ class FeedInactiveDateIsLatestDateTest(absltest.TestCase):
           </ElectionEvent>
         </ElectionEventCollection>
         <FeedInactiveDate>2022-01-01</FeedInactiveDate>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def test_inactive_date_same_as_full_delivery_and_end_dates_succeeds(self):
+    feed_string = """
+      <Feed>
+        <SourceDirPath>test_path_1</SourceDirPath>
+        <ElectionEventCollection>
+          <ElectionEvent>
+            <FullDeliveryDate>2024-01-01</FullDeliveryDate>
+            <EndDate>2024-01-01</EndDate>
+          </ElectionEvent>
+        </ElectionEventCollection>
+        <FeedInactiveDate>2024-01-01</FeedInactiveDate>
       </Feed>
       """
 
@@ -932,6 +1066,17 @@ class FeedInactiveDateNotOlderThanOneYearTest(absltest.TestCase):
         " 'test-feed'.",
     )
 
+  @freezegun.freeze_time("2026-01-01")
+  def test_feed_inactive_date_exactly_one_year_old_succeeds(self):
+    feed_string = """
+      <Feed>
+        <FeedId>test-feed</FeedId>
+        <FeedInactiveDate>2025-01-01</FeedInactiveDate>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
 
 class FeedElementsShouldHaveSubElementsBasedOnTypeTest(parameterized.TestCase):
   """Feeds should have certain elements based on feed type."""
@@ -1068,6 +1213,15 @@ class FeedElementsShouldHaveSubElementsBasedOnTypeTest(parameterized.TestCase):
       <Feed>
         <FeedId>123</FeedId>
         <FeedType>{feed_type}</FeedType>
+      </Feed>
+      """
+
+    self.validator.check(etree.fromstring(feed_string))
+
+  def test_feed_without_feed_type_succeeds(self):
+    feed_string = """
+      <Feed>
+        <FeedId>123</FeedId>
       </Feed>
       """
 
