@@ -1,4 +1,4 @@
-`civics_cdf_validator` is a script that checks if a NIST 1500-100
+`civics_cdf_validator` is a script that checks if a CDF XML
 data feed follows best practices. It will output errors, warnings, and info
 messages for common issues.
 

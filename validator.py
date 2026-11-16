@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""NIST CDF validation library.
+"""CDF XML validation library.
 
-A set of rules that can be used to validate a NIST 1500-100 file containing
+A set of rules that can be used to validate a CDF XML file containing
 election candidate or sitting officeholder data according to the included
 XSD and additional higher-level requirements.
 
@@ -33,6 +33,7 @@ from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
 from civics_cdf_validator import rules
 from civics_cdf_validator import version
+from civics_cdf_validator.rulesets import rule_util
 
 _REGISTRY_KEY = "registry"
 _METADATA_KEY = "metadata"
@@ -80,8 +81,10 @@ def _validate_country_codes(parser, arg):
   Check if the provided country code is listed in ISO 3166-1 alpha-2 codes
   """
   country_code = arg.strip().lower()
+  if not country_code:
+    return None
 
-  if rules.country_code_is_valid(country_code):
+  if rule_util.country_code_is_valid(country_code):
     return country_code
 
   parser.error(
@@ -163,11 +166,15 @@ def add_validate_parser_ocd_id_args(parser, parser_validate):
       type=lambda x: _validate_path(parser, x))
   parser_validate.add_argument(
       "-c",
-      help="Two letter country code for OCD IDs.",
+      help=(
+          "Two letter country code for OCD IDs. If omitted, OCD IDs for all"
+          " countries are used."
+      ),
       metavar="country",
       type=lambda x: _validate_country_codes(parser, x),
       required=False,
-      default="us")
+      default=None,
+  )
   # This flag is no longer being used, will be removed in a future release.
   parser_validate.add_argument(
       "-g",
@@ -274,7 +281,9 @@ def filter_all_rules_using_user_arg(rules_allowlist, rule_set, rules_blocklist):
 
 
 def compute_max_found_severity(exceptions_wrapper):
-  if exceptions_wrapper.count_logs_with_exception_type(loggers.ElectionError):
+  if exceptions_wrapper.count_logs_with_exception_type(loggers.ElectionFatal):
+    return 4
+  elif exceptions_wrapper.count_logs_with_exception_type(loggers.ElectionError):
     return 3
   elif exceptions_wrapper.count_logs_with_exception_type(loggers.
                                                          ElectionWarning):

@@ -21,6 +21,7 @@ import io
 import os
 import re
 import shutil
+import zipfile
 
 import attrs
 import pycountry
@@ -28,19 +29,19 @@ import requests
 
 
 def generate_github_raw_url(repo_name, subdir, file_name, branch="master"):
-  return "https://raw.github.com/{0}/{1}/{2}/{3}".format(
-      repo_name, branch, subdir, file_name
-  )
+  return f"https://raw.github.com/{repo_name}/{branch}/{subdir}/{file_name}"
+
+
+def generate_github_archive_url(repo_name, branch="master"):
+  return f"https://github.com/{repo_name}/archive/refs/heads/{branch}.zip"
 
 
 def generate_country_filename(country_code):
-  return "country-{0}.csv".format(country_code)
+  return f"country-{country_code}.csv"
 
 
 def generate_absolute_path(path_to_directory, country_code):
-  return "{0}/{1}".format(
-      path_to_directory, generate_country_filename(country_code)
-  )
+  return f"{path_to_directory}/{generate_country_filename(country_code)}"
 
 
 class GpUnitOcdIdValidator(object):
@@ -55,19 +56,21 @@ class GpUnitOcdIdValidator(object):
   OCD_PATTERN_ROOT = r"^ocd-division\/(country:[a-z]{2}|region:eu)$"
   OCD_MATCHER_ROOT = re.compile(OCD_PATTERN_ROOT, flags=re.U)
 
-  def __init__(self, country_code, local_file, ocd_id_list=None):
+  def __init__(self, country_code=None, local_file=None, ocd_id_list=None):
     """Initialize the class.
 
     If a list is provided, that list will be used to initialize the set of OCD
     IDs. If a file is provided, the OCD IDs will be pulled from the local file.
-    Otherwise, the OCD IDs will be fetched from Github.
+    Otherwise, the OCD IDs will be fetched from GitHub for the given country
+    code, or for all countries if no country code is provided.
 
     Args:
-      country_code: the code for the country to fetch OCD IDs for
+      country_code: the code for the country to fetch OCD IDs for, or None/empty
+        to fetch OCD IDs for all countries
       local_file: the file containing the OCD IDs
       ocd_id_list: a list of OCD IDs
     """
-    if ocd_id_list:
+    if ocd_id_list is not None:
       self.ocd_ids = frozenset(ocd_id_list)
     else:
       extractor = OcdIdsExtractor(country_code, local_file)
@@ -125,6 +128,11 @@ class OcdIdsExtractor(object):
   CACHE_DIR = "~/.cache"
   GITHUB_REPO = "opencivicdata/ocd-division-ids"
   GITHUB_DIR = "identifiers"
+  GITHUB_ARCHIVE_FILENAME = "ocd-division-ids-master.zip"
+  _ARCHIVE_IDENTIFIER_PATTERN = re.compile(
+      r"^[^/]+/identifiers/country-(?P<country_code>[a-z]{2})\.csv$"
+  )
+  _DOWNLOAD_CHUNK_SIZE = 65536
   EU_COUNTRIES = frozenset([
       "at",
       "be",
@@ -158,7 +166,7 @@ class OcdIdsExtractor(object):
 
   @attrs.define(frozen=True)
   class OcdIdsExtractorConfig:
-    country_code: str
+    country_code: str | None
     github_filename: str
     github_raw_url: str
     local_filepath: str
@@ -189,9 +197,16 @@ class OcdIdsExtractor(object):
       ])
 
     cache_directory = os.path.expanduser(self.CACHE_DIR)
+    normalized_country_code = (
+        self.country_code.strip().lower() if self.country_code else None
+    )
+    if not normalized_country_code:
+      self._create_cache(cache_directory)
+      configs = self._prepare_all_countries_cache(cache_directory)
+      return self._read_csv(configs)
 
     # Generate configs.
-    configs = self._generate_configs(self.country_code, cache_directory)
+    configs = self._generate_configs(normalized_country_code, cache_directory)
 
     # Create the cache directory if it doesn't exist.
     self._create_cache(cache_directory)
@@ -201,6 +216,67 @@ class OcdIdsExtractor(object):
     self._download_data(self._check_cache_freshness(configs))
 
     return self._read_csv(configs)
+
+  def _generate_archive_config(
+      self, cache_directory: str
+  ) -> OcdIdsExtractorConfig:
+    """Generates the extractor config for the repository archive."""
+    return self.OcdIdsExtractorConfig(
+        country_code=None,
+        github_filename=self.GITHUB_ARCHIVE_FILENAME,
+        github_raw_url=generate_github_archive_url(self.GITHUB_REPO),
+        local_filepath=f"{cache_directory}/{self.GITHUB_ARCHIVE_FILENAME}",
+    )
+
+  def _prepare_all_countries_cache(
+      self, cache_directory: str
+  ) -> list[OcdIdsExtractorConfig]:
+    """Downloads the repo archive if needed and extracts country CSVs."""
+    archive_config = self._generate_archive_config(cache_directory)
+    need_download = self._check_cache_freshness([archive_config])
+    if need_download:
+      self._download_data(need_download)
+    return self._extract_archive(
+        archive_config.local_filepath,
+        cache_directory,
+        overwrite=bool(need_download),
+    )
+
+  def _extract_archive(
+      self,
+      archive_filepath: str,
+      cache_directory: str,
+      overwrite: bool,
+  ) -> list[OcdIdsExtractorConfig]:
+    """Extracts country-*.csv files from the archive into cache_directory."""
+    configs = []
+    with zipfile.ZipFile(archive_filepath, mode="r") as archive:
+      for member_name in sorted(archive.namelist()):
+        match = self._ARCHIVE_IDENTIFIER_PATTERN.match(member_name)
+        if not match:
+          continue
+        country_code = match.group("country_code")
+        github_filename = generate_country_filename(country_code)
+        local_filepath = generate_absolute_path(cache_directory, country_code)
+        if overwrite or not self._check_for_cached_file(local_filepath):
+          local_tmp_filepath = f"{local_filepath}.tmp"
+          with archive.open(member_name, mode="r") as src, io.open(
+              local_tmp_filepath, mode="wb"
+          ) as dst:
+            shutil.copyfileobj(src, dst)
+          shutil.copy(local_tmp_filepath, local_filepath)
+          os.remove(local_tmp_filepath)
+        configs.append(
+            self.OcdIdsExtractorConfig(
+                country_code=country_code,
+                github_filename=github_filename,
+                github_raw_url=generate_github_raw_url(
+                    self.GITHUB_REPO, self.GITHUB_DIR, github_filename
+                ),
+                local_filepath=local_filepath,
+            )
+        )
+    return configs
 
   def _create_cache(self, cache_directory: str) -> None:
     """Creates a cache directory if it doesn't exist."""
@@ -284,14 +360,15 @@ class OcdIdsExtractor(object):
     return configs
 
   def _download_data(self, configs: list[OcdIdsExtractorConfig]) -> None:
-    """Download OCD ID files from Github and verify the SHA."""
+    """Download OCD ID files from GitHub."""
 
-    # Download the file(s) from Github.
+    # Download the file(s) from GitHub.
     for config in configs:
-      local_tmp_filepath = "{0}.tmp".format(config.local_filepath)
+      local_tmp_filepath = f"{config.local_filepath}.tmp"
       r = requests.get(config.github_raw_url)
+      r.raise_for_status()
       with io.open(local_tmp_filepath, mode="wb") as fd:
-        for chunk in r.iter_content():
+        for chunk in r.iter_content(chunk_size=self._DOWNLOAD_CHUNK_SIZE):
           fd.write(chunk)
       shutil.copy(local_tmp_filepath, config.local_filepath)
       os.remove(local_tmp_filepath)

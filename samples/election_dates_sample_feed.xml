@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <ElectionReport xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Election objectId="e-1">
     <ContestCollection>
@@ -48,13 +48,6 @@
     <ElectionDateStatus>postponed</ElectionDateStatus>
     <ElectionDateType>bounded</ElectionDateType>
     <ElectionScopeId>ru-ml-999</ElectionScopeId>
-    <ExternalIdentifiers>
-      <ExternalIdentifier>
-        <Type>other</Type>
-        <OtherType>stable</OtherType>
-        <Value>e-1</Value>
-      </ExternalIdentifier>
-    </ExternalIdentifiers>
     <ExternalIdentifiers>
       <ExternalIdentifier>
         <Type>other</Type>
@@ -195,5 +188,5 @@
   <SequenceStart>1</SequenceStart>
   <SequenceEnd>1</SequenceEnd>
   <Status>pre-election</Status>
-  <VendorApplicationId>Hand-Generated v0<</VendorApplicationId>
+  <VendorApplicationId>Hand-Generated v0</VendorApplicationId>
 </ElectionReport>
