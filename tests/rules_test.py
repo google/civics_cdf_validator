@@ -7,22 +7,72 @@ from civics_cdf_validator import rules
 from civics_cdf_validator.rulesets import common_rules
 from civics_cdf_validator.rulesets import metadata_rules
 
+_EXCLUDED_BASE_OR_DISABLED_RULES = frozenset({
+    base.TreeRule,
+    base.ValidReferenceRule,
+    base.DateRule,
+    base.MissingFieldRule,
+    common_rules.ValidatePartyCollection,
+    common_rules.UnreferencedEntitiesBase,
+    # TODO(b/555757644): Reenable this rule once we are ready to enforce it.
+    metadata_rules.SqsQueueNameIsFullyQualifiedArn,
+})
+
+
+class _FakeTestReferenceRule(base.ValidReferenceRule):
+  """Fake deep rule subclass defined in tests to verify test-rule exclusion."""
+
+
+def _subclasses(cls: type[object]) -> set[type[object]]:
+  subclasses = set()
+  worklist = list(cls.__subclasses__())
+  while worklist:
+    subclass = worklist.pop()
+    if subclass not in subclasses:
+      subclasses.add(subclass)
+      worklist.extend(subclass.__subclasses__())
+  return subclasses
+
+
+def _is_production_rule(rule_cls: type[base.BaseRule]) -> bool:
+  package = base.__package__ or "civics_cdf_validator"
+  module = rule_cls.__module__
+  return module.startswith(f"{package}.") and not f"{module}.".startswith(
+      f"{package}.tests."
+  )
+
 
 class RulesTest(absltest.TestCase):
 
   def test_all_rules_included_succeeds(self):
     all_rules = rules.ALL_RULES
-    possible_rules = self._subclasses(base.BaseRule)
-    possible_rules.remove(base.TreeRule)
-    possible_rules.remove(base.ValidReferenceRule)
-    possible_rules.remove(common_rules.ValidatePartyCollection)
-    possible_rules.remove(base.DateRule)
-    possible_rules.remove(base.MissingFieldRule)
-    possible_rules.remove(common_rules.UnreferencedEntitiesBase)
-    # TODO(b/555757644): Reenable this rule once we are ready to enforce it.
-    possible_rules.remove(metadata_rules.SqsQueueNameIsFullyQualifiedArn)
+    possible_rules = {
+        rule for rule in _subclasses(base.BaseRule) if _is_production_rule(rule)
+    } - _EXCLUDED_BASE_OR_DISABLED_RULES
 
     self.assertSetEqual(all_rules, possible_rules)
+
+  def test_subclasses_returns_all_descendants_across_levels(self):
+    class _Root:
+      pass
+
+    class _BranchA(_Root):
+      pass
+
+    class _BranchB(_Root):
+      pass
+
+    class _DiamondChild(_BranchA, _BranchB):
+      pass
+
+    class _Leaf(_DiamondChild):
+      pass
+
+    self.assertSetEqual(
+        _subclasses(_Root),
+        {_BranchA, _BranchB, _DiamondChild, _Leaf},
+    )
+    self.assertIn(_FakeTestReferenceRule, _subclasses(base.BaseRule))
 
   def test_rule_set_names_match_supported_feed_types(self):
     rule_set_names = [rule_set.name for rule_set in rules.RuleSet]
@@ -39,13 +89,6 @@ class RulesTest(absltest.TestCase):
             "VOTER_INFORMATION",
         ],
     )
-
-  def _subclasses(self, cls):
-    children = cls.__subclasses__()
-    subclasses = set(children)
-    for c in children:
-      subclasses.update(self._subclasses(c))
-    return subclasses
 
 
 if __name__ == "__main__":
