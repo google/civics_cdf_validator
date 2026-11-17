@@ -6,8 +6,6 @@ import contextlib
 import datetime
 import io
 import sys
-from unittest.mock import MagicMock
-from unittest.mock import patch
 
 from absl.testing import absltest
 from civics_cdf_validator import base
@@ -61,6 +59,21 @@ class _FakeTreeRule(base.TreeRule):
     raise loggers.ElectionWarning.from_message("Fake tree warning.")
 
 
+class _FakeReferenceRule(base.ValidReferenceRule):
+  """Fake reference rule returning fixed reference and defined values."""
+
+  def __init__(self, reference_ids: set[str], defined_ids: set[str]) -> None:
+    super().__init__(None, None)
+    self._reference_ids = reference_ids
+    self._defined_ids = defined_ids
+
+  def _gather_reference_values(self) -> set[str]:
+    return self._reference_ids
+
+  def _gather_defined_values(self) -> set[str]:
+    return self._defined_ids
+
+
 class SchemaHandlerTest(absltest.TestCase):
 
   def test_get_element_class_none_element_returns_none(self):
@@ -97,36 +110,15 @@ class ValidReferenceRuleTest(absltest.TestCase):
   def test_extends_tree_rule_returns_true(self):
     self.assertTrue(issubclass(base.ValidReferenceRule, base.TreeRule))
 
-  def _mock_gather_valid_reference(self):
-    return {"id-1", "id-2"}
-
-  def _mock_gather_invalid_reference(self):
-    return {"id-1", "id-5", "id-6"}
-
-  def _mock_gather_defined(self):
-    return {"id-1", "id-2", "id-3", "id-4"}
-
-  @patch.object(
-      base.ValidReferenceRule,
-      "_gather_reference_values",
-      _mock_gather_valid_reference,
-  )
-  @patch.object(
-      base.ValidReferenceRule, "_gather_defined_values", _mock_gather_defined
-  )
   def test_valid_references_succeeds(self):
-    base.ValidReferenceRule(None, None).check()
+    _FakeReferenceRule(
+        {"id-1", "id-2"}, {"id-1", "id-2", "id-3", "id-4"}
+    ).check()
 
-  @patch.object(
-      base.ValidReferenceRule,
-      "_gather_reference_values",
-      _mock_gather_invalid_reference,
-  )
-  @patch.object(
-      base.ValidReferenceRule, "_gather_defined_values", _mock_gather_defined
-  )
   def test_invalid_reference_fails(self):
-    validator = base.ValidReferenceRule(None, None)
+    validator = _FakeReferenceRule(
+        {"id-1", "id-5", "id-6"}, {"id-1", "id-2", "id-3", "id-4"}
+    )
     with self.assertRaises(loggers.ElectionError) as context:
       validator.check()
     self.assertIn("id-5", context.exception.log_entry[0].message)
@@ -490,26 +482,26 @@ class MissingFieldRuleTest(absltest.TestCase):
 
   # setup tests
   def test_setup_info_severity_sets_election_info(self):
-    self.validator.get_severity = MagicMock(return_value=0)
+    self.validator.get_severity = lambda: 0
     self.validator.setup()
     self.assertEqual(self.validator.exception, loggers.ElectionInfo)
 
   def test_setup_warning_severity_sets_election_warning(self):
-    self.validator.get_severity = MagicMock(return_value=1)
+    self.validator.get_severity = lambda: 1
     self.validator.setup()
     self.assertEqual(self.validator.exception, loggers.ElectionWarning)
 
   def test_setup_error_severity_sets_election_error(self):
-    self.validator.get_severity = MagicMock(return_value=2)
+    self.validator.get_severity = lambda: 2
     self.validator.setup()
     self.assertEqual(self.validator.exception, loggers.ElectionError)
 
   def test_setup_invalid_severity_raises_exception(self):
-    self.validator.get_severity = MagicMock(return_value=-1)
+    self.validator.get_severity = lambda: -1
     with self.assertRaises(Exception):
       self.validator.setup()
 
-    self.validator.get_severity = MagicMock(return_value=-3)
+    self.validator.get_severity = lambda: -3
     with self.assertRaises(Exception):
       self.validator.setup()
 
@@ -519,7 +511,7 @@ class MissingFieldRuleTest(absltest.TestCase):
         "Person": ["PartyId", "CandidateId"],
         "Office": ["Term//StartDate"],
     }
-    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.element_field_mapping = lambda: elements
     registered_elements = self.validator.elements()
 
     for registered_element in registered_elements:
@@ -537,7 +529,7 @@ class MissingFieldRuleTest(absltest.TestCase):
     elements = {
         "Person": ["FullName//Text"],
     }
-    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.element_field_mapping = lambda: elements
     self.validator.check(etree.fromstring(person))
 
   # check tests
@@ -549,7 +541,7 @@ class MissingFieldRuleTest(absltest.TestCase):
     elements = {
         "Person": ["FullName//Text"],
     }
-    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.element_field_mapping = lambda: elements
     self.validator.exception = loggers.ElectionError
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -570,7 +562,7 @@ class MissingFieldRuleTest(absltest.TestCase):
     elements = {
         "Person": ["FullName//Text"],
     }
-    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.element_field_mapping = lambda: elements
     self.validator.exception = loggers.ElectionWarning
 
     with self.assertRaises(loggers.ElectionWarning) as context:
@@ -591,7 +583,7 @@ class MissingFieldRuleTest(absltest.TestCase):
     elements = {
         "Person": ["FullName//Text"],
     }
-    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.element_field_mapping = lambda: elements
     self.validator.exception = loggers.ElectionInfo
 
     with self.assertRaises(loggers.ElectionInfo) as context:
@@ -615,7 +607,7 @@ class MissingFieldRuleTest(absltest.TestCase):
     elements = {
         "Person": ["FullName//Text"],
     }
-    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.element_field_mapping = lambda: elements
     self.validator.exception = loggers.ElectionError
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -639,7 +631,7 @@ class MissingFieldRuleTest(absltest.TestCase):
     elements = {
         "Person": ["FullName//Text"],
     }
-    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.element_field_mapping = lambda: elements
     self.validator.exception = loggers.ElectionError
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -660,7 +652,7 @@ class MissingFieldRuleTest(absltest.TestCase):
     elements = {
         "Person": ["FullName//Text", "PartyId"],
     }
-    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.element_field_mapping = lambda: elements
     self.validator.exception = loggers.ElectionError
 
     with self.assertRaises(loggers.ElectionError) as context:
