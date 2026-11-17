@@ -243,10 +243,10 @@ class DateRuleTest(absltest.TestCase):
   def test_gather_dates_missing_elements_remains_none(self):
     election_string = "<Election></Election>"
     self.date_validator.gather_dates(etree.fromstring(election_string))
-    self.assertIsNone(None, self.date_validator.start_date)
-    self.assertIsNone(None, self.date_validator.start_elem)
-    self.assertIsNone(None, self.date_validator.end_date)
-    self.assertIsNone(None, self.date_validator.end_elem)
+    self.assertIsNone(self.date_validator.start_date)
+    self.assertIsNone(self.date_validator.start_elem)
+    self.assertIsNone(self.date_validator.end_date)
+    self.assertIsNone(self.date_validator.end_elem)
 
   # check_for_date_not_in_past tests
   def test_future_date_does_not_log_error(self):
