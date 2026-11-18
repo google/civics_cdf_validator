@@ -14,31 +14,32 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from collections.abc import Iterable
+
 
 class BaseEntity(object):
   """Base for keeping meta-statistics on attributes in a NIST XML feed."""
 
-  def __init__(self, name, attributes, count):
+  def __init__(self, name: str, attributes: Iterable[str], count: int) -> None:
     self.name = name
     self.count = count
     self.attribute_counts = {attr: 0 for attr in attributes}
 
-  def __str__(self):
+  def __str__(self) -> str:
     """Returns counts of each top level entities and nested attributes."""
     output = []
-    row_format = "{:<30s}{:^8s}{:>15s}"
     output.append("\n" + " " * 8 + "-" * 65)
-    output.append(" " * 8 + "{:<30s}{:^20s}{:>12s}".format(
-        "{0} (Total: {1})".format(self.name, self.count), "| # with attribute",
-        "| # missing attribute"))
+    header = f"{self.name} (Total: {self.count})"
+    output.append(" " * 8 + f"{header:<30s}{'| # with attribute':^20s}"
+                  f"{'| # missing attribute':>12s}")
     output.append(" " * 8 + "-" * 65)
     for attr, attr_count in sorted(
         self.attribute_counts.items(), key=lambda x: x[1], reverse=True):
-      output.append(" " * 8 + row_format.format(attr, str(attr_count),
-                                                str(self.count - attr_count)))
+      output.append(" " * 8 + f"{attr:<30s}{attr_count!s:^8s}"
+                    f"{self.count - attr_count!s:>15s}")
     return "\n".join(output)
 
-  def increment_attribute(self, attr, count):
+  def increment_attribute(self, attr: str, count: int) -> None:
     """Counts the number of entities containing attr."""
     if attr in self.attribute_counts and count:
       self.attribute_counts[attr] += 1
@@ -51,7 +52,7 @@ class Party(BaseEntity):
       "InternationalizedAbbreviation"
   ]
 
-  def __init__(self, count):
+  def __init__(self, count: int) -> None:
     super(Party, self).__init__("Party", self.children, count)
 
 
@@ -62,7 +63,7 @@ class Office(BaseEntity):
       "FilingDeadline", "Name", "OfficeHolderPersonIds", "Term"
   ]
 
-  def __init__(self, count):
+  def __init__(self, count: int) -> None:
     super(Office, self).__init__("Office", self.children, count)
 
 
@@ -72,7 +73,7 @@ class GpUnit(BaseEntity):
       "ComposingGpUnitIds", "ExternalIdentifiers", "Name", "SummaryCounts"
   ]
 
-  def __init__(self, count):
+  def __init__(self, count: int) -> None:
     super(GpUnit, self).__init__("GpUnit", self.children, count)
 
 
@@ -84,7 +85,7 @@ class Person(BaseEntity):
       "Suffix", "Title"
   ]
 
-  def __init__(self, count):
+  def __init__(self, count: int) -> None:
     super(Person, self).__init__("Person", self.children, count)
 
 
@@ -95,7 +96,7 @@ class Candidate(BaseEntity):
       "PersonId"
   ]
 
-  def __init__(self, count):
+  def __init__(self, count: int) -> None:
     super(Candidate, self).__init__("Candidate", self.children, count)
 
 
@@ -106,7 +107,7 @@ class Contest(BaseEntity):
       "TotalSubUnits"
   ]
 
-  def __init__(self, count):
+  def __init__(self, count: int) -> None:
     super(Contest, self).__init__("Contest", self.children, count)
 
 

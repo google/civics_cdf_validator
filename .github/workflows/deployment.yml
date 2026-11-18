@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.11", "3.12", "3.13", "3.14", "3.15"]
 
     steps:
     - uses: actions/checkout@v2
@@ -31,6 +31,19 @@ jobs:
         pip install -e ".[test]"
         civics_cdf_validator list
         pytest -v
+  ci-status:
+    name: ci-status
+    needs: [build-n-test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check build and test results
+      if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')
+      env:
+        BUILD_RESULT: ${{ needs.build-n-test.result }}
+      run: |
+        echo "Upstream CI job did not succeed (build-n-test: $BUILD_RESULT)."
+        exit 1
   # Source Github Action template
   deploy:
     needs: build-n-test

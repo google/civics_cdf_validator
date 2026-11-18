@@ -6,8 +6,6 @@ import contextlib
 import datetime
 import io
 import sys
-from unittest.mock import MagicMock
-from unittest.mock import patch
 
 from absl.testing import absltest
 from civics_cdf_validator import base
@@ -26,14 +24,7 @@ _TEST_CA_OCD_ID_2 = "ocd-division/country:ca/cd:1207/district:0"
 class _FakeOptionRule(base.BaseRule):
   """Fake rule with a configurable option, checking Party elements."""
 
-  def __init__(
-      self,
-      election_tree: etree._ElementTree | None,
-      schema_tree: etree._ElementTree | None,
-      ocd_id_validator: object | None = None,
-  ) -> None:
-    super().__init__(election_tree, schema_tree, ocd_id_validator)
-    self.fake_option = "default-value"
+  fake_option = "default-value"
 
   def elements(self) -> list[str]:
     return ["Party"]
@@ -61,6 +52,21 @@ class _FakeTreeRule(base.TreeRule):
     raise loggers.ElectionWarning.from_message("Fake tree warning.")
 
 
+class _FakeReferenceRule(base.ValidReferenceRule):
+  """Fake reference rule returning fixed reference and defined values."""
+
+  def __init__(self, reference_ids: set[str], defined_ids: set[str]) -> None:
+    super().__init__()
+    self._reference_ids = reference_ids
+    self._defined_ids = defined_ids
+
+  def _gather_reference_values(self) -> set[str]:
+    return self._reference_ids
+
+  def _gather_defined_values(self) -> set[str]:
+    return self._defined_ids
+
+
 class SchemaHandlerTest(absltest.TestCase):
 
   def test_get_element_class_none_element_returns_none(self):
@@ -74,7 +80,7 @@ class SchemaHandlerTest(absltest.TestCase):
 class BaseRuleTest(absltest.TestCase):
 
   def test_set_option_existing_attribute_sets_value(self):
-    validator = _FakeOptionRule(None, None)
+    validator = _FakeOptionRule()
     option = base.RuleOption("fake_option", "fake-value")
 
     validator.set_option(option)
@@ -82,7 +88,7 @@ class BaseRuleTest(absltest.TestCase):
     self.assertEqual(validator.fake_option, "fake-value")
 
   def test_set_option_unknown_attribute_raises_election_exception(self):
-    validator = _FakeOptionRule(None, None)
+    validator = _FakeOptionRule()
     option = base.RuleOption("unknown_option", "fake-value")
 
     with self.assertRaises(loggers.ElectionException) as context:
@@ -91,42 +97,153 @@ class BaseRuleTest(absltest.TestCase):
     self.assertFalse(hasattr(validator, "unknown_option"))
     self.assertIsInstance(context.exception, loggers.ElectionException)
 
+  def test_get_all_subtypes_returns_subtypes_at_any_depth(self):
+    schema_string = """
+      <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:complexType abstract="true" name="Contest">
+          <xs:sequence>
+            <xs:element name="Name" type="xs:string"/>
+          </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="BallotMeasureContest">
+          <xs:complexContent>
+            <xs:extension base="Contest"/>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="CandidateContest">
+          <xs:complexContent>
+            <xs:extension base="Contest"/>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="RetentionContest">
+          <xs:complexContent>
+            <xs:extension base="BallotMeasureContest"/>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="ReportingUnit">
+          <xs:complexContent>
+            <xs:extension base="GpUnit"/>
+          </xs:complexContent>
+        </xs:complexType>
+      </xs:schema>
+    """
+    validator = base.SchemaRule(schema_tree=etree.fromstring(schema_string))
+
+    subtypes = validator.get_all_subtypes("Contest")
+
+    self.assertEqual(
+        subtypes,
+        {"BallotMeasureContest", "CandidateContest", "RetentionContest"},
+    )
+
+  def test_get_all_subtypes_without_subtypes_returns_empty_set(self):
+    schema_string = """
+      <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:complexType name="Contest">
+          <xs:sequence>
+            <xs:element name="Name" type="xs:string"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:schema>
+    """
+    validator = base.SchemaRule(schema_tree=etree.fromstring(schema_string))
+
+    subtypes = validator.get_all_subtypes("Contest")
+
+    self.assertEmpty(subtypes)
+
+  def test_get_all_subtypes_with_cycle_returns_each_subtype_once(self):
+    schema_string = """
+      <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:complexType name="Contest">
+          <xs:sequence>
+            <xs:element name="Name" type="xs:string"/>
+          </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="FirstContest">
+          <xs:complexContent>
+            <xs:extension base="SecondContest"/>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="SecondContest">
+          <xs:complexContent>
+            <xs:extension base="FirstContest"/>
+          </xs:complexContent>
+        </xs:complexType>
+      </xs:schema>
+    """
+    validator = base.SchemaRule(schema_tree=etree.fromstring(schema_string))
+
+    subtypes = validator.get_all_subtypes("FirstContest")
+
+    self.assertEqual(subtypes, {"FirstContest", "SecondContest"})
+
+  def test_get_all_subtypes_skips_types_without_name_or_base(self):
+    schema_string = """
+      <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:complexType name="Contest">
+          <xs:sequence>
+            <xs:element name="Name" type="xs:string"/>
+          </xs:sequence>
+        </xs:complexType>
+        <xs:complexType>
+          <xs:complexContent>
+            <xs:extension base="Contest"/>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="CandidateContest">
+          <xs:complexContent>
+            <xs:extension base="Contest"/>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="PartyContest">
+          <xs:complexContent>
+            <xs:extension/>
+          </xs:complexContent>
+        </xs:complexType>
+      </xs:schema>
+    """
+    validator = base.SchemaRule(schema_tree=etree.fromstring(schema_string))
+
+    subtypes = validator.get_all_subtypes("Contest")
+
+    self.assertEqual(subtypes, {"CandidateContest"})
+
+
+class SchemaRuleTest(absltest.TestCase):
+
+  def test_with_schema_tree_succeeds(self):
+    schema_tree = etree.fromstring(
+        b'<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"/>'
+    )
+
+    validator = base.SchemaRule(schema_tree=schema_tree)
+
+    self.assertIs(validator.schema_tree, schema_tree)
+
+  def test_without_schema_tree_raises_value_error(self):
+    with self.assertRaises(ValueError) as context:
+      base.SchemaRule()
+
+    self.assertEqual(
+        str(context.exception), "SchemaRule requires a schema_tree."
+    )
+
 
 class ValidReferenceRuleTest(absltest.TestCase):
 
   def test_extends_tree_rule_returns_true(self):
     self.assertTrue(issubclass(base.ValidReferenceRule, base.TreeRule))
 
-  def _mock_gather_valid_reference(self):
-    return {"id-1", "id-2"}
-
-  def _mock_gather_invalid_reference(self):
-    return {"id-1", "id-5", "id-6"}
-
-  def _mock_gather_defined(self):
-    return {"id-1", "id-2", "id-3", "id-4"}
-
-  @patch.object(
-      base.ValidReferenceRule,
-      "_gather_reference_values",
-      _mock_gather_valid_reference,
-  )
-  @patch.object(
-      base.ValidReferenceRule, "_gather_defined_values", _mock_gather_defined
-  )
   def test_valid_references_succeeds(self):
-    base.ValidReferenceRule(None, None).check()
+    _FakeReferenceRule(
+        {"id-1", "id-2"}, {"id-1", "id-2", "id-3", "id-4"}
+    ).check()
 
-  @patch.object(
-      base.ValidReferenceRule,
-      "_gather_reference_values",
-      _mock_gather_invalid_reference,
-  )
-  @patch.object(
-      base.ValidReferenceRule, "_gather_defined_values", _mock_gather_defined
-  )
   def test_invalid_reference_fails(self):
-    validator = base.ValidReferenceRule(None, None)
+    validator = _FakeReferenceRule(
+        {"id-1", "id-5", "id-6"}, {"id-1", "id-2", "id-3", "id-4"}
+    )
     with self.assertRaises(loggers.ElectionError) as context:
       validator.check()
     self.assertIn("id-5", context.exception.log_entry[0].message)
@@ -137,18 +254,11 @@ class DateRuleTest(absltest.TestCase):
 
   def setUp(self):
     super(DateRuleTest, self).setUp()
-    self.date_validator = base.DateRule(None, None)
+    self.date_validator = base.DateRule()
     self.today = datetime.datetime.now(datetime.timezone.utc).date()
     self.today_partial_date = base.PartialDate(
         self.today.year, self.today.month, self.today.day
     )
-
-    self.election_string = """
-    <Election>
-      <StartDate>{}</StartDate>
-      <EndDate>{}</EndDate>
-    </Election>
-    """
 
   # __init__ test
   def test_init_stores_election_and_schema_trees(self):
@@ -168,14 +278,14 @@ class DateRuleTest(absltest.TestCase):
     start_date = self.today + datetime.timedelta(days=1)
     end_date = self.today + datetime.timedelta(days=2)
 
-    validator_with_values = base.DateRule(None, None)
+    validator_with_values = base.DateRule()
     validator_with_values.start_elem = start_elem
     validator_with_values.start_date = start_date
     validator_with_values.end_elem = end_elem
     validator_with_values.end_date = end_date
     validator_with_values.error_log = ["This is no longer empty"]
 
-    fresh_validator = base.DateRule(None, None)
+    fresh_validator = base.DateRule()
 
     self.assertNotEqual(
         validator_with_values.start_elem, fresh_validator.start_elem
@@ -207,9 +317,12 @@ class DateRuleTest(absltest.TestCase):
 
   # gather_dates tests
   def test_gather_dates_sets_start_and_end_dates(self):
-    start_date = "2021-12-20"
-    end_date = "2021-12-22"
-    election_string = self.election_string.format(start_date, end_date)
+    election_string = """
+    <Election>
+      <StartDate>2021-12-20</StartDate>
+      <EndDate>2021-12-22</EndDate>
+    </Election>
+    """
     election = etree.fromstring(election_string)
     self.date_validator.gather_dates(election)
     self.assertEqual(self.date_validator.start_date.day, 20)
@@ -220,12 +333,12 @@ class DateRuleTest(absltest.TestCase):
     self.assertEqual(self.date_validator.end_date.day, 22)
 
   def test_invalid_date_formats_raises_error(self):
-    start_date_invalid = "2022-01-32"
-    end_date_invalid = "05-29"
-
-    election_string = self.election_string.format(
-        start_date_invalid, end_date_invalid
-    )
+    election_string = """
+    <Election>
+      <StartDate>2022-01-32</StartDate>
+      <EndDate>05-29</EndDate>
+    </Election>
+    """
     election = etree.fromstring(election_string)
     with self.assertRaises(loggers.ElectionError) as context:
       self.date_validator.gather_dates(election)
@@ -243,10 +356,10 @@ class DateRuleTest(absltest.TestCase):
   def test_gather_dates_missing_elements_remains_none(self):
     election_string = "<Election></Election>"
     self.date_validator.gather_dates(etree.fromstring(election_string))
-    self.assertIsNone(None, self.date_validator.start_date)
-    self.assertIsNone(None, self.date_validator.start_elem)
-    self.assertIsNone(None, self.date_validator.end_date)
-    self.assertIsNone(None, self.date_validator.end_elem)
+    self.assertIsNone(self.date_validator.start_date)
+    self.assertIsNone(self.date_validator.start_elem)
+    self.assertIsNone(self.date_validator.end_date)
+    self.assertIsNone(self.date_validator.end_elem)
 
   # check_for_date_not_in_past tests
   def test_future_date_does_not_log_error(self):
@@ -297,11 +410,12 @@ class DateRuleTest(absltest.TestCase):
     self.assertEmpty(self.date_validator.error_log)
 
   def test_end_before_start_logs_error(self):
-    start_date_year_month = "2021-09"
-    end_date_year_month = "2021-01"
-    election_string = self.election_string.format(
-        start_date_year_month, end_date_year_month
-    )
+    election_string = """
+    <Election>
+      <StartDate>2021-09</StartDate>
+      <EndDate>2021-01</EndDate>
+    </Election>
+    """
     election = etree.fromstring(election_string)
     self.date_validator.gather_dates(election)
     self.date_validator.check_end_after_start()
@@ -476,7 +590,7 @@ class MissingFieldRuleTest(absltest.TestCase):
 
   def setUp(self):
     super(MissingFieldRuleTest, self).setUp()
-    self.validator = base.MissingFieldRule(None, None)
+    self.validator = base.MissingFieldRule()
 
   # get_severity test
   def test_get_severity_raises_not_implemented_error(self):
@@ -490,26 +604,26 @@ class MissingFieldRuleTest(absltest.TestCase):
 
   # setup tests
   def test_setup_info_severity_sets_election_info(self):
-    self.validator.get_severity = MagicMock(return_value=0)
+    self.validator.get_severity = lambda: 0
     self.validator.setup()
     self.assertEqual(self.validator.exception, loggers.ElectionInfo)
 
   def test_setup_warning_severity_sets_election_warning(self):
-    self.validator.get_severity = MagicMock(return_value=1)
+    self.validator.get_severity = lambda: 1
     self.validator.setup()
     self.assertEqual(self.validator.exception, loggers.ElectionWarning)
 
   def test_setup_error_severity_sets_election_error(self):
-    self.validator.get_severity = MagicMock(return_value=2)
+    self.validator.get_severity = lambda: 2
     self.validator.setup()
     self.assertEqual(self.validator.exception, loggers.ElectionError)
 
   def test_setup_invalid_severity_raises_exception(self):
-    self.validator.get_severity = MagicMock(return_value=-1)
+    self.validator.get_severity = lambda: -1
     with self.assertRaises(Exception):
       self.validator.setup()
 
-    self.validator.get_severity = MagicMock(return_value=-3)
+    self.validator.get_severity = lambda: -3
     with self.assertRaises(Exception):
       self.validator.setup()
 
@@ -519,7 +633,7 @@ class MissingFieldRuleTest(absltest.TestCase):
         "Person": ["PartyId", "CandidateId"],
         "Office": ["Term//StartDate"],
     }
-    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.element_field_mapping = lambda: elements
     registered_elements = self.validator.elements()
 
     for registered_element in registered_elements:
@@ -537,7 +651,7 @@ class MissingFieldRuleTest(absltest.TestCase):
     elements = {
         "Person": ["FullName//Text"],
     }
-    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.element_field_mapping = lambda: elements
     self.validator.check(etree.fromstring(person))
 
   # check tests
@@ -549,7 +663,7 @@ class MissingFieldRuleTest(absltest.TestCase):
     elements = {
         "Person": ["FullName//Text"],
     }
-    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.element_field_mapping = lambda: elements
     self.validator.exception = loggers.ElectionError
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -570,7 +684,7 @@ class MissingFieldRuleTest(absltest.TestCase):
     elements = {
         "Person": ["FullName//Text"],
     }
-    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.element_field_mapping = lambda: elements
     self.validator.exception = loggers.ElectionWarning
 
     with self.assertRaises(loggers.ElectionWarning) as context:
@@ -591,7 +705,7 @@ class MissingFieldRuleTest(absltest.TestCase):
     elements = {
         "Person": ["FullName//Text"],
     }
-    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.element_field_mapping = lambda: elements
     self.validator.exception = loggers.ElectionInfo
 
     with self.assertRaises(loggers.ElectionInfo) as context:
@@ -615,7 +729,7 @@ class MissingFieldRuleTest(absltest.TestCase):
     elements = {
         "Person": ["FullName//Text"],
     }
-    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.element_field_mapping = lambda: elements
     self.validator.exception = loggers.ElectionError
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -639,7 +753,7 @@ class MissingFieldRuleTest(absltest.TestCase):
     elements = {
         "Person": ["FullName//Text"],
     }
-    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.element_field_mapping = lambda: elements
     self.validator.exception = loggers.ElectionError
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -660,7 +774,7 @@ class MissingFieldRuleTest(absltest.TestCase):
     elements = {
         "Person": ["FullName//Text", "PartyId"],
     }
-    self.validator.element_field_mapping = MagicMock(return_value=elements)
+    self.validator.element_field_mapping = lambda: elements
     self.validator.exception = loggers.ElectionError
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -788,12 +902,12 @@ class RulesRegistryTest(absltest.TestCase):
     }
 
     for entity, count in expected_entity_counts.items():
-      self.assertIn("{0} (Total: {1})".format(entity, count), output)
+      self.assertIn(f"{entity} (Total: {count})", output)
 
     for attr, stat in expected_attr_counts.items():
       count, missing_in = stat
       self.assertIn(
-          "{:<30s}{:^8s}{:>15s}".format(attr, str(count), str(missing_in)),
+          f"{attr:<30s}{str(count):^8s}{str(missing_in):>15s}",
           output,
       )
 
@@ -909,9 +1023,11 @@ class RulesRegistryTest(absltest.TestCase):
 
     self.assertEqual(
         output,
-        "     1 Fatal message found\n"
-        "         1 FakeRule Fatal message\n"
-        "                  * Fake fatal.\n",
+        """\
+     1 Fatal message found
+         1 FakeRule Fatal message
+                  * Fake fatal.
+""",
     )
 
   def test_multiple_instances_restrict_validation_to_configured_ocd_ids(self):
@@ -960,21 +1076,16 @@ class BaseEntityStatsTest(absltest.TestCase):
 
     output = str(party_stats)
 
-    separator = " " * 8 + "-" * 65
     self.assertEqual(
-        "\n".join([
-            "\n" + separator,
-            (
-                "        Party (Total: 3)               | # with attribute |"
-                " # missing attribute"
-            ),
-            separator,
-            "        Name                             3                  0",
-            "        Color                            1                  2",
-            "        Abbreviation                     0                  3",
-            "        ExternalIdentifiers              0                  3",
-            "        InternationalizedAbbreviation    0                  3",
-        ]),
+        """
+        -----------------------------------------------------------------
+        Party (Total: 3)               | # with attribute | # missing attribute
+        -----------------------------------------------------------------
+        Name                             3                  0
+        Color                            1                  2
+        Abbreviation                     0                  3
+        ExternalIdentifiers              0                  3
+        InternationalizedAbbreviation    0                  3""",
         output,
     )
 

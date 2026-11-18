@@ -22,11 +22,13 @@ See https://developers.google.com/elections-data/reference/
 from __future__ import print_function
 
 import argparse
+from collections.abc import Callable, Collection, Iterable, Mapping
 import cProfile
 import hashlib
 import io
 import os
 import pstats
+from typing import Any, BinaryIO, TypeVar
 
 from civics_cdf_validator import base
 from civics_cdf_validator import gpunit_rules
@@ -39,16 +41,18 @@ _REGISTRY_KEY = "registry"
 _METADATA_KEY = "metadata"
 _FILE_NAME_KEY = "file_name"
 
+_T = TypeVar("_T")
 
-def _validate_path(parser, arg):
+
+def _validate_path(parser: argparse.ArgumentParser, arg: str) -> str:
   """Check that the files provided exist."""
   if not os.path.exists(arg):
-    parser.error("The file path for %s doesn't exist" % arg)
+    parser.error(f"The file path for {arg} doesn't exist")
   else:
     return arg
 
 
-def _validate_rules(parser, arg):
+def _validate_rules(parser: argparse.ArgumentParser, arg: str) -> list[str]:
   """Check that the listed rules exist."""
   invalid_rules = []
   rule_names = [x.__name__ for x in rules.ALL_RULES]
@@ -57,25 +61,26 @@ def _validate_rules(parser, arg):
     if rule and rule not in rule_names:
       invalid_rules.append(rule)
   if invalid_rules:
-    parser.error("The rule(s) %s do not exist" % ", ".join(invalid_rules))
+    parser.error(f"The rule(s) {', '.join(invalid_rules)} do not exist")
   else:
     return input_rules
 
 
-def _validate_severity(parser, arg):
+def _validate_severity(parser: argparse.ArgumentParser, arg: str) -> int:
   """Check that the severity level provided is correct."""
   valid_severities = loggers.supported_severities_mapping()
 
   if arg.strip().lower() not in valid_severities:
-    parser.error("Invalid severity. Options are {0}".format(
-        valid_severities.keys()))
+    parser.error(f"Invalid severity. Options are {valid_severities.keys()}")
   else:
     return valid_severities[arg.strip().lower()]
 
 
 # pylint: disable=g-doc-args
 # pylint: disable=g-doc-return-or-yield
-def _validate_country_codes(parser, arg):
+def _validate_country_codes(
+    parser: argparse.ArgumentParser, arg: str
+) -> str | None:
   """Check that the supplied 2 country code is correct.
 
   Check if the provided country code is listed in ISO 3166-1 alpha-2 codes
@@ -93,7 +98,7 @@ def _validate_country_codes(parser, arg):
   )
 
 
-def arg_parser():
+def arg_parser() -> argparse.ArgumentParser:
   """Parser for command line arguments."""
 
   description = ("Script to validate that "
@@ -108,7 +113,9 @@ def arg_parser():
   return parser
 
 
-def add_validate_parser_args(parser, parser_validate):
+def add_validate_parser_args(
+    parser: argparse.ArgumentParser, parser_validate: argparse.ArgumentParser
+) -> None:
   add_validate_parser_input_file_args(parser, parser_validate)
   add_validate_parser_output_args(parser, parser_validate)
   add_validate_parser_ocd_id_args(parser, parser_validate)
@@ -123,7 +130,9 @@ def add_validate_parser_args(parser, parser_validate):
       required=False)
 
 
-def add_validate_parser_input_file_args(parser, parser_validate):
+def add_validate_parser_input_file_args(
+    parser: argparse.ArgumentParser, parser_validate: argparse.ArgumentParser
+) -> None:
   parser_validate.add_argument(
       "-x",
       "--xsd",
@@ -139,7 +148,9 @@ def add_validate_parser_input_file_args(parser, parser_validate):
       type=lambda x: _validate_path(parser, x))
 
 
-def add_validate_parser_output_args(parser, parser_validate):
+def add_validate_parser_output_args(
+    parser: argparse.ArgumentParser, parser_validate: argparse.ArgumentParser
+) -> None:
   """Enriches cmd "validate" parser with output display config."""
   parser_validate.add_argument(
       "--verbose",
@@ -151,12 +162,13 @@ def add_validate_parser_output_args(parser, parser_validate):
       "--severity",
       "-s",
       type=lambda x: _validate_severity(parser, x),
-      help="Minimum issue severity level - {0}".format(
-          loggers.severities_names()),
+      help=f"Minimum issue severity level - {loggers.severities_names()}",
       required=False)
 
 
-def add_validate_parser_ocd_id_args(parser, parser_validate):
+def add_validate_parser_ocd_id_args(
+    parser: argparse.ArgumentParser, parser_validate: argparse.ArgumentParser
+) -> None:
   """Enriches cmd "validate" parser with ocdId related arguments."""
   parser_validate.add_argument(
       "--ocdid_file",
@@ -192,7 +204,9 @@ def add_validate_parser_ocd_id_args(parser, parser_validate):
   )
 
 
-def add_parser_rules_filter_args(parser, cmd_parser):
+def add_parser_rules_filter_args(
+    parser: argparse.ArgumentParser, cmd_parser: argparse.ArgumentParser
+) -> None:
   """Enriches cmd parser with rules related arguments."""
   cmd_parser.add_argument(
       "-e",
@@ -211,46 +225,51 @@ def add_parser_rules_filter_args(parser, cmd_parser):
   group.add_argument(
       "--rule_set",
       "-r",
-      help="Pre-defined rule set: [{}].".format(", ".join(
-          s.name.lower() for s in rules.RuleSet)),
+      help=("Pre-defined rule set: ["
+            f"{', '.join(s.name.lower() for s in rules.RuleSet)}]."),
       required=False,
       default="election",
       type=ruleset_type)
 
 
-def ruleset_type(enum_string):
+def ruleset_type(enum_string: str) -> rules.RuleSet:
   try:
     return rules.RuleSet[enum_string.upper()]
   except KeyError:
-    msg = "Rule set must be one of [{}]".format(", ".join(
-        s.name.lower() for s in rules.RuleSet))
+    msg = ("Rule set must be one of ["
+           f"{', '.join(s.name.lower() for s in rules.RuleSet)}]")
     raise argparse.ArgumentTypeError(msg)
 
 
-def get_metadata(file):
+def get_metadata(file: BinaryIO) -> list[str]:
   """Gets metadata associated with this run of the validator."""
-  metadata = ["Validator version: {}".format(version.__version__)]
+  metadata = [f"Validator version: {version.__version__}"]
 
   blocksize = 65536
   digest = hashlib.new("sha3_256")
   for block in iter(lambda: file.read(blocksize), b""):
     digest.update(block)
-  metadata.append("SHA3-256 checksum: 0x{}".format(digest.hexdigest()))
+  metadata.append(f"SHA3-256 checksum: 0x{digest.hexdigest()}")
   file.seek(0)
   return metadata
 
 
-def display_rules_details(options):
+def display_rules_details(options: Any) -> None:
   """Display rules set details based on user input."""
   print("Selected rules details:")
   rules_to_display = filter_all_rules_using_user_arg(options.include,
                                                      options.rule_set,
                                                      options.exclude)
   for rule in sorted(rules_to_display, key=lambda x: x.__name__):
-    print("\t{} - {}".format(rule.__name__, rule.__doc__.split("\n")[0]))
+    summary = rule.__doc__.split("\n")[0]
+    print(f"\t{rule.__name__} - {summary}")
 
 
-def filter_all_rules_using_user_arg(rules_allowlist, rule_set, rules_blocklist):
+def filter_all_rules_using_user_arg(
+    rules_allowlist: Collection[str] | None,
+    rule_set: rules.RuleSet,
+    rules_blocklist: Collection[str] | None,
+) -> list[type[base.BaseRule]]:
   """Extract a sublist from ALL_RULES list using the user input."""
   if rules_allowlist:
     rule_names = rules_allowlist
@@ -258,7 +277,7 @@ def filter_all_rules_using_user_arg(rules_allowlist, rule_set, rules_blocklist):
     if rule_set == rules.RuleSet.ELECTION:
       rule_names = [rule.__name__ for rule in rules.ELECTION_RULES]
     elif rule_set == rules.RuleSet.ELECTION_RESULTS:
-      rule_names = [rule.__name__ for rule in rules.ELECTION_RULES]
+      rule_names = [rule.__name__ for rule in rules.ELECTION_RESULTS_RULES]
     elif rule_set == rules.RuleSet.OFFICEHOLDER:
       rule_names = [rule.__name__ for rule in rules.OFFICEHOLDER_RULES]
     elif rule_set == rules.RuleSet.COMMITTEE:
@@ -280,7 +299,18 @@ def filter_all_rules_using_user_arg(rules_allowlist, rule_set, rules_blocklist):
   return rule_classes_to_check
 
 
-def compute_max_found_severity(exceptions_wrapper):
+def compute_max_found_severity(
+    exceptions_wrapper: loggers.ExceptionListWrapper,
+) -> int:
+  """Returns a severity code for the most severe exception type found.
+
+  Args:
+    exceptions_wrapper: The exceptions collected during validation.
+
+  Returns:
+    4 for fatal errors, 3 for errors, 2 for warnings, 1 for info and 0 if no
+    exceptions were found.
+  """
   if exceptions_wrapper.count_logs_with_exception_type(loggers.ElectionFatal):
     return 4
   elif exceptions_wrapper.count_logs_with_exception_type(loggers.ElectionError):
@@ -294,9 +324,9 @@ def compute_max_found_severity(exceptions_wrapper):
     return 0
 
 
-def exec_profiling(func):
+def exec_profiling(func: Callable[..., _T]) -> Callable[..., _T]:
   """This is a decorator to add profiling to the feed validation."""
-  def add_profiling_if_needed(options, *args, **kwargs):
+  def add_profiling_if_needed(options: Any, *args, **kwargs) -> _T:
     if options is None or not options.profile_report:
       return func(options, *args, **kwargs)
     pr = cProfile.Profile(builtins=False)
@@ -313,7 +343,9 @@ def exec_profiling(func):
 
 
 @exec_profiling
-def feed_validation(options, ocd_id_list=None):
+def feed_validation(
+    options: Any, ocd_id_list: Iterable[str] | None = None
+) -> list[dict[str, Any]]:
   """Validate the input feed depending on the user parameters."""
   ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
       options.c, options.ocdid_file, ocd_id_list
@@ -345,7 +377,9 @@ def feed_validation(options, ocd_id_list=None):
   return validation_results
 
 
-def print_exceptions_from_validations(options, results_validations):
+def print_exceptions_from_validations(
+    options: Any, results_validations: Iterable[Mapping[str, Any]]
+) -> int:
   """Print errors to stdout."""
   max_error_severity = 0
   for result_validation in results_validations:
@@ -353,9 +387,7 @@ def print_exceptions_from_validations(options, results_validations):
     metadata = result_validation[_METADATA_KEY]
     rule_registry = result_validation[_REGISTRY_KEY]
     print(
-        "\n--------- Results after validating file: {} ".format(
-            election_filename
-        )
+        f"\n--------- Results after validating file: {election_filename} "
     )
     for metadatum in metadata:
       print(metadatum)
@@ -369,7 +401,7 @@ def print_exceptions_from_validations(options, results_validations):
   return max_error_severity
 
 
-def main():
+def main() -> int | None:
   p = arg_parser()
   options = p.parse_args()
   if options.cmd == "list":

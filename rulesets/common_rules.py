@@ -16,6 +16,7 @@
 from __future__ import print_function
 
 import collections
+from collections.abc import Collection, Iterable
 import re
 
 from civics_cdf_validator import base
@@ -109,22 +110,26 @@ _INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE = [
 ]
 
 
-def _get_office_roles(element, is_post_office_split_feed=False):
+def _get_office_roles(
+    element: etree._Element, is_post_office_split_feed: bool = False
+) -> list[str]:
   if is_post_office_split_feed:
     return [element.text for element in element.findall("Role")]
   return rule_util.get_entity_info_for_value_type(element, "office-role")
 
 
-def _is_executive_office(element, is_post_office_split_feed=False):
+def _is_executive_office(
+    element: etree._Element, is_post_office_split_feed: bool = False
+) -> bool:
   office_roles = _get_office_roles(element, is_post_office_split_feed)
   return not _EXECUTIVE_OFFICE_ROLES.isdisjoint(office_roles)
 
 
-def _has_government_body(element):
+def _has_government_body(element: etree._Element) -> bool:
   return rule_util.element_has_text(element.find("GovernmentBodyIds"))
 
 
-def extract_person_fullname(person):
+def extract_person_fullname(person: etree._Element) -> Collection[str]:
   """Extracts the person's fullname or builds it if needed."""
   full_name_elt = person.find("FullName")
   if full_name_elt is None:
@@ -140,12 +145,12 @@ def extract_person_fullname(person):
 class Schema(base.TreeRule):
   """Checks if election file validates against the provided schema."""
 
-  def check(self):
+  def check(self) -> None:
     try:
       schema = etree.XMLSchema(etree=self.schema_tree)
     except etree.XMLSchemaParseError as e:
       raise loggers.ElectionFatal.from_message(
-          "The schema file could not be parsed correctly %s" % str(e)
+          f"The schema file could not be parsed correctly {e}"
       )
     valid_xml = True
     try:
@@ -160,14 +165,14 @@ class Schema(base.TreeRule):
                 lines=[error.line],
                 message=(
                     "The election file didn't validate "
-                    "against schema : {0}".format(error.message.encode("utf-8"))
+                    f"against schema : {error.message.encode('utf-8')}"
                 ),
                 elements=self._get_error_elements(error),
             )
         )
       raise loggers.ElectionFatal(errors)
 
-  def _get_error_elements(self, error):
+  def _get_error_elements(self, error: etree._LogEntry) -> list[etree._Element]:
     """Returns the elements a schema error points to, or the root element."""
     if error.path:
       try:
@@ -182,11 +187,11 @@ class Schema(base.TreeRule):
 class OptionalAndEmpty(base.BaseRule):
   """Checks for optional and empty fields."""
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
-    super(OptionalAndEmpty, self).__init__(election_tree, schema_tree, **kwargs)
+  def __init__(self, *args, **kwargs) -> None:
+    super(OptionalAndEmpty, self).__init__(*args, **kwargs)
     self.previous = None
 
-  def elements(self):
+  def elements(self) -> list[str]:
     eligible_elements = []
     for _, element in etree.iterwalk(self.schema_tree):
       tag = self.strip_schema_ns(element)
@@ -195,7 +200,7 @@ class OptionalAndEmpty(base.BaseRule):
     return eligible_elements
 
   # pylint: disable=g-explicit-length-test
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     if element == self.previous:
       return
     self.previous = element
@@ -208,7 +213,7 @@ class OptionalAndEmpty(base.BaseRule):
 class Encoding(base.TreeRule):
   """Checks that the file provided uses UTF-8 encoding."""
 
-  def check(self):
+  def check(self) -> None:
     docinfo = self.election_tree.docinfo
     if docinfo.encoding != "UTF-8":
       raise loggers.ElectionError.from_message(
@@ -219,38 +224,38 @@ class Encoding(base.TreeRule):
 class LanguageCode(base.BaseRule):
   """Check that Text and Uri elements have a valid language code."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Text", "Uri"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     if "language" not in element.attrib:
       return
     elem_lang = element.get("language")
     if not elem_lang.strip() or not language_tags.tags.check(elem_lang):
       raise loggers.ElectionError.from_message(
-          "%s is not a valid language code" % elem_lang, [element]
+          f"{elem_lang} is not a valid language code", [element]
       )
 
 
 class EmptyText(base.BaseRule):
   """Check that Text elements are not empty or strictly whitespace."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Text"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     if element.text is None or not element.text.strip():
       raise loggers.ElectionError.from_message("Text is empty", element)
 
 
-class EmptyString(base.BaseRule):
+class EmptyString(base.SchemaRule):
   """Check that string fields are not empty or strictly whitespace."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return list(self.get_element_names_for_type("xs:string"))
 
   # pylint: disable=g-explicit-length-test
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     if (element.text is None or not element.text.strip()) and not len(element):
       raise loggers.ElectionError.from_message(
           "String field is empty", [element]
@@ -260,7 +265,7 @@ class EmptyString(base.BaseRule):
 class DuplicateID(base.TreeRule):
   """Check that the file does not contain duplicate object IDs."""
 
-  def check(self):
+  def check(self) -> None:
     all_object_ids = set()
     error_log = []
     for _, element in etree.iterwalk(self.election_tree, events=("end",)):
@@ -286,8 +291,8 @@ class ValidIDREF(base.BaseRule):
   of the proper reference type for the given field.
   """
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
-    super(ValidIDREF, self).__init__(election_tree, schema_tree, **kwargs)
+  def __init__(self, *args, **kwargs) -> None:
+    super(ValidIDREF, self).__init__(*args, **kwargs)
     self.object_id_mapping = {}
     self.element_reference_mapping = {}
 
@@ -305,14 +310,14 @@ class ValidIDREF(base.BaseRule):
       "PartyLeaderId": "Person",
   }
 
-  def setup(self):
+  def setup(self) -> None:
     object_id_map = self._gather_object_ids_by_type()
     self.object_id_mapping = object_id_map
 
     element_reference_map = self._gather_reference_mapping()
     self.element_reference_mapping = element_reference_map
 
-  def _gather_object_ids_by_type(self):
+  def _gather_object_ids_by_type(self) -> dict[str, set[str]]:
     """Create a mapping of element types to set of objectIds of same type."""
 
     type_obj_id_mapping = dict()
@@ -324,7 +329,7 @@ class ValidIDREF(base.BaseRule):
           type_obj_id_mapping.setdefault(obj_type, set([])).add(obj_id)
     return type_obj_id_mapping
 
-  def _gather_reference_mapping(self):
+  def _gather_reference_mapping(self) -> dict[str, str | None]:
     """Create a mapping of each IDREF(S) element to their reference type."""
 
     reference_mapping = dict()
@@ -340,7 +345,7 @@ class ValidIDREF(base.BaseRule):
         reference_mapping[elem_name] = reference_type
     return reference_mapping
 
-  def _determine_reference_type(self, name):
+  def _determine_reference_type(self, name: str) -> str | None:
     """Determines the XML type being referenced by an IDREF(S) element."""
 
     for elem_type in self.object_id_mapping:
@@ -351,10 +356,10 @@ class ValidIDREF(base.BaseRule):
       return self._REFERENCE_TYPE_OVERRIDES[name]
     return None
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return list(self.element_reference_mapping.keys())
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     error_log = []
 
     element_name = element.tag
@@ -368,10 +373,9 @@ class ValidIDREF(base.BaseRule):
         if id_ref not in reference_object_ids:
           error_log.append(
               loggers.LogEntry(
-                  (
-                      "{} is not a valid IDREF. {} should contain an "
-                      "objectId from a {} element."
-                  ).format(id_ref, element_name, element_reference_type),
+                  f"{id_ref} is not a valid IDREF. {element_name} should"
+                  f" contain an objectId from a {element_reference_type}"
+                  " element.",
                   element,
               )
           )
@@ -382,22 +386,22 @@ class ValidIDREF(base.BaseRule):
 class ValidStableID(base.BaseRule):
   """Ensure stable-ids are in the correct format."""
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
-    super(ValidStableID, self).__init__(election_tree, schema_tree, **kwargs)
+  def __init__(self, *args, **kwargs) -> None:
+    super(ValidStableID, self).__init__(*args, **kwargs)
     regex = r"^[a-zA-Z0-9_-]+$"
     self.stable_id_matcher = re.compile(regex, flags=re.U)
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["ExternalIdentifiers"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     stable_ids = rule_util.get_external_id_values(element, "stable")
     error_log = []
     for s_id in stable_ids:
       if not self.stable_id_matcher.match(s_id):
         error_log.append(
             loggers.LogEntry(
-                "Stable id '{}' is not in the correct format.".format(s_id),
+                f"Stable id '{s_id}' is not in the correct format.",
                 [element],
             )
         )
@@ -411,7 +415,7 @@ class GpUnitOcdId(base.BaseRule):
   def elements(self):
     return ["GpUnit", "ReportingUnit"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     # ReportingDevices are not expected to have OCD IDs.
     if self.get_element_class(element) == "ReportingDevice":
       return
@@ -441,10 +445,10 @@ class GpUnitOcdId(base.BaseRule):
 class DuplicatedGpUnitOcdId(base.BaseRule):
   """2 GpUnits should not have same OCD ID."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["GpUnitCollection"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     error_log = []
     gp_ocdid = dict()
     gpunits = element.findall("GpUnit")
@@ -454,10 +458,9 @@ class DuplicatedGpUnitOcdId(base.BaseRule):
         if ocd_id not in gp_ocdid.keys():
           gp_ocdid[ocd_id] = gpunit.get("objectId")
         else:
-          msg = "GpUnits %s and %s have the same ocd-id %s" % (
-              gp_ocdid[ocd_id],
-              gpunit.get("objectId"),
-              ocd_id,
+          msg = (
+              f"GpUnits {gp_ocdid[ocd_id]} and {gpunit.get('objectId')} have"
+              f" the same ocd-id {ocd_id}"
           )
           error_log.append(loggers.LogEntry(msg, [gpunit]))
     if error_log:
@@ -467,10 +470,10 @@ class DuplicatedGpUnitOcdId(base.BaseRule):
 class DuplicateGpUnits(base.BaseRule):
   """Detect GpUnits which are effectively duplicates of each other."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["GpUnitCollection"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     children = {}
     object_ids = set()
     error_log = []
@@ -488,11 +491,10 @@ class DuplicateGpUnits(base.BaseRule):
       composing_ids = frozenset(composing_gpunits.text.split())
       if children.get(composing_ids) is not None:
         duplicate_gpunit = children[composing_ids]
+        duplicate_ids = (duplicate_gpunit.get("objectId"), object_id)
         error_log.append(
             loggers.LogEntry(
-                "GpUnits {} are duplicates".format(
-                    str((duplicate_gpunit.get("objectId"), object_id))
-                ),
+                f"GpUnits {duplicate_ids} are duplicates",
                 [duplicate_gpunit, gpunit],
             )
         )
@@ -505,23 +507,21 @@ class DuplicateGpUnits(base.BaseRule):
 class GpUnitsCyclesRefsValidation(base.TreeRule):
   """Ensure that GpUnits form a valid tree and no cycles are present."""
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
-    super(GpUnitsCyclesRefsValidation, self).__init__(
-        election_tree, schema_tree, **kwargs
-    )
+  def __init__(self, *args, **kwargs) -> None:
+    super(GpUnitsCyclesRefsValidation, self).__init__(*args, **kwargs)
     self.edges = dict()  # Used to maintain the record of connected edges
     self.visited = {}  # Used to store status of the nodes as visited or not.
     self.error_log = []
     self.bad_nodes = []
     self.gpunit_by_object_id = {}
 
-  def build_tree(self, gpunit):
+  def build_tree(self, gpunit: str) -> None:
     # Check if the node is already visited
     if gpunit in self.visited:
       if gpunit not in self.bad_nodes:
         self.error_log.append(
             loggers.LogEntry(
-                "Cycle detected at node {0}".format(gpunit),
+                f"Cycle detected at node {gpunit}",
                 [self.gpunit_by_object_id[gpunit]],
             )
         )
@@ -535,13 +535,13 @@ class GpUnitsCyclesRefsValidation(base.TreeRule):
       else:
         self.error_log.append(
             loggers.LogEntry(
-                "Node {0} is not present in the file as a GpUnit element."
-                .format(child_unit),
+                f"Node {child_unit} is not present in the file as a GpUnit"
+                " element.",
                 [self.gpunit_by_object_id[gpunit]],
             )
         )
 
-  def check(self):
+  def check(self) -> None:
     for element in self.get_elements_by_class(self.election_tree, "GpUnit"):
       object_id = element.get("objectId")
       if object_id is None:
@@ -569,10 +569,10 @@ class OtherType(base.BaseRule):
   OtherType within the containing element.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     eligible_elements = []
     for element in self.schema_tree.iterfind(
-        "{%s}complexType" % self._XSCHEMA_NAMESPACE
+        f"{{{self._XSCHEMA_NAMESPACE}}}complexType"
     ):
       for elem in element.iter():
         tag = self.strip_schema_ns(elem)
@@ -582,7 +582,7 @@ class OtherType(base.BaseRule):
             eligible_elements.append(element.get("name"))
     return eligible_elements
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     type_element = element.find("Type")
     other_type_element = element.find("OtherType")
     if type_element is not None and type_element.text == "other":
@@ -601,21 +601,21 @@ class OtherType(base.BaseRule):
         raise loggers.ElectionError.from_message(msg, [element])
 
 
-class UniqueLabel(base.BaseRule):
+class UniqueLabel(base.SchemaRule):
   """Labels should be unique within a file."""
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
-    super(UniqueLabel, self).__init__(election_tree, schema_tree, **kwargs)
+  def __init__(self, *args, **kwargs) -> None:
+    super(UniqueLabel, self).__init__(*args, **kwargs)
     self.labels = set()
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return list(self.get_element_names_for_type("InternationalizedText"))
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     element_label = element.get("label")
     if element_label:
       if element_label in self.labels:
-        msg = "Duplicate label '%s'. Label already defined" % element_label
+        msg = f"Duplicate label '{element_label}'. Label already defined"
         raise loggers.ElectionError.from_message(msg, [element])
       else:
         self.labels.add(element_label)
@@ -629,10 +629,12 @@ class PersonHasUniqueFullName(base.BaseRule):
   be raised. So, we can check if the feed is coherent.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["PersonCollection"]
 
-  def check_specific(self, people):
+  def check_specific(
+      self, people: Iterable[etree._Element]
+  ) -> list[loggers.LogEntry]:
     person_def = collections.namedtuple(
         "PersonDefinition", ["fullname", "birthday"]
     )
@@ -654,15 +656,15 @@ class PersonHasUniqueFullName(base.BaseRule):
             and person_id_to_object_id[person_id] != person_object_id
         ):
           info_message = (
-              "Person has same full name '%s' and birthday %s as Person %s."
-              % (full_name_val, birthday_val, person_id_to_object_id[person_id])
+              f"Person has same full name '{full_name_val}' and birthday"
+              f" {birthday_val} as Person {person_id_to_object_id[person_id]}."
           )
           info_log.append(loggers.LogEntry(info_message, [person]))
         else:
           person_id_to_object_id[person_id] = person_object_id
     return info_log
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     info_log = []
     people = element.findall("Person")
     if len(people) < 1:
@@ -681,10 +683,10 @@ class BadCharactersInPersonFullName(base.BaseRule):
 
   regex = r"([()@$%*/]|\balias\b)"
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Person"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     warning_message = (
         "Person has known bad characters in FullName field."
         " Aliases should be included in Nickname field."
@@ -712,7 +714,7 @@ class IndependentPartyName(base.BaseRule):
   def elements(self):
     return ["Party"]
 
-  def check(self, party):
+  def check(self, party: etree._Element) -> None:
     is_independent_element = party.find("IsIndependent")
     if is_independent_element is not None:
       return
@@ -736,7 +738,7 @@ class UniqueStableID(base.TreeRule):
   Add an error message if stable id is not unique
   """
 
-  def check(self):
+  def check(self) -> None:
     error_log = []
     stable_obj_dict = dict()
     stable_elements_dict = dict()
@@ -757,16 +759,14 @@ class UniqueStableID(base.TreeRule):
           stable_obj_dict[stable_id] = elem_id_list
     for k, v in stable_obj_dict.items():
       if len(v) > 1:
-        error_message = (
-            "Stable ID {} is not unique as it is mapped in {}".format(k, v)
-        )
+        error_message = f"Stable ID {k} is not unique as it is mapped in {v}"
         error_log.append(
             loggers.LogEntry(error_message, stable_elements_dict[k])
         )
     if error_log:
       raise loggers.ElectionError(error_log)
 
-  def _get_object_id_or_name(self, element):
+  def _get_object_id_or_name(self, element: etree._Element) -> str | None:
     if "objectId" in element.attrib:
       return element.get("objectId")
     names_by_language = rule_util.get_language_to_text_map(element.find("Name"))
@@ -799,10 +799,10 @@ class MissingStableIds(base.BaseRule):
       "ReportingUnit",
   ]
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return self._ELEMENTS_WITH_STABLE_IDS
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     stable_ids = []
     external_identifiers = element.find("ExternalIdentifiers")
     if external_identifiers is not None:
@@ -822,10 +822,10 @@ class PersonsMissingPartyData(base.BaseRule):
   up within this class and returned to the user as a warning.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Person"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     party_id = element.find("PartyId")
     if party_id is None or not party_id.text or party_id.text.isspace():
       raise loggers.ElectionWarning.from_message(
@@ -836,10 +836,10 @@ class PersonsMissingPartyData(base.BaseRule):
 class CandidateImageInContactInformation(base.BaseRule):
   """Warn if candidate-image is set in ContactInformation.Uri."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["ContactInformation"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     candidate_image_uris = []
     for uri in element.findall("Uri"):
       annotation = uri.get("Annotation", "").strip()
@@ -857,10 +857,10 @@ class CandidateImageInContactInformation(base.BaseRule):
 class OnlyOneCandidateImagePerPerson(base.BaseRule):
   """Ensure only one candidate-image is provided per Person."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Person"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     image_uris = element.findall("ImageUri")
     candidate_images = []
     for image_uri in image_uris:
@@ -870,8 +870,8 @@ class OnlyOneCandidateImagePerPerson(base.BaseRule):
 
     if len(candidate_images) > 1:
       raise loggers.ElectionError.from_message(
-          "Person has {} ImageUri fields annotated as 'candidate-image'."
-          " Must have at most one.".format(len(candidate_images)),
+          f"Person has {len(candidate_images)} ImageUri fields annotated as"
+          " 'candidate-image'. Must have at most one.",
           candidate_images,
       )
 
@@ -879,7 +879,7 @@ class OnlyOneCandidateImagePerPerson(base.BaseRule):
 class UniqueCandidateImageUris(base.TreeRule):
   """Check that candidate-image URIs are unique to a person."""
 
-  def check(self):
+  def check(self) -> None:
     root = self.election_tree.getroot()
     if root is None:
       return
@@ -928,10 +928,10 @@ class AllCaps(base.BaseRule):
       "Person": ["FullName//Text"],
   }
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return list(self._element_field_mapping.keys())
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     element_tag = self.get_element_class(element)
     to_check_field_tags = self._element_field_mapping[element_tag]
     for field_tag in to_check_field_tags:
@@ -940,9 +940,7 @@ class AllCaps(base.BaseRule):
         text_value = to_check_field.text
         if text_value and text_value.isupper():
           raise loggers.ElectionWarning.from_message(
-              "{0} has {1} in all upper case letters.".format(
-                  element_tag, field_tag
-              ),
+              f"{element_tag} has {field_tag} in all upper case letters.",
               [element],
           )
 
@@ -956,10 +954,10 @@ class AllLanguages(base.BaseRule):
 
   required_languages = []
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["BallotName", "BallotTitle", "FullName", "Name"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     text_elements = element.findall("Text")
     if not text_elements:
       return
@@ -970,7 +968,7 @@ class AllLanguages(base.BaseRule):
     if not required_language_set.issubset(languages):
       msg = (
           "Element does not contain text in all required languages, missing"
-          + " : %s" % str(required_language_set - languages)
+          f" : {required_language_set - languages}"
       )
       raise loggers.ElectionError.from_message(msg, [element])
 
@@ -985,7 +983,7 @@ class ValidEnumerations(base.BaseRule):
 
   valid_enumerations = []
 
-  def elements(self):
+  def elements(self) -> list[str]:
     eligible_elements = []
     for element in self.schema_tree.iter():
       tag = self.strip_schema_ns(element)
@@ -1005,7 +1003,7 @@ class ValidEnumerations(base.BaseRule):
               eligible_elements.append(element.get("name"))
     return eligible_elements
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     type_element = element.find("Type")
     if type_element is not None and type_element.text == "other":
       other_type_element = element.find("OtherType")
@@ -1015,8 +1013,8 @@ class ValidEnumerations(base.BaseRule):
       ):
         raise loggers.ElectionError.from_message(
             (
-                "Type is set to 'other' even though '%s' is a valid enumeration"
-                % other_type_element.text
+                "Type is set to 'other' even though"
+                f" '{other_type_element.text}' is a valid enumeration"
             ),
             [element],
         )
@@ -1028,15 +1026,15 @@ class ValidateOcdidLowerCase(base.BaseRule):
   Throw a warning if the ocd-ids are not all in lowercase.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["ExternalIdentifiers"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     for ocd_id in rule_util.get_external_id_values(element, "ocd-id"):
       if not ocd_id.islower():
         msg = (
-            "OCD-ID %s is not in all lower case letters. "
-            "Valid OCD-IDs should be all lowercase." % (ocd_id)
+            f"OCD-ID {ocd_id} is not in all lower case letters. "
+            "Valid OCD-IDs should be all lowercase."
         )
         raise loggers.ElectionWarning.from_message(msg, [element])
 
@@ -1044,12 +1042,12 @@ class ValidateOcdidLowerCase(base.BaseRule):
 class PartyLeadershipMustExist(base.ValidReferenceRule):
   """Each party leader or party chair should refer to a person in the feed."""
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
+  def __init__(self, *args, **kwargs) -> None:
     super(PartyLeadershipMustExist, self).__init__(
-        election_tree, schema_tree, "Person", **kwargs
+        *args, missing_element="Person", **kwargs
     )
 
-  def _gather_reference_values(self):
+  def _gather_reference_values(self) -> set[str]:
     root = self.election_tree.getroot()
     if root is None:
       return
@@ -1064,7 +1062,7 @@ class PartyLeadershipMustExist(base.ValidReferenceRule):
         party_leader_ids.add(external_id.find("Value").text)
     return party_leader_ids
 
-  def _gather_defined_values(self):
+  def _gather_defined_values(self) -> set[str]:
     root = self.election_tree.getroot()
     if root is None:
       return
@@ -1092,16 +1090,16 @@ class PersonsHaveValidGender(base.BaseRule):
       "nonbinary",
   }
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Gender"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     if (
         element.text is not None
         and element.text.lower() not in self._VALID_GENDERS
     ):
       raise loggers.ElectionError.from_message(
-          "Person object has invalid gender value: {0}".format(element.text),
+          f"Person object has invalid gender value: {element.text}",
           [element],
       )
 
@@ -1112,10 +1110,10 @@ class URIValidator(base.BaseRule):
   Ensure each URL has valid protocol, domain, and query.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Uri"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     url = element.text
     if url is None:
       raise loggers.ElectionError.from_message("Missing URI value.", [element])
@@ -1134,8 +1132,8 @@ class URIValidator(base.BaseRule):
       discrepancies.append("domain - missing")
     if discrepancies:
       msg = (
-          "The provided URI, {}, is invalid for the following reasons: {}."
-          .format(url.encode("ascii", "ignore"), ", ".join(discrepancies))
+          f"The provided URI, {url.encode('ascii', 'ignore')}, is invalid for"
+          f" the following reasons: {', '.join(discrepancies)}."
       )
       raise loggers.ElectionError.from_message(msg, [element])
 
@@ -1146,8 +1144,8 @@ class URIValidator(base.BaseRule):
       ):
         msg = (
             "It is recommended to use https instead of http. The provided "
-            "URI, '{}'."
-        ).format(url)
+            f"URI, '{url}'."
+        )
         raise loggers.ElectionInfo.from_message(msg, [element])
 
 
@@ -1157,7 +1155,9 @@ class UniqueURIPerAnnotationCategory(base.TreeRule):
   Ex: No ballotpedia URIs can be the same.
   """
 
-  def _extract_uris_by_category(self, uri_elements):
+  def _extract_uris_by_category(
+      self, uri_elements: Iterable[etree._Element]
+  ) -> dict[str, dict[str | None, list[etree._Element]]]:
     """For given list of Uri elements return nested paths of Uri values.
 
     Args:
@@ -1186,7 +1186,7 @@ class UniqueURIPerAnnotationCategory(base.TreeRule):
         uri_mapping[annotation_platform][uri_value] = [uri]
     return uri_mapping
 
-  def check(self):
+  def check(self) -> None:
     all_uri_elements = self.get_elements_by_class(self.election_tree, "Uri")
     office_uri_elements = self.get_elements_by_class(
         self.election_tree, "Office//ContactInformation//Uri"
@@ -1199,9 +1199,9 @@ class UniqueURIPerAnnotationCategory(base.TreeRule):
       for uri, uri_elements in value_counter.items():
         if len(uri_elements) > 1:
           error_message = (
-              "The Uris contain the annotation type '{}' with the "
-              "same value '{}'."
-          ).format(annotation, uri)
+              f"The Uris contain the annotation type '{annotation}' with the "
+              f"same value '{uri}'."
+          )
           error_log.append(loggers.LogEntry(error_message, uri_elements))
 
     if error_log:
@@ -1215,10 +1215,10 @@ class ValidYoutubeURL(base.BaseRule):
   playlist as one of the invalid youtube URL types.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Uri"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     url = element.text.strip()
     parsed_url = urlparse(url)
     if "youtube" in parsed_url.netloc and (
@@ -1228,7 +1228,7 @@ class ValidYoutubeURL(base.BaseRule):
         or "hashtag" in parsed_url.path
     ):
       raise loggers.ElectionError.from_message(
-          "'{}' is not an expected value for a youtube channel.".format(url),
+          f"'{url}' is not an expected value for a youtube channel.",
           [element],
       )
 
@@ -1239,10 +1239,10 @@ class ValidTiktokURL(base.BaseRule):
   Ensure the provided URL is a valid Tiktok URL types.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Uri"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     url = element.text.strip()
     parsed_url = urlparse(url)
     if "tiktok" in parsed_url.netloc and (
@@ -1251,7 +1251,7 @@ class ValidTiktokURL(base.BaseRule):
         or parsed_url.fragment
     ):
       raise loggers.ElectionError.from_message(
-          "'{}' is not an expected value for a tiktok account.".format(url),
+          f"'{url}' is not an expected value for a tiktok account.",
           [element],
       )
 
@@ -1263,10 +1263,12 @@ class ValidURIAnnotation(base.BaseRule):
   Throws Warnings and Errors depending on type of invalidity.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["ContactInformation"]
 
-  def check_url(self, uri, annotation, platform):
+  def check_url(
+      self, uri: etree._Element, annotation: str, platform: str
+  ) -> None:
     url = uri.text.strip()
     parsed_url = urlparse(url)
     # Ensure media platform name is in URL.
@@ -1278,13 +1280,12 @@ class ValidURIAnnotation(base.BaseRule):
     ):
       # Note that the URL is encoded for printing purposes
       raise loggers.ElectionError.from_message(
-          "Annotation '{}' is incorrect for URI {}.".format(
-              annotation, url.encode("ascii", "ignore")
-          ),
+          f"Annotation '{annotation}' is incorrect for URI"
+          f" {url.encode('ascii', 'ignore')}.",
           [uri],
       )
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     uris = element.findall("Uri")
 
     for uri in uris:
@@ -1294,7 +1295,7 @@ class ValidURIAnnotation(base.BaseRule):
 
       if not annotation:
         raise loggers.ElectionWarning.from_message(
-            "URI {} is missing annotation.".format(ascii_url), [uri]
+            f"URI {ascii_url} is missing annotation.", [uri]
         )
 
       # Skip platform checks for office contact form and candidate-image
@@ -1309,20 +1310,17 @@ class ValidURIAnnotation(base.BaseRule):
         # without a usage type, which is checked here.
         if platform in _TYPED_URI_PLATFORMS:
           raise loggers.ElectionWarning.from_message(
-              "Annotation '{}' missing usage type.".format(annotation), [uri]
+              f"Annotation '{annotation}' missing usage type.", [uri]
           )
         elif platform in _URI_USAGE_TYPES:
           raise loggers.ElectionError.from_message(
-              "Annotation '{}' has usage type, missing platform.".format(
-                  annotation
-              ),
+              f"Annotation '{annotation}' has usage type, missing platform.",
               [uri],
           )
         elif platform not in _UNTYPED_URI_PLATFORMS:
           raise loggers.ElectionError.from_message(
-              "Annotation '{}' is not a valid annotation for URI {}.".format(
-                  annotation, ascii_url
-              ),
+              f"Annotation '{annotation}' is not a valid annotation for URI"
+              f" {ascii_url}.",
               [uri],
           )
       elif len(ann_elements) == 2:
@@ -1334,14 +1332,12 @@ class ValidURIAnnotation(base.BaseRule):
             or platform not in _TYPED_URI_PLATFORMS
         ):
           raise loggers.ElectionWarning.from_message(
-              "'{}' is not a valid annotation.".format(annotation), [uri]
+              f"'{annotation}' is not a valid annotation.", [uri]
           )
       else:
         # More than two implies an invalid annotation.
         raise loggers.ElectionError.from_message(
-            "Annotation '{}' is invalid for URI {}.".format(
-                annotation, ascii_url
-            ),
+            f"Annotation '{annotation}' is invalid for URI {ascii_url}.",
             [uri],
         )
       # Finally, check platform is in the URL.
@@ -1351,10 +1347,10 @@ class ValidURIAnnotation(base.BaseRule):
 class OfficesHaveJurisdictionID(base.BaseRule):
   """Each office must have a jurisdiction-id."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Office"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     jurisdiction_values = []
     post_office_split_jurisdiction_element = element.find("JurisdictionId")
     if rule_util.element_has_text(post_office_split_jurisdiction_element):
@@ -1379,19 +1375,19 @@ class OfficesHaveJurisdictionID(base.BaseRule):
 class ValidJurisdictionID(base.ValidReferenceRule):
   """Each jurisdiction id should refer to a valid GpUnit."""
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
+  def __init__(self, *args, **kwargs) -> None:
     super(ValidJurisdictionID, self).__init__(
-        election_tree, schema_tree, "GpUnit", **kwargs
+        *args, missing_element="GpUnit", **kwargs
     )
 
-  def _gather_reference_values(self):
+  def _gather_reference_values(self) -> set[str]:
     root = self.election_tree.getroot()
     jurisdiction_values = rule_util.get_entity_info_for_value_type(
         root, "jurisdiction-id"
     )
     return set(jurisdiction_values)
 
-  def _gather_defined_values(self):
+  def _gather_defined_values(self) -> set[str]:
     gp_unit_elements = self.election_tree.getroot().findall(".//GpUnit")
     return {elem.get("objectId") for elem in gp_unit_elements}
 
@@ -1399,10 +1395,10 @@ class ValidJurisdictionID(base.ValidReferenceRule):
 class OfficesHaveValidOfficeLevel(base.BaseRule):
   """Each office must have a valid office-level."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Office"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     office_levels = []
     post_office_split_office_level_element = element.find("Level")
     if rule_util.element_has_text(post_office_split_office_level_element):
@@ -1435,10 +1431,10 @@ class OfficesHaveValidOfficeLevel(base.BaseRule):
 class OfficesHaveValidOfficeRole(base.BaseRule):
   """Each office must have valid office role(s)."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Office"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     office_roles = [role.text for role in element.findall("Role")]
     if not office_roles:
       office_roles = [
@@ -1478,10 +1474,10 @@ class OfficesHaveValidOfficeRole(base.BaseRule):
 class DiplomaticOfficesHaveCorrespondingGpUnitsSet(base.BaseRule):
   """Offices with the 'diplomat' role must have a sending or receiving state."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Office"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     office_roles = (
         role.text.strip()
         for role in element.findall("Role")
@@ -1508,10 +1504,10 @@ class ValidPartyLeadershipDates(base.DateRule):
   End dates should not occur before the start date.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["PartyLeadership"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
     self.gather_dates(element)
     self.check_end_after_start()
@@ -1525,7 +1521,7 @@ class GpUnitsHaveInternationalizedName(base.BaseRule):
   def elements(self):
     return ["GpUnit"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     intl_names = element.findall("InternationalizedName")
     if intl_names is None or not intl_names or len(intl_names) > 1:
       raise loggers.ElectionError.from_message(
@@ -1564,10 +1560,10 @@ class MissingFieldsError(base.MissingFieldRule):
   and field in element_field_mapping.
   """
 
-  def get_severity(self):
+  def get_severity(self) -> int:
     return 2
 
-  def element_field_mapping(self):
+  def element_field_mapping(self) -> dict[str, list[str]]:
     return {
         "Person": [
             "FullName//Text",
@@ -1592,10 +1588,10 @@ class MissingFieldsWarning(base.MissingFieldRule):
   and field in element_field_mapping.
   """
 
-  def get_severity(self):
+  def get_severity(self) -> int:
     return 1
 
-  def element_field_mapping(self):
+  def element_field_mapping(self) -> dict[str, list[str]]:
     return {
         "Candidate": [
             "PartyId",
@@ -1610,10 +1606,10 @@ class MissingFieldsInfo(base.MissingFieldRule):
   and field in element_field_mapping.
   """
 
-  def get_severity(self):
+  def get_severity(self) -> int:
     return 0
 
-  def element_field_mapping(self):
+  def element_field_mapping(self) -> dict[str, list[str]]:
     return {}
 
 
@@ -1624,7 +1620,12 @@ class PartySpanMultipleCountries(base.BaseRule):
   sometimes correct, but we should flag it to double check.
   """
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
+  def __init__(
+      self,
+      election_tree: etree._ElementTree,
+      schema_tree: etree._ElementTree | None = None,
+      **kwargs,
+  ) -> None:
     super(PartySpanMultipleCountries, self).__init__(
         election_tree, schema_tree, **kwargs
     )
@@ -1638,10 +1639,10 @@ class PartySpanMultipleCountries(base.BaseRule):
           country = country_match[0].split("/")[1]
           self.existing_gpunits[gpunit.get("objectId")] = country
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["PartyScopeGpUnitIds"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     if element.text is None:
       return
     referenced_country = dict()
@@ -1653,15 +1654,14 @@ class PartySpanMultipleCountries(base.BaseRule):
         referenced_country[country].append(gpunit_id)
 
     if len(referenced_country) > 1:
-      gpunit_country_mapping = " / ".join([
-          "%s -> %s" % (key, str(value))
-          for (key, value) in referenced_country.items()
-      ])
+      gpunit_country_mapping = " / ".join(
+          [f"{key} -> {value}" for (key, value) in referenced_country.items()]
+      )
 
       raise loggers.ElectionWarning.from_message(
           (
               "PartyScopeGpUnitIds refer to GpUnit from different countries:"
-              " {}. Please double check.".format(gpunit_country_mapping)
+              f" {gpunit_country_mapping}. Please double check."
           ),
           [element],
       )
@@ -1670,7 +1670,12 @@ class PartySpanMultipleCountries(base.BaseRule):
 class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
   """Ensure non-Head of Government/State Office elements have a government body defined."""
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
+  def __init__(
+      self,
+      election_tree: etree._ElementTree,
+      schema_tree: etree._ElementTree | None = None,
+      **kwargs,
+  ) -> None:
     self.is_post_office_split_feed = False
     officeholder_tenure_collection_element = self.get_elements_by_class(
         election_tree, "OfficeHolderTenureCollection"
@@ -1679,10 +1684,10 @@ class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
     if officeholder_tenure_collection_element or role_element:
       self.is_post_office_split_feed = True
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Office"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     if not _is_executive_office(
         element, self.is_post_office_split_feed
     ) and not _has_government_body(element):
@@ -1696,7 +1701,12 @@ class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
 class ExecutiveOfficeShouldNotHaveGovernmentBody(base.BaseRule):
   """Ensure Head of Government/State Office elements do not have a government body defined."""
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
+  def __init__(
+      self,
+      election_tree: etree._ElementTree,
+      schema_tree: etree._ElementTree | None = None,
+      **kwargs,
+  ) -> None:
     self.is_post_office_split_feed = False
     officeholder_tenure_collection_element = self.get_elements_by_class(
         election_tree, "OfficeHolderTenureCollection"
@@ -1705,10 +1715,10 @@ class ExecutiveOfficeShouldNotHaveGovernmentBody(base.BaseRule):
     if officeholder_tenure_collection_element or role_element:
       self.is_post_office_split_feed = True
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Office"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     if _is_executive_office(
         element, self.is_post_office_split_feed
     ) and _has_government_body(element):
@@ -1733,10 +1743,10 @@ class MissingOfficeSelectionMethod(base.BaseRule):
   -ex-officio
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Office"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     selection = element.find("SelectionMethod")
     if selection is None:
       raise loggers.ElectionWarning.from_message(
@@ -1744,13 +1754,13 @@ class MissingOfficeSelectionMethod(base.BaseRule):
       )
 
 
-class AllInternationalizedTextHaveEnVersion(base.BaseRule):
+class AllInternationalizedTextHaveEnVersion(base.SchemaRule):
   """Checks for InternationalizedText elements missing an English version."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return list(self.get_element_names_for_type("InternationalizedText"))
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     language_map = rule_util.get_language_to_text_map(element)
     if "en" not in language_map:
       raise loggers.ElectionInfo.from_message(
@@ -1762,10 +1772,10 @@ class AllInternationalizedTextHaveEnVersion(base.BaseRule):
 class MultipleInternationalizedTextWithSameLanguageCode(base.BaseRule):
   """Checks for multiple InternationalizedText with the same language code."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return _INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     language_map = rule_util.get_language_to_text_map(element)
 
     for language, texts in language_map.items():
@@ -1782,7 +1792,7 @@ class DeprecatedPartyLeadershipSchema(base.BaseRule):
   def elements(self):
     return ["Party"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     if len(rule_util.get_external_id_values(element, "party-leader-id")) or len(
         rule_util.get_external_id_values(element, "party-chair-id")
     ):
@@ -1804,7 +1814,7 @@ _IDREF_EXTERNAL_IDENTIFIERS = frozenset(
 class ProhibitElectionData(base.TreeRule):
   """Ensure that election data is not provided for officeholder feeds."""
 
-  def check(self):
+  def check(self) -> None:
     root = self.election_tree.getroot()
     if root is not None and root.find("Election") is not None:
       raise loggers.ElectionError.from_message(
@@ -1813,7 +1823,7 @@ class ProhibitElectionData(base.TreeRule):
       )
 
 
-class UnreferencedEntitiesBase(base.TreeRule):
+class UnreferencedEntitiesBase(base.TreeRule, base.SchemaRule):
   """All non-top-level entities in a feed should be referenced by at least one other entity.
 
   In the context of this rule, top-level means that an entity is not expected to
@@ -1826,12 +1836,12 @@ class UnreferencedEntitiesBase(base.TreeRule):
 
   def __init__(
       self,
-      election_tree,
-      schema_tree,
-      top_level_entity_types,
-      warned_entity_types,
+      election_tree: etree._ElementTree,
+      schema_tree: etree._ElementTree,
+      top_level_entity_types: Collection[str],
+      warned_entity_types: Collection[str],
       **kwargs,
-  ):
+  ) -> None:
     super(UnreferencedEntitiesBase, self).__init__(
         election_tree, schema_tree, **kwargs
     )
@@ -1839,7 +1849,7 @@ class UnreferencedEntitiesBase(base.TreeRule):
     self.top_level_entity_types = top_level_entity_types
     self.warned_entity_types = warned_entity_types
 
-  def _gather_referenced_entities(self):
+  def _gather_referenced_entities(self) -> set[str]:
     """Create a set of all entities referenced by either IDREF(S) elements or external identifiers."""
     referenced_entities = set()
     for external_id_type in _IDREF_EXTERNAL_IDENTIFIERS:
@@ -1853,7 +1863,7 @@ class UnreferencedEntitiesBase(base.TreeRule):
         referenced_entities.update(element.text.split())
     return referenced_entities
 
-  def check(self):
+  def check(self) -> None:
     for _, element in etree.iterwalk(self.election_tree):
       element_name = element.tag
       # Skip anything without an object id.
@@ -1893,10 +1903,10 @@ class UnreferencedEntitiesBase(base.TreeRule):
 class CoalitionParties(base.BaseRule):
   """Coalitions should always define the Party IDs."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Coalition"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     party_id = element.find("PartyIds")
     if party_id is None or not party_id.text or not party_id.text.strip():
       raise loggers.ElectionError.from_message(
@@ -1911,14 +1921,16 @@ class ValidatePartyCollection(base.BaseRule):
   contains basic checks.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["PartyCollection"]
 
-  def check_specific(self, parties):
+  def check_specific(
+      self, parties: Iterable[etree._Element]
+  ) -> list[loggers.LogEntry]:
     """Return a list of info log to be raised."""
     raise NotImplementedError
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     info_log = []
     parties = element.findall("Party")
     if len(parties) < 1:
@@ -1936,7 +1948,9 @@ class DuplicatedPartyAbbreviation(ValidatePartyCollection):
   within this class and returned to the user as an Info message.
   """
 
-  def check_specific(self, parties):
+  def check_specific(
+      self, parties: Iterable[etree._Element]
+  ) -> list[loggers.LogEntry]:
     info_log = []
     party_abbreviations_by_language = {}
     for party in parties:
@@ -1978,7 +1992,9 @@ class DuplicatedPartyName(ValidatePartyCollection):
   within this class and returned to the user as an Info message.
   """
 
-  def check_specific(self, parties):
+  def check_specific(
+      self, parties: Iterable[etree._Element]
+  ) -> list[loggers.LogEntry]:
     info_log = []
     party_names_by_language = {}
     for party in parties:
@@ -2017,7 +2033,9 @@ class MissingPartyAbbreviationTranslation(ValidatePartyCollection):
   class and returned to the user as an Info message.
   """
 
-  def check_specific(self, parties):
+  def check_specific(
+      self, parties: Iterable[etree._Element]
+  ) -> list[loggers.LogEntry]:
     info_log = []
     feed_languages = set()
     feed_party_ids = set()
@@ -2067,7 +2085,9 @@ class MissingPartyNameTranslation(ValidatePartyCollection):
   an Info message.
   """
 
-  def check_specific(self, parties):
+  def check_specific(
+      self, parties: Iterable[etree._Element]
+  ) -> list[loggers.LogEntry]:
     info_log = []
     feed_languages = set()
     feed_party_ids = set()
@@ -2109,10 +2129,10 @@ class MissingPartyNameTranslation(ValidatePartyCollection):
 class DateOfBirthIsInPast(base.DateRule):
   """Date of Birth should not be in the future."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Person"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
     date_of_birth_element = element.find("DateOfBirth")
     if date_of_birth_element is not None and date_of_birth_element.text:
@@ -2127,13 +2147,11 @@ class DateOfBirthIsInPast(base.DateRule):
 class GpUnitsHaveSingleRoot(base.TreeRule):
   """Ensure that GpUnits form a single-rooted tree."""
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
-    super(GpUnitsHaveSingleRoot, self).__init__(
-        election_tree, schema_tree, **kwargs
-    )
+  def __init__(self, *args, **kwargs) -> None:
+    super(GpUnitsHaveSingleRoot, self).__init__(*args, **kwargs)
     self.error_log = []
 
-  def check(self):
+  def check(self) -> None:
     # Make sure there's at most one GpUnit as a root.
     # The root is defined as having ComposingGpUnitIds but
     # is not in the ComposingGpUnitIds of any other GpUnit.
@@ -2177,7 +2195,7 @@ class GpUnitsHaveSingleRoot(base.TreeRule):
     if self.error_log:
       raise loggers.ElectionError(self.error_log)
 
-  def _get_gpunit_collection(self):
+  def _get_gpunit_collection(self) -> etree._Element:
     """Returns the GpUnitCollection element, or the root if there is none."""
     root = self.election_tree.getroot()
     gpunit_collection = root.find("GpUnitCollection")

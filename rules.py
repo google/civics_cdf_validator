@@ -20,6 +20,7 @@ import enum
 from civics_cdf_validator.rulesets import committee_rules
 from civics_cdf_validator.rulesets import common_rules
 from civics_cdf_validator.rulesets import election_dates_rules
+from civics_cdf_validator.rulesets import election_results_rules
 from civics_cdf_validator.rulesets import election_rules
 from civics_cdf_validator.rulesets import metadata_rules
 from civics_cdf_validator.rulesets import officeholder_rules
@@ -45,6 +46,7 @@ ELECTION_RULES = election_rules.ELECTION_RULES
 OFFICEHOLDER_RULES = officeholder_rules.OFFICEHOLDER_RULES
 COMMITTEE_RULES = committee_rules.COMMITTEE_RULES
 ELECTION_DATES_RULES = election_dates_rules.ELECTION_DATES_RULES
+ELECTION_RESULTS_RULES = election_results_rules.ELECTION_RESULTS_RULES
 METADATA_RULES = metadata_rules.METADATA_RULES
 VOTER_INFORMATION_RULES = voter_information_rules.VOTER_INFORMATION_RULES
 
@@ -54,6 +56,7 @@ ALL_RULES = frozenset(
     + OFFICEHOLDER_RULES
     + COMMITTEE_RULES
     + ELECTION_DATES_RULES
+    + ELECTION_RESULTS_RULES
     + VOTER_INFORMATION_RULES
     + METADATA_RULES
 )

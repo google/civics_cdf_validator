@@ -18,15 +18,16 @@ from __future__ import print_function
 from civics_cdf_validator import base
 from civics_cdf_validator import loggers
 from civics_cdf_validator.rulesets import common_rules
+from lxml import etree
 
 
 class ElectoralCommissionCollectionExists(base.BaseRule):
   """ElectoralCommissionCollection should exist."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["ElectionReport"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     if element.find("ElectoralCommissionCollection") is None:
       raise loggers.ElectionError.from_message(
           "ElectoralCommissionCollection should exist.", [element]
@@ -36,10 +37,10 @@ class ElectoralCommissionCollectionExists(base.BaseRule):
 class VoterInformationCollectionExists(base.BaseRule):
   """Warn if there is no VoterInformationCollection."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["ElectionReport"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     if element.find("VoterInformationCollection") is None:
       raise loggers.ElectionWarning.from_message(
           "VoterInformationCollection should exist.", [element]
@@ -53,10 +54,10 @@ class NoExtraElectionElements(base.BaseRule):
   should all be excluded.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Election"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     if element.find("BallotStyleCollection") is not None:
       raise loggers.ElectionError.from_message(
           "BallotStyleCollection should not exist.", [element]
@@ -80,10 +81,10 @@ class NoExtraElectionElements(base.BaseRule):
 class WarnOnElementsNotRecommendedForElection(base.BaseRule):
   """Warn on ContactInformation on an Election for voter information feeds."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Election"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     if element.find("ContactInformation") is not None:
       raise loggers.ElectionWarning.from_message(
           "ContactInformation is not recommended for Election, prefer using an"
@@ -100,10 +101,10 @@ class NoExtraElectionReportCollections(base.BaseRule):
   excluded.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["ElectionReport"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     if element.find("CommitteeCollection") is not None:
       raise loggers.ElectionError.from_message(
           "CommitteeCollection should not exist.", [element]

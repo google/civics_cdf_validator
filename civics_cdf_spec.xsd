@@ -29,7 +29,9 @@
     <xs:restriction base="xs:string">
       <xs:enumeration value="disqualified"/>
       <xs:enumeration value="filed"/>
+      <xs:enumeration value="nonqualified-write-in"/>
       <xs:enumeration value="qualified"/>
+      <xs:enumeration value="qualified-write-in"/>
       <xs:enumeration value="self-declared"/>
       <xs:enumeration value="sub-judice"/>
       <xs:enumeration value="withdrawn"/>

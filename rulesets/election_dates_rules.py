@@ -17,6 +17,7 @@ from __future__ import print_function
 
 from civics_cdf_validator.rulesets import common_rules
 from civics_cdf_validator.rulesets import election_rules
+from lxml import etree
 
 
 class UnreferencedEntitiesElectionDates(common_rules.UnreferencedEntitiesBase):
@@ -25,7 +26,12 @@ class UnreferencedEntitiesElectionDates(common_rules.UnreferencedEntitiesBase):
   All other entity types must be referenced.
   """
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
+  def __init__(
+      self,
+      election_tree: etree._ElementTree,
+      schema_tree: etree._ElementTree,
+      **kwargs,
+  ) -> None:
     super(UnreferencedEntitiesElectionDates, self).__init__(
         election_tree,
         schema_tree,

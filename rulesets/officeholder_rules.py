@@ -15,19 +15,22 @@
 
 from __future__ import print_function
 
+from collections.abc import Iterable
 import datetime
 import hashlib
+from typing import Any
 
 from civics_cdf_validator import base
 from civics_cdf_validator import loggers
 from civics_cdf_validator.rulesets import common_rules
 from civics_cdf_validator.rulesets import rule_util
+from lxml import etree
 
 
 class PersonHasOffice(base.ValidReferenceRule):
   """Ensure that each non-party-leader Person object linked to one Office."""
 
-  def _gather_reference_values(self):
+  def _gather_reference_values(self) -> set[str]:
     root = self.election_tree.getroot()
 
     person_ids = set()
@@ -36,7 +39,7 @@ class PersonHasOffice(base.ValidReferenceRule):
       person_ids = {p.attrib["objectId"] for p in person_collection}
     return person_ids
 
-  def _gather_defined_values(self):
+  def _gather_defined_values(self) -> set[str]:
     root = self.election_tree.getroot()
 
     person_reference_ids = set()
@@ -72,9 +75,7 @@ class PersonHasOffice(base.ValidReferenceRule):
         if id_obj is not None and id_obj.text:
           ids = id_obj.text.strip().split()
           if len(ids) > 1:
-            msg = "Office has {} OfficeHolders. Must have exactly one.".format(
-                str(len(ids))
-            )
+            msg = f"Office has {len(ids)} OfficeHolders. Must have exactly one."
             raise loggers.ElectionError.from_message(msg, [office])
           person_reference_ids.update(ids)
 
@@ -89,7 +90,12 @@ class OfficeSelectionMethodMatch(base.BaseRule):
   present in the list of SelectionMethods of the Office it points to.
   """
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
+  def __init__(
+      self,
+      election_tree: etree._ElementTree,
+      schema_tree: etree._ElementTree | None = None,
+      **kwargs,
+  ) -> None:
     self.office_selection_methods = {}
     officeholder_tenure_elements = self.get_elements_by_class(
         election_tree, "OfficeHolderTenure"
@@ -104,10 +110,10 @@ class OfficeSelectionMethodMatch(base.BaseRule):
         }
         self.office_selection_methods[office_id] = selection_methods
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["OfficeHolderTenure"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     office_id = element.find("OfficeId").text
     office_selection_method = element.find("OfficeSelectionMethod").text
     if (
@@ -125,10 +131,10 @@ class OfficeSelectionMethodMatch(base.BaseRule):
 class OfficeHolderTenureTermDates(base.DateRule):
   """OfficeHolderTenure elements should contain valid term dates."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["OfficeHolderTenure"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     start_date = element.find("StartDate")
     end_date = element.find("EndDate")
     if rule_util.element_has_text(start_date) and rule_util.element_has_text(
@@ -153,7 +159,12 @@ class OfficeTermDates(base.DateRule):
   not have a Term element.
   """
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
+  def __init__(
+      self,
+      election_tree: etree._ElementTree,
+      schema_tree: etree._ElementTree | None = None,
+      **kwargs,
+  ) -> None:
     self.is_post_office_split_feed = False
     officeholder_tenure_collection_element = self.get_elements_by_class(
         election_tree, "OfficeHolderTenureCollection"
@@ -161,10 +172,10 @@ class OfficeTermDates(base.DateRule):
     if officeholder_tenure_collection_element:
       self.is_post_office_split_feed = True
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Office"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
     if self.is_post_office_split_feed:
       term = element.find("Term")
@@ -205,7 +216,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
   they will be kept in the feed with the same stable ID.
   """
 
-  def check(self):
+  def check(self) -> None:
     info_log = []
     persons = self.get_elements_by_class(self.election_tree, "Person")
     offices = self.get_elements_by_class(self.election_tree, "Office")
@@ -226,7 +237,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
             "OfficeHolderPersonId"
         )
         person_id = office_holder_person_elem.text
-        date_validator = base.DateRule(None, None)
+        date_validator = base.DateRule()
         date_validator.gather_dates(officeholder_tenure)
         end_date = date_validator.end_date
         if end_date is not None:
@@ -291,7 +302,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
           person_office_dict[person_id] = [office.get("objectId")]
         term = office.find(".//Term")
         if term is not None:
-          date_validator = base.DateRule(None, None)
+          date_validator = base.DateRule()
           date_validator.gather_dates(term)
           end_date_person = date_validator.end_date
           if end_date_person is not None:
@@ -329,15 +340,17 @@ class UniqueStartDatesForOfficeRoleAndJurisdiction(base.BaseRule):
   with the same jurisdiction-id and office-role.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["OfficeCollection"]
 
-  def _filter_out_past_end_dates(self, offices):
+  def _filter_out_past_end_dates(
+      self, offices: Iterable[etree._Element]
+  ) -> list[etree._Element]:
     valid_offices = []
     for office in offices:
       term = office.find(".//Term")
       if term is not None:
-        date_validator = base.DateRule(None, None, ocd_id_validator=None)
+        date_validator = base.DateRule()
         try:
           date_validator.gather_dates(term)
           if date_validator.end_date is not None:
@@ -350,7 +363,9 @@ class UniqueStartDatesForOfficeRoleAndJurisdiction(base.BaseRule):
           continue
     return valid_offices
 
-  def _count_start_dates_by_jurisdiction_role(self, element):
+  def _count_start_dates_by_jurisdiction_role(
+      self, element: etree._Element
+  ) -> dict[str, dict[str, Any]]:
     offices = element.findall("Office")
     offices = self._filter_out_past_end_dates(offices)
     jurisdiction_role_mapping = {}
@@ -394,7 +409,7 @@ class UniqueStartDatesForOfficeRoleAndJurisdiction(base.BaseRule):
 
     return jurisdiction_role_mapping
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     warning_log = []
 
     start_counts = self._count_start_dates_by_jurisdiction_role(element)
@@ -406,16 +421,10 @@ class UniqueStartDatesForOfficeRoleAndJurisdiction(base.BaseRule):
         if len(start_date_map[start_date]) > 1:
           warning_log.append(
               loggers.LogEntry(
-                  (
-                      "Only one unique StartDate found for each"
-                      " jurisdiction-id: {} and office-role: {}. {} appears {}"
-                      " times."
-                  ).format(
-                      start_info["jurisdiction_id"],
-                      start_info["office_role"],
-                      start_date,
-                      len(start_date_map[start_date]),
-                  ),
+                  "Only one unique StartDate found for each jurisdiction-id:"
+                  f" {start_info['jurisdiction_id']} and office-role:"
+                  f" {start_info['office_role']}. {start_date} appears"
+                  f" {len(start_date_map[start_date])} times.",
                   start_date_map[start_date],
               )
           )
@@ -431,7 +440,12 @@ class UnreferencedEntitiesOfficeholders(common_rules.UnreferencedEntitiesBase):
   LatAm feeds.
   """
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
+  def __init__(
+      self,
+      election_tree: etree._ElementTree,
+      schema_tree: etree._ElementTree,
+      **kwargs,
+  ) -> None:
     office_holder_tenure_collection = self.get_elements_by_class(
         election_tree, "OfficeHolderTenure"
     )

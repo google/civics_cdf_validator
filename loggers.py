@@ -14,13 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from collections.abc import Sequence
 import copy
+from typing import Self
+
+from lxml import etree
 
 
 class LogEntry(object):
   """This class contains needed information for user output."""
 
-  def __init__(self, message, elements=None, lines=None):
+  def __init__(
+      self,
+      message: str,
+      elements: Sequence[etree._Element | None] | None = None,
+      lines: Sequence[int] | None = None,
+  ) -> None:
     self.message = message
     self.elements = elements
     if lines is not None:
@@ -40,7 +49,7 @@ class ElectionException(Exception):
   """Base class for all the exceptions in this script."""
   description = None
 
-  def __init__(self, log_entry):
+  def __init__(self, log_entry: LogEntry | list[LogEntry]) -> None:
     super(ElectionException, self).__init__()
     if isinstance(log_entry, list):
       self.log_entry = log_entry
@@ -48,7 +57,12 @@ class ElectionException(Exception):
       self.log_entry = [log_entry]
 
   @classmethod
-  def from_message(cls, message, elements=None, lines=None):
+  def from_message(
+      cls,
+      message: str,
+      elements: Sequence[etree._Element | None] | None = None,
+      lines: Sequence[int] | None = None,
+  ) -> Self:
     return cls(LogEntry(message, elements, lines))
 
 
@@ -82,7 +96,7 @@ class ElectionInfo(ElectionException):
   description = "Info"
 
 
-def get_parent_hierarchy_object_id_str(elt):
+def get_parent_hierarchy_object_id_str(elt: etree._Element | None) -> str:
   """Get the elt path from the 1st parent with an objectId / ElectionReport."""
   elt_hierarchy = []
   current_elt = elt
@@ -112,12 +126,14 @@ class ExceptionListWrapper:
                           ElectionError,
                           ElectionFatal)
 
-  def __init__(self):
+  def __init__(self) -> None:
     self._rules_exc_logs = dict()
     for e_type in self.SUPPORTED_SEVERITIES:
       self._rules_exc_logs[e_type] = dict()
 
-  def exception_handler(self, exception, rule_name="No rule"):
+  def exception_handler(
+      self, exception: ElectionException, rule_name: str = "No rule"
+  ) -> None:
     """Gather log entry counts by type, class, and total."""
     for e_type in self._rules_exc_logs:
       if issubclass(exception.__class__, e_type):
@@ -125,47 +141,56 @@ class ExceptionListWrapper:
           self._rules_exc_logs[e_type][rule_name] = []
         self._rules_exc_logs[e_type][rule_name].extend(exception.log_entry)
 
-  def _select_exception_types(self, severity):
+  def _select_exception_types(
+      self, severity: int | None
+  ) -> tuple[type[ElectionException], ...]:
     if not severity:
       severity = 0
     elif severity > len(self.SUPPORTED_SEVERITIES):
       severity = len(self.SUPPORTED_SEVERITIES) - 1
     return self.SUPPORTED_SEVERITIES[severity:]
 
-  def count_logs_with_exception_type(self, e_type):
+  def count_logs_with_exception_type(
+      self, e_type: type[ElectionException]
+  ) -> int:
     exception_count = 0
     for log_list in list(self._rules_exc_logs[e_type].values()):
       exception_count += len(log_list)
     return exception_count
 
-  def _print_exception_type_summary(self, e_type, count_exception):
+  def _print_exception_type_summary(
+      self, e_type: type[ElectionException], count_exception: int
+  ) -> None:
     suffix = ""
     if count_exception > 1:
       suffix = "s"
-    print("{0:6d} {1} message{2} found".format(count_exception,
-                                               e_type.description, suffix))
+    print(f"{count_exception:6d} {e_type.description} message{suffix} found")
 
-  def _print_rule_exception_summary(self, e_type, rule_name):
+  def _print_rule_exception_summary(
+      self, e_type: type[ElectionException], rule_name: str
+  ) -> None:
     rule_count = len(self._rules_exc_logs[e_type][rule_name])
     rule_suffix = ""
     if rule_count > 1:
       rule_suffix = "s"
-    print("{0:10d} {1} {2} message{3}".format(rule_count, rule_name,
-                                              e_type.description, rule_suffix))
+    print(f"{rule_count:10d} {rule_name} {e_type.description} "
+          f"message{rule_suffix}")
 
-  def _print_exception_log(self, log_entry):
+  def _print_exception_log(self, log_entry: LogEntry) -> None:
     if log_entry.lines is not None:
-      print(" " * 14 + "Lines %s :" % log_entry.lines)
+      print(" " * 14 + f"Lines {log_entry.lines} :")
     if log_entry.elements is not None:
       print(" " * 15 + "Affected elements :")
       for element in log_entry.elements:
         print(" " * 16 + get_parent_hierarchy_object_id_str(element))
-    print(" " * 18 + "* {0}".format(log_entry.message))
+    print(" " * 18 + f"* {log_entry.message}")
 
-  def get_all_exceptions(self):
+  def get_all_exceptions(
+      self,
+  ) -> dict[type[Exception], dict[str, list[LogEntry]]]:
     return copy.deepcopy(self._rules_exc_logs)
 
-  def print_exceptions(self, severity, verbose):
+  def print_exceptions(self, severity: int | None, verbose: bool) -> None:
     """Print exceptions in decreasing order of severity."""
     exception_types = self._select_exception_types(severity)
     for e_type in reversed(exception_types):
@@ -185,11 +210,11 @@ class ExceptionListWrapper:
             self._print_exception_log(log_entry)
 
 
-def handled_severities():
+def handled_severities() -> tuple[type[ElectionException], ...]:
   return ExceptionListWrapper.SUPPORTED_SEVERITIES
 
 
-def supported_severities_mapping():
+def supported_severities_mapping() -> dict[str, int]:
   exp_severity_map = {}
   for n in range(len(ExceptionListWrapper.SUPPORTED_SEVERITIES)):
     exp_severity_map[
@@ -197,7 +222,7 @@ def supported_severities_mapping():
   return exp_severity_map
 
 
-def severities_names():
+def severities_names() -> list[str]:
   names = []
   for exp in ExceptionListWrapper.SUPPORTED_SEVERITIES:
     names.append(exp.description.lower())

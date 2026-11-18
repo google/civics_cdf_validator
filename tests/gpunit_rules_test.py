@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 """Unit test for rules.py."""
 
+from collections.abc import Iterator, Sequence
 import datetime
 import io
 import os
-from unittest.mock import call
-from unittest.mock import MagicMock
-from unittest.mock import patch
+from unittest import mock
 import zipfile
 
 from absl.testing import absltest
@@ -22,16 +21,15 @@ _CACHE_DIRECTORY = "~/.cache"
 
 def generate_config(
     country_code: str,
+    cache_directory: str = _CACHE_DIRECTORY,
 ) -> gpunit_rules.OcdIdsExtractor.OcdIdsExtractorConfig:
   return gpunit_rules.OcdIdsExtractor.OcdIdsExtractorConfig(
       country_code=country_code,
-      github_filename="country-{0}.csv".format(country_code),
-      local_filepath="{0}/country-{1}.csv".format(
-          _CACHE_DIRECTORY, country_code
-      ),
+      github_filename=f"country-{country_code}.csv",
+      local_filepath=f"{cache_directory}/country-{country_code}.csv",
       github_raw_url=(
-          "https://raw.github.com/opencivicdata/ocd-division-ids/master/identifiers/country-{0}.csv"
-          .format(country_code)
+          "https://raw.github.com/opencivicdata/ocd-division-ids/master/"
+          f"identifiers/country-{country_code}.csv"
       ),
   )
 
@@ -43,7 +41,7 @@ def rewind_clock(minutes: int) -> float:
 
 
 def generate_temp_file_path(filepath: str) -> str:
-  return "{0}.tmp".format(filepath)
+  return f"{filepath}.tmp"
 
 
 class _FakeOcdId:
@@ -54,6 +52,29 @@ class _FakeOcdId:
 
   def __str__(self) -> str:
     return self.ocd_id
+
+
+class _FakeResponse:
+  """Minimal stand-in for a requests.Response."""
+
+  def __init__(
+      self, chunks: Sequence[bytes] = (),
+      error: Exception | None = None,
+  ) -> None:
+    self._chunks = list(chunks)
+    self._error = error
+
+  def raise_for_status(self) -> None:
+    if self._error:
+      raise self._error
+
+  def iter_content(self, **unused_kwargs) -> Iterator[bytes]:
+    return iter(self._chunks)
+
+
+def write_file(filepath: str, content: str) -> None:
+  with open(filepath, encoding="utf-8", mode="w") as fd:
+    fd.write(content)
 
 
 def build_zip_bytes(entries: dict[str, str]) -> bytes:
@@ -242,33 +263,42 @@ class GpUnitOcdIdValidatorTest(absltest.TestCase):
   def test_initialize_from_empty_list_sets_empty_ocd_ids_without_extracting(
       self,
   ):
-    mock_extractor = MagicMock()
-    with patch.object(gpunit_rules, "OcdIdsExtractor", mock_extractor):
+    with mock.patch.object(
+        gpunit_rules.OcdIdsExtractor, "extract", autospec=True
+    ) as mock_extract:
       ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
           country_code=None,
           local_file=None,
           ocd_id_list=[],
       )
 
-    mock_extractor.assert_not_called()
+    mock_extract.assert_not_called()
     self.assertEmpty(ocd_id_validator.ocd_ids)
 
   def test_initialize_without_country_passes_none_to_extractor(self):
-    mock_extractor = MagicMock()
-    mock_extractor.return_value.extract.return_value = {
-        "ocd-division/country:de"
-    }
-    with patch.object(gpunit_rules, "OcdIdsExtractor", mock_extractor):
+    with mock.patch.object(
+        gpunit_rules.OcdIdsExtractor,
+        "extract",
+        autospec=True,
+        return_value={"ocd-division/country:de"},
+    ) as mock_extract:
       ocd_id_validator = gpunit_rules.GpUnitOcdIdValidator(
           country_code=None,
           local_file=None,
       )
 
-    mock_extractor.assert_called_once_with(None, None)
+    mock_extract.assert_called_once()
+    extractor = mock_extract.call_args.args[0]
+    self.assertIsNone(extractor.country_code)
+    self.assertIsNone(extractor.local_file)
     self.assertEqual(ocd_id_validator.ocd_ids, {"ocd-division/country:de"})
 
 
 class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
+
+  def _missing_cache_directory(self) -> str:
+    """Returns a path inside a temp directory that does not exist yet."""
+    return os.path.join(self.create_tempdir().full_path, "cache")
 
   def test_extractor_init_sets_default_values(self):
     extractor = gpunit_rules.OcdIdsExtractor()
@@ -277,16 +307,15 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
     self.assertIsNone(extractor.local_file)
 
   def test_extract_returns_ocd_ids(self):
-    expected_ocd_ids = {"ocdid1", "ocdid2"}
-    mock = MagicMock(return_value=expected_ocd_ids)
+    local_filepath = self.create_tempfile(
+        content="id\nocdid1\nocdid2\n"
+    ).full_path
     extractor = gpunit_rules.OcdIdsExtractor()
-    extractor._get_ocd_data = mock
-    extractor.local_file = "://file/path"
+    extractor.local_file = local_filepath
 
     actual_ocd_ids = extractor.extract()
 
-    mock.assert_called_once()
-    self.assertEqual(actual_ocd_ids, expected_ocd_ids)
+    self.assertEqual(actual_ocd_ids, {"ocdid1", "ocdid2"})
 
   @parameterized.named_parameters([
       (
@@ -297,19 +326,16 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
       ("_returns_empty", "name,sameAsNote\nUnited States,Other note\n", set()),
   ])
   def test_read_csv_returns_expected_set(self, csv_data, expected):
-    config = generate_config(_US_COUNTRY_CODE)
+    cache_directory = self.create_tempdir().full_path
+    config = generate_config(_US_COUNTRY_CODE, cache_directory)
+    write_file(config.local_filepath, csv_data)
     extractor = gpunit_rules.OcdIdsExtractor(
         country_code=_US_COUNTRY_CODE,
         local_file=None,
     )
-    mock_io_open = MagicMock(return_value=io.StringIO(csv_data))
 
-    with patch("io.open", mock_io_open):
-      actual = extractor._read_csv([config])
+    actual = extractor._read_csv([config])
 
-    mock_io_open.assert_called_once_with(
-        config.local_filepath, encoding="utf-8", mode="r"
-    )
     self.assertEqual(actual, expected)
 
   def test_download_data_downloads_from_github(self):
@@ -317,24 +343,20 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
         country_code=_US_COUNTRY_CODE,
         local_file=None,
     )
-    config = generate_config(_US_COUNTRY_CODE)
-    local_tmp_filepath = "{0}.tmp".format(config.local_filepath)
-    mock_io_open = MagicMock(
-        return_value=io.StringIO("id\nocd-division/country:us\n")
-    )
-    mock_request = MagicMock()
-    mock_copy = MagicMock()
-    mock_os_remove = MagicMock()
+    cache_directory = self.create_tempdir().full_path
+    config = generate_config(_US_COUNTRY_CODE, cache_directory)
+    response = _FakeResponse([b"id\nocd-division/country:us\n"])
 
-    with patch("requests.get", mock_request), patch(
-        "io.open", mock_io_open
-    ), patch("shutil.copy", mock_copy), patch("os.remove", mock_os_remove):
+    with mock.patch.object(
+        gpunit_rules.requests, "get", autospec=True, return_value=response
+    ) as mock_get:
       extractor._download_data([config])
 
-    mock_request.assert_called_once_with(config.github_raw_url)
-    mock_io_open.assert_called_once_with(local_tmp_filepath, mode="wb")
-    mock_copy.assert_called_once_with(local_tmp_filepath, config.local_filepath)
-    mock_os_remove.assert_called_once_with(local_tmp_filepath)
+    mock_get.assert_called_once_with(config.github_raw_url)
+    self.assertTrue(os.path.exists(config.local_filepath))
+    self.assertFalse(
+        os.path.exists(generate_temp_file_path(config.local_filepath))
+    )
 
   @parameterized.named_parameters([
       (
@@ -366,48 +388,33 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
         country_code=_US_COUNTRY_CODE,
         local_file=None,
     )
-    config = generate_config(_US_COUNTRY_CODE)
-    mock_os_path_exists = MagicMock(return_value=False)
+    config = generate_config(_US_COUNTRY_CODE, self.create_tempdir().full_path)
 
-    with patch("os.path.exists", mock_os_path_exists):
-      actual = extractor._check_cache_freshness([config])
+    actual = extractor._check_cache_freshness([config])
 
-    mock_os_path_exists.assert_called_once_with(config.local_filepath)
     self.assertEqual(actual, [config])
 
   @parameterized.named_parameters([
-      (
-          "_fresh_cache_file",
-          15,
-          [],
-      ),
-      (
-          "_stale_cache_file",
-          75,
-          [generate_config(_US_COUNTRY_CODE)],
-      ),
+      ("_fresh_cache_file", 15, False),
+      ("_stale_cache_file", 75, True),
   ])
   def test_check_cache_freshness_returns_expected(
-      self, rewind_in_minutes, expected
+      self, rewind_in_minutes, is_stale
   ):
     extractor = gpunit_rules.OcdIdsExtractor(
         country_code=_US_COUNTRY_CODE,
         local_file=None,
     )
-    config = generate_config(_US_COUNTRY_CODE)
-    mock_os_path_exists = MagicMock(return_value=True)
-    mock_os_path_getmtime = MagicMock(
-        return_value=rewind_clock(rewind_in_minutes)
+    config = generate_config(_US_COUNTRY_CODE, self.create_tempdir().full_path)
+    write_file(config.local_filepath, "id\n")
+    modification_timestamp = rewind_clock(rewind_in_minutes)
+    os.utime(
+        config.local_filepath, (modification_timestamp, modification_timestamp)
     )
 
-    with patch("os.path.exists", mock_os_path_exists), patch(
-        "os.path.getmtime", mock_os_path_getmtime
-    ):
-      actual = extractor._check_cache_freshness([config])
+    actual = extractor._check_cache_freshness([config])
 
-    mock_os_path_exists.assert_called_once_with(config.local_filepath)
-    mock_os_path_getmtime.assert_called_once_with(config.local_filepath)
-    self.assertEqual(actual, expected)
+    self.assertEqual(actual, [config] if is_stale else [])
 
   def test_extractor_config_is_immutable(self):
     config = generate_config(_US_COUNTRY_CODE)
@@ -427,13 +434,14 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
         country_code=_US_COUNTRY_CODE,
         local_file=None,
     )
-    mock_response = MagicMock()
-    mock_response.iter_content.return_value = [
+    response = _FakeResponse([
         b"id\n",
         b"ocd-division/country:us/state:fake\n",
-    ]
+    ])
 
-    with patch("requests.get", MagicMock(return_value=mock_response)):
+    with mock.patch.object(
+        gpunit_rules.requests, "get", autospec=True, return_value=response
+    ):
       extractor._download_data([config])
 
     with open(config.local_filepath, encoding="utf-8") as cache_file:
@@ -444,84 +452,69 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
     )
 
   @parameterized.named_parameters([
-      ("_exactly_one_hour_old_is_fresh", 3600, []),
-      (
-          "_just_over_one_hour_old_is_stale",
-          3601,
-          [generate_config(_US_COUNTRY_CODE)],
-      ),
+      ("_exactly_one_hour_old_is_fresh", 3600, False),
+      ("_just_over_one_hour_old_is_stale", 3601, True),
   ])
   @freezegun.freeze_time("2026-01-01 12:00:00")
   def test_check_cache_freshness_at_one_hour_boundary_returns_expected(
-      self, age_in_seconds, expected
+      self, age_in_seconds, is_stale
   ):
     extractor = gpunit_rules.OcdIdsExtractor(
         country_code=_US_COUNTRY_CODE,
         local_file=None,
     )
-    config = generate_config(_US_COUNTRY_CODE)
+    config = generate_config(_US_COUNTRY_CODE, self.create_tempdir().full_path)
+    write_file(config.local_filepath, "id\n")
     now_timestamp = datetime.datetime.now(datetime.timezone.utc).timestamp()
     modification_timestamp = now_timestamp - age_in_seconds
+    os.utime(
+        config.local_filepath, (modification_timestamp, modification_timestamp)
+    )
 
-    with patch("os.path.exists", MagicMock(return_value=True)), patch(
-        "os.path.getmtime", MagicMock(return_value=modification_timestamp)
-    ):
-      actual = extractor._check_cache_freshness([config])
+    actual = extractor._check_cache_freshness([config])
 
-    self.assertEqual(actual, expected)
+    self.assertEqual(actual, [config] if is_stale else [])
 
   def test_create_cache_directory_exists_does_not_create(self):
     extractor = gpunit_rules.OcdIdsExtractor(
         country_code=_US_COUNTRY_CODE,
         local_file=None,
     )
-    mock_os_path_exists = MagicMock(return_value=True)
-    mock_os_makedirs = MagicMock()
+    cache_directory = self.create_tempdir().full_path
 
-    with patch("os.path.exists", mock_os_path_exists), patch(
-        "os.makedirs", mock_os_makedirs
-    ):
-      extractor._create_cache(_CACHE_DIRECTORY)
+    with mock.patch.object(
+        gpunit_rules.os, "makedirs", autospec=True
+    ) as mock_makedirs:
+      extractor._create_cache(cache_directory)
 
-    mock_os_path_exists.assert_called_once_with(_CACHE_DIRECTORY)
-    mock_os_makedirs.assert_not_called()
+    mock_makedirs.assert_not_called()
 
   def test_create_cache_directory_missing_creates(self):
     extractor = gpunit_rules.OcdIdsExtractor(
         country_code=_US_COUNTRY_CODE,
         local_file=None,
     )
-    mock_os_path_exists = MagicMock(return_value=False)
-    mock_os_makedirs = MagicMock()
+    cache_directory = self._missing_cache_directory()
 
-    with patch("os.path.exists", mock_os_path_exists), patch(
-        "os.makedirs", mock_os_makedirs
-    ):
-      extractor._create_cache(_CACHE_DIRECTORY)
+    extractor._create_cache(cache_directory)
 
-    mock_os_path_exists.assert_called_once_with(_CACHE_DIRECTORY)
-    mock_os_makedirs.assert_called_once_with(_CACHE_DIRECTORY)
+    self.assertTrue(os.path.isdir(cache_directory))
 
   def test_get_ocd_data_with_local_file_returns_expected(self):
-    local_filepath = "://file/path"
+    local_filepath = self.create_tempfile(
+        content="id\nocd-division/country:us\n"
+    ).full_path
     extractor = gpunit_rules.OcdIdsExtractor(
         country_code=_US_COUNTRY_CODE,
         local_file=local_filepath,
     )
-    mock_os_path_expanduser = MagicMock(return_value=_CACHE_DIRECTORY)
-    mock_io_open = MagicMock(
-        return_value=io.StringIO("id\nocd-division/country:us\n")
-    )
 
-    with patch("os.path.expanduser", mock_os_path_expanduser), patch(
-        "io.open", mock_io_open
-    ):
+    with mock.patch.object(
+        gpunit_rules.os.path, "expanduser", autospec=True
+    ) as mock_expanduser:
       actual = extractor._get_ocd_data()
 
-    mock_os_path_expanduser.assert_not_called()
-    mock_io_open.assert_called_once_with(
-        local_filepath, encoding="utf-8", mode="r"
-    )
+    mock_expanduser.assert_not_called()
     self.assertEqual(actual, {"ocd-division/country:us"})
 
   def test_get_ocd_data_missing_cache_directory_returns_expected(self):
@@ -529,79 +522,39 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
         country_code=_EU_COUNTRY_CODE,
         local_file=None,
     )
-    configs = [generate_config(country) for country in extractor.EU_COUNTRIES]
-    mock_os_path_expanduser = MagicMock(return_value=_CACHE_DIRECTORY)
-    # Generate a False response for each EU country and an extra one for the
-    # cache directory check.
-    mock_os_path_exists = MagicMock(
-        side_effect=([False] * (len(extractor.EU_COUNTRIES) + 1))
-    )
-    mock_os_makedirs = MagicMock()
-    mock_request_get = MagicMock()
-    mock_io_open = MagicMock()
-    mock_copy = MagicMock()
-    mock_os_remove = MagicMock()
+    cache_directory = self._missing_cache_directory()
+    configs = [
+        generate_config(country, cache_directory)
+        for country in extractor.EU_COUNTRIES
+    ]
 
-    with patch("os.path.expanduser", mock_os_path_expanduser), patch(
-        "os.path.exists", mock_os_path_exists
-    ), patch("os.makedirs", mock_os_makedirs), patch(
-        "requests.get", mock_request_get
-    ), patch(
-        "io.open", mock_io_open
-    ), patch(
-        "shutil.copy", mock_copy
-    ), patch(
-        "os.remove", mock_os_remove
-    ):
+    with mock.patch.object(
+        gpunit_rules.os.path,
+        "expanduser",
+        autospec=True,
+        return_value=cache_directory,
+    ) as mock_expanduser, mock.patch.object(
+        gpunit_rules.requests,
+        "get",
+        autospec=True,
+        return_value=_FakeResponse([b"id\n"]),
+    ) as mock_get:
       actual = extractor._get_ocd_data()
 
-    mock_os_path_expanduser.assert_called_once_with(_CACHE_DIRECTORY)
-    # Confirm the cache directory is checked for existence and each EU country's
-    # cache file is checked for existence.
-    mock_os_path_exists.assert_has_calls(
-        [call(_CACHE_DIRECTORY)]
-        + [call(config.local_filepath) for config in configs],
-        any_order=True,
-    )
-    mock_os_makedirs.assert_called_once_with(_CACHE_DIRECTORY)
+    mock_expanduser.assert_called_once_with(_CACHE_DIRECTORY)
+    self.assertTrue(os.path.isdir(cache_directory))
     # Confirm all EU country's Github URLs are requested.
-    mock_request_get.assert_has_calls(
-        [call(config.github_raw_url) for config in configs], any_order=True
-    )
-    # Confirm all EU country's cache files are written to.
-    # First pass is for writing to the tmp file within _download_data. The
-    # second pass is for reading CSV files to combine into a single set within
-    # _read_csv.
-    first_pass_calls = [
-        call(generate_temp_file_path(config.local_filepath), mode="wb")
-        for config in configs
-    ]
-    second_pass_calls = [
-        call(config.local_filepath, encoding="utf-8", mode="r")
-        for config in configs
-    ]
-    mock_io_open.assert_has_calls(
-        first_pass_calls + second_pass_calls, any_order=True
-    )
-    # Confirm all EU country's temporary cache files are copied to CSV files.
-    mock_copy.assert_has_calls(
-        [
-            call(
-                generate_temp_file_path(config.local_filepath),
-                config.local_filepath,
-            )
-            for config in configs
-        ],
+    mock_get.assert_has_calls(
+        [mock.call(config.github_raw_url) for config in configs],
         any_order=True,
     )
-    # Confirm all EU country's cache files are removed.
-    mock_os_remove.assert_has_calls(
-        [
-            call(generate_temp_file_path(config.local_filepath))
-            for config in configs
-        ],
-        any_order=True,
-    )
+    # Confirm all EU country's cache files are written and the temporary
+    # files are removed.
+    for config in configs:
+      self.assertTrue(os.path.exists(config.local_filepath))
+      self.assertFalse(
+          os.path.exists(generate_temp_file_path(config.local_filepath))
+      )
     self.assertEmpty(actual)
 
   def test_get_ocd_data_without_country_downloads_archive_and_extracts_csvs(
@@ -623,17 +576,20 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
         ),
         "ocd-division-ids-master/README.md": "ignored",
     })
-    mock_response = MagicMock()
-    mock_response.iter_content.return_value = [archive_bytes]
-    mock_request_get = MagicMock(return_value=mock_response)
+    response = _FakeResponse([archive_bytes])
     extractor = gpunit_rules.OcdIdsExtractor(
         country_code=None,
         local_file=None,
     )
 
-    with patch("os.path.expanduser", MagicMock(return_value=cache_directory)), (
-        patch("requests.get", mock_request_get)
-    ):
+    with mock.patch.object(
+        gpunit_rules.os.path,
+        "expanduser",
+        autospec=True,
+        return_value=cache_directory,
+    ), mock.patch.object(
+        gpunit_rules.requests, "get", autospec=True, return_value=response
+    ) as mock_request_get:
       actual = extractor._get_ocd_data()
 
     mock_request_get.assert_called_once_with(
@@ -671,15 +627,19 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
         mode="w",
     ) as fd:
       fd.write("id\nocd-division/country:de\n")
-    mock_request_get = MagicMock()
     extractor = gpunit_rules.OcdIdsExtractor(
         country_code="",
         local_file=None,
     )
 
-    with patch("os.path.expanduser", MagicMock(return_value=cache_directory)), (
-        patch("requests.get", mock_request_get)
-    ):
+    with mock.patch.object(
+        gpunit_rules.os.path,
+        "expanduser",
+        autospec=True,
+        return_value=cache_directory,
+    ), mock.patch.object(
+        gpunit_rules.requests, "get", autospec=True
+    ) as mock_request_get:
       actual = extractor._get_ocd_data()
 
     mock_request_get.assert_not_called()
@@ -709,17 +669,20 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
             "id\nocd-division/country:de/fresh\n"
         ),
     })
-    mock_response = MagicMock()
-    mock_response.iter_content.return_value = [fresh_archive_bytes]
-    mock_request_get = MagicMock(return_value=mock_response)
+    response = _FakeResponse([fresh_archive_bytes])
     extractor = gpunit_rules.OcdIdsExtractor(
         country_code=None,
         local_file=None,
     )
 
-    with patch("os.path.expanduser", MagicMock(return_value=cache_directory)), (
-        patch("requests.get", mock_request_get)
-    ):
+    with mock.patch.object(
+        gpunit_rules.os.path,
+        "expanduser",
+        autospec=True,
+        return_value=cache_directory,
+    ), mock.patch.object(
+        gpunit_rules.requests, "get", autospec=True, return_value=response
+    ) as mock_request_get:
       actual = extractor._get_ocd_data()
 
     mock_request_get.assert_called_once_with(
@@ -739,12 +702,13 @@ class OcdIdsExtractorTest(parameterized.TestCase, absltest.TestCase):
         country_code=_US_COUNTRY_CODE,
         local_file=None,
     )
-    mock_response = MagicMock()
-    mock_response.raise_for_status.side_effect = (
-        gpunit_rules.requests.HTTPError("500 Server Error")
+    response = _FakeResponse(
+        error=gpunit_rules.requests.HTTPError("500 Server Error")
     )
 
-    with patch("requests.get", MagicMock(return_value=mock_response)):
+    with mock.patch.object(
+        gpunit_rules.requests, "get", autospec=True, return_value=response
+    ):
       with self.assertRaises(gpunit_rules.requests.HTTPError):
         extractor._download_data([config])
 

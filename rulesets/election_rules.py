@@ -95,7 +95,7 @@ class PartisanPrimary(base.BaseRule):
 
   election_type = None
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
+  def __init__(self, election_tree, schema_tree=None, **kwargs):
     super(PartisanPrimary, self).__init__(election_tree, schema_tree, **kwargs)
     # There can only be one election element in a file.
     election_elem = self.election_tree.find("Election")
@@ -177,10 +177,8 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
   can't span unrelated contests.
   """
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
-    super(CandidatesReferencedInRelatedContests, self).__init__(
-        election_tree, schema_tree, **kwargs
-    )
+  def __init__(self, *args, **kwargs):
+    super(CandidatesReferencedInRelatedContests, self).__init__(*args, **kwargs)
     self.error_log = []
     self.contest_graph = networkx.Graph()
 
@@ -718,7 +716,7 @@ class VoteCountTypesCoherency(base.BaseRule):
         raise loggers.ElectionError.from_message(msg, [element])
 
 
-class VoteCountValidSeatsDeltaTypes(base.BaseRule):
+class VoteCountValidSeatsDeltaTypes(base.SchemaRule):
   """Ensure VoteCount seats delta types are valid."""
 
   def elements(self):

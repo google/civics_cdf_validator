@@ -4,7 +4,6 @@
 import datetime
 import hashlib
 import io
-from unittest.mock import MagicMock
 
 from absl.testing import absltest
 from civics_cdf_validator import loggers
@@ -30,7 +29,7 @@ class PersonHasOfficeTest(absltest.TestCase):
   def test_person_ids_from_person_collection_succeeds(self):
     root_string = self._base_xml.format("")
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = officeholder_rules.PersonHasOffice(election_tree, None)
+    validator = officeholder_rules.PersonHasOffice(election_tree)
     reference_values = validator._gather_reference_values()
 
     self.assertEqual(reference_values, {"p1", "p2", "p3"})
@@ -73,7 +72,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     """
     root_string = self._base_xml.format(defined_collections)
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = officeholder_rules.PersonHasOffice(election_tree, None)
+    validator = officeholder_rules.PersonHasOffice(election_tree)
     defined_values = validator._gather_defined_values()
     expected_defined_values = {"p1", "p2", "p3", "p4", "p5", "p6"}
 
@@ -109,14 +108,14 @@ class PersonHasOfficeTest(absltest.TestCase):
         bytes(self._base_xml.format(office_party_collections).encode())
     )
     election_tree = etree.parse(root_string)
-    validator = officeholder_rules.PersonHasOffice(election_tree, None)
+    validator = officeholder_rules.PersonHasOffice(election_tree)
 
     validator.check()
 
   def test_no_roots_succeeds(self):
     no_root_string = io.BytesIO(b"<OfficeHolderTenureCollection/>")
     election_tree = etree.parse(no_root_string)
-    validator = officeholder_rules.PersonHasOffice(election_tree, None)
+    validator = officeholder_rules.PersonHasOffice(election_tree)
 
     validator.check()
 
@@ -127,7 +126,7 @@ class PersonHasOfficeTest(absltest.TestCase):
       </xml>
     """)
     election_tree = etree.parse(no_collection_string)
-    validator = officeholder_rules.PersonHasOffice(election_tree, None)
+    validator = officeholder_rules.PersonHasOffice(election_tree)
 
     validator.check()
 
@@ -149,7 +148,7 @@ class PersonHasOfficeTest(absltest.TestCase):
         bytes(self._base_xml.format(office_collection).encode())
     )
     election_tree = etree.parse(root_string)
-    validator = officeholder_rules.PersonHasOffice(election_tree, None)
+    validator = officeholder_rules.PersonHasOffice(election_tree)
 
     validator.check()
 
@@ -179,7 +178,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     )
     election_tree = etree.parse(root_string)
 
-    officeholder_rules.PersonHasOffice(election_tree, None).check()
+    officeholder_rules.PersonHasOffice(election_tree).check()
 
   def test_person_not_referenced_by_an_office_holder_tenure_fails(self):
     office_collection = """
@@ -198,7 +197,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     election_tree = etree.parse(root_string)
 
     with self.assertRaises(loggers.ElectionError) as context:
-      officeholder_rules.PersonHasOffice(election_tree, None).check()
+      officeholder_rules.PersonHasOffice(election_tree).check()
     self.assertIn(
         "No defined data for p3 found in the feed.",
         context.exception.log_entry[0].message,
@@ -218,7 +217,7 @@ class PersonHasOfficeTest(absltest.TestCase):
         bytes(self._base_xml.format(office_collection).encode())
     )
     election_tree = etree.parse(root_string)
-    validator = officeholder_rules.PersonHasOffice(election_tree, None)
+    validator = officeholder_rules.PersonHasOffice(election_tree)
 
     validator.check()
 
@@ -246,7 +245,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     )
     election_tree = etree.parse(root_string)
 
-    officeholder_rules.PersonHasOffice(election_tree, None).check()
+    officeholder_rules.PersonHasOffice(election_tree).check()
 
   def test_person_not_referenced_by_an_office_fails(self):
     office_collection = """
@@ -265,7 +264,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     election_tree = etree.parse(root_string)
 
     with self.assertRaises(loggers.ElectionError) as context:
-      officeholder_rules.PersonHasOffice(election_tree, None).check()
+      officeholder_rules.PersonHasOffice(election_tree).check()
     self.assertIn(
         "No defined data for p3 found in the feed.",
         context.exception.log_entry[0].message,
@@ -288,7 +287,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     election_tree = etree.parse(root_string)
 
     with self.assertRaises(loggers.ElectionError) as context:
-      officeholder_rules.PersonHasOffice(election_tree, None).check()
+      officeholder_rules.PersonHasOffice(election_tree).check()
     self.assertEqual(
         context.exception.log_entry[0].message,
         "Office has 2 OfficeHolders. Must have exactly one.",
@@ -317,7 +316,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     """
     root_string = self._base_xml.format(defined_collections)
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = officeholder_rules.PersonHasOffice(election_tree, None)
+    validator = officeholder_rules.PersonHasOffice(election_tree)
 
     defined_values = validator._gather_defined_values()
 
@@ -347,7 +346,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     """
     root_string = self._base_xml.format(defined_collections)
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = officeholder_rules.PersonHasOffice(election_tree, None)
+    validator = officeholder_rules.PersonHasOffice(election_tree)
 
     with self.assertRaises(loggers.ElectionError) as context:
       validator.check()
@@ -373,7 +372,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     """
     root_string = self._base_xml.format(defined_collections)
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = officeholder_rules.PersonHasOffice(election_tree, None)
+    validator = officeholder_rules.PersonHasOffice(election_tree)
 
     defined_values = validator._gather_defined_values()
 
@@ -394,7 +393,7 @@ class PersonHasOfficeTest(absltest.TestCase):
     """
     root_string = self._base_xml.format(defined_collections)
     election_tree = etree.ElementTree(etree.fromstring(root_string))
-    validator = officeholder_rules.PersonHasOffice(election_tree, None)
+    validator = officeholder_rules.PersonHasOffice(election_tree)
 
     defined_values = validator._gather_defined_values()
 
@@ -420,9 +419,7 @@ class OfficeSelectionMethodMatchTest(absltest.TestCase):
       </Report>
     """
     element_tree = etree.fromstring(root_string)
-    self.validator = officeholder_rules.OfficeSelectionMethodMatch(
-        element_tree, None
-    )
+    self.validator = officeholder_rules.OfficeSelectionMethodMatch(element_tree)
 
   def test_office_selection_method_match_elements_succeeds(self):
     self.assertEqual(self.validator.elements(), ["OfficeHolderTenure"])
@@ -458,7 +455,7 @@ class OfficeHolderTenureTermDatesTest(absltest.TestCase):
 
   def setUp(self):
     super(OfficeHolderTenureTermDatesTest, self).setUp()
-    self.validator = officeholder_rules.OfficeHolderTenureTermDates(None, None)
+    self.validator = officeholder_rules.OfficeHolderTenureTermDates()
 
   def test_correct_elements_succeeds(self):
     self.assertEqual(self.validator.elements(), ["OfficeHolderTenure"])
@@ -535,7 +532,7 @@ class OfficeTermDatesTest(absltest.TestCase):
       </Report>
     """
     element_tree = etree.fromstring(root_string)
-    self.date_validator = officeholder_rules.OfficeTermDates(element_tree, None)
+    self.date_validator = officeholder_rules.OfficeTermDates(element_tree)
     root_string = """
       <Report>
         <OfficeHolderTenureCollection>
@@ -544,7 +541,7 @@ class OfficeTermDatesTest(absltest.TestCase):
     """
     element_tree = etree.fromstring(root_string)
     self.post_office_split_date_validator = officeholder_rules.OfficeTermDates(
-        element_tree, None
+        element_tree
     )
     self.office_string = """
       <Office objectId="off1">
@@ -753,7 +750,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionInfo) as context:
       officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
-          election_tree, None
+          election_tree
       ).check()
     self.assertEqual(
         context.exception.log_entry[0].message,
@@ -786,7 +783,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionInfo) as context:
       officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
-          election_tree, None
+          election_tree
       ).check()
     self.assertEqual(
         context.exception.log_entry[0].message,
@@ -817,7 +814,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionInfo) as context:
       officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
-          election_tree, None
+          election_tree
       ).check()
     self.assertEqual(
         context.exception.log_entry[0].message,
@@ -846,7 +843,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
 
     with self.assertRaises(loggers.ElectionInfo) as context:
       officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
-          election_tree, None
+          election_tree
       ).check()
     self.assertEqual(
         context.exception.log_entry[0].message,
@@ -859,7 +856,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     )
     with self.assertRaises(loggers.ElectionInfo) as context:
       officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
-          election_tree, None
+          election_tree
       ).check()
     self.assertEqual(
         context.exception.log_entry[1].message,
@@ -890,7 +887,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     election_tree = etree.fromstring(office_string)
 
     officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
-        election_tree, None
+        election_tree
     ).check()
 
   @freezegun.freeze_time("2022-01-01")
@@ -903,7 +900,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     election_tree = etree.fromstring(test_string)
 
     officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
-        election_tree, None
+        election_tree
     ).check()
 
   @freezegun.freeze_time("2022-01-01")
@@ -916,7 +913,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     election_tree = etree.fromstring(test_string)
     validator = (
         officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
-            election_tree, None
+            election_tree
         )
     )
 
@@ -942,7 +939,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     election_tree = etree.fromstring(test_string)
     validator = (
         officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
-            election_tree, None
+            election_tree
         )
     )
 
@@ -987,7 +984,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     election_tree = etree.fromstring(test_string)
     validator = (
         officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
-            election_tree, None
+            election_tree
         )
     )
 
@@ -1026,7 +1023,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     election_tree = etree.fromstring(test_string)
     validator = (
         officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
-            election_tree, None
+            election_tree
         )
     )
 
@@ -1058,7 +1055,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     election_tree = etree.fromstring(office_string)
     validator = (
         officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
-            election_tree, None
+            election_tree
         )
     )
 
@@ -1083,7 +1080,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     election_tree = etree.fromstring(office_string)
     validator = (
         officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
-            election_tree, None
+            election_tree
         )
     )
 
@@ -1108,7 +1105,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     election_tree = etree.fromstring(office_string)
     validator = (
         officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
-            election_tree, None
+            election_tree
         )
     )
 
@@ -1137,7 +1134,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDateTest(absltest.TestCase):
     election_tree = etree.fromstring(test_string)
     validator = (
         officeholder_rules.RemovePersonAndOfficeHolderId60DaysAfterEndDate(
-            election_tree, None
+            election_tree
         )
     )
 
@@ -1149,9 +1146,7 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
   def setUp(self):
     super(UniqueStartDatesForOfficeRoleAndJurisdictionTest, self).setUp()
     self.validator = (
-        officeholder_rules.UniqueStartDatesForOfficeRoleAndJurisdiction(
-            None, None
-        )
+        officeholder_rules.UniqueStartDatesForOfficeRoleAndJurisdiction()
     )
 
   _office_string = """
@@ -1459,56 +1454,58 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
   def test_duplicate_start_dates_for_jurisdiction_and_role_succeeds(
       self,
   ):
-    start_counts = {
-        "abcdefg": {
-            "jurisdiction_id": "ru-gpu1",
-            "office_role": "Upper house",
-            "start_dates": {
-                "2020-01-01": {etree.fromstring("<Office></Office>")},
-            },
-        },
-        "zyxwtuv": {
-            "jurisdiction_id": "ru-gpu2",
-            "office_role": "Lower house",
-            "start_dates": {
-                "2020-01-02": {etree.fromstring("<Office></Office>")},
-            },
-        },
-    }
-    mock_counts = MagicMock(return_value=start_counts)
-    self.validator._count_start_dates_by_jurisdiction_role = mock_counts
-    office_coll = etree.fromstring("<OfficeCollection></OfficeCollection>")
+    office_collection = etree.fromstring("""
+      <OfficeCollection>
+        <Office>
+          <Term>
+            <StartDate>2020-01-01</StartDate>
+          </Term>
+          <AdditionalData type="jurisdiction-id">ru-gpu1</AdditionalData>
+          <AdditionalData type="office-role">Upper house</AdditionalData>
+        </Office>
+        <Office>
+          <Term>
+            <StartDate>2020-01-02</StartDate>
+          </Term>
+          <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          <AdditionalData type="office-role">Lower house</AdditionalData>
+        </Office>
+      </OfficeCollection>
+    """)
 
-    self.validator.check(office_coll)
+    self.validator.check(office_collection)
 
   def test_all_start_dates_for_jurisdiction_and_role_same_warns(
       self,
   ):
-    start_counts = {
-        "abcdefg": {
-            "jurisdiction_id": "ru-gpu1",
-            "office_role": "Upper house",
-            "start_dates": {
-                "2020-01-01": {etree.fromstring("<Office></Office>")},
-            },
-        },
-        "zyxwtuv": {
-            "jurisdiction_id": "ru-gpu2",
-            "office_role": "Lower house",
-            "start_dates": {
-                "2020-01-02": {
-                    etree.fromstring("<Office></Office>"),
-                    etree.fromstring("<Office></Office>"),
-                },
-            },
-        },
-    }
-    mock_counts = MagicMock(return_value=start_counts)
-    self.validator._count_start_dates_by_jurisdiction_role = mock_counts
-    office_coll = etree.fromstring("<OfficeCollection></OfficeCollection>")
+    office_collection = etree.fromstring("""
+      <OfficeCollection>
+        <Office>
+          <Term>
+            <StartDate>2020-01-01</StartDate>
+          </Term>
+          <AdditionalData type="jurisdiction-id">ru-gpu1</AdditionalData>
+          <AdditionalData type="office-role">Upper house</AdditionalData>
+        </Office>
+        <Office>
+          <Term>
+            <StartDate>2020-01-02</StartDate>
+          </Term>
+          <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          <AdditionalData type="office-role">Lower house</AdditionalData>
+        </Office>
+        <Office>
+          <Term>
+            <StartDate>2020-01-02</StartDate>
+          </Term>
+          <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          <AdditionalData type="office-role">Lower house</AdditionalData>
+        </Office>
+      </OfficeCollection>
+    """)
 
     with self.assertRaises(loggers.ElectionWarning) as context:
-      self.validator.check(office_coll)
+      self.validator.check(office_collection)
 
     self.assertEqual(
         context.exception.log_entry[0].message,
@@ -1522,31 +1519,40 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
   def test_allows_duplicates_as_long_as_duplicated_date_is_not_only_date_succeeds(
       self,
   ):
-    start_counts = {
-        "abcdefg": {
-            "jurisdiction_id": "ru-gpu1",
-            "office_role": "Upper house",
-            "start_dates": {
-                "2020-01-01": {etree.fromstring("<Office></Office>")},
-            },
-        },
-        "zyxwtuv": {
-            "jurisdiction_id": "ru-gpu2",
-            "office_role": "Lower house",
-            "start_dates": {
-                "2020-01-02": {
-                    etree.fromstring("<Office></Office>"),
-                    etree.fromstring("<Office></Office>"),
-                },
-                "2020-01-04": {etree.fromstring("<Office></Office>")},
-            },
-        },
-    }
-    mock_counts = MagicMock(return_value=start_counts)
-    self.validator._count_start_dates_by_jurisdiction_role = mock_counts
-    office_coll = etree.fromstring("<OfficeCollection></OfficeCollection>")
+    office_collection = etree.fromstring("""
+      <OfficeCollection>
+        <Office>
+          <Term>
+            <StartDate>2020-01-01</StartDate>
+          </Term>
+          <AdditionalData type="jurisdiction-id">ru-gpu1</AdditionalData>
+          <AdditionalData type="office-role">Upper house</AdditionalData>
+        </Office>
+        <Office>
+          <Term>
+            <StartDate>2020-01-02</StartDate>
+          </Term>
+          <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          <AdditionalData type="office-role">Lower house</AdditionalData>
+        </Office>
+        <Office>
+          <Term>
+            <StartDate>2020-01-02</StartDate>
+          </Term>
+          <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          <AdditionalData type="office-role">Lower house</AdditionalData>
+        </Office>
+        <Office>
+          <Term>
+            <StartDate>2020-01-04</StartDate>
+          </Term>
+          <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          <AdditionalData type="office-role">Lower house</AdditionalData>
+        </Office>
+      </OfficeCollection>
+    """)
 
-    self.validator.check(office_coll)
+    self.validator.check(office_collection)
 
   @freezegun.freeze_time("2022-01-01")
   def test_same_start_dates_for_offices_with_past_end_dates_succeeds(self):

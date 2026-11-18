@@ -15,6 +15,7 @@
 
 from __future__ import print_function
 
+from lxml import etree
 import pycountry
 
 
@@ -27,7 +28,7 @@ _IDENTIFIER_TYPES = frozenset(
 )
 
 
-def is_xml_true(element):
+def is_xml_true(element: etree._Element | None) -> bool:
   return (
       element_has_text(element)
       and element.text.strip().lower() in _XML_TRUE_VALUES
@@ -35,8 +36,11 @@ def is_xml_true(element):
 
 
 def get_external_id_values(
-    element, value_type, return_elements=False, search_subelements=True
-):
+    element: etree._Element | etree._ElementTree,
+    value_type: str,
+    return_elements: bool = False,
+    search_subelements: bool = True,
+) -> list[str] | list[etree._Element]:
   """Helper to gather all Values of external ids for a given type.
 
   If search_subelements is True, will search all subelements, if False, will
@@ -87,9 +91,11 @@ def get_external_id_values(
   return values
 
 
-def get_additional_type_values(element, value_type, return_elements=False):
+def get_additional_type_values(
+    element: etree._Element, value_type: str, return_elements: bool = False
+) -> list[str] | list[etree._Element]:
   """Helper to gather all nested additional type values for a given type."""
-  elements = element.findall(".//AdditionalData[@type='{}']".format(value_type))
+  elements = element.findall(f".//AdditionalData[@type='{value_type}']")
   if not return_elements:
     return [
         val.text
@@ -99,7 +105,9 @@ def get_additional_type_values(element, value_type, return_elements=False):
   return elements
 
 
-def get_entity_info_for_value_type(element, info_type, return_elements=False):
+def get_entity_info_for_value_type(
+    element: etree._Element, info_type: str, return_elements: bool = False
+) -> list[str] | list[etree._Element]:
   info_collection = get_additional_type_values(
       element, info_type, return_elements
   )
@@ -109,7 +117,9 @@ def get_entity_info_for_value_type(element, info_type, return_elements=False):
   return info_collection
 
 
-def get_language_to_text_map(element):
+def get_language_to_text_map(
+    element: etree._Element | None,
+) -> dict[str, list[str]]:
   """Return a map of languages to text in an InternationalizedText element."""
   language_map = {}
   if element is None:
@@ -130,7 +140,7 @@ def get_language_to_text_map(element):
   return language_map
 
 
-def element_has_text(element):
+def element_has_text(element: etree._Element | None) -> bool:
   return (
       element is not None
       and element.text is not None
@@ -138,7 +148,7 @@ def element_has_text(element):
   )
 
 
-def country_code_is_valid(country_code):
+def country_code_is_valid(country_code: str) -> bool:
   # EU is part of ISO 3166/MA
   return (
       country_code.lower() == "eu"

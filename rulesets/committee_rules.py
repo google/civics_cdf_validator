@@ -21,15 +21,16 @@ from civics_cdf_validator import base
 from civics_cdf_validator import loggers
 from civics_cdf_validator.rulesets import common_rules
 from civics_cdf_validator.rulesets import rule_util
+from lxml import etree
 
 
 class CommitteeClassificationEndDateOccursAfterStartDate(base.DateRule):
   """CommitteeClassification elements should have end dates that occur after the start dates."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["CommitteeClassification"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
     self.gather_dates(element)
 
@@ -42,10 +43,10 @@ class CommitteeClassificationEndDateOccursAfterStartDate(base.DateRule):
 class AffiliationEndDateOccursAfterStartDate(base.DateRule):
   """Affiliation elements should have end dates that occur after the start dates."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Affiliation"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
     self.gather_dates(element)
 
@@ -58,15 +59,15 @@ class AffiliationEndDateOccursAfterStartDate(base.DateRule):
 class EinMatchesFormat(base.BaseRule):
   """EIN id should be in the following format: XX-XXXXXXX."""
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
-    super(EinMatchesFormat, self).__init__(election_tree, schema_tree, **kwargs)
+  def __init__(self, *args, **kwargs) -> None:
+    super(EinMatchesFormat, self).__init__(*args, **kwargs)
     regex = r"\d{2}(-\d{7})?"
     self.ein_id_matcher = re.compile(regex, flags=re.U)
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Committee"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     external_identifiers = element.find("ExternalIdentifiers")
     if external_identifiers is not None:
       ein_ids = rule_util.get_external_id_values(external_identifiers, "ein")
@@ -74,7 +75,7 @@ class EinMatchesFormat(base.BaseRule):
         e_id = ein_ids.pop()
         if not self.ein_id_matcher.match(e_id):
           raise loggers.ElectionError.from_message(
-              "EIN id '{}' is not in the correct format.".format(e_id),
+              f"EIN id '{e_id}' is not in the correct format.",
               [element],
           )
 
@@ -82,10 +83,10 @@ class EinMatchesFormat(base.BaseRule):
 class AffiliationHasEitherPartyOrPerson(base.BaseRule):
   """Affiliation should contain either a Party or a Person objectId."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Affiliation"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     party_id = element.find("PartyId")
     person_id = element.find("PersonId")
     if not ((party_id is None) ^ (person_id is None)):
