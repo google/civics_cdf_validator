@@ -258,7 +258,7 @@ def filter_all_rules_using_user_arg(rules_allowlist, rule_set, rules_blocklist):
     if rule_set == rules.RuleSet.ELECTION:
       rule_names = [rule.__name__ for rule in rules.ELECTION_RULES]
     elif rule_set == rules.RuleSet.ELECTION_RESULTS:
-      rule_names = [rule.__name__ for rule in rules.ELECTION_RULES]
+      rule_names = [rule.__name__ for rule in rules.ELECTION_RESULTS_RULES]
     elif rule_set == rules.RuleSet.OFFICEHOLDER:
       rule_names = [rule.__name__ for rule in rules.OFFICEHOLDER_RULES]
     elif rule_set == rules.RuleSet.COMMITTEE:

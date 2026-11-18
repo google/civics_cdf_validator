@@ -97,6 +97,138 @@ class BaseRuleTest(absltest.TestCase):
     self.assertFalse(hasattr(validator, "unknown_option"))
     self.assertIsInstance(context.exception, loggers.ElectionException)
 
+  def test_get_all_subtypes_returns_subtypes_at_any_depth(self):
+    schema_string = """
+      <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:complexType abstract="true" name="Contest">
+          <xs:sequence>
+            <xs:element name="Name" type="xs:string"/>
+          </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="BallotMeasureContest">
+          <xs:complexContent>
+            <xs:extension base="Contest"/>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="CandidateContest">
+          <xs:complexContent>
+            <xs:extension base="Contest"/>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="RetentionContest">
+          <xs:complexContent>
+            <xs:extension base="BallotMeasureContest"/>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="ReportingUnit">
+          <xs:complexContent>
+            <xs:extension base="GpUnit"/>
+          </xs:complexContent>
+        </xs:complexType>
+      </xs:schema>
+    """
+    validator = base.BaseRule(schema_tree=etree.fromstring(schema_string))
+
+    subtypes = validator.get_all_subtypes("Contest")
+
+    self.assertEqual(
+        subtypes,
+        {"BallotMeasureContest", "CandidateContest", "RetentionContest"},
+    )
+
+  def test_get_all_subtypes_without_subtypes_returns_empty_set(self):
+    schema_string = """
+      <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:complexType name="Contest">
+          <xs:sequence>
+            <xs:element name="Name" type="xs:string"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:schema>
+    """
+    validator = base.BaseRule(schema_tree=etree.fromstring(schema_string))
+
+    subtypes = validator.get_all_subtypes("Contest")
+
+    self.assertEmpty(subtypes)
+
+  def test_get_all_subtypes_with_cycle_returns_each_subtype_once(self):
+    schema_string = """
+      <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:complexType name="Contest">
+          <xs:sequence>
+            <xs:element name="Name" type="xs:string"/>
+          </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="FirstContest">
+          <xs:complexContent>
+            <xs:extension base="SecondContest"/>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="SecondContest">
+          <xs:complexContent>
+            <xs:extension base="FirstContest"/>
+          </xs:complexContent>
+        </xs:complexType>
+      </xs:schema>
+    """
+    validator = base.BaseRule(schema_tree=etree.fromstring(schema_string))
+
+    subtypes = validator.get_all_subtypes("FirstContest")
+
+    self.assertEqual(subtypes, {"FirstContest", "SecondContest"})
+
+  def test_get_all_subtypes_skips_types_without_name_or_base(self):
+    schema_string = """
+      <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:complexType name="Contest">
+          <xs:sequence>
+            <xs:element name="Name" type="xs:string"/>
+          </xs:sequence>
+        </xs:complexType>
+        <xs:complexType>
+          <xs:complexContent>
+            <xs:extension base="Contest"/>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="CandidateContest">
+          <xs:complexContent>
+            <xs:extension base="Contest"/>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="PartyContest">
+          <xs:complexContent>
+            <xs:extension/>
+          </xs:complexContent>
+        </xs:complexType>
+      </xs:schema>
+    """
+    validator = base.BaseRule(schema_tree=etree.fromstring(schema_string))
+
+    subtypes = validator.get_all_subtypes("Contest")
+
+    self.assertEqual(subtypes, {"CandidateContest"})
+
+
+class SchemaRuleTest(absltest.TestCase):
+
+  def test_with_schema_tree_succeeds(self):
+    schema_tree = etree.fromstring(
+        b'<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"/>'
+    )
+
+    validator = base.SchemaRule(schema_tree=schema_tree)
+
+    self.assertIs(validator.schema_tree, schema_tree)
+
+  def test_without_schema_tree_raises_value_error(self):
+    with self.assertRaises(ValueError) as context:
+      base.SchemaRule()
+
+    self.assertEqual(
+        str(context.exception), "SchemaRule requires a schema_tree."
+    )
+
 
 class ValidReferenceRuleTest(absltest.TestCase):
 

@@ -12,6 +12,7 @@ _EXCLUDED_BASE_OR_DISABLED_RULES = frozenset({
     base.ValidReferenceRule,
     base.DateRule,
     base.MissingFieldRule,
+    base.SchemaRule,
     common_rules.ValidatePartyCollection,
     common_rules.UnreferencedEntitiesBase,
     # TODO(b/555757644): Reenable this rule once we are ready to enforce it.

@@ -468,7 +468,7 @@ class FilterAllRulesUsingUserArgTest(parameterized.TestCase):
       (
           "election_results",
           rules.RuleSet.ELECTION_RESULTS,
-          rules.ELECTION_RULES,
+          rules.ELECTION_RESULTS_RULES,
       ),
       ("officeholder", rules.RuleSet.OFFICEHOLDER, rules.OFFICEHOLDER_RULES),
       ("committee", rules.RuleSet.COMMITTEE, rules.COMMITTEE_RULES),

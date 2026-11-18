@@ -16,6 +16,7 @@ limitations under the License.
 
 from __future__ import print_function
 
+import collections
 from collections.abc import Set
 import datetime
 import functools
@@ -110,6 +111,40 @@ class BaseRule(SchemaHandler):
 
   def get_element_names_for_type(self, element_type: str) -> set[str]:
     return self.get_element_names_for_types({element_type})
+
+  def get_all_subtypes(self, base_type: str) -> set[str]:
+    """Returns every schema type that extends base_type, at any depth."""
+    direct_subtypes = collections.defaultdict(set)
+    for complex_type in self.schema_tree.iterfind(
+        f"{{{self._XSCHEMA_NAMESPACE}}}complexType"
+    ):
+      extension = complex_type.find(
+          f"*/{{{self._XSCHEMA_NAMESPACE}}}extension"
+      )
+      if extension is None:
+        continue
+      parent_type = extension.get("base")
+      subtype = complex_type.get("name")
+      if parent_type and subtype:
+        direct_subtypes[parent_type].add(subtype)
+
+    subtypes = set()
+    types_to_visit = list(direct_subtypes[base_type])
+    while types_to_visit:
+      subtype = types_to_visit.pop()
+      if subtype not in subtypes:
+        subtypes.add(subtype)
+        types_to_visit.extend(direct_subtypes[subtype])
+    return subtypes
+
+
+class SchemaRule(BaseRule):
+  """Rule that needs the schema tree to be present."""
+
+  def __init__(self, *args, **kwargs):
+    super(SchemaRule, self).__init__(*args, **kwargs)
+    if self.schema_tree is None:
+      raise ValueError(f"{type(self).__name__} requires a schema_tree.")
 
 
 class TreeRule(BaseRule):
