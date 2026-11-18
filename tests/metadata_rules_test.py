@@ -13,7 +13,7 @@ class FeedTypeHasValidFeedLongevityTest(absltest.TestCase):
 
   def setUp(self):
     super(FeedTypeHasValidFeedLongevityTest, self).setUp()
-    self.validator = metadata_rules.FeedTypeHasValidFeedLongevity(None, None)
+    self.validator = metadata_rules.FeedTypeHasValidFeedLongevity()
 
   def test_feed_with_valid_type_and_longevity_succeeds(self):
     feed_string = """
@@ -65,7 +65,7 @@ class FeedIdsAreUniqueTest(absltest.TestCase):
 
   def setUp(self):
     super(FeedIdsAreUniqueTest, self).setUp()
-    self.validator = metadata_rules.FeedIdsAreUnique(None, None)
+    self.validator = metadata_rules.FeedIdsAreUnique()
 
   def test_unique_feed_ids_succeeds(self):
     feed_collection_string = """
@@ -130,7 +130,7 @@ class SourceDirPathsAreUniqueTest(absltest.TestCase):
 
   def setUp(self):
     super(SourceDirPathsAreUniqueTest, self).setUp()
-    self.validator = metadata_rules.SourceDirPathsAreUnique(None, None)
+    self.validator = metadata_rules.SourceDirPathsAreUnique()
 
   def test_unique_source_dir_paths_succeeds(self):
     feed_collection_string = """
@@ -195,7 +195,7 @@ class SqsQueueNameIsFullyQualifiedArnTest(absltest.TestCase):
 
   def setUp(self):
     super().setUp()
-    self.validator = metadata_rules.SqsQueueNameIsFullyQualifiedArn(None, None)
+    self.validator = metadata_rules.SqsQueueNameIsFullyQualifiedArn()
 
   def test_elements_returns_feed(self):
     self.assertEqual(self.validator.elements(), ["Feed"])
@@ -427,9 +427,7 @@ class SqsQueueNameRequiresS3SourceDirPathTest(absltest.TestCase):
 
   def setUp(self):
     super(SqsQueueNameRequiresS3SourceDirPathTest, self).setUp()
-    self.validator = metadata_rules.SqsQueueNameRequiresS3SourceDirPath(
-        None, None
-    )
+    self.validator = metadata_rules.SqsQueueNameRequiresS3SourceDirPath()
 
   def test_no_sqs_queue_name_succeeds(self):
     feed_string = """
@@ -492,7 +490,7 @@ class ElectionEventDatesAreSequentialTest(absltest.TestCase):
 
   def setUp(self):
     super(ElectionEventDatesAreSequentialTest, self).setUp()
-    self.validator = metadata_rules.ElectionEventDatesAreSequential(None, None)
+    self.validator = metadata_rules.ElectionEventDatesAreSequential()
 
   def test_sequential_start_and_end_dates_succeeds(self):
     election_event_string = """
@@ -577,9 +575,7 @@ class SourceDirPathMustBeSetAfterInitialDeliveryDateTest(absltest.TestCase):
   def setUp(self):
     super(SourceDirPathMustBeSetAfterInitialDeliveryDateTest, self).setUp()
     self.validator = (
-        metadata_rules.SourceDirPathMustBeSetAfterInitialDeliveryDate(
-            None, None
-        )
+        metadata_rules.SourceDirPathMustBeSetAfterInitialDeliveryDate()
     )
 
   @freezegun.freeze_time("2024-08-26")
@@ -700,9 +696,7 @@ class OfficeholderSubFeedDatesAreSequentialTest(absltest.TestCase):
 
   def setUp(self):
     super(OfficeholderSubFeedDatesAreSequentialTest, self).setUp()
-    self.validator = metadata_rules.OfficeholderSubFeedDatesAreSequential(
-        None, None
-    )
+    self.validator = metadata_rules.OfficeholderSubFeedDatesAreSequential()
 
   def test_sequential_initial_and_full_delivery_dates_succeeds(self):
     office_holder_sub_feed_string = """
@@ -765,7 +759,7 @@ class FeedInactiveDateIsLatestDateTest(absltest.TestCase):
 
   def setUp(self):
     super(FeedInactiveDateIsLatestDateTest, self).setUp()
-    self.validator = metadata_rules.FeedInactiveDateIsLatestDate(None, None)
+    self.validator = metadata_rules.FeedInactiveDateIsLatestDate()
 
   def test_sequential_inactive_and_full_delivery_dates_succeeds(self):
     feed_string = """
@@ -924,7 +918,7 @@ class FeedHasValidCountryCodeTest(absltest.TestCase):
 
   def setUp(self):
     super(FeedHasValidCountryCodeTest, self).setUp()
-    self.validator = metadata_rules.FeedHasValidCountryCode(None, None)
+    self.validator = metadata_rules.FeedHasValidCountryCode()
 
   def test_valid_country_code_succeeds(self):
     feed_string = """
@@ -989,9 +983,7 @@ class FeedInactiveDateSetForNonEvergreenFeedTest(absltest.TestCase):
 
   def setUp(self):
     super(FeedInactiveDateSetForNonEvergreenFeedTest, self).setUp()
-    self.validator = metadata_rules.FeedInactiveDateSetForNonEvergreenFeed(
-        None, None
-    )
+    self.validator = metadata_rules.FeedInactiveDateSetForNonEvergreenFeed()
 
   def test_evergreen_feed_without_inactive_date_succeeds(self):
     feed_string = """
@@ -1024,9 +1016,7 @@ class FeedInactiveDateNotOlderThanOneYearTest(absltest.TestCase):
 
   def setUp(self):
     super(FeedInactiveDateNotOlderThanOneYearTest, self).setUp()
-    self.validator = metadata_rules.FeedInactiveDateNotOlderThanOneYear(
-        None, None
-    )
+    self.validator = metadata_rules.FeedInactiveDateNotOlderThanOneYear()
 
   @freezegun.freeze_time("2026-01-01")
   def test_feed_without_inactive_date_succeeds(self):
@@ -1084,7 +1074,7 @@ class FeedElementsShouldHaveSubElementsBasedOnTypeTest(parameterized.TestCase):
   def setUp(self):
     super(FeedElementsShouldHaveSubElementsBasedOnTypeTest, self).setUp()
     self.validator = (
-        metadata_rules.FeedElementsShouldHaveSubElementsBasedOnType(None, None)
+        metadata_rules.FeedElementsShouldHaveSubElementsBasedOnType()
     )
 
   def test_officeholder_feed_with_officeholder_sub_feed_succeeds(self):

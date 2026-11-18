@@ -14,9 +14,7 @@ class CommitteeClassificationEndDateOccursAfterStartDateTest(absltest.TestCase):
   def setUp(self):
     super(CommitteeClassificationEndDateOccursAfterStartDateTest, self).setUp()
     self.validator = (
-        committee_rules.CommitteeClassificationEndDateOccursAfterStartDate(
-            None, None
-        )
+        committee_rules.CommitteeClassificationEndDateOccursAfterStartDate()
     )
     self.today_date = datetime.datetime.now(datetime.timezone.utc)
 
@@ -112,9 +110,7 @@ class AffiliationEndDateOccursAfterStartDateTest(absltest.TestCase):
 
   def setUp(self):
     super().setUp()
-    self.validator = committee_rules.AffiliationEndDateOccursAfterStartDate(
-        None, None
-    )
+    self.validator = committee_rules.AffiliationEndDateOccursAfterStartDate()
 
   def test_elements_returns_affiliation(self):
     self.assertEqual(self.validator.elements(), ["Affiliation"])
@@ -203,7 +199,7 @@ class EinMatchesFormatTest(absltest.TestCase):
       </Committee>
     """
     self.ein_string = "<OtherType>ein</OtherType>"
-    self.validator = committee_rules.EinMatchesFormat(None, None)
+    self.validator = committee_rules.EinMatchesFormat()
 
   def test_valid_ein_id_succeeds(self):
     test_string = self.root_string.format(
@@ -261,9 +257,7 @@ class AffiliationHasEitherPartyOrPersonTest(absltest.TestCase):
 
   def setUp(self):
     super(AffiliationHasEitherPartyOrPersonTest, self).setUp()
-    self.validator = committee_rules.AffiliationHasEitherPartyOrPerson(
-        None, None
-    )
+    self.validator = committee_rules.AffiliationHasEitherPartyOrPerson()
 
   def test_valid_affiliation_succeeds(self):
     test_string = """

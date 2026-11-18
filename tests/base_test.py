@@ -24,14 +24,7 @@ _TEST_CA_OCD_ID_2 = "ocd-division/country:ca/cd:1207/district:0"
 class _FakeOptionRule(base.BaseRule):
   """Fake rule with a configurable option, checking Party elements."""
 
-  def __init__(
-      self,
-      election_tree: etree._ElementTree | None,
-      schema_tree: etree._ElementTree | None,
-      ocd_id_validator: object | None = None,
-  ) -> None:
-    super().__init__(election_tree, schema_tree, ocd_id_validator)
-    self.fake_option = "default-value"
+  fake_option = "default-value"
 
   def elements(self) -> list[str]:
     return ["Party"]
@@ -63,7 +56,7 @@ class _FakeReferenceRule(base.ValidReferenceRule):
   """Fake reference rule returning fixed reference and defined values."""
 
   def __init__(self, reference_ids: set[str], defined_ids: set[str]) -> None:
-    super().__init__(None, None)
+    super().__init__()
     self._reference_ids = reference_ids
     self._defined_ids = defined_ids
 
@@ -87,7 +80,7 @@ class SchemaHandlerTest(absltest.TestCase):
 class BaseRuleTest(absltest.TestCase):
 
   def test_set_option_existing_attribute_sets_value(self):
-    validator = _FakeOptionRule(None, None)
+    validator = _FakeOptionRule()
     option = base.RuleOption("fake_option", "fake-value")
 
     validator.set_option(option)
@@ -95,7 +88,7 @@ class BaseRuleTest(absltest.TestCase):
     self.assertEqual(validator.fake_option, "fake-value")
 
   def test_set_option_unknown_attribute_raises_election_exception(self):
-    validator = _FakeOptionRule(None, None)
+    validator = _FakeOptionRule()
     option = base.RuleOption("unknown_option", "fake-value")
 
     with self.assertRaises(loggers.ElectionException) as context:
@@ -129,7 +122,7 @@ class DateRuleTest(absltest.TestCase):
 
   def setUp(self):
     super(DateRuleTest, self).setUp()
-    self.date_validator = base.DateRule(None, None)
+    self.date_validator = base.DateRule()
     self.today = datetime.datetime.now(datetime.timezone.utc).date()
     self.today_partial_date = base.PartialDate(
         self.today.year, self.today.month, self.today.day
@@ -160,14 +153,14 @@ class DateRuleTest(absltest.TestCase):
     start_date = self.today + datetime.timedelta(days=1)
     end_date = self.today + datetime.timedelta(days=2)
 
-    validator_with_values = base.DateRule(None, None)
+    validator_with_values = base.DateRule()
     validator_with_values.start_elem = start_elem
     validator_with_values.start_date = start_date
     validator_with_values.end_elem = end_elem
     validator_with_values.end_date = end_date
     validator_with_values.error_log = ["This is no longer empty"]
 
-    fresh_validator = base.DateRule(None, None)
+    fresh_validator = base.DateRule()
 
     self.assertNotEqual(
         validator_with_values.start_elem, fresh_validator.start_elem
@@ -468,7 +461,7 @@ class MissingFieldRuleTest(absltest.TestCase):
 
   def setUp(self):
     super(MissingFieldRuleTest, self).setUp()
-    self.validator = base.MissingFieldRule(None, None)
+    self.validator = base.MissingFieldRule()
 
   # get_severity test
   def test_get_severity_raises_not_implemented_error(self):

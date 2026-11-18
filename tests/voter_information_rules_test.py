@@ -12,7 +12,7 @@ class ElectoralCommissionCollectionExistsTest(absltest.TestCase):
   def setUp(self):
     super(ElectoralCommissionCollectionExistsTest, self).setUp()
     self.validator = (
-        voter_information_rules.ElectoralCommissionCollectionExists(None, None)
+        voter_information_rules.ElectoralCommissionCollectionExists()
     )
 
   def test_election_report_without_electoral_commission_collection_fails(self):
@@ -41,9 +41,7 @@ class VoterInformationCollectionExistsTest(absltest.TestCase):
 
   def setUp(self):
     super(VoterInformationCollectionExistsTest, self).setUp()
-    self.validator = voter_information_rules.VoterInformationCollectionExists(
-        None, None
-    )
+    self.validator = voter_information_rules.VoterInformationCollectionExists()
 
   def test_election_report_without_voter_information_collection_warns(self):
     election_report_string = """
@@ -72,7 +70,7 @@ class NoExtraElectionElementsTest(absltest.TestCase):
 
   def setUp(self):
     super(NoExtraElectionElementsTest, self).setUp()
-    self.validator = voter_information_rules.NoExtraElectionElements(None, None)
+    self.validator = voter_information_rules.NoExtraElectionElements()
 
   def test_election_without_extra_elements_succeeds(self):
     election_report_string = """<Election></Election>"""
@@ -142,9 +140,7 @@ class WarnOnElementsNotRecommendedForElectionTest(absltest.TestCase):
   def setUp(self):
     super(WarnOnElementsNotRecommendedForElectionTest, self).setUp()
     self.validator = (
-        voter_information_rules.WarnOnElementsNotRecommendedForElection(
-            None, None
-        )
+        voter_information_rules.WarnOnElementsNotRecommendedForElection()
     )
 
   def test_election_without_contact_information_succeeds(self):
@@ -173,9 +169,7 @@ class NoExtraElectionReportCollectionsTest(absltest.TestCase):
 
   def setUp(self):
     super(NoExtraElectionReportCollectionsTest, self).setUp()
-    self.validator = voter_information_rules.NoExtraElectionReportCollections(
-        None, None
-    )
+    self.validator = voter_information_rules.NoExtraElectionReportCollections()
 
   def test_election_report_without_extra_elements_succeeds(self):
     election_report_string = """<ElectionReport></ElectionReport>"""
