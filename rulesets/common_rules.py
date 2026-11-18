@@ -182,8 +182,8 @@ class Schema(base.TreeRule):
 class OptionalAndEmpty(base.BaseRule):
   """Checks for optional and empty fields."""
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
-    super(OptionalAndEmpty, self).__init__(election_tree, schema_tree, **kwargs)
+  def __init__(self, *args, **kwargs):
+    super(OptionalAndEmpty, self).__init__(*args, **kwargs)
     self.previous = None
 
   def elements(self):
@@ -286,8 +286,8 @@ class ValidIDREF(base.BaseRule):
   of the proper reference type for the given field.
   """
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
-    super(ValidIDREF, self).__init__(election_tree, schema_tree, **kwargs)
+  def __init__(self, *args, **kwargs):
+    super(ValidIDREF, self).__init__(*args, **kwargs)
     self.object_id_mapping = {}
     self.element_reference_mapping = {}
 
@@ -382,8 +382,8 @@ class ValidIDREF(base.BaseRule):
 class ValidStableID(base.BaseRule):
   """Ensure stable-ids are in the correct format."""
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
-    super(ValidStableID, self).__init__(election_tree, schema_tree, **kwargs)
+  def __init__(self, *args, **kwargs):
+    super(ValidStableID, self).__init__(*args, **kwargs)
     regex = r"^[a-zA-Z0-9_-]+$"
     self.stable_id_matcher = re.compile(regex, flags=re.U)
 
@@ -505,10 +505,8 @@ class DuplicateGpUnits(base.BaseRule):
 class GpUnitsCyclesRefsValidation(base.TreeRule):
   """Ensure that GpUnits form a valid tree and no cycles are present."""
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
-    super(GpUnitsCyclesRefsValidation, self).__init__(
-        election_tree, schema_tree, **kwargs
-    )
+  def __init__(self, *args, **kwargs):
+    super(GpUnitsCyclesRefsValidation, self).__init__(*args, **kwargs)
     self.edges = dict()  # Used to maintain the record of connected edges
     self.visited = {}  # Used to store status of the nodes as visited or not.
     self.error_log = []
@@ -604,8 +602,8 @@ class OtherType(base.BaseRule):
 class UniqueLabel(base.BaseRule):
   """Labels should be unique within a file."""
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
-    super(UniqueLabel, self).__init__(election_tree, schema_tree, **kwargs)
+  def __init__(self, *args, **kwargs):
+    super(UniqueLabel, self).__init__(*args, **kwargs)
     self.labels = set()
 
   def elements(self):
@@ -1044,9 +1042,9 @@ class ValidateOcdidLowerCase(base.BaseRule):
 class PartyLeadershipMustExist(base.ValidReferenceRule):
   """Each party leader or party chair should refer to a person in the feed."""
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
+  def __init__(self, *args, **kwargs):
     super(PartyLeadershipMustExist, self).__init__(
-        election_tree, schema_tree, "Person", **kwargs
+        *args, missing_element="Person", **kwargs
     )
 
   def _gather_reference_values(self):
@@ -1379,9 +1377,9 @@ class OfficesHaveJurisdictionID(base.BaseRule):
 class ValidJurisdictionID(base.ValidReferenceRule):
   """Each jurisdiction id should refer to a valid GpUnit."""
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
+  def __init__(self, *args, **kwargs):
     super(ValidJurisdictionID, self).__init__(
-        election_tree, schema_tree, "GpUnit", **kwargs
+        *args, missing_element="GpUnit", **kwargs
     )
 
   def _gather_reference_values(self):
@@ -1624,7 +1622,7 @@ class PartySpanMultipleCountries(base.BaseRule):
   sometimes correct, but we should flag it to double check.
   """
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
+  def __init__(self, election_tree, schema_tree=None, **kwargs):
     super(PartySpanMultipleCountries, self).__init__(
         election_tree, schema_tree, **kwargs
     )
@@ -1670,7 +1668,7 @@ class PartySpanMultipleCountries(base.BaseRule):
 class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
   """Ensure non-Head of Government/State Office elements have a government body defined."""
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
+  def __init__(self, election_tree, schema_tree=None, **kwargs):
     self.is_post_office_split_feed = False
     officeholder_tenure_collection_element = self.get_elements_by_class(
         election_tree, "OfficeHolderTenureCollection"
@@ -1696,7 +1694,7 @@ class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
 class ExecutiveOfficeShouldNotHaveGovernmentBody(base.BaseRule):
   """Ensure Head of Government/State Office elements do not have a government body defined."""
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
+  def __init__(self, election_tree, schema_tree=None, **kwargs):
     self.is_post_office_split_feed = False
     officeholder_tenure_collection_element = self.get_elements_by_class(
         election_tree, "OfficeHolderTenureCollection"
@@ -2127,10 +2125,8 @@ class DateOfBirthIsInPast(base.DateRule):
 class GpUnitsHaveSingleRoot(base.TreeRule):
   """Ensure that GpUnits form a single-rooted tree."""
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
-    super(GpUnitsHaveSingleRoot, self).__init__(
-        election_tree, schema_tree, **kwargs
-    )
+  def __init__(self, *args, **kwargs):
+    super(GpUnitsHaveSingleRoot, self).__init__(*args, **kwargs)
     self.error_log = []
 
   def check(self):

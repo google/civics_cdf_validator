@@ -64,7 +64,9 @@ class SchemaHandler(object):
 class BaseRule(SchemaHandler):
   """Base class for rules."""
 
-  def __init__(self, election_tree, schema_tree, ocd_id_validator=None):
+  def __init__(
+      self, election_tree=None, schema_tree=None, ocd_id_validator=None
+  ):
     super(BaseRule, self).__init__()
     self.election_tree = election_tree
     self.schema_tree = schema_tree
@@ -123,16 +125,8 @@ class TreeRule(BaseRule):
 class ValidReferenceRule(TreeRule):
   """Rule that makes sure reference values are properly defined."""
 
-  def __init__(
-      self,
-      election_tree,
-      schema_tree,
-      missing_element="data",
-      **kwargs,
-  ):
-    super(ValidReferenceRule, self).__init__(
-        election_tree, schema_tree, **kwargs
-    )
+  def __init__(self, *args, missing_element="data", **kwargs):
+    super(ValidReferenceRule, self).__init__(*args, **kwargs)
     self.missing_element = missing_element
 
   def _gather_reference_values(self):
@@ -169,8 +163,8 @@ class DateRule(BaseRule):
   end date values.
   """
 
-  def __init__(self, election_tree, schema_file, **kwargs):
-    super(DateRule, self).__init__(election_tree, schema_file, **kwargs)
+  def __init__(self, *args, **kwargs):
+    super(DateRule, self).__init__(*args, **kwargs)
     self.start_elem = None
     self.start_date = None
     self.end_elem = None

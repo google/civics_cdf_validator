@@ -89,7 +89,7 @@ class OfficeSelectionMethodMatch(base.BaseRule):
   present in the list of SelectionMethods of the Office it points to.
   """
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
+  def __init__(self, election_tree, schema_tree=None, **kwargs):
     self.office_selection_methods = {}
     officeholder_tenure_elements = self.get_elements_by_class(
         election_tree, "OfficeHolderTenure"
@@ -153,7 +153,7 @@ class OfficeTermDates(base.DateRule):
   not have a Term element.
   """
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
+  def __init__(self, election_tree, schema_tree=None, **kwargs):
     self.is_post_office_split_feed = False
     officeholder_tenure_collection_element = self.get_elements_by_class(
         election_tree, "OfficeHolderTenureCollection"
@@ -226,7 +226,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
             "OfficeHolderPersonId"
         )
         person_id = office_holder_person_elem.text
-        date_validator = base.DateRule(None, None)
+        date_validator = base.DateRule()
         date_validator.gather_dates(officeholder_tenure)
         end_date = date_validator.end_date
         if end_date is not None:
@@ -291,7 +291,7 @@ class RemovePersonAndOfficeHolderId60DaysAfterEndDate(base.TreeRule):
           person_office_dict[person_id] = [office.get("objectId")]
         term = office.find(".//Term")
         if term is not None:
-          date_validator = base.DateRule(None, None)
+          date_validator = base.DateRule()
           date_validator.gather_dates(term)
           end_date_person = date_validator.end_date
           if end_date_person is not None:
@@ -337,7 +337,7 @@ class UniqueStartDatesForOfficeRoleAndJurisdiction(base.BaseRule):
     for office in offices:
       term = office.find(".//Term")
       if term is not None:
-        date_validator = base.DateRule(None, None, ocd_id_validator=None)
+        date_validator = base.DateRule()
         try:
           date_validator.gather_dates(term)
           if date_validator.end_date is not None:

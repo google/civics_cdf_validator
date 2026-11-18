@@ -58,8 +58,8 @@ class AffiliationEndDateOccursAfterStartDate(base.DateRule):
 class EinMatchesFormat(base.BaseRule):
   """EIN id should be in the following format: XX-XXXXXXX."""
 
-  def __init__(self, election_tree, schema_tree, **kwargs):
-    super(EinMatchesFormat, self).__init__(election_tree, schema_tree, **kwargs)
+  def __init__(self, *args, **kwargs):
+    super(EinMatchesFormat, self).__init__(*args, **kwargs)
     regex = r"\d{2}(-\d{7})?"
     self.ein_id_matcher = re.compile(regex, flags=re.U)
 
