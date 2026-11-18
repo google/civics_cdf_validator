@@ -790,9 +790,8 @@ class ValidIDREFTest(absltest.TestCase):
         self.assertEqual(actual_ref_type, expected_ref_type)
       except AssertionError:
         self.fail(
-            (
-                "Expected {} to have a reference type of {}. Instead got {}"
-            ).format(ref_elem, expected_ref_type, actual_ref_type)
+            f"Expected {ref_elem} to have a reference type of"
+            f" {expected_ref_type}. Instead got {actual_ref_type}"
         )
 
   # elements test
@@ -2596,15 +2595,15 @@ class PartyLeadershipMustExistTest(absltest.TestCase):
 
   # _gather_reference_values tests
   def test_set_of_party_leader_ids_succeeds(self):
-    root_string = """
+    root_string = f"""
       <xml>
         <PersonCollection>
           <Person objectId="p2" />
           <Person objectId="p3" />
         </PersonCollection>
-        {}
+        {self._party_collection}
       </xml>
-    """.format(self._party_collection)
+    """
     election_tree = etree.ElementTree(etree.fromstring(root_string))
     validator = common_rules.PartyLeadershipMustExist(election_tree)
     reference_values = validator._gather_reference_values()
@@ -2613,15 +2612,15 @@ class PartyLeadershipMustExistTest(absltest.TestCase):
 
   # _gather_defined_values tests
   def test_set_of_person_object_ids_succeeds(self):
-    root_string = """
+    root_string = f"""
       <xml>
         <PersonCollection>
           <Person objectId="p4" />
           <Person objectId="p5" />
         </PersonCollection>
-        {}
+        {self._party_collection}
       </xml>
-    """.format(self._party_collection)
+    """
     election_tree = etree.ElementTree(etree.fromstring(root_string))
     validator = common_rules.PartyLeadershipMustExist(election_tree)
     defined_values = validator._gather_defined_values()
@@ -2630,26 +2629,26 @@ class PartyLeadershipMustExistTest(absltest.TestCase):
 
   # check tests
   def test_party_leadership_exists_succeeds(self):
-    xml_string = """
+    xml_string = f"""
       <xml>
         <PersonCollection>
           <Person objectId="p2" />
           <Person objectId="p3" />
         </PersonCollection>
-        {}
+        {self._party_collection}
       </xml>
-    """.format(self._party_collection)
+    """
     root_string = io.BytesIO(bytes(xml_string.encode()))
     election_tree = etree.parse(root_string)
 
     common_rules.PartyLeadershipMustExist(election_tree).check()
 
   def test_party_leadership_exists_fails(self):
-    xml_string = """
+    xml_string = f"""
       <xml>
-        {}
+        {self._party_collection}
       </xml>
-    """.format(self._party_collection)
+    """
     root_string = io.BytesIO(bytes(xml_string.encode()))
     election_tree = etree.parse(root_string)
 
@@ -3120,13 +3119,13 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
     }
     person_feed = self._base_person_collection.format(person_one, person_two)
     party_feed = self._base_party_collection.format(party_one, party_two)
-    election_feed = """
+    election_feed = f"""
       <ElectionReport>
-        {}
-        {}
-        {}
+        {person_feed}
+        {party_feed}
+        {self._office_collection}
       </ElectionReport>
-    """.format(person_feed, party_feed, self._office_collection)
+    """
     election_tree = etree.fromstring(election_feed)
     validator = common_rules.UniqueURIPerAnnotationCategory(election_tree)
 
@@ -3156,12 +3155,12 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
     }
     person_feed = self._base_person_collection.format(person_one, person_two)
     party_feed = self._base_party_collection.format(party_one, party_two)
-    election_feed = """
+    election_feed = f"""
       <ElectionReport>
-        {}
-        {}
+        {person_feed}
+        {party_feed}
       </ElectionReport>
-    """.format(person_feed, party_feed)
+    """
     election_tree = etree.fromstring(election_feed)
     validator = common_rules.UniqueURIPerAnnotationCategory(election_tree)
 
@@ -3190,12 +3189,12 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
     }
     person_feed = self._base_person_collection.format(person_one, person_two)
     party_feed = self._base_party_collection.format(party_one, party_two)
-    election_feed = """
+    election_feed = f"""
       <ElectionReport>
-        {}
-        {}
+        {person_feed}
+        {party_feed}
       </ElectionReport>
-    """.format(person_feed, party_feed)
+    """
     election_tree = etree.fromstring(election_feed)
     validator = common_rules.UniqueURIPerAnnotationCategory(election_tree)
 
@@ -3211,11 +3210,11 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
     self.assertLen(context.exception.log_entry[0].elements, 4)
 
   def test_office_uris_are_not_included_in_check_succeeds(self):
-    election_feed = """
+    election_feed = f"""
       <ElectionReport>
-        {}
+        {self._office_collection}
       </ElectionReport>
-    """.format(self._office_collection)
+    """
     election_tree = etree.fromstring(election_feed)
     validator = common_rules.UniqueURIPerAnnotationCategory(election_tree)
 
@@ -3462,9 +3461,8 @@ class ValidURIAnnotationTest(absltest.TestCase):
       self.validator.check(etree.fromstring(root_string))
     self.assertEqual(
         context.exception.log_entry[0].message,
-        "URI {0} is missing annotation.".format(
-            "https://twitter.com".encode("ascii", "ignore")
-        ),
+        f"URI {'https://twitter.com'.encode('ascii', 'ignore')} is missing"
+        " annotation.",
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Uri")
 
@@ -3519,16 +3517,13 @@ class ValidURIAnnotationTest(absltest.TestCase):
         </Uri>
       </ContactInformation>
     """
+    uri = "https://www.youtube.com/SmithForGov".encode("ascii", "ignore")
 
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(root_string))
     self.assertEqual(
         context.exception.log_entry[0].message,
-        (
-            "Annotation 'personal-twitter' is incorrect for URI {0}.".format(
-                "https://www.youtube.com/SmithForGov".encode("ascii", "ignore")
-            )
-        ),
+        f"Annotation 'personal-twitter' is incorrect for URI {uri}.",
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Uri")
 

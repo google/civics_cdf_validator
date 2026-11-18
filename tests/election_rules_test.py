@@ -582,9 +582,8 @@ class CandidatesReferencedInRelatedContestsTest(absltest.TestCase):
       found_node = node in self.validator.contest_graph.nodes()
       if not found_node:
         self.fail(
-            ("No matching node found for id: {} and relative set: {}").format(
-                node.id, node.relatives
-            )
+            f"No matching node found for id: {node.id} and relative set: "
+            f"{node.relatives}"
         )
 
   def test_composing_contests_are_connected_succeeds(
@@ -3795,22 +3794,22 @@ class FullTextMaxLengthTest(absltest.TestCase):
     self.validator.check(element)
 
   def test_text_is_too_long_warns(self):
-    contest_string = """
+    contest_string = f"""
       <FullText>
-        <Text language="en">Long text continues...{}</Text>
+        <Text language="en">Long text continues...{'x' * 30000}</Text>
       </FullText>
-        """.format("x" * 30000)
+        """
 
     with self.assertRaises(loggers.ElectionWarning):
       self.validator.check(etree.fromstring(contest_string))
 
   def test_any_text_is_too_long_warns(self):
-    contest_string = """
+    contest_string = f"""
       <FullText>
         <Text language="en">Short full text of a ballot measure</Text>
-        <Text language="es">Long text continues...{}</Text>
+        <Text language="es">Long text continues...{'x' * 30000}</Text>
       </FullText>
-        """.format("x" * 30000)
+        """
 
     with self.assertRaises(loggers.ElectionWarning):
       self.validator.check(etree.fromstring(contest_string))
@@ -3851,16 +3850,16 @@ class FullTextOrBallotTextTest(absltest.TestCase):
     self.validator = election_rules.FullTextOrBallotText()
 
   def test_ballot_text_with_long_full_text_succeeds(self):
-    contest_string = """
+    contest_string = f"""
         <BallotMeasureContest>
           <BallotText>
             <Text language="en">Should the measure be enacted?</Text>
           </BallotText>
           <FullText>
-            <Text language="en">Long ballot measure text continues... {}</Text>
+            <Text language="en">Long ballot measure text continues... {'x' * 2500}</Text>
           </FullText>
         </BallotMeasureContest>
-    """.format("x" * 2500)
+    """
 
     self.validator.check(etree.fromstring(contest_string))
 
@@ -3917,16 +3916,16 @@ class FullTextOrBallotTextTest(absltest.TestCase):
       self.validator.check(etree.fromstring(contest_string))
 
   def test_language_mismatch_with_long_full_text_succeeds(self):
-    contest_string = """
+    contest_string = f"""
         <BallotMeasureContest>
           <BallotText>
             <Text language="en">Should the measure be enacted?</Text>
           </BallotText>
           <FullText>
-            <Text language="es">El texto de medida continúa...{}</Text>
+            <Text language="es">El texto de medida continúa...{'x' * 2500}</Text>
           </FullText>
         </BallotMeasureContest>
-    """.format("x" * 2500)
+    """
 
     self.validator.check(etree.fromstring(contest_string))
 
@@ -3944,13 +3943,13 @@ class FullTextOrBallotTextTest(absltest.TestCase):
       self.validator.check(etree.fromstring(contest_string))
 
   def test_missing_ballot_text_element_with_long_full_text_succeeds(self):
-    contest_string = """
+    contest_string = f"""
         <BallotMeasureContest>
           <FullText>
-            <Text language="en">Long ballot text continues... {}</Text>
+            <Text language="en">Long ballot text continues... {'x' * 2500}</Text>
           </FullText>
         </BallotMeasureContest>
-    """.format("x" * 2500)
+    """
 
     self.validator.check(etree.fromstring(contest_string))
 
@@ -5081,32 +5080,32 @@ class ContestContainsValidStartDateTest(absltest.TestCase):
   def test_contest_with_start_date_in_the_past_warns(self):
     yesterday_date = self.today_date - datetime.timedelta(days=1)
     start_date = yesterday_date.strftime("%Y-%m-%d")
-    contest_string = """
+    contest_string = f"""
       <Contest objectId="con1" type="CandidateContest">
         <OfficeIds>office1</OfficeIds>
         <PrimaryPartyIds>party1</PrimaryPartyIds>
-        <StartDate>{}</StartDate>
+        <StartDate>{start_date}</StartDate>
       </Contest>
-      """.format(start_date)
+      """
 
     with self.assertRaises(loggers.ElectionWarning) as context:
       self.validator.check(etree.fromstring(contest_string))
     self.assertLen(context.exception.log_entry, 1)
     self.assertEqual(
         context.exception.log_entry[0].message,
-        "The date {} is in the past.".format(start_date),
+        f"The date {start_date} is in the past.",
     )
 
   def test_contest_with_start_date_in_the_future_succeeds(self):
     tomorrow_date = self.today_date + datetime.timedelta(days=1)
     start_date = tomorrow_date.strftime("%Y-%m-%d")
-    contest_string = """
+    contest_string = f"""
       <Contest objectId="con1" type="CandidateContest">
         <OfficeIds>office1</OfficeIds>
         <PrimaryPartyIds>party1</PrimaryPartyIds>
-        <StartDate>{}</StartDate>
+        <StartDate>{start_date}</StartDate>
       </Contest>
-      """.format(start_date)
+      """
 
     self.validator.check(etree.fromstring(contest_string))
     self.assertEmpty(self.validator.error_log)
@@ -5171,32 +5170,32 @@ class ContestContainsValidEndDateTest(absltest.TestCase):
   def test_contest_with_end_date_in_the_past_warns(self):
     yesterday_date = self.today_date - datetime.timedelta(days=1)
     end_date = yesterday_date.strftime("%Y-%m-%d")
-    contest_string = """
+    contest_string = f"""
       <Contest objectId="con1" type="CandidateContest">
         <OfficeIds>office1</OfficeIds>
         <PrimaryPartyIds>party1</PrimaryPartyIds>
-        <EndDate>{}</EndDate>
+        <EndDate>{end_date}</EndDate>
       </Contest>
-      """.format(end_date)
+      """
 
     with self.assertRaises(loggers.ElectionWarning) as context:
       self.validator.check(etree.fromstring(contest_string))
     self.assertLen(context.exception.log_entry, 1)
     self.assertEqual(
         context.exception.log_entry[0].message,
-        "The date {} is in the past.".format(end_date),
+        f"The date {end_date} is in the past.",
     )
 
   def test_contest_with_end_date_in_the_future_succeeds(self):
     tomorrow_date = self.today_date + datetime.timedelta(days=1)
     end_date = tomorrow_date.strftime("%Y-%m-%d")
-    contest_string = """
+    contest_string = f"""
       <Contest objectId="con1" type="CandidateContest">
         <OfficeIds>office1</OfficeIds>
         <PrimaryPartyIds>party1</PrimaryPartyIds>
-        <EndDate>{}</EndDate>
+        <EndDate>{end_date}</EndDate>
       </Contest>
-      """.format(end_date)
+      """
 
     self.validator.check(etree.fromstring(contest_string))
     self.assertEmpty(self.validator.error_log)
@@ -5262,37 +5261,35 @@ class ContestEndDateOccursAfterStartDateTest(absltest.TestCase):
     yesterday_date = self.today_date - datetime.timedelta(days=1)
     start_date = self.today_date.strftime("%Y-%m-%d")
     end_date = yesterday_date.strftime("%Y-%m-%d")
-    contest_string = """
+    contest_string = f"""
       <Contest objectId="con1" type="CandidateContest">
         <OfficeIds>office1</OfficeIds>
         <PrimaryPartyIds>party1</PrimaryPartyIds>
-        <StartDate>{}</StartDate>
-        <EndDate>{}</EndDate>
+        <StartDate>{start_date}</StartDate>
+        <EndDate>{end_date}</EndDate>
       </Contest>
-      """.format(start_date, end_date)
+      """
 
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(contest_string))
     self.assertLen(context.exception.log_entry, 1)
     self.assertEqual(
         context.exception.log_entry[0].message,
-        """The dates (start: {}, end: {}) are invalid.
-      The end date must be the same or after the start date.""".format(
-            start_date, end_date
-        ),
+        f"""The dates (start: {start_date}, end: {end_date}) are invalid.
+      The end date must be the same or after the start date.""",
     )
 
   def test_contest_with_same_start_and_end_date_succeeds(self):
     start_date = self.today_date.strftime("%Y-%m-%d")
     end_date = self.today_date.strftime("%Y-%m-%d")
-    contest_string = """
+    contest_string = f"""
       <Contest objectId="con1" type="CandidateContest">
         <OfficeIds>office1</OfficeIds>
         <PrimaryPartyIds>party1</PrimaryPartyIds>
-        <StartDate>{}</StartDate>
-        <EndDate>{}</EndDate>
+        <StartDate>{start_date}</StartDate>
+        <EndDate>{end_date}</EndDate>
       </Contest>
-      """.format(start_date, end_date)
+      """
 
     self.validator.check(etree.fromstring(contest_string))
     self.assertEmpty(self.validator.error_log)
@@ -5301,14 +5298,14 @@ class ContestEndDateOccursAfterStartDateTest(absltest.TestCase):
     tomorrow_date = self.today_date + datetime.timedelta(days=1)
     start_date = self.today_date.strftime("%Y-%m-%d")
     end_date = tomorrow_date.strftime("%Y-%m-%d")
-    contest_string = """
+    contest_string = f"""
       <Contest objectId="con1" type="CandidateContest">
         <OfficeIds>office1</OfficeIds>
         <PrimaryPartyIds>party1</PrimaryPartyIds>
-        <StartDate>{}</StartDate>
-        <EndDate>{}</EndDate>
+        <StartDate>{start_date}</StartDate>
+        <EndDate>{end_date}</EndDate>
       </Contest>
-      """.format(start_date, end_date)
+      """
 
     self.validator.check(etree.fromstring(contest_string))
     self.assertEmpty(self.validator.error_log)

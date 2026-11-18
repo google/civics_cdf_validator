@@ -25,13 +25,11 @@ def generate_config(
 ) -> gpunit_rules.OcdIdsExtractor.OcdIdsExtractorConfig:
   return gpunit_rules.OcdIdsExtractor.OcdIdsExtractorConfig(
       country_code=country_code,
-      github_filename="country-{0}.csv".format(country_code),
-      local_filepath="{0}/country-{1}.csv".format(
-          cache_directory, country_code
-      ),
+      github_filename=f"country-{country_code}.csv",
+      local_filepath=f"{cache_directory}/country-{country_code}.csv",
       github_raw_url=(
-          "https://raw.github.com/opencivicdata/ocd-division-ids/master/identifiers/country-{0}.csv"
-          .format(country_code)
+          "https://raw.github.com/opencivicdata/ocd-division-ids/master/"
+          f"identifiers/country-{country_code}.csv"
       ),
   )
 
@@ -43,7 +41,7 @@ def rewind_clock(minutes: int) -> float:
 
 
 def generate_temp_file_path(filepath: str) -> str:
-  return "{0}.tmp".format(filepath)
+  return f"{filepath}.tmp"
 
 
 class _FakeOcdId:

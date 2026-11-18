@@ -260,13 +260,6 @@ class DateRuleTest(absltest.TestCase):
         self.today.year, self.today.month, self.today.day
     )
 
-    self.election_string = """
-    <Election>
-      <StartDate>{}</StartDate>
-      <EndDate>{}</EndDate>
-    </Election>
-    """
-
   # __init__ test
   def test_init_stores_election_and_schema_trees(self):
     election_tree = etree.fromstring("<ElectionReport/>")
@@ -324,9 +317,12 @@ class DateRuleTest(absltest.TestCase):
 
   # gather_dates tests
   def test_gather_dates_sets_start_and_end_dates(self):
-    start_date = "2021-12-20"
-    end_date = "2021-12-22"
-    election_string = self.election_string.format(start_date, end_date)
+    election_string = """
+    <Election>
+      <StartDate>2021-12-20</StartDate>
+      <EndDate>2021-12-22</EndDate>
+    </Election>
+    """
     election = etree.fromstring(election_string)
     self.date_validator.gather_dates(election)
     self.assertEqual(self.date_validator.start_date.day, 20)
@@ -337,12 +333,12 @@ class DateRuleTest(absltest.TestCase):
     self.assertEqual(self.date_validator.end_date.day, 22)
 
   def test_invalid_date_formats_raises_error(self):
-    start_date_invalid = "2022-01-32"
-    end_date_invalid = "05-29"
-
-    election_string = self.election_string.format(
-        start_date_invalid, end_date_invalid
-    )
+    election_string = """
+    <Election>
+      <StartDate>2022-01-32</StartDate>
+      <EndDate>05-29</EndDate>
+    </Election>
+    """
     election = etree.fromstring(election_string)
     with self.assertRaises(loggers.ElectionError) as context:
       self.date_validator.gather_dates(election)
@@ -414,11 +410,12 @@ class DateRuleTest(absltest.TestCase):
     self.assertEmpty(self.date_validator.error_log)
 
   def test_end_before_start_logs_error(self):
-    start_date_year_month = "2021-09"
-    end_date_year_month = "2021-01"
-    election_string = self.election_string.format(
-        start_date_year_month, end_date_year_month
-    )
+    election_string = """
+    <Election>
+      <StartDate>2021-09</StartDate>
+      <EndDate>2021-01</EndDate>
+    </Election>
+    """
     election = etree.fromstring(election_string)
     self.date_validator.gather_dates(election)
     self.date_validator.check_end_after_start()
@@ -905,12 +902,12 @@ class RulesRegistryTest(absltest.TestCase):
     }
 
     for entity, count in expected_entity_counts.items():
-      self.assertIn("{0} (Total: {1})".format(entity, count), output)
+      self.assertIn(f"{entity} (Total: {count})", output)
 
     for attr, stat in expected_attr_counts.items():
       count, missing_in = stat
       self.assertIn(
-          "{:<30s}{:^8s}{:>15s}".format(attr, str(count), str(missing_in)),
+          f"{attr:<30s}{str(count):^8s}{str(missing_in):>15s}",
           output,
       )
 
@@ -1026,9 +1023,11 @@ class RulesRegistryTest(absltest.TestCase):
 
     self.assertEqual(
         output,
-        "     1 Fatal message found\n"
-        "         1 FakeRule Fatal message\n"
-        "                  * Fake fatal.\n",
+        """\
+     1 Fatal message found
+         1 FakeRule Fatal message
+                  * Fake fatal.
+""",
     )
 
   def test_multiple_instances_restrict_validation_to_configured_ocd_ids(self):
@@ -1077,21 +1076,16 @@ class BaseEntityStatsTest(absltest.TestCase):
 
     output = str(party_stats)
 
-    separator = " " * 8 + "-" * 65
     self.assertEqual(
-        "\n".join([
-            "\n" + separator,
-            (
-                "        Party (Total: 3)               | # with attribute |"
-                " # missing attribute"
-            ),
-            separator,
-            "        Name                             3                  0",
-            "        Color                            1                  2",
-            "        Abbreviation                     0                  3",
-            "        ExternalIdentifiers              0                  3",
-            "        InternationalizedAbbreviation    0                  3",
-        ]),
+        """
+        -----------------------------------------------------------------
+        Party (Total: 3)               | # with attribute | # missing attribute
+        -----------------------------------------------------------------
+        Name                             3                  0
+        Color                            1                  2
+        Abbreviation                     0                  3
+        ExternalIdentifiers              0                  3
+        InternationalizedAbbreviation    0                  3""",
         output,
     )
 
