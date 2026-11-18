@@ -16,12 +16,14 @@
 from __future__ import print_function
 
 import collections
+from collections.abc import Iterable, Mapping, Sequence
 import datetime
 
 from civics_cdf_validator import base
 from civics_cdf_validator import loggers
 from civics_cdf_validator.rulesets import common_rules
 from civics_cdf_validator.rulesets import rule_util
+from lxml import etree
 import networkx
 
 _CONTEST_STAGE_TYPES = frozenset([
@@ -40,7 +42,7 @@ _WINNER_POST_ELECTION_STATUSES = frozenset([
 ])
 
 
-def _get_type_or_other_type(element):
+def _get_type_or_other_type(element: etree._Element) -> str:
   """Returns the OtherType text if Type is "other", else the Type text."""
   type_element = element.find("Type")
   other_type_element = element.find("OtherType")
@@ -64,10 +66,10 @@ class PercentSum(base.BaseRule):
     return ["Contest"]
 
   @staticmethod
-  def fuzzy_equals(a, b, epsilon=1e-6):
+  def fuzzy_equals(a: float, b: float, epsilon: float = 1e-6) -> bool:
     return abs(a - b) < epsilon
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     sum_percents = 0.0
     for ballot_selection in element.findall("BallotSelection"):
       for vote_counts in ballot_selection.find("VoteCountsCollection").findall(
@@ -80,7 +82,7 @@ class PercentSum(base.BaseRule):
         sum_percents, 0
     ) and not PercentSum.fuzzy_equals(sum_percents, 100):
       raise loggers.ElectionError.from_message(
-          "Contest percents do not sum to 0 or 100: %f" % sum_percents,
+          f"Contest percents do not sum to 0 or 100: {sum_percents:f}",
           [element],
       )
 
@@ -95,7 +97,12 @@ class PartisanPrimary(base.BaseRule):
 
   election_type = None
 
-  def __init__(self, election_tree, schema_tree=None, **kwargs):
+  def __init__(
+      self,
+      election_tree: etree._ElementTree,
+      schema_tree: etree._ElementTree | None = None,
+      **kwargs,
+  ) -> None:
     super(PartisanPrimary, self).__init__(election_tree, schema_tree, **kwargs)
     # There can only be one election element in a file.
     election_elem = self.election_tree.find("Election")
@@ -104,10 +111,10 @@ class PartisanPrimary(base.BaseRule):
       if election_type_elem is not None:
         self.election_type = election_type_elem.text.strip()
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Election"]
 
-  def check(self, election_elem):
+  def check(self, election_elem: etree._Element) -> None:
     election_type_elem = election_elem.find("Type")
     election_type = None
     if rule_util.element_has_text(election_type_elem):
@@ -124,8 +131,8 @@ class PartisanPrimary(base.BaseRule):
       primary_party_ids = contest_elem.find("PrimaryPartyIds")
       if not rule_util.element_has_text(primary_party_ids):
         msg = (
-            "Election is of ElectionType %s but PrimaryPartyIds is not present"
-            " or is empty" % (self.election_type)
+            f"Election is of ElectionType {self.election_type} but"
+            " PrimaryPartyIds is not present or is empty"
         )
         raise loggers.ElectionWarning.from_message(msg, [election_elem])
 
@@ -136,10 +143,10 @@ class PartisanPrimaryHeuristic(base.BaseRule):
   # Add other strings that imply this is a primary contest.
   party_text = ["(dem)", "(rep)", "(lib)"]
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Election"]
 
-  def check(self, election_elem):
+  def check(self, election_elem: etree._Element) -> None:
     election_type_elem = election_elem.find("Type")
     election_type = None
     if rule_util.element_has_text(election_type_elem):
@@ -160,9 +167,9 @@ class PartisanPrimaryHeuristic(base.BaseRule):
         for p_text in self.party_text:
           if p_text in c_name:
             msg = (
-                "Name of contest - %s, contains text that implies it is a "
-                "partisan primary but is not marked up as such."
-                % (contest_name.text)
+                f"Name of contest - {contest_name.text}, contains text that"
+                " implies it is a partisan primary but is not marked up as"
+                " such."
             )
             raise loggers.ElectionWarning.from_message(msg, [contest_elem])
 
@@ -177,15 +184,17 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
   can't span unrelated contests.
   """
 
-  def __init__(self, *args, **kwargs):
+  def __init__(self, *args, **kwargs) -> None:
     super(CandidatesReferencedInRelatedContests, self).__init__(*args, **kwargs)
     self.error_log = []
     self.contest_graph = networkx.Graph()
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["ElectionReport"]
 
-  def _register_person_to_candidate_to_contests(self, election_report):
+  def _register_person_to_candidate_to_contests(
+      self, election_report: etree._Element
+  ) -> dict[str, dict[str, list[str]]]:
     person_candidate_contest_mapping = {}
 
     candidate_to_contest_mapping = {}
@@ -212,9 +221,9 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
         if candidate_id not in candidate_to_contest_mapping.keys():
           raise loggers.ElectionError.from_message(
               (
-                  "A Candidate should be referenced in a Contest. Candidate {} "
-                  "is not referenced."
-              ).format(candidate_id),
+                  "A Candidate should be referenced in a Contest. Candidate"
+                  f" {candidate_id} is not referenced."
+              ),
               [candidate],
           )
         contest_list = candidate_to_contest_mapping[candidate_id]
@@ -224,7 +233,7 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
 
     return person_candidate_contest_mapping
 
-  def _construct_contest_graph(self, election_report):
+  def _construct_contest_graph(self, election_report: etree._Element) -> None:
     contests = self.get_elements_by_class(election_report, "Contest")
     # create a node for each contest
     for contest in contests:
@@ -238,9 +247,9 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
         if not self.contest_graph.has_node(subsequent_contest_id):
           raise loggers.ElectionError.from_message(
               (
-                  "Contest {} contains a subsequent Contest Id ({}) that does "
-                  "not exist."
-              ).format(contest.get("objectId"), subsequent_contest_id),
+                  f"Contest {contest.get('objectId')} contains a subsequent"
+                  f" Contest Id ({subsequent_contest_id}) that does not exist."
+              ),
               [subsequent_contest],
           )
         self.contest_graph.add_edge(
@@ -255,14 +264,16 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
           if not self.contest_graph.has_node(child):
             raise loggers.ElectionError.from_message(
                 (
-                    "Contest {} contains a composing Contest Id ({}) that does "
-                    "not exist."
-                ).format(contest.get("objectId"), child),
+                    f"Contest {contest.get('objectId')} contains a composing"
+                    f" Contest Id ({child}) that does not exist."
+                ),
                 [composing_contests],
             )
           self.contest_graph.add_edge(contest.get("objectId"), child)
 
-  def _check_candidate_contests_are_related(self, contest_id_list):
+  def _check_candidate_contests_are_related(
+      self, contest_id_list: Sequence[str]
+  ) -> bool:
     for i in range(len(contest_id_list) - 1):
       contest_one = contest_id_list[i]
       contest_two = contest_id_list[i + 1]
@@ -273,7 +284,9 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
 
     return True
 
-  def _check_separate_candidates_not_related(self, candidate_contest_mapping):
+  def _check_separate_candidates_not_related(
+      self, candidate_contest_mapping: Mapping[str, Sequence[str]]
+  ) -> bool:
     for contests in candidate_contest_mapping.values():
       for other_contests in [
           con for con in candidate_contest_mapping.values() if con != contests
@@ -284,7 +297,7 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
               return False
     return True
 
-  def check(self, election_report):
+  def check(self, election_report: etree._Element) -> None:
     self._construct_contest_graph(election_report)
     person_candidate_to_contest_map = (
         self._register_person_to_candidate_to_contests(election_report)
@@ -294,9 +307,9 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
         related_contests = self._check_candidate_contests_are_related(contests)
         if not related_contests:
           error_message = (
-              "Candidate {} appears in the following contests "
-              "which are not all related: {}"
-          ).format(cand, ", ".join(contests))
+              f"Candidate {cand} appears in the following contests "
+              f"which are not all related: {', '.join(contests)}"
+          )
           self.error_log.append(
               loggers.LogEntry(error_message, [election_report])
           )
@@ -306,8 +319,8 @@ class CandidatesReferencedInRelatedContests(base.BaseRule):
       )
       if not sep_cand_not_related:
         error_message = (
-            "Person {} has separate candidates in contests that "
-            "are related.".format(person)
+            f"Person {person} has separate candidates in contests that "
+            "are related."
         )
         self.error_log.append(
             loggers.LogEntry(error_message, [election_report])
@@ -331,10 +344,10 @@ class ProperBallotSelection(base.BaseRule):
       "RetentionContest": "BallotMeasureSelection",
   }
 
-  def elements(self):
-    return self.con_sel_mapping.keys()
+  def elements(self) -> list[str]:
+    return list(self.con_sel_mapping)
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     tag = self.get_element_class(element)
     selections = []
     for c in self.con_sel_mapping:
@@ -344,9 +357,9 @@ class ProperBallotSelection(base.BaseRule):
       if selection_tag != self.con_sel_mapping[tag]:
         selection_id = selection.get("objectId")
         msg = (
-            "The Contest does not contain the right BallotSelection. %s "
-            "must have a %s but contains a %s, %s"
-            % (tag, self.con_sel_mapping[tag], selection_tag, selection_id)
+            "The Contest does not contain the right BallotSelection."
+            f" {tag} must have a {self.con_sel_mapping[tag]} but contains a"
+            f" {selection_tag}, {selection_id}"
         )
         raise loggers.ElectionError.from_message(msg, [element])
 
@@ -360,10 +373,10 @@ class CorrectCandidateSelectionCount(base.BaseRule):
   party list elections.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["CandidateSelection"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     selection_id = element.get("objectId")
     candidate_ids = element.findall("CandidateIds")
     if not candidate_ids:
@@ -395,10 +408,10 @@ class SingularPartySelection(base.BaseRule):
   not support this. Having multiple parties can cause undefined behavior.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["PartySelection"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     party_ids = element.find("PartyIds")
     if party_ids is None or not party_ids.text or not party_ids.text.strip():
       raise loggers.ElectionError.from_message(
@@ -418,7 +431,7 @@ class ValidateDuplicateColors(base.TreeRule):
   message.
   """
 
-  def check(self):
+  def check(self) -> None:
     party_colors_by_id = {}
     party_objects = {}
     for party in self.get_elements_by_class(self.election_tree, "Party"):
@@ -493,10 +506,10 @@ class DuplicateContestNames(base.BaseRule):
   Add Warning if duplicate ContestName found.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["ContestCollection"]
 
-  def check(self, election_elt):
+  def check(self, election_elt: etree._Element) -> None:
     # Mapping for <Name> and its Contest ObjectId.
     error_log = []
     name_contest_id = {}
@@ -515,7 +528,7 @@ class DuplicateContestNames(base.BaseRule):
     for name, contests in name_contest_id.items():
       if len(contests) > 1:
         error_log.append(
-            loggers.LogEntry("Contests have the same name %s." % name, contests)
+            loggers.LogEntry(f"Contests have the same name {name}.", contests)
         )
     if error_log:
       raise loggers.ElectionError(error_log)
@@ -528,10 +541,10 @@ class DuplicateBallotTitleSeatPair(base.BaseRule):
   found.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["ContestCollection"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     error_log = []
     contest_elements = element.findall("Contest")
     contests_by_title_and_seat = collections.defaultdict(list)
@@ -572,7 +585,7 @@ class DuplicateBallotTitleSeatPair(base.BaseRule):
 class MultipleCandidatesPointToTheSamePersonInTheSameContest(base.TreeRule):
   """Raise an error when multiple candidates point to the same person in the same contest."""
 
-  def check(self):
+  def check(self) -> None:
     # Keep track of rule violations
     error_log = []
     rule_violations = []
@@ -596,14 +609,18 @@ class MultipleCandidatesPointToTheSamePersonInTheSameContest(base.TreeRule):
         person_id = rule_violation[1]
         candidate_list = rule_violation[2]
         error_message = (
-            "Multiple candidates in Contest {} reference the same Person "
-            "{}. Candidates: {}"
-        ).format(contest_id, person_id, candidate_list)
+            f"Multiple candidates in Contest {contest_id} reference the same"
+            f" Person {person_id}. Candidates: {candidate_list}"
+        )
         error_log.append(loggers.LogEntry((error_message), [contest_id]))
     if error_log:
       raise loggers.ElectionError(error_log)
 
-  def _check_for_bad_candidates(self, person_id_by_candidate_id, contest):
+  def _check_for_bad_candidates(
+      self,
+      person_id_by_candidate_id: Mapping[str, str],
+      contest: etree._Element,
+  ) -> list[tuple[str, str, str]]:
     candidate_ids_by_person_id = dict()
     rule_violating_person_ids = []
     contest_id = contest.get("objectId")
@@ -619,7 +636,9 @@ class MultipleCandidatesPointToTheSamePersonInTheSameContest(base.TreeRule):
         for person_id in rule_violating_person_ids
     ]
 
-  def _get_candidate_ids_for_contest(self, contest):
+  def _get_candidate_ids_for_contest(
+      self, contest: etree._Element
+  ) -> list[str]:
     candidate_id_elements = self.get_elements_by_class(contest, "CandidateIds")
     candidate_ids = []
     for candidate_id_element in candidate_id_elements:
@@ -633,10 +652,10 @@ class SelfDeclaredCandidateMethod(base.BaseRule):
   Please update the candidate Pre election Status.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Candidate"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     status = element.find("PreElectionStatus")
     if status is not None and status.text == "self-declared":
       externalidvalues = rule_util.get_external_id_values(
@@ -654,10 +673,10 @@ class SelfDeclaredCandidateMethod(base.BaseRule):
 class ContestHasMultipleOffices(base.BaseRule):
   """Ensure that each contest has exactly one Office."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["CandidateContest", "PartyContest"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     # for each contest, get the <officeids> entity
     office_ids = element.find("OfficeIds")
     if office_ids is not None and office_ids.text:
@@ -691,7 +710,7 @@ class VoteCountTypesCoherency(base.BaseRule):
   def elements(self):
     return ["Contest"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     invalid_vc_types = None
     contest_type = ""
     if element.get("type", "") == "CandidateContest":
@@ -710,8 +729,9 @@ class VoteCountTypesCoherency(base.BaseRule):
           if vc_type in invalid_vc_types:
             errors.append(vc_type)
       if errors:
-        msg = "VoteCount types {0} should not be nested in {1} Contest".format(
-            ", ".join(errors), contest_type
+        msg = (
+            f"VoteCount types {', '.join(errors)} should not be nested in"
+            f" {contest_type} Contest"
         )
         raise loggers.ElectionError.from_message(msg, [element])
 
@@ -719,12 +739,12 @@ class VoteCountTypesCoherency(base.BaseRule):
 class VoteCountValidSeatsDeltaTypes(base.SchemaRule):
   """Ensure VoteCount seats delta types are valid."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["BallotSelection"] + list(
         self.get_element_names_for_type("SpecialBallotSelection")
     )
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     vote_count_types = set()
     vote_counts_collection = element.find("VoteCountsCollection")
     if vote_counts_collection is None:
@@ -743,10 +763,10 @@ class VoteCountValidSeatsDeltaTypes(base.SchemaRule):
 class OfficeHasjurisdictionSameAsElectoralDistrict(base.BaseRule):
   """In election feeds, office has the electoral district same as jurisdiction."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Office"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     jurisdiction_values = rule_util.get_entity_info_for_value_type(
         element, "jurisdiction-id"
     )
@@ -772,7 +792,7 @@ class ContestHasValidContestStage(base.BaseRule):
   def elements(self):
     return ["CandidateContest", "PartyContest", "BallotMeasureContest"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     contest_stage_values = [
         contest_stage_value.strip()
         for contest_stage_value in rule_util.get_external_id_values(
@@ -782,9 +802,7 @@ class ContestHasValidContestStage(base.BaseRule):
     for contest_stage_value in contest_stage_values:
       if contest_stage_value not in _CONTEST_STAGE_TYPES:
         raise loggers.ElectionError.from_message(
-            "The contest has invalid contest-stage '{}'.".format(
-                contest_stage_value
-            ),
+            f"The contest has invalid contest-stage '{contest_stage_value}'.",
             [element],
         )
 
@@ -792,19 +810,17 @@ class ContestHasValidContestStage(base.BaseRule):
 class ElectionContainsStartAndEndDates(base.DateRule):
   """Election elements should have start and end dates populated."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Election"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
     self.gather_dates(element)
 
     if self.start_elem is None:
       self.error_log.append(
           loggers.LogEntry(
-              "Election {} is missing a start date.".format(
-                  element.get("objectId")
-              ),
+              f"Election {element.get('objectId')} is missing a start date.",
               [element],
           )
       )
@@ -812,9 +828,7 @@ class ElectionContainsStartAndEndDates(base.DateRule):
     if self.end_elem is None:
       self.error_log.append(
           loggers.LogEntry(
-              "Election {} is missing an end date.".format(
-                  element.get("objectId")
-              ),
+              f"Election {element.get('objectId')} is missing an end date.",
               [element],
           )
       )
@@ -830,10 +844,10 @@ class ElectionStartDates(base.DateRule):
   as validator could conceivably be run during an ongoing election.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Election"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
     self.gather_dates(element)
 
@@ -855,10 +869,10 @@ class ElectionEndDatesInThePast(base.DateRule):
   canceled.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Election"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
     self.gather_dates(element)
     date_type = element.find("ElectionDateType")
@@ -893,10 +907,10 @@ class ElectionEndDatesOccurAfterStartDates(base.DateRule):
   End dates should not occur before the start date.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Election"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
     self.gather_dates(element)
 
@@ -915,12 +929,15 @@ class ElectionDatesSpanContestDates(base.DateRule):
   will be considered.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["ElectionReport"]
 
   def _validate_contest_dates_within_election(
-      self, election, contest, error_log
-  ):
+      self,
+      election: etree._Element,
+      contest: etree._Element,
+      error_log: list[loggers.LogEntry],
+  ) -> None:
     self.reset_instance_vars()
     self.gather_dates(election)
     election_start_date = self.start_date
@@ -942,14 +959,10 @@ class ElectionDatesSpanContestDates(base.DateRule):
     ):
       error_log.append(
           loggers.LogEntry(
-              "Contest {} with end date {} occurs after Election {} with"
-              " end date {}. Election end date should be on or after any"
-              " Contest end date.".format(
-                  contest_id,
-                  self.end_date,
-                  election_id,
-                  election_end_date,
-              ),
+              f"Contest {contest_id} with end date {self.end_date} occurs"
+              f" after Election {election_id} with end date"
+              f" {election_end_date}. Election end date should be on or after"
+              " any Contest end date.",
               [contest],
           )
       )
@@ -1015,7 +1028,9 @@ class ElectionTypesAndCandidateContestTypesAreCompatible(base.BaseRule):
   CandidateContests with the general type.
   """
 
-  def _extract_text_from_elements(self, elements):
+  def _extract_text_from_elements(
+      self, elements: Iterable[etree._Element]
+  ) -> set[str]:
     return {
         element.text.strip().lower()
         for element in elements
