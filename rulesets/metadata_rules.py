@@ -24,6 +24,7 @@ from civics_cdf_validator.rulesets import common_rules
 from civics_cdf_validator.rulesets import rule_util
 import dateutil
 from frozendict import frozendict
+from lxml import etree
 
 
 _VALID_FEED_LONGEVITY_BY_FEED_TYPE = frozendict({
@@ -38,10 +39,10 @@ _VALID_FEED_LONGEVITY_BY_FEED_TYPE = frozendict({
 class FeedTypeHasValidFeedLongevity(base.BaseRule):
   """Feeds types should have valid corresponding FeedLongevity."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Feed"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     feed_type_element = element.find("FeedType")
     feed_longevity_element = element.find("FeedLongevity")
     if rule_util.element_has_text(
@@ -55,12 +56,9 @@ class FeedTypeHasValidFeedLongevity(base.BaseRule):
           not in _VALID_FEED_LONGEVITY_BY_FEED_TYPE[feed_type]
       ):
         raise loggers.ElectionError.from_message(
-            "Feed type {} has invalid feed longevity {}. Valid feed"
-            " longevities for this type are {}".format(
-                feed_type,
-                feed_longevity,
-                _VALID_FEED_LONGEVITY_BY_FEED_TYPE[feed_type],
-            ),
+            f"Feed type {feed_type} has invalid feed longevity"
+            f" {feed_longevity}. Valid feed longevities for this type are"
+            f" {_VALID_FEED_LONGEVITY_BY_FEED_TYPE[feed_type]}",
             [element],
         )
 
@@ -68,10 +66,10 @@ class FeedTypeHasValidFeedLongevity(base.BaseRule):
 class FeedIdsAreUnique(base.BaseRule):
   """FeedId should be unique."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["FeedCollection"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     feed_ids = set()
     error_log = []
     for feed_element in element.findall("Feed"):
@@ -79,8 +77,8 @@ class FeedIdsAreUnique(base.BaseRule):
         feed_id = feed_element.find("FeedId").text
         if feed_id in feed_ids:
           msg = (
-              "FeedId {} appears multiple times in the metadata feed. Feed ids"
-              " must be unique.".format(feed_id)
+              f"FeedId {feed_id} appears multiple times in the metadata feed."
+              " Feed ids must be unique."
           )
           error_log.append(
               loggers.LogEntry(
@@ -97,10 +95,10 @@ class FeedIdsAreUnique(base.BaseRule):
 class SourceDirPathsAreUnique(base.BaseRule):
   """All SourceDirPaths should be unique."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["FeedCollection"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     source_dir_paths = set()
     error_log = []
     for feed_element in element.findall("Feed"):
@@ -108,8 +106,8 @@ class SourceDirPathsAreUnique(base.BaseRule):
         source_dir_path = feed_element.find("SourceDirPath").text
         if source_dir_path in source_dir_paths:
           msg = (
-              "SourceDirPath {} appears multiple times in the metadata feed."
-              " SourceDirPaths must be unique.".format(source_dir_path)
+              f"SourceDirPath {source_dir_path} appears multiple times in the"
+              " metadata feed. SourceDirPaths must be unique."
           )
           error_log.append(
               loggers.LogEntry(
@@ -132,10 +130,10 @@ class SqsQueueNameIsFullyQualifiedArn(base.BaseRule):
   Only AWS region ARNs are supported.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Feed"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     sqs_queue_name = element.find("SqsQueueName")
     if not rule_util.element_has_text(sqs_queue_name):
       return
@@ -181,10 +179,10 @@ class SqsQueueNameIsFullyQualifiedArn(base.BaseRule):
 class SqsQueueNameRequiresS3SourceDirPath(base.BaseRule):
   """If SqsQueueName is set, SourceDirPath must also be set and must be an s3 path."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Feed"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     sqs_queue_name = element.find("SqsQueueName")
     if not rule_util.element_has_text(sqs_queue_name):
       return
@@ -194,7 +192,7 @@ class SqsQueueNameRequiresS3SourceDirPath(base.BaseRule):
     ) or not source_dir_path.text.strip().lower().startswith("s3://"):
       raise loggers.ElectionError.from_message(
           "If SqsQueueName is set, SourceDirPath must also be set and must be"
-          " an s3 path for feed {}.".format(element.find("FeedId").text),
+          f" an s3 path for feed {element.find('FeedId').text}.",
           [element],
       )
 
@@ -202,10 +200,10 @@ class SqsQueueNameRequiresS3SourceDirPath(base.BaseRule):
 class ElectionEventDatesAreSequential(base.DateRule):
   """Dates in an ElectionEvent element should be sequential."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["ElectionEvent"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
     self.gather_dates(element)
     self.check_end_after_start()
@@ -247,10 +245,10 @@ class ElectionEventDatesAreSequential(base.DateRule):
 class SourceDirPathMustBeSetAfterInitialDeliveryDate(base.BaseRule):
   """SourceDirPath must be set if any InitialDeliveryDate is in the past."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Feed"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     if rule_util.element_has_text(element.find("SourceDirPath")):
       return
     today = datetime.date.today()
@@ -275,10 +273,10 @@ class SourceDirPathMustBeSetAfterInitialDeliveryDate(base.BaseRule):
 class OfficeholderSubFeedDatesAreSequential(base.DateRule):
   """Dates in an OfficeholderSubFeed element should be sequential."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["OfficeholderSubFeed"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     if rule_util.element_has_text(
         element.find("InitialDeliveryDate")
     ) and rule_util.element_has_text(element.find("FullDeliveryDate")):
@@ -300,10 +298,10 @@ class FeedInactiveDateIsLatestDate(base.BaseRule):
 
   ignorable_election_date_statuses = frozenset(["canceled"])
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Feed"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     # Skip this rule for test feeds.
     if rule_util.is_xml_true(element.find("IsTest")):
       return
@@ -342,16 +340,16 @@ class FeedInactiveDateIsLatestDate(base.BaseRule):
 class FeedHasValidCountryCode(base.BaseRule):
   """Feeds should have valid country code."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Feed"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     country_code_element = element.find("CountryCode")
     if rule_util.element_has_text(country_code_element):
       country_code = country_code_element.text.upper()
       if not rule_util.country_code_is_valid(country_code):
         raise loggers.ElectionError.from_message(
-            "Invalid country code {}.".format(country_code),
+            f"Invalid country code {country_code}.",
             [element],
         )
     else:
@@ -362,7 +360,7 @@ class FeedHasValidCountryCode(base.BaseRule):
       ):
         return
       raise loggers.ElectionError.from_message(
-          "Feed {} is missing CountryCode.".format(element.find("FeedId").text),
+          f"Feed {element.find('FeedId').text} is missing CountryCode.",
           [element],
       )
 
@@ -370,10 +368,10 @@ class FeedHasValidCountryCode(base.BaseRule):
 class FeedInactiveDateNotOlderThanOneYear(base.BaseRule):
   """Feeds should not have a FeedInactiveDate older than 1 year."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Feed"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     feed_inactive_date_element = element.find("FeedInactiveDate")
     if not rule_util.element_has_text(feed_inactive_date_element):
       return
@@ -395,10 +393,10 @@ class FeedInactiveDateNotOlderThanOneYear(base.BaseRule):
 class FeedInactiveDateSetForNonEvergreenFeed(base.BaseRule):
   """All non-evergreen feeds should have a FeedInactiveDate set."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Feed"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     feed_longevity = element.find("FeedLongevity")
     if (
         rule_util.element_has_text(feed_longevity)
@@ -406,8 +404,8 @@ class FeedInactiveDateSetForNonEvergreenFeed(base.BaseRule):
         and not rule_util.element_has_text(element.find("FeedInactiveDate"))
     ):
       raise loggers.ElectionError.from_message(
-          "FeedInactiveDate is not set for non-evergreen feed with FeedId {}."
-          .format(element.find("FeedId").text),
+          "FeedInactiveDate is not set for non-evergreen feed with FeedId"
+          f" {element.find('FeedId').text}.",
           [element],
       )
 
@@ -421,10 +419,10 @@ class FeedElementsShouldHaveSubElementsBasedOnType(base.BaseRule):
   one ElectionEvent element should be present.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Feed"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     feed_type = element.find("FeedType")
     feed_id = element.find("FeedId").text
 
@@ -435,21 +433,20 @@ class FeedElementsShouldHaveSubElementsBasedOnType(base.BaseRule):
     if feed_type == "officeholder":
       if element.find("OfficeholderSubFeed") is None:
         raise loggers.ElectionError.from_message(
-            "OfficeholderSubFeed should exist for %s feed %s."
-            % (feed_type, feed_id),
+            f"OfficeholderSubFeed should exist for {feed_type} feed {feed_id}.",
             [element],
         )
     elif feed_type == "pre-election" or feed_type == "election-results":
       if element.find("ElectionEventCollection") is None:
         raise loggers.ElectionError.from_message(
-            "ElectionEventCollection should exist for %s feed %s."
-            % (feed_type, feed_id),
+            f"ElectionEventCollection should exist for {feed_type} feed"
+            f" {feed_id}.",
             [element],
         )
       if not element.find("ElectionEventCollection").findall("ElectionEvent"):
         raise loggers.ElectionError.from_message(
             "ElectionEventCollection should have at least one ElectionEvent"
-            " for %s feed %s." % (feed_type, feed_id),
+            f" for {feed_type} feed {feed_id}.",
             [element],
         )
 

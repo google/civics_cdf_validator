@@ -15,6 +15,7 @@
 
 from __future__ import print_function
 
+from collections.abc import Iterable
 import csv
 import datetime
 import io
@@ -28,19 +29,21 @@ import pycountry
 import requests
 
 
-def generate_github_raw_url(repo_name, subdir, file_name, branch="master"):
+def generate_github_raw_url(
+    repo_name: str, subdir: str, file_name: str, branch: str = "master"
+) -> str:
   return f"https://raw.github.com/{repo_name}/{branch}/{subdir}/{file_name}"
 
 
-def generate_github_archive_url(repo_name, branch="master"):
+def generate_github_archive_url(repo_name: str, branch: str = "master") -> str:
   return f"https://github.com/{repo_name}/archive/refs/heads/{branch}.zip"
 
 
-def generate_country_filename(country_code):
+def generate_country_filename(country_code: str) -> str:
   return f"country-{country_code}.csv"
 
 
-def generate_absolute_path(path_to_directory, country_code):
+def generate_absolute_path(path_to_directory: str, country_code: str) -> str:
   return f"{path_to_directory}/{generate_country_filename(country_code)}"
 
 
@@ -56,7 +59,12 @@ class GpUnitOcdIdValidator(object):
   OCD_PATTERN_ROOT = r"^ocd-division\/(country:[a-z]{2}|region:eu)$"
   OCD_MATCHER_ROOT = re.compile(OCD_PATTERN_ROOT, flags=re.U)
 
-  def __init__(self, country_code=None, local_file=None, ocd_id_list=None):
+  def __init__(
+      self,
+      country_code: str | None = None,
+      local_file: str | None = None,
+      ocd_id_list: Iterable[str] | None = None,
+  ) -> None:
     """Initialize the class.
 
     If a list is provided, that list will be used to initialize the set of OCD
@@ -76,7 +84,7 @@ class GpUnitOcdIdValidator(object):
       extractor = OcdIdsExtractor(country_code, local_file)
       self.ocd_ids = extractor.extract()
 
-  def is_valid_ocd_id(self, ocd_id):
+  def is_valid_ocd_id(self, ocd_id: str) -> bool | None:
     """Check whether the given OCD ID is valid.
 
     An OCD ID is valid if:
@@ -98,7 +106,7 @@ class GpUnitOcdIdValidator(object):
     )
 
   @classmethod
-  def is_valid_country_code(cls, ocd_id):
+  def is_valid_country_code(cls, ocd_id: str) -> bool:
     """Check whether country code in the given OCD ID is valid."""
     match_object = re.match(cls.OCD_PATTERN, ocd_id)
     if match_object is None:
@@ -113,7 +121,7 @@ class GpUnitOcdIdValidator(object):
     return False
 
   @classmethod
-  def is_country_or_region_ocd_id(cls, ocd_id):
+  def is_country_or_region_ocd_id(cls, ocd_id: str) -> re.Match[str] | None:
     """Check whether the given OCD ID represents a country or region."""
     return cls.OCD_MATCHER_ROOT.match(str(ocd_id))
 
@@ -171,7 +179,9 @@ class OcdIdsExtractor(object):
     github_raw_url: str
     local_filepath: str
 
-  def __init__(self, country_code=None, local_file=None):
+  def __init__(
+      self, country_code: str | None = None, local_file: str | None = None
+  ) -> None:
     self.country_code = country_code
     self.local_file = local_file
 
