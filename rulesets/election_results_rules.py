@@ -16,6 +16,7 @@
 from civics_cdf_validator import base
 from civics_cdf_validator import loggers
 from civics_cdf_validator.rulesets import election_rules
+from lxml import etree
 
 _REQUIRED_CONTEST_RESULTS_FIELDS = (
     "CurrentResultsReportingStage",
@@ -33,7 +34,7 @@ class RequiredContestResultsFieldsSet(base.SchemaRule):
   def elements(self) -> list[str]:
     return ["Contest"] + list(self.get_all_subtypes("Contest"))
 
-  def check(self, element) -> None:
+  def check(self, element: etree._Element) -> None:
     missing_fields = [
         field
         for field in _REQUIRED_CONTEST_RESULTS_FIELDS
