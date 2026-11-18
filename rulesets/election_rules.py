@@ -973,19 +973,15 @@ class ElectionDatesSpanContestDates(base.DateRule):
     ):
       error_log.append(
           loggers.LogEntry(
-              "Contest {} with start date {} occurs before Election {} with"
-              " start date {}. Election start date should be on or before"
-              " any Contest start date.".format(
-                  contest_id,
-                  self.start_date,
-                  election_id,
-                  election_start_date,
-              ),
+              f"Contest {contest_id} with start date {self.start_date}"
+              f" occurs before Election {election_id} with start date"
+              f" {election_start_date}. Election start date should be on or"
+              " before any Contest start date.",
               [contest],
           )
       )
 
-  def check(self, election_report_element):
+  def check(self, election_report_element: etree._Element) -> None:
     error_log = []
     for election in self.get_elements_by_class(
         election_report_element, "Election"
@@ -1002,10 +998,10 @@ class ElectionDatesSpanContestDates(base.DateRule):
 class ElectionTypesAreCompatible(base.BaseRule):
   """Election element Type values cannot be both a general and primary type."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Election"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     election_types = element.findall("Type")
     if election_types:
       for i in range(len(election_types)):
@@ -1037,10 +1033,10 @@ class ElectionTypesAndCandidateContestTypesAreCompatible(base.BaseRule):
         if rule_util.element_has_text(element)
     }
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Election"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     errors = []
     contests = self.get_elements_by_class(element, "CandidateContest")
     election_types = self._extract_text_from_elements(element.findall("Type"))
@@ -1056,9 +1052,10 @@ class ElectionTypesAndCandidateContestTypesAreCompatible(base.BaseRule):
       ):
         errors.append(
             loggers.LogEntry(
-                "Election %s includes CandidateContest %s with incompatible"
-                " type(s). General elections cannot include primary contests."
-                % (element.get("objectId"), contest.get("objectId")),
+                f"Election {element.get('objectId')} includes"
+                f" CandidateContest {contest.get('objectId')} with"
+                " incompatible type(s). General elections cannot include"
+                " primary contests.",
                 element,
             )
         )
@@ -1068,9 +1065,10 @@ class ElectionTypesAndCandidateContestTypesAreCompatible(base.BaseRule):
       ):
         errors.append(
             loggers.LogEntry(
-                "Election %s includes CandidateContest %s with incompatible"
-                " type(s). Primary elections cannot include general contests."
-                % (element.get("objectId"), contest.get("objectId")),
+                f"Election {element.get('objectId')} includes"
+                f" CandidateContest {contest.get('objectId')} with"
+                " incompatible type(s). Primary elections cannot include"
+                " general contests.",
                 element,
             )
         )
@@ -1088,10 +1086,10 @@ class DateStatusMatches(base.DateRule):
   but uncommon - raise Info level message.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Election"]
 
-  def check(self, election_elem):
+  def check(self, election_elem: etree._Element) -> None:
     election_date_status = "confirmed"  # default value
     election_status_elem = election_elem.find("ElectionDateStatus")
 
@@ -1110,19 +1108,16 @@ class DateStatusMatches(base.DateRule):
       contest_status = contest_statuses.pop()
       if contest_status != election_date_status:
         msg = (
-            "All contests on election {} have a date status of {}, but the "
-            "election has a date status of {}.".format(
-                election_elem.get("objectId"),
-                contest_status,
-                election_date_status,
-            )
+            f"All contests on election {election_elem.get('objectId')} have"
+            f" a date status of {contest_status}, but the election has a date"
+            f" status of {election_date_status}."
         )
         raise loggers.ElectionWarning.from_message(msg, [election_elem])
     elif len(contest_statuses) > 1:
       msg = (
           "There are multiple date statuses present for the contests on "
-          "election {}.  This may be correct, but is an unusal case.  Please "
-          "confirm.".format(election_elem.get("objectId"))
+          f"election {election_elem.get('objectId')}.  This may be correct,"
+          " but is an unusal case.  Please confirm."
       )
       raise loggers.ElectionInfo.from_message(msg, [election_elem])
 
@@ -1142,10 +1137,10 @@ class ValidateInfoUriAnnotation(base.BaseRule):
       "logo-uri",
   ]
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["InfoUri"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     error_log = []
     annotation = element.attrib["Annotation"]
     if annotation not in self.info_array:
@@ -1161,17 +1156,17 @@ class FullTextMaxLength(base.BaseRule):
 
   MAX_LENGTH = 30000  # about 8-10 pages of text, 4500-5000 words
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["FullText"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     intl_text_list = element.findall("Text")
     for intl_text in intl_text_list:
       if len(intl_text.text) > self.MAX_LENGTH:
         msg = (
-            "FullText is longer than %s characters. Please remove and "
-            "include a link to the full text via InfoUri with Annotation "
-            "'fulltext'." % (self.MAX_LENGTH)
+            f"FullText is longer than {self.MAX_LENGTH} characters. Please"
+            " remove and include a link to the full text via InfoUri with"
+            " Annotation 'fulltext'."
         )
         raise loggers.ElectionWarning.from_message(msg, [element])
 
@@ -1184,7 +1179,7 @@ class FullTextOrBallotText(base.BaseRule):
   def elements(self):
     return ["BallotMeasureContest"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     full_text_map = rule_util.get_language_to_text_map(element.find("FullText"))
     if not full_text_map:
       return
@@ -1199,10 +1194,10 @@ class FullTextOrBallotText(base.BaseRule):
           and len(full_text_string) < self.SUGGESTION_CUTOFF_LENGTH
       ):
         msg = (
-            "Language: %s.  BallotText is missing but FullText is present "
-            "for the same language. Please confirm that FullText contains "
-            "only supplementary text and not text on the ballot itself."
-            % (language)
+            f"Language: {language}.  BallotText is missing but FullText is"
+            " present for the same language. Please confirm that FullText"
+            " contains only supplementary text and not text on the ballot"
+            " itself."
         )
         raise loggers.ElectionWarning.from_message(msg, [element])
 
@@ -1213,7 +1208,7 @@ class BallotTitle(base.BaseRule):
   def elements(self):
     return ["BallotMeasureContest"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     ballot_title_map = rule_util.get_language_to_text_map(
         element.find("BallotTitle")
     )
@@ -1238,9 +1233,9 @@ class BallotTitle(base.BaseRule):
           ballot_text_map[language][0]
       ) < len(ballot_title_string):
         msg = (
-            "Language: %s. BallotText is missing or shorter than "
+            f"Language: {language}. BallotText is missing or shorter than "
             " Please confirm that the ballot text/question is not "
-            "in BallotTitle." % (language)
+            "in BallotTitle."
         )
         raise loggers.ElectionWarning.from_message(msg, [element])
 
@@ -1250,7 +1245,7 @@ class ImproperCandidateContest(base.TreeRule):
 
   _BALLOT_SELECTION_OPTIONS = frozenset({"yes", "no", "for", "against"})
 
-  def _gather_contest_candidates(self, contest):
+  def _gather_contest_candidates(self, contest: etree._Element) -> list[str]:
     """Return candidate ids for given contest element."""
     candidate_ids = []
     cand_id_elems = contest.findall("BallotSelection//CandidateIds")
@@ -1259,7 +1254,7 @@ class ImproperCandidateContest(base.TreeRule):
         candidate_ids.append(cand_id)
     return candidate_ids
 
-  def _gather_invalid_candidates(self):
+  def _gather_invalid_candidates(self) -> list[str]:
     """Return candidate ids that appear to be BallotMeasureSelections."""
     invalid_candidates = []
     candidates = self.get_elements_by_class(
@@ -1272,7 +1267,7 @@ class ImproperCandidateContest(base.TreeRule):
           invalid_candidates.append(candidate.get("objectId"))
     return invalid_candidates
 
-  def check(self):
+  def check(self) -> None:
     candidate_contest_mapping = {}
     contest_by_id = {}
     candidate_contests = self.get_elements_by_class(
@@ -1294,11 +1289,11 @@ class ImproperCandidateContest(base.TreeRule):
           flagged_candidates.append(cand_id)
       if flagged_candidates:
         warning_message = (
-            "Candidates {} should be BallotMeasureSelection "
-            "elements. Similarly, Contest {} should be changed "
-            "to a BallotMeasureContest instead of a "
-            "CandidateContest."
-        ).format(", ".join(flagged_candidates), contest_id)
+            f"Candidates {', '.join(flagged_candidates)} should be"
+            " BallotMeasureSelection elements. Similarly, Contest"
+            f" {contest_id} should be changed to a BallotMeasureContest"
+            " instead of a CandidateContest."
+        )
         warning_log.append(
             loggers.LogEntry(warning_message, [contest_by_id[contest_id]])
         )
@@ -1314,12 +1309,12 @@ class ImproperCandidateContest(base.TreeRule):
 class WinnerCountLimit(base.BaseRule):
   """Number of winners must be less than or equal to NumberElected."""
 
-  def setup(self):
+  def setup(self) -> None:
     self.candidate_post_election_status_by_object_id = (
         self._get_candidate_post_election_status_by_object_id()
     )
 
-  def _get_candidate_post_election_status_by_object_id(self):
+  def _get_candidate_post_election_status_by_object_id(self) -> dict[str, str]:
     candidate_post_election_status_by_object_id = {}
     candidates = self.get_elements_by_class(
         self.election_tree, "CandidateCollection//Candidate"
@@ -1333,10 +1328,10 @@ class WinnerCountLimit(base.BaseRule):
         )
     return candidate_post_election_status_by_object_id
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["CandidateContest"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     number_elected_element = element.find("NumberElected")
     number_elected = (
         int(number_elected_element.text)
@@ -1377,10 +1372,10 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
   - ComposingContestIds must not contain the original contest.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["ElectionReport"]
 
-  def check(self, election_report_element):
+  def check(self, election_report_element: etree._Element) -> None:
     error_log = []
     contest_by_id = {}
     contest_end_date_by_id = {}
@@ -1474,8 +1469,8 @@ class SubsequentContestIdIsValidRelatedContest(base.DateRule):
       ):
         error_log.append(
             loggers.LogEntry(
-                "Contest %s references a subsequent contest with different "
-                "primary party ids." % contest_id,
+                f"Contest {contest_id} references a subsequent contest with"
+                " different primary party ids.",
                 [contest],
                 [contest.sourceline],
             )
@@ -1510,10 +1505,10 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
   - ComposingContests must not reference each other.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["ElectionReport"]
 
-  def check(self, election_report_element):
+  def check(self, election_report_element: etree._Element) -> None:
     error_log = []
 
     contests = self.get_elements_by_class(election_report_element, "Contest")
@@ -1534,9 +1529,9 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
         else:
           error_log.append(
               loggers.LogEntry(
-                  "Contest %s is listed as a ComposingContest for more "
-                  "than one parent contest.  ComposingContests should be a "
-                  "strict hierarchy." % contest_id,
+                  f"Contest {contest_id} is listed as a ComposingContest for"
+                  " more than one parent contest.  ComposingContests should"
+                  " be a strict hierarchy.",
                   [contest_ids[parent_contest_id]],
               )
           )
@@ -1622,7 +1617,7 @@ class ContestContainsValidStartDate(base.DateRule):
   def elements(self):
     return ["Contest"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
     self.gather_dates(element)
 
@@ -1643,7 +1638,7 @@ class ContestContainsValidEndDate(base.DateRule):
   def elements(self):
     return ["Contest"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
     self.gather_dates(element)
 
@@ -1660,7 +1655,7 @@ class ContestEndDateOccursAfterStartDate(base.DateRule):
   def elements(self):
     return ["Contest"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
     self.gather_dates(element)
 
@@ -1677,10 +1672,10 @@ class ContestEndDateOccursBeforeSubsequentContestStartDate(base.DateRule):
   Contests have dates.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["ElectionReport"]
 
-  def check(self, election_report_element):
+  def check(self, election_report_element: etree._Element) -> None:
     contest_by_contest_id = {}
     dates_by_contest_id = {}
 
@@ -1710,13 +1705,10 @@ class ContestEndDateOccursBeforeSubsequentContestStartDate(base.DateRule):
         if subsequent_contest_start < contest_end:
           self.error_log.append(
               loggers.LogEntry(
-                  "Contest {} with end date {} does not occur before"
-                  " subsequent contest {} with start date {}".format(
-                      contest_id,
-                      contest_end,
-                      subsequent_contest_id,
-                      subsequent_contest_start,
-                  ),
+                  f"Contest {contest_id} with end date {contest_end} does"
+                  " not occur before subsequent contest"
+                  f" {subsequent_contest_id} with start date"
+                  f" {subsequent_contest_start}",
                   [contest, contest_by_contest_id[subsequent_contest_id]],
               )
           )
@@ -1735,7 +1727,7 @@ class ContestStartDateContainsCorrespondingEndDate(base.DateRule):
   def elements(self):
     return ["Contest"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
     self.gather_dates(element)
 
@@ -1760,7 +1752,7 @@ class ValidatePollsCloseDatetimes(base.BaseRule):
   def elements(self):
     return ["Contest"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     earliest_polls_close_element = element.find("EarliestPollsClose")
     latest_polls_close_element = element.find("LatestPollsClose")
 
@@ -1805,7 +1797,7 @@ class ValidateResultsExpected(base.BaseRule):
   def elements(self):
     return ["Contest"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     results_expected_element = element.find("ResultsExpected")
     if not rule_util.element_has_text(results_expected_element):
       return
@@ -1868,7 +1860,7 @@ class ValidateResultsEmbargoEnd(base.BaseRule):
   def elements(self):
     return ["Contest"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     results_embargo_end_element = element.find("ResultsEmbargoEnd")
     if not rule_util.element_has_text(results_embargo_end_element):
       return
@@ -1927,10 +1919,10 @@ class ValidateResultsEmbargoEnd(base.BaseRule):
 class ResultsReportingStagesMustHaveUniqueType(base.BaseRule):
   """Checks that each ResultsReportingStage has a unique StageType per Contest."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["ResultsReportingStageCollection"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     stages_by_type = collections.defaultdict(list)
     for stage in element.findall("ResultsReportingStage"):
       stage_type_element = stage.find("StageType")
@@ -1955,10 +1947,10 @@ class ResultsReportingStagesMustHaveUniqueType(base.BaseRule):
 class ValidateResultReportingStages(base.BaseRule):
   """Validates ResultsReportingStage elements in a stage collection."""
 
-  def setup(self):
+  def setup(self) -> None:
     self.composing_contest_ids = self._get_composing_contest_ids()
 
-  def _get_composing_contest_ids(self):
+  def _get_composing_contest_ids(self) -> set[str]:
     composing_contest_ids = set()
     for contest in self.get_elements_by_class(self.election_tree, "Contest"):
       composing_contest_ids_element = contest.find("ComposingContestIds")
@@ -1966,10 +1958,10 @@ class ValidateResultReportingStages(base.BaseRule):
         composing_contest_ids.update(composing_contest_ids_element.text.split())
     return composing_contest_ids
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["ResultsReportingStageCollection"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     inherit_from_composed = rule_util.is_xml_true(
         element.find("InheritFromComposedContest")
     )
@@ -2032,10 +2024,10 @@ class ValidateResultReportingStages(base.BaseRule):
 class CandidateContestTypesAreCompatible(base.BaseRule):
   """CandidateContest Type values cannot have both a general and primary type."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["CandidateContest"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     primary_types = {
         "primary",
         "partisan-primary-open",
@@ -2052,10 +2044,9 @@ class CandidateContestTypesAreCompatible(base.BaseRule):
           contest_types
       ):
         raise loggers.ElectionError.from_message(
-            "CandidateContest {} has incompatible type values. A contest cannot"
-            " have both a general and primary type.".format(
-                element.get("objectId")
-            ),
+            f"CandidateContest {element.get('objectId')} has incompatible"
+            " type values. A contest cannot have both a general and primary"
+            " type.",
             [element],
         )
 
@@ -2063,10 +2054,10 @@ class CandidateContestTypesAreCompatible(base.BaseRule):
 class NotEmptyUniqueDataSourceUris(base.BaseRule):
   """Checks that DataSource entities have globally unique URIs and they are not empty."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["DataSourceCollection"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     data_source_ids_by_uri = collections.defaultdict(set)
     error_log = []
 
@@ -2076,7 +2067,7 @@ class NotEmptyUniqueDataSourceUris(base.BaseRule):
         if not rule_util.element_has_text(uri_element):
           error_log.append(
               loggers.LogEntry(
-                  "DataSource {} has an empty Uri.".format(datasource_id),
+                  f"DataSource {datasource_id} has an empty Uri.",
                   [data_source],
               )
           )
@@ -2095,9 +2086,8 @@ class NotEmptyUniqueDataSourceUris(base.BaseRule):
       ]
       error_log.append(
           loggers.LogEntry(
-              "DataSource entities {} have duplicate Uri '{}'.".format(
-                  ", ".join(data_source_ids), uri
-              ),
+              f"DataSource entities {', '.join(data_source_ids)} have"
+              f" duplicate Uri '{uri}'.",
               sorted_data_sources,
           )
       )
@@ -2109,10 +2099,10 @@ class NotEmptyUniqueDataSourceUris(base.BaseRule):
 class UniqueDataSourceLanguages(base.BaseRule):
   """Checks that Uri elements have unique languages within a DataSource."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["DataSource"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     error_log = []
     data_source_id = element.get("objectId")
     seen_uri_languages = set()
@@ -2146,10 +2136,10 @@ class UniqueDataSourceLanguages(base.BaseRule):
 class UniqueDataSourceDisplayNames(base.BaseRule):
   """Checks that DataSource entities have globally unique DisplayNames."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["DataSourceCollection"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     data_source_ids_by_name = collections.defaultdict(set)
     error_log = []
 
@@ -2160,8 +2150,8 @@ class UniqueDataSourceDisplayNames(base.BaseRule):
         if not rule_util.element_has_text(text_element):
           error_log.append(
               loggers.LogEntry(
-                  "DataSource {} has a DisplayName element without"
-                  " text.".format(data_source_id),
+                  f"DataSource {data_source_id} has a DisplayName element"
+                  " without text.",
                   [data_source],
               )
           )
@@ -2178,9 +2168,8 @@ class UniqueDataSourceDisplayNames(base.BaseRule):
       datasource_ids = [ds.get("objectId") for ds in sorted_data_sources]
       error_log.append(
           loggers.LogEntry(
-              "DataSource entities {} have duplicate DisplayName '{}'.".format(
-                  ", ".join(datasource_ids), name_text
-              ),
+              f"DataSource entities {', '.join(datasource_ids)} have"
+              f" duplicate DisplayName '{name_text}'.",
               sorted_data_sources,
           )
       )
@@ -2189,7 +2178,7 @@ class UniqueDataSourceDisplayNames(base.BaseRule):
       raise loggers.ElectionError(error_log)
 
 
-def _get_attribution_depth(element):
+def _get_attribution_depth(element: etree._Element) -> int:
   """Helper to recursively get the maximum depth of an Attribution tree."""
   children = element.findall("Attribution")
   if not children:
@@ -2197,7 +2186,7 @@ def _get_attribution_depth(element):
   return 1 + max(_get_attribution_depth(child) for child in children)
 
 
-def _get_datasource_id(element):
+def _get_datasource_id(element: etree._Element) -> str:
   """Helper to safely extract and strip the text of the DataSourceId child."""
   ds_element = element.find("DataSourceId")
   return (
@@ -2208,10 +2197,10 @@ def _get_datasource_id(element):
 class AttributionDepthLimit(base.BaseRule):
   """Checks that each top-level Attribution in a ResultsReportingStage has at most three levels of depth."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["ResultsReportingStage"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     error_log = []
     # This findall query is non-recursive and only returns direct children.
     for attribution in element.findall("Attribution"):
@@ -2229,7 +2218,7 @@ class AttributionDepthLimit(base.BaseRule):
       raise loggers.ElectionError(error_log)
 
 
-def _canonicalize_cycle(cycle):
+def _canonicalize_cycle(cycle: list[str]) -> list[str]:
   """Canonicalizes a cycle by rotating it to start with the min element."""
   if not cycle:
     return []
@@ -2241,7 +2230,7 @@ def _canonicalize_cycle(cycle):
 class AttributionContainsNoCycles(base.TreeRule):
   """Checks that there are no cycles between Attribution elements."""
 
-  def check(self):
+  def check(self) -> None:
     graph = networkx.DiGraph()
 
     attributions = self.get_elements_by_class(self.election_tree, "Attribution")
@@ -2302,7 +2291,7 @@ class ValidateSpecialBallotSelectionCountedInTotal(base.BaseRule):
   AggregateBallotSelection must not have this set.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return [
         "BlankBallotSelection",
         "NullBallotSelection",
@@ -2310,7 +2299,7 @@ class ValidateSpecialBallotSelectionCountedInTotal(base.BaseRule):
         "AggregateBallotSelection",
     ]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     counted_in_total = element.find("CountedInTotal")
     tag = element.tag
 
@@ -2340,10 +2329,12 @@ class ValidateIncludeInAggregationBallotSelections(base.BaseRule):
   the AggregateBallotSelection must also be present on that Contest.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["CandidateContest", "PartyContest"]
 
-  def _gather_vote_counts(self, element):
+  def _gather_vote_counts(
+      self, element: etree._Element
+  ) -> collections.defaultdict[tuple[str, str], float]:
     """Gathers vote counts from a selection element grouped by type."""
     count_by_type_and_gp_unit = collections.defaultdict(float)
     vote_counts_collection = element.find("VoteCountsCollection")
@@ -2369,7 +2360,7 @@ class ValidateIncludeInAggregationBallotSelections(base.BaseRule):
 
     return count_by_type_and_gp_unit
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     contest_id = element.get("objectId")
 
     candidate_selections = self.get_elements_by_class(
