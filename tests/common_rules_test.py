@@ -1021,22 +1021,18 @@ class DuplicateGpUnitsTest(absltest.TestCase):
   def setUp(self):
     super(DuplicateGpUnitsTest, self).setUp()
     self.validator = common_rules.DuplicateGpUnits()
-    self.root_string = """
-    <GpUnitCollection>
-    {}
-    </GpUnitCollection>
-    """
 
   def test_duplicate_composing_gp_units_points_at_both_gp_units(self):
-    test_string = """
-      <GpUnit objectId="ru-fake-1">
-        <ComposingGpUnitIds>ru-fake-3</ComposingGpUnitIds>
-      </GpUnit>
-      <GpUnit objectId="ru-fake-2">
-        <ComposingGpUnitIds>ru-fake-3</ComposingGpUnitIds>
-      </GpUnit>
-    """
-    element = etree.fromstring(self.root_string.format(test_string))
+    element = etree.fromstring("""
+      <GpUnitCollection>
+        <GpUnit objectId="ru-fake-1">
+          <ComposingGpUnitIds>ru-fake-3</ComposingGpUnitIds>
+        </GpUnit>
+        <GpUnit objectId="ru-fake-2">
+          <ComposingGpUnitIds>ru-fake-3</ComposingGpUnitIds>
+        </GpUnit>
+      </GpUnitCollection>
+    """)
 
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(element)
@@ -1046,125 +1042,90 @@ class DuplicateGpUnitsTest(absltest.TestCase):
     )
 
   def test_no_gp_units_succeeds(self):
-    self.validator.check(etree.fromstring(self.root_string))
+    self.validator.check(
+        etree.fromstring("<GpUnitCollection></GpUnitCollection>")
+    )
 
   def test_no_object_ids_succeeds(self):
-    test_string = """
-      <GpUnit>
-        <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
-        <Name>Virginia</Name>
-        <Type>state</Type>
-      </GpUnit>
-      <GpUnit>
-        <ComposingGpUnitIds>xyz987</ComposingGpUnitIds>
-        <Name>New York</Name>
-        <Type>state</Type>
-      </GpUnit>
-    """
-
-    self.validator.check(etree.fromstring(self.root_string.format(test_string)))
+    self.validator.check(etree.fromstring("""
+      <GpUnitCollection>
+        <GpUnit>
+          <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
+        </GpUnit>
+        <GpUnit>
+          <ComposingGpUnitIds>xyz987</ComposingGpUnitIds>
+        </GpUnit>
+      </GpUnitCollection>
+    """))
 
   def test_no_composing_gp_units_succeeds(self):
-    test_string = """
-      <GpUnit>
-        <Name>Virginia</Name>
-        <Type>state</Type>
-      </GpUnit>
-      <GpUnit>
-        <Name>New York</Name>
-        <Type>state</Type>
-      </GpUnit>
-    """
-
-    self.validator.check(etree.fromstring(self.root_string.format(test_string)))
+    self.validator.check(etree.fromstring("""
+      <GpUnitCollection>
+        <GpUnit/>
+        <GpUnit/>
+      </GpUnitCollection>
+    """))
 
   def test_no_composing_gp_units_text_succeeds(self):
-    test_string = """
-      <GpUnit>
-        <ComposingGpUnitIds></ComposingGpUnitIds>
-        <Name>Virginia</Name>
-        <Type>state</Type>
-      </GpUnit>
-      <GpUnit>
-        <Name>New York</Name>
-        <Type>state</Type>
-      </GpUnit>
-    """
-
-    self.validator.check(etree.fromstring(self.root_string.format(test_string)))
+    self.validator.check(etree.fromstring("""
+      <GpUnitCollection>
+        <GpUnit>
+          <ComposingGpUnitIds></ComposingGpUnitIds>
+        </GpUnit>
+        <GpUnit/>
+      </GpUnitCollection>
+    """))
 
   def test_processes_collection_and_does_not_find_duplicates_succeeds(self):
-    test_string = """
-      <GpUnit objectId="ru0002">
-        <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
-        <Name>Virginia</Name>
-        <Type>state</Type>
-      </GpUnit>
-      <GpUnit objectId="ru0003">
-        <ComposingGpUnitIds></ComposingGpUnitIds>
-        <Name>Massachusetts</Name>
-        <Type>state</Type>
-      </GpUnit>
-      <GpUnit>
-        <ComposingGpUnitIds>xyz987</ComposingGpUnitIds>
-        <Name>New York</Name>
-        <Type>state</Type>
-      </GpUnit>
-    """
-
-    self.validator.check(etree.fromstring(self.root_string.format(test_string)))
+    self.validator.check(etree.fromstring("""
+      <GpUnitCollection>
+        <GpUnit objectId="ru0002">
+          <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
+        </GpUnit>
+        <GpUnit objectId="ru0003">
+          <ComposingGpUnitIds></ComposingGpUnitIds>
+        </GpUnit>
+        <GpUnit>
+          <ComposingGpUnitIds>xyz987</ComposingGpUnitIds>
+        </GpUnit>
+      </GpUnitCollection>
+    """))
 
   def test_processes_collection_and_finds_duplicate_paths_fails(self):
-    test_string = """
-      <GpUnit objectId="ru0002">
-        <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
-        <Name>Virginia</Name>
-        <Type>state</Type>
-      </GpUnit>
-      <GpUnit objectId="abc123">
-        <ComposingGpUnitIds></ComposingGpUnitIds>
-        <Name>Massachusetts</Name>
-        <Type>state</Type>
-      </GpUnit>
-      <GpUnit objectId="ru0004">
-        <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
-        <Name>Virginia</Name>
-        <Type>state</Type>
-      </GpUnit>
-    """
-
     with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(
-          etree.fromstring(self.root_string.format(test_string))
-      )
+      self.validator.check(etree.fromstring("""
+        <GpUnitCollection>
+          <GpUnit objectId="ru0002">
+            <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
+          </GpUnit>
+          <GpUnit objectId="abc123">
+            <ComposingGpUnitIds></ComposingGpUnitIds>
+          </GpUnit>
+          <GpUnit objectId="ru0004">
+            <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
+          </GpUnit>
+        </GpUnitCollection>
+      """))
     self.assertEqual(
         context.exception.log_entry[0].message,
         "GpUnits ('ru0002', 'ru0004') are duplicates",
     )
 
   def test_processes_collection_and_finds_duplicate_object_ids_fails(self):
-    test_string = """
-      <GpUnit objectId="ru0002">
-        <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
-        <Name>Virginia</Name>
-        <Type>state</Type>
-      </GpUnit>
-      <GpUnit objectId="abc123">
-        <ComposingGpUnitIds></ComposingGpUnitIds>
-        <Name>Massachusetts</Name>
-        <Type>state</Type>
-      </GpUnit>
-      <GpUnit objectId="ru0002">
-        <ComposingGpUnitIds>abc124</ComposingGpUnitIds>
-        <Name>Virginia</Name>
-        <Type>state</Type>
-      </GpUnit>
-    """
-
     with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(
-          etree.fromstring(self.root_string.format(test_string))
-      )
+      self.validator.check(etree.fromstring("""
+        <GpUnitCollection>
+          <GpUnit objectId="ru0002">
+            <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
+          </GpUnit>
+          <GpUnit objectId="abc123">
+            <ComposingGpUnitIds></ComposingGpUnitIds>
+          </GpUnit>
+          <GpUnit objectId="ru0002">
+            <ComposingGpUnitIds>abc124</ComposingGpUnitIds>
+          </GpUnit>
+        </GpUnitCollection>
+      """))
     self.assertEqual(
         context.exception.log_entry[0].message, "GpUnit is duplicated"
     )
@@ -1174,28 +1135,20 @@ class DuplicateGpUnitsTest(absltest.TestCase):
     )
 
   def test_finds_duplicate_object_ids_and_duplicate_paths_fails(self):
-    test_string = """
-      <GpUnit objectId="ru0002">
-        <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
-        <Name>Virginia</Name>
-        <Type>state</Type>
-      </GpUnit>
-      <GpUnit objectId="ru0002">
-        <ComposingGpUnitIds></ComposingGpUnitIds>
-        <Name>Massachusetts</Name>
-        <Type>state</Type>
-      </GpUnit>
-      <GpUnit objectId="ru0004">
-        <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
-        <Name>Virginia</Name>
-        <Type>state</Type>
-      </GpUnit>
-    """
-
     with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(
-          etree.fromstring(self.root_string.format(test_string))
-      )
+      self.validator.check(etree.fromstring("""
+        <GpUnitCollection>
+          <GpUnit objectId="ru0002">
+            <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
+          </GpUnit>
+          <GpUnit objectId="ru0002">
+            <ComposingGpUnitIds></ComposingGpUnitIds>
+          </GpUnit>
+          <GpUnit objectId="ru0004">
+            <ComposingGpUnitIds>abc123</ComposingGpUnitIds>
+          </GpUnit>
+        </GpUnitCollection>
+      """))
     self.assertEqual(
         context.exception.log_entry[0].message, "GpUnit is duplicated"
     )
@@ -1211,55 +1164,51 @@ class DuplicateGpUnitsTest(absltest.TestCase):
   def test_gp_unit_without_object_id_and_same_composing_ids_is_ignored_succeeds(
       self,
   ):
-    test_string = """
-      <GpUnit objectId="ru-fake-1">
-        <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
-      </GpUnit>
-      <GpUnit>
-        <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
-      </GpUnit>
-    """
-
-    self.validator.check(etree.fromstring(self.root_string.format(test_string)))
+    self.validator.check(etree.fromstring("""
+      <GpUnitCollection>
+        <GpUnit objectId="ru-fake-1">
+          <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
+        </GpUnit>
+        <GpUnit>
+          <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
+        </GpUnit>
+      </GpUnitCollection>
+    """))
 
   def test_duplicated_object_id_with_same_composing_ids_reports_only_duplicate_fails(
       self,
   ):
-    test_string = """
-      <GpUnit objectId="ru-fake-1">
-        <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
-      </GpUnit>
-      <GpUnit objectId="ru-fake-1">
-        <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
-      </GpUnit>
-    """
-
     with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(
-          etree.fromstring(self.root_string.format(test_string))
-      )
+      self.validator.check(etree.fromstring("""
+        <GpUnitCollection>
+          <GpUnit objectId="ru-fake-1">
+            <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
+          </GpUnit>
+          <GpUnit objectId="ru-fake-1">
+            <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
+          </GpUnit>
+        </GpUnitCollection>
+      """))
     self.assertLen(context.exception.log_entry, 1)
     self.assertEqual(
         context.exception.log_entry[0].message, "GpUnit is duplicated"
     )
 
   def test_three_gp_units_with_same_composing_ids_reference_first_fails(self):
-    test_string = """
-      <GpUnit objectId="ru-fake-1">
-        <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
-      </GpUnit>
-      <GpUnit objectId="ru-fake-2">
-        <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
-      </GpUnit>
-      <GpUnit objectId="ru-fake-3">
-        <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
-      </GpUnit>
-    """
-
     with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(
-          etree.fromstring(self.root_string.format(test_string))
-      )
+      self.validator.check(etree.fromstring("""
+        <GpUnitCollection>
+          <GpUnit objectId="ru-fake-1">
+            <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
+          </GpUnit>
+          <GpUnit objectId="ru-fake-2">
+            <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
+          </GpUnit>
+          <GpUnit objectId="ru-fake-3">
+            <ComposingGpUnitIds>ru-fake-child</ComposingGpUnitIds>
+          </GpUnit>
+        </GpUnitCollection>
+      """))
     self.assertEqual(
         [entry.message for entry in context.exception.log_entry],
         [
@@ -1662,45 +1611,55 @@ class ValidStableIDTest(absltest.TestCase):
 
   def setUp(self):
     super(ValidStableIDTest, self).setUp()
-    self.root_string = """
-      <ExternalIdentifiers>
-        <ExternalIdentifier>
-          <Type>{}</Type>
-          {}
-          <Value>{}</Value>
-        </ExternalIdentifier>
-      </ExternalIdentifiers>
-    """
-    self.stable_string = "<OtherType>stable</OtherType>"
     self.validator = common_rules.ValidStableID()
 
   def test_valid_stable_id_succeeds(self):
-    test_string = self.root_string.format(
-        "other", self.stable_string, "vageneral-cand-2013-va-obama"
-    )
+    test_string = """
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>vageneral-cand-2013-va-obama</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """
 
     self.validator.check(etree.fromstring(test_string))
 
   def test_non_stable_id_other_types_dont_throw_succeeds(self):
-    test_string = self.root_string.format(
-        "other",
-        "<OtherType>anothertype</OtherType>",
-        "vageneral-cand-2013-va-obama",
-    )
+    test_string = """
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>anothertype</OtherType>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """
 
     self.validator.check(etree.fromstring(test_string))
 
   def test_non_stable_id_types_dont_throw_succeeds(self):
-    test_string = self.root_string.format(
-        "ocd-id", "", "ocd-id/country/state/thing"
-    )
+    test_string = """
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-id/country/state/thing</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """
 
     self.validator.check(etree.fromstring(test_string))
 
   def test_invalid_stable_id_fails(self):
-    test_string = self.root_string.format(
-        "other", self.stable_string, "cand-2013-va-obama!"
-    )
+    test_string = """
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>cand-2013-va-obama!</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """
 
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(test_string))
@@ -1713,7 +1672,15 @@ class ValidStableIDTest(absltest.TestCase):
     )
 
   def test_empty_stable_id_fails(self):
-    test_string = self.root_string.format("other", self.stable_string, "   ")
+    test_string = """
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>stable</OtherType>
+          <Value>   </Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """
 
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(test_string))
@@ -1762,107 +1729,56 @@ class UniqueStableIDTest(absltest.TestCase):
         election_tree.findall("Office"),
     )
 
-  def setUp(self):
-    super(UniqueStableIDTest, self).setUp()
-    self.root_string = """
-    <ElectionReport>
-      <Election objectId="el0110">
-        <OfficeCollection>
-          <Office objectId="off04_AS">
-            <ExternalIdentifiers>
-              <ExternalIdentifier>
+  def test_unique_stable_id_pass_succeeds(self):
+    test_string = """
+      <ElectionReport>
+        <Office objectId="off04_AS">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
               <Type>other</Type>
               <OtherType>stable</OtherType>
-              <Value>{office_obj_off04_AS}</Value>
-              </ExternalIdentifier>
-            </ExternalIdentifiers>
-          </Office>
-          <Office objectId= "off04_A">
-            <ExternalIdentifiers>
-              <ExternalIdentifier>
-                <Type>other</Type>
-                <OtherType>stable</OtherType>
-                <Value>{office_obj_off04_A}</Value>
-              </ExternalIdentifier>
-            </ExternalIdentifiers>
-          </Office>
-        </OfficeCollection>
-        <CandidateCollection>
-          <Candidate objectId="can1">
-            <ExternalIdentifiers>
-              <ExternalIdentifier>
-                <Type>other</Type>
-                <OtherType>stable</OtherType>
-                <Value>{candidate_obj_can1}</Value>
-              </ExternalIdentifier>
-            </ExternalIdentifiers>
-          </Candidate>
-          <Candidate objectId="can2">
-            <ExternalIdentifiers>
-              <ExternalIdentifier>
-                <Type>other</Type>
-                <OtherType>stable</OtherType>
-                <Value>{candidate_obj_can2}</Value>
-              </ExternalIdentifier>
-            </ExternalIdentifiers>
-          </Candidate>
-          <Candidate objectId="can3">
-            <ExternalIdentifiers>
-              <ExternalIdentifier>
-                <Type>other</Type>
-                <OtherType>stable</OtherType>
-                <Value>{candidate_obj_can3}</Value>
-              </ExternalIdentifier>
-            </ExternalIdentifiers>
-          </Candidate>
-        </CandidateCollection>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>{election_obj_el0110}</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-      </Election>
-      <Election>
-        <ExternalIdentifiers>
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>stable</OtherType>
-            <Value>{election_obj_pangaea}</Value>
-          </ExternalIdentifier>
-        </ExternalIdentifiers>
-        <Name>
-          <Text language="en">Pangaea election</Text>
-        </Name>
-      </Election>
-     </ElectionReport>
-  """
-
-  def test_unique_stable_id_pass_succeeds(self):
-    test_string = self.root_string.format(
-        office_obj_off04_AS="04_AS",
-        office_obj_off04_A="04_A",
-        candidate_obj_can1="stable-can-1",
-        candidate_obj_can2="stable-can-2",
-        candidate_obj_can3="stable-can-3",
-        election_obj_el0110="election-1",
-        election_obj_pangaea="election-2",
-    )
+              <Value>04_AS</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Office>
+        <Candidate objectId="can1">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>stable-can-1</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Candidate>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(test_string)
 
     common_rules.UniqueStableID(election_tree).check()
 
   def test_unique_stable_id_fails(self):
-    test_string = self.root_string.format(
-        office_obj_off04_AS="04_AS",
-        office_obj_off04_A="04_A",
-        candidate_obj_can1="04_AS",
-        candidate_obj_can2="stable-can-2",
-        candidate_obj_can3="stable-can-3",
-        election_obj_el0110="election-1",
-        election_obj_pangaea="election-2",
-    )
+    test_string = """
+      <ElectionReport>
+        <Office objectId="off04_AS">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>04_AS</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Office>
+        <Candidate objectId="can1">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>04_AS</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Candidate>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(test_string)
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -1873,15 +1789,49 @@ class UniqueStableIDTest(absltest.TestCase):
     )
 
   def test_unique_stable_id_fail_multiple_elements_fails(self):
-    test_string = self.root_string.format(
-        office_obj_off04_AS="04_AS",
-        office_obj_off04_A="04_A",
-        candidate_obj_can1="04_AS",
-        candidate_obj_can2="stable-can-2",
-        candidate_obj_can3="stable-can-3",
-        election_obj_el0110="election-1",
-        election_obj_pangaea="election-1",
-    )
+    test_string = """
+      <ElectionReport>
+        <Office objectId="off04_AS">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>04_AS</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Office>
+        <Candidate objectId="can1">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>04_AS</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Candidate>
+        <Election objectId="el0110">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>election-1</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Election>
+        <Election>
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>election-1</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+          <Name>
+            <Text language="en">Pangaea election</Text>
+          </Name>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(test_string)
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -1897,15 +1847,55 @@ class UniqueStableIDTest(absltest.TestCase):
     )
 
   def test_unique_stable_id_fail_three_elements_fails(self):
-    test_string = self.root_string.format(
-        office_obj_off04_AS="04_AS",
-        office_obj_off04_A="04_A",
-        candidate_obj_can1="04_AS",
-        candidate_obj_can2="04_A",
-        candidate_obj_can3="04_A",
-        election_obj_el0110="election-1",
-        election_obj_pangaea="election-2",
-    )
+    test_string = """
+      <ElectionReport>
+        <Office objectId="off04_AS">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>04_AS</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Office>
+        <Office objectId="off04_A">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>04_A</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Office>
+        <Candidate objectId="can1">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>04_AS</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Candidate>
+        <Candidate objectId="can2">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>04_A</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Candidate>
+        <Candidate objectId="can3">
+          <ExternalIdentifiers>
+            <ExternalIdentifier>
+              <Type>other</Type>
+              <OtherType>stable</OtherType>
+              <Value>04_A</Value>
+            </ExternalIdentifier>
+          </ExternalIdentifiers>
+        </Candidate>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(test_string)
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -2514,29 +2504,31 @@ class ValidateOcdidLowerCaseTest(absltest.TestCase):
   def setUp(self):
     super(ValidateOcdidLowerCaseTest, self).setUp()
     self.validator = common_rules.ValidateOcdidLowerCase()
-    self.ext_ids_str = """
-    <ExternalIdentifiers>
-      <ExternalIdentifier>
-       {}
-       {}
-      </ExternalIdentifier>
-    </ExternalIdentifiers>
-    """
 
   def test_external_identifiers_elements_succeeds(self):
     self.assertEqual(self.validator.elements(), ["ExternalIdentifiers"])
 
   def test_ocd_ids_are_all_lower_case_succeeds(self):
-    valid_id_string = self.ext_ids_str.format(
-        "<Type>ocd-id</Type>", "<Value>ocd-division/country:us/state:va</Value>"
-    )
+    valid_id_string = """
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:va</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """
 
     self.validator.check(etree.fromstring(valid_id_string))
 
   def test_ocd_id_has_upper_case_letter_warns(self):
-    uppercase_string = self.ext_ids_str.format(
-        "<Type>ocd-id</Type>", "<Value>ocd-division/country:us/state:VA</Value>"
-    )
+    uppercase_string = """
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>ocd-division/country:us/state:VA</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """
 
     with self.assertRaises(loggers.ElectionWarning) as context:
       self.validator.check(etree.fromstring(uppercase_string))
@@ -2553,18 +2545,37 @@ class ValidateOcdidLowerCaseTest(absltest.TestCase):
     )
 
   def test_elements_without_valid_ocd_id_xml_succeeds(self):
-    no_type_string = self.ext_ids_str.format("", "")
+    no_type_string = """
+      <ExternalIdentifiers>
+        <ExternalIdentifier/>
+      </ExternalIdentifiers>
+    """
 
     self.validator.check(etree.fromstring(no_type_string))
-    non_ocd_id_string = self.ext_ids_str.format("<Type>not-ocd-id</Type>", "")
+    non_ocd_id_string = """
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>not-ocd-id</Type>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """
     self.validator.check(etree.fromstring(non_ocd_id_string))
-    ocd_id_missing_value_string = self.ext_ids_str.format(
-        "<Type>ocd-id</Type>", ""
-    )
+    ocd_id_missing_value_string = """
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """
     self.validator.check(etree.fromstring(ocd_id_missing_value_string))
-    empty_value_string = self.ext_ids_str.format(
-        "<Type>ocd-id</Type>", "<Value></Value>"
-    )
+    empty_value_string = """
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value></Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """
     self.validator.check(etree.fromstring(empty_value_string))
 
 
@@ -2731,74 +2742,68 @@ class URIValidatorTest(absltest.TestCase):
   def setUp(self):
     super(URIValidatorTest, self).setUp()
     self.validator = common_rules.URIValidator()
-    self.uri_element = "<Uri>{}</Uri>"
 
   def test_uri_elements_succeeds(self):
     self.assertEqual(self.validator.elements(), ["Uri"])
 
   def test_valid_uri_succeeds(self):
-    valid_url = self.uri_element.format("http://www.whitehouse.gov")
+    valid_url = "<Uri>http://www.whitehouse.gov</Uri>"
 
     self.validator.check(etree.fromstring(valid_url))
 
   def test_valid_non_www_uri_succeeds(self):
-    valid_url = self.uri_element.format(
-        "https://zh.wikipedia.org/zh-tw/Fake_Page"
-    )
+    valid_url = "<Uri>https://zh.wikipedia.org/zh-tw/Fake_Page</Uri>"
 
     self.validator.check(etree.fromstring(valid_url))
 
   def test_valid_uri_with_parentheses_succeeds(self):
-    valid_url = self.uri_element.format(
-        "https://en.wikipedia.org/wiki/Thomas_Jefferson_(Virginia)"
+    valid_url = (
+        "<Uri>https://en.wikipedia.org/wiki/Thomas_Jefferson_(Virginia)</Uri>"
     )
 
     self.validator.check(etree.fromstring(valid_url))
 
   def test_uri_not_provided_fails(self):
-    invalid_scheme = self.uri_element.format("")
+    invalid_scheme = "<Uri></Uri>"
 
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(invalid_scheme))
     self.assertIn("Missing URI value.", context.exception.log_entry[0].message)
 
   def test_no_scheme_provided_fails(self):
-    missing_scheme = self.uri_element.format("www.whitehouse.gov")
+    missing_scheme = "<Uri>www.whitehouse.gov</Uri>"
 
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(missing_scheme))
     self.assertIn("protocol - invalid", context.exception.log_entry[0].message)
 
   def test_scheme_is_not_in_approved_list_fails(self):
-    invalid_scheme = self.uri_element.format("tps://www.whitehouse.gov")
+    invalid_scheme = "<Uri>tps://www.whitehouse.gov</Uri>"
 
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(invalid_scheme))
     self.assertIn("protocol - invalid", context.exception.log_entry[0].message)
 
   def test_net_location_not_provided_fails(self):
-    missing_netloc = self.uri_element.format("missing/loc.md")
+    missing_netloc = "<Uri>missing/loc.md</Uri>"
 
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(missing_netloc))
     self.assertIn("domain - missing", context.exception.log_entry[0].message)
 
   def test_uri_not_ascii_fails(self):
-    unicode_url = self.uri_element.format("https://nahnah.com/nopê")
-
+    unicode_url = "<Uri>https://nahnah.com/nopê</Uri>"
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(unicode_url))
     self.assertIn("not ascii encoded", context.exception.log_entry[0].message)
 
   def test_allows_query_params_to_be_included_succeeds(self):
-    contains_query = self.uri_element.format(
-        "http://www.whitehouse.gov?filter=yesplease"
-    )
+    contains_query = "<Uri>http://www.whitehouse.gov?filter=yesplease</Uri>"
 
     self.validator.check(etree.fromstring(contains_query))
 
   def test_aggregates_errors_fails(self):
-    multiple_issues = self.uri_element.format("missing/loc.md?filter=yesplease")
+    multiple_issues = "<Uri>missing/loc.md?filter=yesplease</Uri>"
 
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(multiple_issues))
@@ -2806,57 +2811,57 @@ class URIValidatorTest(absltest.TestCase):
     self.assertIn("domain - missing", context.exception.log_entry[0].message)
 
   def test_valid_uri_https_face_succeeds(self):
-    valid_url = self.uri_element.format("https://www.facebook.com")
+    valid_url = "<Uri>https://www.facebook.com</Uri>"
 
     self.validator.check(etree.fromstring(valid_url))
 
   def test_valid_uri_https_wiki_succeeds(self):
-    valid_url = self.uri_element.format("https://www.wikipedia.com")
+    valid_url = "<Uri>https://www.wikipedia.com</Uri>"
 
     self.validator.check(etree.fromstring(valid_url))
 
   def test_valid_uri_https_twit_succeeds(self):
-    valid_url = self.uri_element.format("https://www.twitter.com")
+    valid_url = "<Uri>https://www.twitter.com</Uri>"
 
     self.validator.check(etree.fromstring(valid_url))
 
   def test_valid_uri_https_ins_succeeds(self):
-    valid_url = self.uri_element.format("https://www.instagram.com")
+    valid_url = "<Uri>https://www.instagram.com</Uri>"
 
     self.validator.check(etree.fromstring(valid_url))
 
   def test_valid_uri_https_you_succeeds(self):
-    valid_url = self.uri_element.format("https://www.youtube.com")
+    valid_url = "<Uri>https://www.youtube.com</Uri>"
 
     self.validator.check(etree.fromstring(valid_url))
 
   def test_valid_uri_https_tiktok_succeeds(self):
-    valid_url = self.uri_element.format("https://www.tiktok.com")
+    valid_url = "<Uri>https://www.tiktok.com</Uri>"
 
     self.validator.check(etree.fromstring(valid_url))
 
   def test_valid_uri_https_web_succeeds(self):
-    valid_url = self.uri_element.format("https://www.website.com")
+    valid_url = "<Uri>https://www.website.com</Uri>"
 
     self.validator.check(etree.fromstring(valid_url))
 
   def test_valid_uri_https_lin_succeeds(self):
-    valid_url = self.uri_element.format("https://www.linkedin.com")
+    valid_url = "<Uri>https://www.linkedin.com</Uri>"
 
     self.validator.check(etree.fromstring(valid_url))
 
   def test_valid_uri_https_line_succeeds(self):
-    valid_url = self.uri_element.format("https://www.line.com")
+    valid_url = "<Uri>https://www.line.com</Uri>"
 
     self.validator.check(etree.fromstring(valid_url))
 
   def test_valid_uri_https_ball_succeeds(self):
-    valid_url = self.uri_element.format("https://www.ballotpedia.com")
+    valid_url = "<Uri>https://www.ballotpedia.com</Uri>"
 
     self.validator.check(etree.fromstring(valid_url))
 
   def test_valid_uri_http_face_invalid_raises_info(self):
-    invalid_url = self.uri_element.format("http://www.facebook.com")
+    invalid_url = "<Uri>http://www.facebook.com</Uri>"
 
     with self.assertRaises(loggers.ElectionInfo) as context:
       self.validator.check(etree.fromstring(invalid_url))
@@ -2867,7 +2872,7 @@ class URIValidatorTest(absltest.TestCase):
     )
 
   def test_valid_uri_http_wiki_invalid_raises_info(self):
-    invalid_url = self.uri_element.format("http://www.wikipedia.com")
+    invalid_url = "<Uri>http://www.wikipedia.com</Uri>"
 
     with self.assertRaises(loggers.ElectionInfo) as context:
       self.validator.check(etree.fromstring(invalid_url))
@@ -2878,7 +2883,7 @@ class URIValidatorTest(absltest.TestCase):
     )
 
   def test_valid_uri_http_twit_invalid_raises_info(self):
-    invalid_url = self.uri_element.format("http://www.twitter.com")
+    invalid_url = "<Uri>http://www.twitter.com</Uri>"
 
     with self.assertRaises(loggers.ElectionInfo) as context:
       self.validator.check(etree.fromstring(invalid_url))
@@ -2889,7 +2894,7 @@ class URIValidatorTest(absltest.TestCase):
     )
 
   def test_valid_uri_http_ins_invalid_raises_info(self):
-    invalid_url = self.uri_element.format("http://www.instagram.com")
+    invalid_url = "<Uri>http://www.instagram.com</Uri>"
 
     with self.assertRaises(loggers.ElectionInfo) as context:
       self.validator.check(etree.fromstring(invalid_url))
@@ -2900,7 +2905,7 @@ class URIValidatorTest(absltest.TestCase):
     )
 
   def test_valid_uri_http_you_invalid_raises_info(self):
-    invalid_url = self.uri_element.format("http://www.youtube.com")
+    invalid_url = "<Uri>http://www.youtube.com</Uri>"
 
     with self.assertRaises(loggers.ElectionInfo) as context:
       self.validator.check(etree.fromstring(invalid_url))
@@ -2911,7 +2916,7 @@ class URIValidatorTest(absltest.TestCase):
     )
 
   def test_valid_uri_http_web_invalid_raises_info(self):
-    invalid_url = self.uri_element.format("http://www.website.com")
+    invalid_url = "<Uri>http://www.website.com</Uri>"
 
     with self.assertRaises(loggers.ElectionInfo) as context:
       self.validator.check(etree.fromstring(invalid_url))
@@ -2922,7 +2927,7 @@ class URIValidatorTest(absltest.TestCase):
     )
 
   def test_valid_uri_http_lin_invalid_raises_info(self):
-    invalid_url = self.uri_element.format("http://www.linkedin.com")
+    invalid_url = "<Uri>http://www.linkedin.com</Uri>"
 
     with self.assertRaises(loggers.ElectionInfo) as context:
       self.validator.check(etree.fromstring(invalid_url))
@@ -2933,7 +2938,7 @@ class URIValidatorTest(absltest.TestCase):
     )
 
   def test_valid_uri_http_line_invalid_raises_info(self):
-    invalid_url = self.uri_element.format("http://www.line.com")
+    invalid_url = "<Uri>http://www.line.com</Uri>"
 
     with self.assertRaises(loggers.ElectionInfo) as context:
       self.validator.check(etree.fromstring(invalid_url))
@@ -2944,7 +2949,7 @@ class URIValidatorTest(absltest.TestCase):
     )
 
   def test_valid_uri_http_ball_invalid_raises_info(self):
-    invalid_url = self.uri_element.format("http://www.ballotpedia.com")
+    invalid_url = "<Uri>http://www.ballotpedia.com</Uri>"
 
     with self.assertRaises(loggers.ElectionInfo) as context:
       self.validator.check(etree.fromstring(invalid_url))
@@ -2957,88 +2962,33 @@ class URIValidatorTest(absltest.TestCase):
 
 class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
 
-  _base_person_collection = """
-    <PersonCollection>
-      <Person objectId="per1">
-        <ContactInformation>
-          <Uri Annotation="personal-facebook">{0[facebook]}</Uri>
-          <Uri Annotation="campaign-website">{0[website]}</Uri>
-          <Uri Annotation="wikipedia">{0[wikipedia]}</Uri>
-        </ContactInformation>
-      </Person>
-      <Person objectId="per2">
-        <ContactInformation>
-          <Uri Annotation="personal-facebook">{1[facebook]}</Uri>
-          <Uri Annotation="campaign-website">{1[website]}</Uri>
-          <Uri Annotation="wikipedia">{1[wikipedia]}</Uri>
-        </ContactInformation>
-      </Person>
-    </PersonCollection>
-  """
-
-  _base_party_collection = """
-    <PartyCollection>
-      <Party objectId="par1">
-        <ContactInformation>
-          <Uri Annotation="party-facebook">{0[facebook]}</Uri>
-          <Uri Annotation="campaign-website">{0[website]}</Uri>
-          <Uri Annotation="wikipedia">{0[wikipedia]}</Uri>
-        </ContactInformation>
-      </Party>
-      <Party objectId="par2">
-        <ContactInformation>
-          <Uri Annotation="party-facebook">{1[facebook]}</Uri>
-          <Uri Annotation="campaign-website">{1[website]}</Uri>
-          <Uri Annotation="wikipedia">{1[wikipedia]}</Uri>
-        </ContactInformation>
-      </Party>
-    </PartyCollection>
-  """
-
-  _office_collection = """
-    <OfficeCollection>
-      <Office objectId="off1">
-        <ContactInformation>
-          <Uri Annotation="wikipedia">https://wikipedia.com/ignorethisdup</Uri>
-        </ContactInformation>
-      </Office>
-      <Office objectId="off2">
-        <ContactInformation>
-          <Uri Annotation="wikipedia">https://wikipedia.com/ignorethisdup</Uri>
-        </ContactInformation>
-      </Office>
-    </OfficeCollection>
-  """
-
   # _extract_uris_by_category_type
   def test_a_dict_with_empty_paths_for_each_annotation_platform_and_value_succeeds(
       self,
   ):
-    facebook_uri = "<Uri Annotation='personal-facebook'>{}</Uri>"
-    person_website_uri = "<Uri Annotation='personal-website'>{}</Uri>"
-    party_website_uri = "<Uri Annotation='party-website'>{}</Uri>"
-    wikipedia_uri = "<Uri Annotation='wikipedia'>{}</Uri>"
     fb_one = etree.fromstring(
-        facebook_uri.format("www.facebook.com/michael_scott")
+        "<Uri Annotation='personal-facebook'>www.facebook.com/michael_scott</Uri>"
     )
     fb_two = etree.fromstring(
-        facebook_uri.format("www.facebook.com/dwight_shrute")
+        "<Uri Annotation='personal-facebook'>www.facebook.com/dwight_shrute</Uri>"
     )
     personal_one = etree.fromstring(
-        person_website_uri.format("www.michaelscott.com")
+        "<Uri Annotation='personal-website'>www.michaelscott.com</Uri>"
     )
     personal_two = etree.fromstring(
-        person_website_uri.format("www.dwightshrute.com")
+        "<Uri Annotation='personal-website'>www.dwightshrute.com</Uri>"
     )
     party_one = etree.fromstring(
-        party_website_uri.format("www.dundermifflin.com")
+        "<Uri Annotation='party-website'>www.dundermifflin.com</Uri>"
     )
-    party_two = etree.fromstring(party_website_uri.format("www.sabre.com"))
+    party_two = etree.fromstring(
+        "<Uri Annotation='party-website'>www.sabre.com</Uri>"
+    )
     wiki_one = etree.fromstring(
-        wikipedia_uri.format("www.wikipedia.com/dundermifflin")
+        "<Uri Annotation='wikipedia'>www.wikipedia.com/dundermifflin</Uri>"
     )
     wiki_two = etree.fromstring(
-        wikipedia_uri.format("www.wikipedia.com/dundermifflin")
+        "<Uri Annotation='wikipedia'>www.wikipedia.com/dundermifflin</Uri>"
     )
     uri_elements = [
         fb_one,
@@ -3072,16 +3022,9 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
     self.assertEqual(actual_mapping, expected_mapping)
 
   def test_uris_with_no_annotation_succeeds(self):
-    uri_element = "<Uri>{}</Uri>"
-    uri_one = etree.fromstring(
-        uri_element.format("www.facebook.com/michael_scott")
-    )
-    uri_two = etree.fromstring(
-        uri_element.format("www.facebook.com/dwight_shrute")
-    )
-    uri_three = etree.fromstring(
-        uri_element.format("www.facebook.com/dwight_shrute")
-    )
+    uri_one = etree.fromstring("<Uri>www.facebook.com/michael_scott</Uri>")
+    uri_two = etree.fromstring("<Uri>www.facebook.com/dwight_shrute</Uri>")
+    uri_three = etree.fromstring("<Uri>www.facebook.com/dwight_shrute</Uri>")
     uri_elements = [uri_one, uri_two, uri_three]
     expected_mapping = {
         "": {
@@ -3097,33 +3040,20 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
 
   # check tests
   def test_uris_are_unique_within_each_category_succeeds(self):
-    person_one = {
-        "facebook": "https://www.facebook.com/michael_scott",
-        "website": "https://michaelscott2020.com",
-        "wikipedia": "https://wikipedia.com/miachel_scott",
-    }
-    person_two = {
-        "facebook": "https://www.facebook.com/dwight_shrute",
-        "website": "https://dwightshrute2020.com",
-        "wikipedia": "https://wikipedia.com/dwight_shrute",
-    }
-    party_one = {
-        "facebook": "https://www.facebook.com/dunder_mifflin",
-        "website": "https://dundermifflin2020.com",
-        "wikipedia": "https://wikipedia.com/dunder_mifflin",
-    }
-    party_two = {
-        "facebook": "https://www.facebook.com/sabre",
-        "website": "https://sabre2020.com",
-        "wikipedia": "https://wikipedia.com/sabre",
-    }
-    person_feed = self._base_person_collection.format(person_one, person_two)
-    party_feed = self._base_party_collection.format(party_one, party_two)
-    election_feed = f"""
+    election_feed = """
       <ElectionReport>
-        {person_feed}
-        {party_feed}
-        {self._office_collection}
+        <PersonCollection>
+          <Person objectId="per1">
+            <ContactInformation>
+              <Uri Annotation="wikipedia">https://wikipedia.com/miachel_scott</Uri>
+            </ContactInformation>
+          </Person>
+          <Person objectId="per2">
+            <ContactInformation>
+              <Uri Annotation="wikipedia">https://wikipedia.com/dwight_shrute</Uri>
+            </ContactInformation>
+          </Person>
+        </PersonCollection>
       </ElectionReport>
     """
     election_tree = etree.fromstring(election_feed)
@@ -3132,33 +3062,17 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
     validator.check()
 
   def test_duplicate_uris_of_different_annotations_are_valid_succeeds(self):
-    # personal-facebook and party-facebook are different annotation types
-    person_one = {
-        "facebook": "https://www.facebook.com/michael_scott",
-        "website": "https://michaelscott2020.com",
-        "wikipedia": "https://wikipedia.com/miachel_scott",
-    }
-    person_two = {
-        "facebook": "https://www.facebook.com/dwight_shrute",
-        "website": "https://dwightshrute2020.com",
-        "wikipedia": "https://wikipedia.com/dwight_shrute",
-    }
-    party_one = {
-        "facebook": "https://www.facebook.com/dunder_mifflin",
-        "website": "https://dundermifflin2020.com",
-        "wikipedia": "https://facebook.com/dunder_mifflin",
-    }
-    party_two = {
-        "facebook": "https://www.facebook.com/sabre",
-        "website": "https://sabre2020.com",
-        "wikipedia": "https://www.facebook.com/sabre",
-    }
-    person_feed = self._base_person_collection.format(person_one, person_two)
-    party_feed = self._base_party_collection.format(party_one, party_two)
-    election_feed = f"""
+    # party-facebook and wikipedia are different annotation types
+    election_feed = """
       <ElectionReport>
-        {person_feed}
-        {party_feed}
+        <PartyCollection>
+          <Party objectId="par2">
+            <ContactInformation>
+              <Uri Annotation="party-facebook">https://www.facebook.com/sabre</Uri>
+              <Uri Annotation="wikipedia">https://www.facebook.com/sabre</Uri>
+            </ContactInformation>
+          </Party>
+        </PartyCollection>
       </ElectionReport>
     """
     election_tree = etree.fromstring(election_feed)
@@ -3167,32 +3081,32 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
     validator.check()
 
   def test_there_are_duplicates_within_category_warns(self):
-    person_one = {
-        "facebook": "https://www.facebook.com/michael_scott",
-        "website": "https://michaelscott2020.com",
-        "wikipedia": "https://wikipedia.com/dunder_mifflin",
-    }
-    person_two = {
-        "facebook": "https://www.facebook.com/dwight_shrute",
-        "website": "https://dwightshrute2020.com",
-        "wikipedia": "https://wikipedia.com/dunder_mifflin",
-    }
-    party_one = {
-        "facebook": "https://www.facebook.com/dunder_mifflin",
-        "website": "https://dundermifflin2020.com",
-        "wikipedia": "https://wikipedia.com/dunder_mifflin",
-    }
-    party_two = {
-        "facebook": "https://www.facebook.com/sabre",
-        "website": "https://sabre2020.com",
-        "wikipedia": "https://wikipedia.com/dunder_mifflin",
-    }
-    person_feed = self._base_person_collection.format(person_one, person_two)
-    party_feed = self._base_party_collection.format(party_one, party_two)
-    election_feed = f"""
+    election_feed = """
       <ElectionReport>
-        {person_feed}
-        {party_feed}
+        <PersonCollection>
+          <Person objectId="per1">
+            <ContactInformation>
+              <Uri Annotation="wikipedia">https://wikipedia.com/dunder_mifflin</Uri>
+            </ContactInformation>
+          </Person>
+          <Person objectId="per2">
+            <ContactInformation>
+              <Uri Annotation="wikipedia">https://wikipedia.com/dunder_mifflin</Uri>
+            </ContactInformation>
+          </Person>
+        </PersonCollection>
+        <PartyCollection>
+          <Party objectId="par1">
+            <ContactInformation>
+              <Uri Annotation="wikipedia">https://wikipedia.com/dunder_mifflin</Uri>
+            </ContactInformation>
+          </Party>
+          <Party objectId="par2">
+            <ContactInformation>
+              <Uri Annotation="wikipedia">https://wikipedia.com/dunder_mifflin</Uri>
+            </ContactInformation>
+          </Party>
+        </PartyCollection>
       </ElectionReport>
     """
     election_tree = etree.fromstring(election_feed)
@@ -3210,9 +3124,20 @@ class UniqueURIPerAnnotationCategoryTest(absltest.TestCase):
     self.assertLen(context.exception.log_entry[0].elements, 4)
 
   def test_office_uris_are_not_included_in_check_succeeds(self):
-    election_feed = f"""
+    election_feed = """
       <ElectionReport>
-        {self._office_collection}
+        <OfficeCollection>
+          <Office objectId="off1">
+            <ContactInformation>
+              <Uri Annotation="wikipedia">https://wikipedia.com/ignorethisdup</Uri>
+            </ContactInformation>
+          </Office>
+          <Office objectId="off2">
+            <ContactInformation>
+              <Uri Annotation="wikipedia">https://wikipedia.com/ignorethisdup</Uri>
+            </ContactInformation>
+          </Office>
+        </OfficeCollection>
       </ElectionReport>
     """
     election_tree = etree.fromstring(election_feed)
@@ -4121,44 +4046,25 @@ class OfficesHaveJurisdictionIDTest(absltest.TestCase):
 
 class ValidJurisdictionIDTest(absltest.TestCase):
 
-  def setUp(self):
-    super(ValidJurisdictionIDTest, self).setUp()
-    self.root_string = """
-      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-        <GpUnitCollection>
-          {}
-          <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu2"/>
-          <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu3"/>
-        </GpUnitCollection>
+  # _gather_reference_values tests
+  def test_a_set_of_jurisdiction_ids_from_given_tree_additional_data_succeeds(
+      self,
+  ):
+    root_string = """
+      <ElectionReport>
         <OfficeCollection>
-          {}
+          <Office objectId="off0">
+            <AdditionalData type="jurisdiction-id">ru-gpu1</AdditionalData>
+          </Office>
           <Office objectId="off1">
             <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
           </Office>
           <Office objectId="off2">
             <AdditionalData>ru-gpu4</AdditionalData>
           </Office>
-          <Office>
-            <ExternalIdentifiers>
-              {}
-            </ExternalIdentifiers>
-          </Office>
         </OfficeCollection>
       </ElectionReport>
     """
-
-  # _gather_reference_values tests
-  def test_a_set_of_jurisdiction_ids_from_given_tree_additional_data_succeeds(
-      self,
-  ):
-    root_string = self.root_string.format(
-        "",
-        """
-          <Office objectId="off0">
-            <AdditionalData type="jurisdiction-id">ru-gpu1</AdditionalData>
-          </Office>""",
-        "",
-    )
     election_tree = etree.ElementTree(etree.fromstring(root_string))
     validator = common_rules.ValidJurisdictionID(election_tree)
     reference_values = validator._gather_reference_values()
@@ -4168,16 +4074,24 @@ class ValidJurisdictionIDTest(absltest.TestCase):
   def test_a_set_of_jurisdiction_ids_from_given_tree_external_identifier_succeeds(
       self,
   ):
-    root_string = self.root_string.format(
-        "",
-        "",
-        """
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>jurisdiction-id</OtherType>
-            <Value>ru-gpu3</Value>
-          </ExternalIdentifier>""",
-    )
+    root_string = """
+      <ElectionReport>
+        <OfficeCollection>
+          <Office objectId="off1">
+            <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          </Office>
+          <Office>
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>jurisdiction-id</OtherType>
+                <Value>ru-gpu3</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Office>
+        </OfficeCollection>
+      </ElectionReport>
+    """
     election_tree = etree.ElementTree(etree.fromstring(root_string))
     validator = common_rules.ValidJurisdictionID(election_tree)
     reference_values = validator._gather_reference_values()
@@ -4185,15 +4099,23 @@ class ValidJurisdictionIDTest(absltest.TestCase):
     self.assertEqual(reference_values, {"ru-gpu2", "ru-gpu3"})
 
   def test_external_identifier_without_type_succeeds(self):
-    root_string = self.root_string.format(
-        "",
-        "",
-        """
-          <ExternalIdentifier>
-            <OtherType>jurisdiction-id</OtherType>
-            <Value>ru-gpu3</Value>
-          </ExternalIdentifier>""",
-    )
+    root_string = """
+      <ElectionReport>
+        <OfficeCollection>
+          <Office objectId="off1">
+            <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          </Office>
+          <Office>
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <OtherType>jurisdiction-id</OtherType>
+                <Value>ru-gpu3</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Office>
+        </OfficeCollection>
+      </ElectionReport>
+    """
     election_tree = etree.ElementTree(etree.fromstring(root_string))
     validator = common_rules.ValidJurisdictionID(election_tree)
     reference_values = validator._gather_reference_values()
@@ -4203,16 +4125,24 @@ class ValidJurisdictionIDTest(absltest.TestCase):
   def test_external_identifier_without_other_type_not_jurisdiction_id_succeeds(
       self,
   ):
-    root_string = self.root_string.format(
-        "",
-        "",
-        """
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>district-id</OtherType>
-            <Value>ru-gpu3</Value>
-          </ExternalIdentifier>""",
-    )
+    root_string = """
+      <ElectionReport>
+        <OfficeCollection>
+          <Office objectId="off1">
+            <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          </Office>
+          <Office>
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>district-id</OtherType>
+                <Value>ru-gpu3</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Office>
+        </OfficeCollection>
+      </ElectionReport>
+    """
     election_tree = etree.ElementTree(etree.fromstring(root_string))
     validator = common_rules.ValidJurisdictionID(election_tree)
     reference_values = validator._gather_reference_values()
@@ -4220,15 +4150,23 @@ class ValidJurisdictionIDTest(absltest.TestCase):
     self.assertEqual(reference_values, {"ru-gpu2"})
 
   def test_external_identifier_without_value_element_succeeds(self):
-    root_string = self.root_string.format(
-        "",
-        "",
-        """
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>jurisdiction-id</OtherType>
-          </ExternalIdentifier>""",
-    )
+    root_string = """
+      <ElectionReport>
+        <OfficeCollection>
+          <Office objectId="off1">
+            <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          </Office>
+          <Office>
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>jurisdiction-id</OtherType>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Office>
+        </OfficeCollection>
+      </ElectionReport>
+    """
     election_tree = etree.ElementTree(etree.fromstring(root_string))
     validator = common_rules.ValidJurisdictionID(election_tree)
     reference_values = validator._gather_reference_values()
@@ -4238,14 +4176,18 @@ class ValidJurisdictionIDTest(absltest.TestCase):
   def test_removes_duplicates_if_multiple_offices_have_same_jurisdiction_succeeds(
       self,
   ):
-    root_string = self.root_string.format(
-        "",
-        """
+    root_string = """
+      <ElectionReport>
+        <OfficeCollection>
           <Office objectId="off0">
             <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
-          </Office>""",
-        "",
-    )
+          </Office>
+          <Office objectId="off1">
+            <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          </Office>
+        </OfficeCollection>
+      </ElectionReport>
+    """
     election_tree = etree.ElementTree(etree.fromstring(root_string))
     validator = common_rules.ValidJurisdictionID(election_tree)
     reference_values = validator._gather_reference_values()
@@ -4254,12 +4196,15 @@ class ValidJurisdictionIDTest(absltest.TestCase):
 
   # _gather_defined_values test
   def test_a_set_of_gp_units_from_given_tree_succeeds(self):
-    root_string = self.root_string.format(
-        """
-          <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu1"/>""",
-        "",
-        "",
-    )
+    root_string = """
+      <ElectionReport>
+        <GpUnitCollection>
+          <GpUnit objectId="ru-gpu1"/>
+          <GpUnit objectId="ru-gpu2"/>
+          <GpUnit objectId="ru-gpu3"/>
+        </GpUnitCollection>
+      </ElectionReport>
+    """
     election_tree = etree.ElementTree(etree.fromstring(root_string))
     validator = common_rules.ValidJurisdictionID(election_tree)
     reference_values = validator._gather_defined_values()
@@ -4268,20 +4213,28 @@ class ValidJurisdictionIDTest(absltest.TestCase):
 
   # check tests
   def test_every_jurisdiction_id_references_a_valid_gp_unit_succeeds(self):
-    root_string = self.root_string.format(
-        """
-          <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu1"/>""",
-        """
+    root_string = """
+      <ElectionReport>
+        <GpUnitCollection>
+          <GpUnit objectId="ru-gpu1"/>
+          <GpUnit objectId="ru-gpu3"/>
+        </GpUnitCollection>
+        <OfficeCollection>
           <Office objectId="off0">
             <AdditionalData type="jurisdiction-id">ru-gpu1</AdditionalData>
-          </Office>""",
-        """
-          <ExternalIdentifier>
-            <Type>other</Type>
-            <OtherType>jurisdiction-id</OtherType>
-            <Value>ru-gpu3</Value>
-          </ExternalIdentifier>""",
-    )
+          </Office>
+          <Office>
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>other</Type>
+                <OtherType>jurisdiction-id</OtherType>
+                <Value>ru-gpu3</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </Office>
+        </OfficeCollection>
+      </ElectionReport>
+    """
     election_tree = etree.ElementTree(etree.fromstring(root_string))
 
     common_rules.ValidJurisdictionID(election_tree).check()
@@ -4289,15 +4242,18 @@ class ValidJurisdictionIDTest(absltest.TestCase):
   def test_raises_an_election_error_if_jurisdiction_id_is_not_a_gp_unit_id_fails(
       self,
   ):
-    root_string = self.root_string.format(
-        """
-          <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu1"/>""",
-        """
+    root_string = """
+      <ElectionReport>
+        <GpUnitCollection>
+          <GpUnit objectId="ru-gpu1"/>
+        </GpUnitCollection>
+        <OfficeCollection>
           <Office objectId="off0">
             <AdditionalData type="jurisdiction-id">ru-gpu99</AdditionalData>
-          </Office>""",
-        "",
-    )
+          </Office>
+        </OfficeCollection>
+      </ElectionReport>
+    """
     election_tree = etree.ElementTree(etree.fromstring(root_string))
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -4309,13 +4265,6 @@ class OfficesHaveValidOfficeLevelTest(absltest.TestCase):
 
   def setUp(self):
     super(OfficesHaveValidOfficeLevelTest, self).setUp()
-    self.root_string = """
-      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-        <OfficeCollection>
-          {}
-        </OfficeCollection>
-      </ElectionReport>
-    """
     self.validator = common_rules.OfficesHaveValidOfficeLevel()
 
   def test_office_has_office_level_by_external_identifier_succeeds(self):
@@ -4918,48 +4867,50 @@ class ValidPartyLeadershipDatesTest(absltest.TestCase):
     super(ValidPartyLeadershipDatesTest, self).setUp()
     self.validator = common_rules.ValidPartyLeadershipDates()
     self.today = datetime.datetime.now(datetime.timezone.utc).date()
-    self.party_leadership_string = """
-    <PartyLeadership>
-      <StartDate>{}</StartDate>
-      <EndDate>{}</EndDate>
-    </PartyLeadership>
-    """
 
   def test_party_leadership_elements_succeeds(self):
     self.assertEqual(self.validator.elements(), ["PartyLeadership"])
 
   def test_invalid_start_date_fails(self):
-    party_leadership_string = self.party_leadership_string.format(
-        "I am invalid!", self.today
-    )
+    party_leadership_string = """
+      <PartyLeadership>
+        <StartDate>I am invalid!</StartDate>
+      </PartyLeadership>
+    """
     party_leadership = etree.fromstring(party_leadership_string)
 
     with self.assertRaises(loggers.ElectionError):
       self.validator.check(party_leadership)
 
   def test_invalid_end_date_fails(self):
-    party_leadership_string = self.party_leadership_string.format(
-        self.today, "I am invalid!"
-    )
+    party_leadership_string = """
+      <PartyLeadership>
+        <EndDate>I am invalid!</EndDate>
+      </PartyLeadership>
+    """
     party_leadership = etree.fromstring(party_leadership_string)
 
     with self.assertRaises(loggers.ElectionError):
       self.validator.check(party_leadership)
 
   def test_end_date_after_start_date_succeeds(self):
-    party_leadership_string = self.party_leadership_string.format(
-        self.today + datetime.timedelta(days=1),
-        self.today + datetime.timedelta(days=2),
-    )
+    party_leadership_string = f"""
+      <PartyLeadership>
+        <StartDate>{self.today + datetime.timedelta(days=1)}</StartDate>
+        <EndDate>{self.today + datetime.timedelta(days=2)}</EndDate>
+      </PartyLeadership>
+    """
     party_leadership = etree.fromstring(party_leadership_string)
 
     self.validator.check(party_leadership)
 
   def test_end_date_before_start_date_fails(self):
-    party_leadership_string = self.party_leadership_string.format(
-        self.today + datetime.timedelta(days=2),
-        self.today + datetime.timedelta(days=1),
-    )
+    party_leadership_string = f"""
+      <PartyLeadership>
+        <StartDate>{self.today + datetime.timedelta(days=2)}</StartDate>
+        <EndDate>{self.today + datetime.timedelta(days=1)}</EndDate>
+      </PartyLeadership>
+    """
     party_leadership = etree.fromstring(party_leadership_string)
 
     with self.assertRaises(loggers.ElectionError):
@@ -4982,12 +4933,18 @@ class ValidPartyLeadershipDatesTest(absltest.TestCase):
     """))
 
   def test_valid_dates_after_invalid_dates_on_same_validator_succeeds(self):
-    invalid_party_leadership = etree.fromstring(
-        self.party_leadership_string.format("2012-01-02", "2012-01-01")
-    )
-    valid_party_leadership = etree.fromstring(
-        self.party_leadership_string.format("2012-01-01", "2012-01-02")
-    )
+    invalid_party_leadership = etree.fromstring("""
+      <PartyLeadership>
+        <StartDate>2012-01-02</StartDate>
+        <EndDate>2012-01-01</EndDate>
+      </PartyLeadership>
+    """)
+    valid_party_leadership = etree.fromstring("""
+      <PartyLeadership>
+        <StartDate>2012-01-01</StartDate>
+        <EndDate>2012-01-02</EndDate>
+      </PartyLeadership>
+    """)
     with self.assertRaises(loggers.ElectionError):
       self.validator.check(invalid_party_leadership)
 
@@ -5310,49 +5267,39 @@ class PartySpanMultipleCountriesTest(absltest.TestCase):
   def setUp(self):
     super(PartySpanMultipleCountriesTest, self).setUp()
     self.validator = common_rules.DuplicateGpUnits()
-    self.base_report = """
-      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-        <Election>
-          <GpUnitCollection>
-            <GpUnit objectId="ru0001">
-              <ExternalIdentifiers>
-                <ExternalIdentifier>
-                  <Type>ocd-id</Type>
-                  <Value>ocd-division/country:us</Value>
-                </ExternalIdentifier>
-              </ExternalIdentifiers>
-             </GpUnit>
-             <GpUnit objectId="ru0002">
-               <ExternalIdentifiers>
-                  <ExternalIdentifier>
-                    <Type>ocd-id</Type>
-                    <Value>ocd-division/country:us/state:va</Value>
-                  </ExternalIdentifier>
-               </ExternalIdentifiers>
-             </GpUnit>
-             <GpUnit objectId="ru0003">
-               <ExternalIdentifiers>
-                  <ExternalIdentifier>
-                    <Type>ocd-id</Type>
-                    <Value>ocd-division/country:fr</Value>
-                  </ExternalIdentifier>
-                </ExternalIdentifiers>
-             </GpUnit>
-             <GpUnit objectId="ru0004">
-             </GpUnit>
-          </GpUnitCollection>
-          <PartyCollection>
-            <Party>
-              <PartyScopeGpUnitIds>{}</PartyScopeGpUnitIds>
-            </Party>
-          </PartyCollection>
-        </Election>
-      </ElectionReport>
-  """
 
   def test_gp_unit_list_succeeds(self):
-    referenced_gpunits = "ru0001 ru0003"
-    election_string = self.base_report.format(referenced_gpunits)
+    election_string = """
+      <ElectionReport>
+        <GpUnitCollection>
+          <GpUnit objectId="ru0001">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>ocd-id</Type>
+                <Value>ocd-division/country:us</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </GpUnit>
+          <GpUnit objectId="ru0002">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>ocd-id</Type>
+                <Value>ocd-division/country:us/state:va</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </GpUnit>
+          <GpUnit objectId="ru0003">
+            <ExternalIdentifiers>
+              <ExternalIdentifier>
+                <Type>ocd-id</Type>
+                <Value>ocd-division/country:fr</Value>
+              </ExternalIdentifier>
+            </ExternalIdentifiers>
+          </GpUnit>
+          <GpUnit objectId="ru0004"/>
+        </GpUnitCollection>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(election_string)
     validator = common_rules.PartySpanMultipleCountries(election_tree)
     expected_map = {
@@ -5364,8 +5311,35 @@ class PartySpanMultipleCountriesTest(absltest.TestCase):
     self.assertEqual(validator.existing_gpunits, expected_map)
 
   def test_no_warning_if_same_country_succeeds(self):
-    referenced_gpunits = "ru0001 ru0002"
-    election_string = self.base_report.format(referenced_gpunits)
+    election_string = """
+      <ElectionReport>
+        <Election>
+          <GpUnitCollection>
+            <GpUnit objectId="ru0001">
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>ocd-id</Type>
+                  <Value>ocd-division/country:us</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+            </GpUnit>
+            <GpUnit objectId="ru0002">
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>ocd-id</Type>
+                  <Value>ocd-division/country:us/state:va</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+            </GpUnit>
+          </GpUnitCollection>
+          <PartyCollection>
+            <Party>
+              <PartyScopeGpUnitIds>ru0001 ru0002</PartyScopeGpUnitIds>
+            </Party>
+          </PartyCollection>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(election_string)
     validator = common_rules.PartySpanMultipleCountries(election_tree)
     element = election_tree.find(
@@ -5375,8 +5349,28 @@ class PartySpanMultipleCountriesTest(absltest.TestCase):
     validator.check(element)
 
   def test_no_warning_if_gp_unit_without_country_succeeds(self):
-    referenced_gpunits = "ru0001 ru0004"
-    election_string = self.base_report.format(referenced_gpunits)
+    election_string = """
+      <ElectionReport>
+        <Election>
+          <GpUnitCollection>
+            <GpUnit objectId="ru0001">
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>ocd-id</Type>
+                  <Value>ocd-division/country:us</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+            </GpUnit>
+            <GpUnit objectId="ru0004"/>
+          </GpUnitCollection>
+          <PartyCollection>
+            <Party>
+              <PartyScopeGpUnitIds>ru0001 ru0004</PartyScopeGpUnitIds>
+            </Party>
+          </PartyCollection>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(election_string)
     validator = common_rules.PartySpanMultipleCountries(election_tree)
     element = election_tree.find(
@@ -5386,8 +5380,27 @@ class PartySpanMultipleCountriesTest(absltest.TestCase):
     validator.check(element)
 
   def test_no_warning_if_one_gp_unit_succeeds(self):
-    referenced_gpunits = "ru0003"
-    election_string = self.base_report.format(referenced_gpunits)
+    election_string = """
+      <ElectionReport>
+        <Election>
+          <GpUnitCollection>
+            <GpUnit objectId="ru0003">
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>ocd-id</Type>
+                  <Value>ocd-division/country:fr</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+            </GpUnit>
+          </GpUnitCollection>
+          <PartyCollection>
+            <Party>
+              <PartyScopeGpUnitIds>ru0003</PartyScopeGpUnitIds>
+            </Party>
+          </PartyCollection>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(election_string)
     validator = common_rules.PartySpanMultipleCountries(election_tree)
     element = election_tree.find(
@@ -5397,8 +5410,35 @@ class PartySpanMultipleCountriesTest(absltest.TestCase):
     validator.check(element)
 
   def test_multiple_countries_are_referenced_warns(self):
-    referenced_gpunits = "ru0001 ru0003"
-    election_string = self.base_report.format(referenced_gpunits)
+    election_string = """
+      <ElectionReport>
+        <Election>
+          <GpUnitCollection>
+            <GpUnit objectId="ru0001">
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>ocd-id</Type>
+                  <Value>ocd-division/country:us</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+            </GpUnit>
+            <GpUnit objectId="ru0003">
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>ocd-id</Type>
+                  <Value>ocd-division/country:fr</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+            </GpUnit>
+          </GpUnitCollection>
+          <PartyCollection>
+            <Party>
+              <PartyScopeGpUnitIds>ru0001 ru0003</PartyScopeGpUnitIds>
+            </Party>
+          </PartyCollection>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(election_string)
     validator = common_rules.PartySpanMultipleCountries(election_tree)
     element = election_tree.find(
@@ -5412,8 +5452,35 @@ class PartySpanMultipleCountriesTest(absltest.TestCase):
   def test_multiple_countries_are_referenced_with_composition_warns(
       self,
   ):
-    referenced_gpunits = "ru0002 ru0003"
-    election_string = self.base_report.format(referenced_gpunits)
+    election_string = """
+      <ElectionReport>
+        <Election>
+          <GpUnitCollection>
+            <GpUnit objectId="ru0002">
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>ocd-id</Type>
+                  <Value>ocd-division/country:us/state:va</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+            </GpUnit>
+            <GpUnit objectId="ru0003">
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>ocd-id</Type>
+                  <Value>ocd-division/country:fr</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+            </GpUnit>
+          </GpUnitCollection>
+          <PartyCollection>
+            <Party>
+              <PartyScopeGpUnitIds>ru0002 ru0003</PartyScopeGpUnitIds>
+            </Party>
+          </PartyCollection>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(election_string)
     validator = common_rules.PartySpanMultipleCountries(election_tree)
     element = election_tree.find(
@@ -5425,8 +5492,43 @@ class PartySpanMultipleCountriesTest(absltest.TestCase):
     self.assertIn("ru0003", context.exception.log_entry[0].message)
 
   def test_multiple_gp_units_per_country_are_grouped_in_message_warns(self):
-    referenced_gpunits = "ru0001 ru0002 ru0003"
-    election_string = self.base_report.format(referenced_gpunits)
+    election_string = """
+      <ElectionReport>
+        <Election>
+          <GpUnitCollection>
+            <GpUnit objectId="ru0001">
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>ocd-id</Type>
+                  <Value>ocd-division/country:us</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+            </GpUnit>
+            <GpUnit objectId="ru0002">
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>ocd-id</Type>
+                  <Value>ocd-division/country:us/state:va</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+            </GpUnit>
+            <GpUnit objectId="ru0003">
+              <ExternalIdentifiers>
+                <ExternalIdentifier>
+                  <Type>ocd-id</Type>
+                  <Value>ocd-division/country:fr</Value>
+                </ExternalIdentifier>
+              </ExternalIdentifiers>
+            </GpUnit>
+          </GpUnitCollection>
+          <PartyCollection>
+            <Party>
+              <PartyScopeGpUnitIds>ru0001 ru0002 ru0003</PartyScopeGpUnitIds>
+            </Party>
+          </PartyCollection>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(election_string)
     validator = common_rules.PartySpanMultipleCountries(election_tree)
     element = election_tree.find(
@@ -5443,7 +5545,17 @@ class PartySpanMultipleCountriesTest(absltest.TestCase):
     )
 
   def test_empty_party_scope_gp_unit_ids_succeeds(self):
-    election_string = self.base_report.format("")
+    election_string = """
+      <ElectionReport>
+        <Election>
+          <PartyCollection>
+            <Party>
+              <PartyScopeGpUnitIds></PartyScopeGpUnitIds>
+            </Party>
+          </PartyCollection>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(election_string)
     validator = common_rules.PartySpanMultipleCountries(election_tree)
     element = election_tree.find(
@@ -5940,17 +6052,12 @@ class DeprecatedPartyLeadershipSchemaTest(absltest.TestCase):
 
 class CoalitionPartiesTest(absltest.TestCase):
 
-  _base_election_coalition = """
-      <Coalition>
-        {}
-      </Coalition>
-  """
-
   def test_each_coalition_has_defined_party_id_succeeds(self):
-    coalition_details = "<PartyIds>abc123</PartyIds>"
-    defined_party_string = self._base_election_coalition.format(
-        coalition_details
-    )
+    defined_party_string = """
+      <Coalition>
+        <PartyIds>abc123</PartyIds>
+      </Coalition>
+    """
     element = etree.fromstring(defined_party_string)
     validator = common_rules.CoalitionParties()
 
@@ -5959,7 +6066,7 @@ class CoalitionPartiesTest(absltest.TestCase):
   def test_coalition_does_not_define_party_id_no_party_id_fails(
       self,
   ):
-    no_party_string = self._base_election_coalition.format("")
+    no_party_string = "<Coalition/>"
     element = etree.fromstring(no_party_string)
     validator = common_rules.CoalitionParties()
 
@@ -5969,8 +6076,11 @@ class CoalitionPartiesTest(absltest.TestCase):
   def test_coalition_does_not_define_party_id_empty_party_id_fails(
       self,
   ):
-    coalition_details = "<PartyIds></PartyIds>"
-    empty_party_string = self._base_election_coalition.format(coalition_details)
+    empty_party_string = """
+      <Coalition>
+        <PartyIds></PartyIds>
+      </Coalition>
+    """
     element = etree.fromstring(empty_party_string)
     validator = common_rules.CoalitionParties()
 
@@ -5980,10 +6090,11 @@ class CoalitionPartiesTest(absltest.TestCase):
   def test_coalition_does_not_define_party_id_whitespace_fails(
       self,
   ):
-    coalition_details = "<PartyIds>     </PartyIds>"
-    all_space_party_string = self._base_election_coalition.format(
-        coalition_details
-    )
+    all_space_party_string = """
+      <Coalition>
+        <PartyIds>     </PartyIds>
+      </Coalition>
+    """
     element = etree.fromstring(all_space_party_string)
     validator = common_rules.CoalitionParties()
 
@@ -6526,18 +6637,6 @@ class DateOfBirthIsInPastTest(absltest.TestCase):
 
   def setUp(self):
     super(DateOfBirthIsInPastTest, self).setUp()
-    self.date_of_birth_string = """
-      <Person objectId="per_gb_6456562">
-        <FirstName>Jamie</FirstName>
-        <FullName>
-          <Text language="en">Jamie David Adams</Text>
-        </FullName>
-        <Gender>M</Gender>
-        <LastName>Adams</LastName>
-        <MiddleName>David</MiddleName>
-        <DateOfBirth>{}</DateOfBirth>
-      </Person>
-    """
     self.validator = common_rules.DateOfBirthIsInPast()
 
   def test_elements_returns_person(self):
@@ -6545,7 +6644,11 @@ class DateOfBirthIsInPastTest(absltest.TestCase):
 
   @freezegun.freeze_time("2023-01-01")
   def test_valid_date_of_birth_succeeds(self):
-    date_of_birth_string = self.date_of_birth_string.format("1975-01-15")
+    date_of_birth_string = """
+      <Person>
+        <DateOfBirth>1975-01-15</DateOfBirth>
+      </Person>
+    """
     element = etree.fromstring(date_of_birth_string)
 
     self.validator.check(element)
@@ -6553,7 +6656,11 @@ class DateOfBirthIsInPastTest(absltest.TestCase):
 
   @freezegun.freeze_time("2023-01-01")
   def test_invalid_date_of_birth_fails(self):
-    date_of_birth_string = self.date_of_birth_string.format("2100-11-11")
+    date_of_birth_string = """
+      <Person>
+        <DateOfBirth>2100-11-11</DateOfBirth>
+      </Person>
+    """
     element = etree.fromstring(date_of_birth_string)
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -6566,12 +6673,16 @@ class DateOfBirthIsInPastTest(absltest.TestCase):
 
   @freezegun.freeze_time("2023-01-01")
   def test_valid_person_after_invalid_person_succeeds(self):
-    invalid_person = etree.fromstring(
-        self.date_of_birth_string.format("2100-11-11")
-    )
-    valid_person = etree.fromstring(
-        self.date_of_birth_string.format("1975-01-15")
-    )
+    invalid_person = etree.fromstring("""
+      <Person>
+        <DateOfBirth>2100-11-11</DateOfBirth>
+      </Person>
+    """)
+    valid_person = etree.fromstring("""
+      <Person>
+        <DateOfBirth>1975-01-15</DateOfBirth>
+      </Person>
+    """)
     with self.assertRaises(loggers.ElectionError):
       self.validator.check(invalid_person)
 
