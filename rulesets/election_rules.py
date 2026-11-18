@@ -716,7 +716,7 @@ class VoteCountTypesCoherency(base.BaseRule):
         raise loggers.ElectionError.from_message(msg, [element])
 
 
-class VoteCountValidSeatsDeltaTypes(base.BaseRule):
+class VoteCountValidSeatsDeltaTypes(base.SchemaRule):
   """Ensure VoteCount seats delta types are valid."""
 
   def elements(self):

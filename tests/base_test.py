@@ -127,7 +127,7 @@ class BaseRuleTest(absltest.TestCase):
         </xs:complexType>
       </xs:schema>
     """
-    validator = base.BaseRule(schema_tree=etree.fromstring(schema_string))
+    validator = base.SchemaRule(schema_tree=etree.fromstring(schema_string))
 
     subtypes = validator.get_all_subtypes("Contest")
 
@@ -146,7 +146,7 @@ class BaseRuleTest(absltest.TestCase):
         </xs:complexType>
       </xs:schema>
     """
-    validator = base.BaseRule(schema_tree=etree.fromstring(schema_string))
+    validator = base.SchemaRule(schema_tree=etree.fromstring(schema_string))
 
     subtypes = validator.get_all_subtypes("Contest")
 
@@ -172,7 +172,7 @@ class BaseRuleTest(absltest.TestCase):
         </xs:complexType>
       </xs:schema>
     """
-    validator = base.BaseRule(schema_tree=etree.fromstring(schema_string))
+    validator = base.SchemaRule(schema_tree=etree.fromstring(schema_string))
 
     subtypes = validator.get_all_subtypes("FirstContest")
 
@@ -203,7 +203,7 @@ class BaseRuleTest(absltest.TestCase):
         </xs:complexType>
       </xs:schema>
     """
-    validator = base.BaseRule(schema_tree=etree.fromstring(schema_string))
+    validator = base.SchemaRule(schema_tree=etree.fromstring(schema_string))
 
     subtypes = validator.get_all_subtypes("Contest")
 

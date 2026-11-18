@@ -97,6 +97,15 @@ class BaseRule(SchemaHandler):
   def setup(self):
     """Perform any rule specific setup before checking."""
 
+
+class SchemaRule(BaseRule):
+  """Rule that needs the schema tree to be present."""
+
+  def __init__(self, *args, **kwargs):
+    super(SchemaRule, self).__init__(*args, **kwargs)
+    if self.schema_tree is None:
+      raise ValueError(f"{type(self).__name__} requires a schema_tree.")
+
   def get_element_names_for_types(self, element_types: Set[str]) -> set[str]:
     element_names = set()
     for _, element in etree.iterwalk(self.schema_tree):
@@ -136,15 +145,6 @@ class BaseRule(SchemaHandler):
         subtypes.add(subtype)
         types_to_visit.extend(direct_subtypes[subtype])
     return subtypes
-
-
-class SchemaRule(BaseRule):
-  """Rule that needs the schema tree to be present."""
-
-  def __init__(self, *args, **kwargs):
-    super(SchemaRule, self).__init__(*args, **kwargs)
-    if self.schema_tree is None:
-      raise ValueError(f"{type(self).__name__} requires a schema_tree.")
 
 
 class TreeRule(BaseRule):

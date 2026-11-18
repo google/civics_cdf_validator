@@ -13,6 +13,10 @@ from civics_cdf_validator.rulesets import common_rules
 import freezegun
 from lxml import etree
 
+_TEST_SCHEMA_TREE = etree.fromstring(
+    b'<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"/>'
+)
+
 
 class SchemaTest(absltest.TestCase):
 
@@ -1396,14 +1400,14 @@ class UniqueLabelTest(absltest.TestCase):
       <Directions label="us-standard"/>
     """
     element = etree.fromstring(unique_element_label_string)
-    validator = common_rules.UniqueLabel()
+    validator = common_rules.UniqueLabel(schema_tree=_TEST_SCHEMA_TREE)
 
     validator.check(element)
     no_element_label_string = """
       <Directions/>
     """
     element = etree.fromstring(no_element_label_string)
-    validator = common_rules.UniqueLabel()
+    validator = common_rules.UniqueLabel(schema_tree=_TEST_SCHEMA_TREE)
     validator.check(element)
 
   def test_not_all_labels_are_unique_fails(self):
@@ -1411,7 +1415,7 @@ class UniqueLabelTest(absltest.TestCase):
       <Directions label="us-standard"/>
     """
     element = etree.fromstring(unique_element_label_string)
-    validator = common_rules.UniqueLabel()
+    validator = common_rules.UniqueLabel(schema_tree=_TEST_SCHEMA_TREE)
     validator.labels = {"us-standard"}
 
     with self.assertRaises(loggers.ElectionError):
@@ -1420,7 +1424,7 @@ class UniqueLabelTest(absltest.TestCase):
   def test_label_seen_in_previous_check_fails(self):
     first_element = etree.fromstring('<Directions label="label-fake"/>')
     second_element = etree.fromstring('<Directions label="label-fake"/>')
-    validator = common_rules.UniqueLabel()
+    validator = common_rules.UniqueLabel(schema_tree=_TEST_SCHEMA_TREE)
     validator.check(first_element)
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -5787,7 +5791,9 @@ class AllInternationalizedTextHaveEnVersionTest(absltest.TestCase):
 
   def setUp(self):
     super(AllInternationalizedTextHaveEnVersionTest, self).setUp()
-    self.validator = common_rules.AllInternationalizedTextHaveEnVersion()
+    self.validator = common_rules.AllInternationalizedTextHaveEnVersion(
+        schema_tree=_TEST_SCHEMA_TREE
+    )
 
   def test_internationalized_text_without_en_version_raises_info(self):
     election_string = """

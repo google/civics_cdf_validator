@@ -243,7 +243,7 @@ class EmptyText(base.BaseRule):
       raise loggers.ElectionError.from_message("Text is empty", element)
 
 
-class EmptyString(base.BaseRule):
+class EmptyString(base.SchemaRule):
   """Check that string fields are not empty or strictly whitespace."""
 
   def elements(self):
@@ -599,7 +599,7 @@ class OtherType(base.BaseRule):
         raise loggers.ElectionError.from_message(msg, [element])
 
 
-class UniqueLabel(base.BaseRule):
+class UniqueLabel(base.SchemaRule):
   """Labels should be unique within a file."""
 
   def __init__(self, *args, **kwargs):
@@ -1742,7 +1742,7 @@ class MissingOfficeSelectionMethod(base.BaseRule):
       )
 
 
-class AllInternationalizedTextHaveEnVersion(base.BaseRule):
+class AllInternationalizedTextHaveEnVersion(base.SchemaRule):
   """Checks for InternationalizedText elements missing an English version."""
 
   def elements(self):
@@ -1811,7 +1811,7 @@ class ProhibitElectionData(base.TreeRule):
       )
 
 
-class UnreferencedEntitiesBase(base.TreeRule):
+class UnreferencedEntitiesBase(base.TreeRule, base.SchemaRule):
   """All non-top-level entities in a feed should be referenced by at least one other entity.
 
   In the context of this rule, top-level means that an entity is not expected to
