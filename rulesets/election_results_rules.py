@@ -49,6 +49,29 @@ class RequiredContestResultsFieldsSet(base.SchemaRule):
       )
 
 
+class DataSourcesRequired(base.BaseRule):
+  """Checks that the ElectionReport sets a DataSourceCollection.
+
+  Election results feeds must set a DataSourceCollection on the ElectionReport
+  so that their results can be attributed to their data sources.
+  """
+
+  def elements(self) -> list[str]:
+    return ["ElectionReport"]
+
+  def check(self, element: etree._Element) -> None:
+    if element.find("DataSourceCollection") is None:
+      raise loggers.ElectionError.from_message(
+          "ElectionReport is missing required field DataSourceCollection."
+          " Election results feeds must set DataSourceCollection on the"
+          " ElectionReport.",
+          [element],
+      )
+
+
 ELECTION_RESULTS_RULES = election_rules.ELECTION_RULES + (
+    # go/keep-sorted start
+    DataSourcesRequired,
     RequiredContestResultsFieldsSet,
+    # go/keep-sorted end
 )

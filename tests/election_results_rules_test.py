@@ -162,5 +162,46 @@ class RequiredContestResultsFieldsSetTest(parameterized.TestCase):
     )
 
 
+class DataSourcesRequiredTest(absltest.TestCase):
+
+  def setUp(self):
+    super().setUp()
+    self.validator = election_results_rules.DataSourcesRequired()
+
+  def test_elements_returns_election_report(self):
+    elements = self.validator.elements()
+
+    self.assertEqual(elements, ["ElectionReport"])
+
+  def test_election_report_with_data_source_collection_succeeds(self):
+    election_report_string = """
+      <ElectionReport>
+        <DataSourceCollection/>
+      </ElectionReport>
+    """
+
+    self.validator.check(etree.fromstring(election_report_string))
+
+  def test_election_report_without_data_source_collection_fails(self):
+    election_report = etree.fromstring("<ElectionReport/>")
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(election_report)
+
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "ElectionReport is missing required field DataSourceCollection."
+        " Election results feeds must set DataSourceCollection on the"
+        " ElectionReport.",
+    )
+    self.assertEqual(context.exception.log_entry[0].elements, [election_report])
+
+  def test_election_results_rules_include_data_sources_required(self):
+    self.assertIn(
+        election_results_rules.DataSourcesRequired,
+        election_results_rules.ELECTION_RESULTS_RULES,
+    )
+
+
 if __name__ == "__main__":
   absltest.main()
