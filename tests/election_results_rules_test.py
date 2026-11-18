@@ -203,5 +203,112 @@ class DataSourcesRequiredTest(absltest.TestCase):
     )
 
 
+class ValidatePercentReportingTest(parameterized.TestCase):
+
+  def setUp(self):
+    super().setUp()
+    self.validator = election_results_rules.ValidatePercentReporting(
+        schema_tree=etree.fromstring(
+            b'<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"/>'
+        )
+    )
+
+  def test_elements_returns_contest_and_its_subtypes_at_any_depth(self):
+    schema_string = """
+      <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:complexType name="BallotMeasureContest">
+          <xs:complexContent>
+            <xs:extension base="Contest"/>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="RetentionContest">
+          <xs:complexContent>
+            <xs:extension base="BallotMeasureContest"/>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="ReportingUnit">
+          <xs:complexContent>
+            <xs:extension base="GpUnit"/>
+          </xs:complexContent>
+        </xs:complexType>
+      </xs:schema>
+    """
+    validator = election_results_rules.ValidatePercentReporting(
+        schema_tree=etree.fromstring(schema_string)
+    )
+
+    elements = validator.elements()
+
+    self.assertCountEqual(
+        elements, ["Contest", "BallotMeasureContest", "RetentionContest"]
+    )
+
+  def test_contest_with_estimated_expected_vote_percentage_succeeds(self):
+    contest_string = """
+      <Contest>
+        <EstimatedExpectedVotePercentage>24.2</EstimatedExpectedVotePercentage>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest_string))
+
+  def test_contest_with_sub_units_reported_and_total_sub_units_succeeds(self):
+    contest_string = """
+      <Contest>
+        <SubUnitsReported>48</SubUnitsReported>
+        <TotalSubUnits>100</TotalSubUnits>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest_string))
+
+  @parameterized.named_parameters(
+      (
+          "no_percent_reporting_fields",
+          '<Contest objectId="con1"/>',
+          "EstimatedExpectedVotePercentage, SubUnitsReported, TotalSubUnits",
+      ),
+      (
+          "only_sub_units_reported",
+          """
+          <Contest objectId="con1">
+            <SubUnitsReported>48</SubUnitsReported>
+          </Contest>
+          """,
+          "EstimatedExpectedVotePercentage, TotalSubUnits",
+      ),
+      (
+          "only_total_sub_units",
+          """
+          <Contest objectId="con1">
+            <TotalSubUnits>100</TotalSubUnits>
+          </Contest>
+          """,
+          "EstimatedExpectedVotePercentage, SubUnitsReported",
+      ),
+  )
+  def test_contest_missing_percent_reporting_fields_fails(
+      self, contest_string: str, missing_fields: str
+  ):
+    contest = etree.fromstring(contest_string)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(contest)
+
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        f"Contest con1 is missing field(s) {missing_fields}. Election results"
+        " feeds must set either EstimatedExpectedVotePercentage or both"
+        " SubUnitsReported and TotalSubUnits on every Contest.",
+    )
+    self.assertEqual(context.exception.log_entry[0].elements, [contest])
+
+  def test_election_results_rules_include_validate_percent_reporting(self):
+    self.assertIn(
+        election_results_rules.ValidatePercentReporting,
+        election_results_rules.ELECTION_RESULTS_RULES,
+    )
+
+
 if __name__ == "__main__":
   absltest.main()

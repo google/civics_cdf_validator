@@ -23,6 +23,8 @@ _REQUIRED_CONTEST_RESULTS_FIELDS = (
     "ResultsReportingStageCollection",
 )
 
+_SUB_UNITS_FIELD_NAMES = ("SubUnitsReported", "TotalSubUnits")
+
 
 class RequiredContestResultsFieldsSet(base.SchemaRule):
   """Checks that every Contest sets its results reporting stage fields.
@@ -69,9 +71,38 @@ class DataSourcesRequired(base.BaseRule):
       )
 
 
+class ValidatePercentReporting(base.SchemaRule):
+  """Checks that every Contest sets the fields used for its percent reporting.
+
+  Election results feeds must set either EstimatedExpectedVotePercentage or
+  both SubUnitsReported and TotalSubUnits on every Contest.
+  """
+
+  def elements(self) -> list[str]:
+    return ["Contest"] + list(self.get_all_subtypes("Contest"))
+
+  def check(self, element: etree._Element) -> None:
+    if element.find("EstimatedExpectedVotePercentage") is not None:
+      return
+    missing_sub_units_fields = [
+        field for field in _SUB_UNITS_FIELD_NAMES if element.find(field) is None
+    ]
+    if missing_sub_units_fields:
+      raise loggers.ElectionError.from_message(
+          f"Contest {element.get('objectId')} is missing field(s)"
+          " EstimatedExpectedVotePercentage,"
+          f" {', '.join(missing_sub_units_fields)}."
+          " Election results feeds must set either"
+          " EstimatedExpectedVotePercentage or both SubUnitsReported and"
+          " TotalSubUnits on every Contest.",
+          [element],
+      )
+
+
 ELECTION_RESULTS_RULES = election_rules.ELECTION_RULES + (
     # go/keep-sorted start
     DataSourcesRequired,
     RequiredContestResultsFieldsSet,
+    ValidatePercentReporting,
     # go/keep-sorted end
 )
