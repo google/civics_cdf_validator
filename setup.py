@@ -54,7 +54,7 @@ setup(
     install_requires=[
         'lxml>=3.3.4',
         'language-tags>=0.4.2',
-        '%s>=2.10' % requests_version,
+        f'{requests_version}>=2.10',
         'networkx>=2.6.3',
         'pycountry==22.1.10',
         'frozendict>=2.4.4',
