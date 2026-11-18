@@ -3,7 +3,7 @@
 
 import datetime
 import io
-from unittest.mock import MagicMock
+import types
 
 from absl.testing import absltest
 from absl.testing import parameterized
@@ -43,7 +43,7 @@ class SchemaTest(absltest.TestCase):
   def test_error_without_path_points_at_root(self):
     election_tree = etree.ElementTree(etree.fromstring("<Person/>"))
     validator = common_rules.Schema(election_tree, SchemaTest._schema_tree)
-    error = MagicMock(path=None)
+    error = types.SimpleNamespace(path=None)
 
     elements = validator._get_error_elements(error)
 
@@ -52,7 +52,7 @@ class SchemaTest(absltest.TestCase):
   def test_error_with_unmatched_path_points_at_root(self):
     election_tree = etree.ElementTree(etree.fromstring("<Person/>"))
     validator = common_rules.Schema(election_tree, SchemaTest._schema_tree)
-    error = MagicMock(path="/Report")
+    error = types.SimpleNamespace(path="/Report")
 
     elements = validator._get_error_elements(error)
 
@@ -61,7 +61,7 @@ class SchemaTest(absltest.TestCase):
   def test_error_with_invalid_path_points_at_root(self):
     election_tree = etree.ElementTree(etree.fromstring("<Person/>"))
     validator = common_rules.Schema(election_tree, SchemaTest._schema_tree)
-    error = MagicMock(path="/Person[")
+    error = types.SimpleNamespace(path="/Person[")
 
     elements = validator._get_error_elements(error)
 
@@ -701,10 +701,8 @@ class ValidIDREFTest(absltest.TestCase):
         "ElectoralDistrictId": "GpUnit",
     }
     validator = common_rules.ValidIDREF(None, None)
-    obj_id_mock = MagicMock(return_value=expected_obj_id_mapping)
-    validator._gather_object_ids_by_type = obj_id_mock
-    elem_ref_mock = MagicMock(return_value=expected_elem_ref_mapping)
-    validator._gather_reference_mapping = elem_ref_mock
+    validator._gather_object_ids_by_type = lambda: expected_obj_id_mapping
+    validator._gather_reference_mapping = lambda: expected_elem_ref_mapping
     validator.setup()
 
     self.assertEqual(validator.object_id_mapping, expected_obj_id_mapping)
