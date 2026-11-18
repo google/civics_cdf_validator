@@ -1228,7 +1228,7 @@ class ValidYoutubeURL(base.BaseRule):
         or "hashtag" in parsed_url.path
     ):
       raise loggers.ElectionError.from_message(
-          "'{}' is not an expected value for a youtube channel.".format(url),
+          f"'{url}' is not an expected value for a youtube channel.",
           [element],
       )
 
@@ -1239,10 +1239,10 @@ class ValidTiktokURL(base.BaseRule):
   Ensure the provided URL is a valid Tiktok URL types.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Uri"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     url = element.text.strip()
     parsed_url = urlparse(url)
     if "tiktok" in parsed_url.netloc and (
@@ -1251,7 +1251,7 @@ class ValidTiktokURL(base.BaseRule):
         or parsed_url.fragment
     ):
       raise loggers.ElectionError.from_message(
-          "'{}' is not an expected value for a tiktok account.".format(url),
+          f"'{url}' is not an expected value for a tiktok account.",
           [element],
       )
 
@@ -1263,10 +1263,12 @@ class ValidURIAnnotation(base.BaseRule):
   Throws Warnings and Errors depending on type of invalidity.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["ContactInformation"]
 
-  def check_url(self, uri, annotation, platform):
+  def check_url(
+      self, uri: etree._Element, annotation: str, platform: str
+  ) -> None:
     url = uri.text.strip()
     parsed_url = urlparse(url)
     # Ensure media platform name is in URL.
@@ -1278,13 +1280,12 @@ class ValidURIAnnotation(base.BaseRule):
     ):
       # Note that the URL is encoded for printing purposes
       raise loggers.ElectionError.from_message(
-          "Annotation '{}' is incorrect for URI {}.".format(
-              annotation, url.encode("ascii", "ignore")
-          ),
+          f"Annotation '{annotation}' is incorrect for URI"
+          f" {url.encode('ascii', 'ignore')}.",
           [uri],
       )
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     uris = element.findall("Uri")
 
     for uri in uris:
@@ -1294,7 +1295,7 @@ class ValidURIAnnotation(base.BaseRule):
 
       if not annotation:
         raise loggers.ElectionWarning.from_message(
-            "URI {} is missing annotation.".format(ascii_url), [uri]
+            f"URI {ascii_url} is missing annotation.", [uri]
         )
 
       # Skip platform checks for office contact form and candidate-image
@@ -1309,20 +1310,17 @@ class ValidURIAnnotation(base.BaseRule):
         # without a usage type, which is checked here.
         if platform in _TYPED_URI_PLATFORMS:
           raise loggers.ElectionWarning.from_message(
-              "Annotation '{}' missing usage type.".format(annotation), [uri]
+              f"Annotation '{annotation}' missing usage type.", [uri]
           )
         elif platform in _URI_USAGE_TYPES:
           raise loggers.ElectionError.from_message(
-              "Annotation '{}' has usage type, missing platform.".format(
-                  annotation
-              ),
+              f"Annotation '{annotation}' has usage type, missing platform.",
               [uri],
           )
         elif platform not in _UNTYPED_URI_PLATFORMS:
           raise loggers.ElectionError.from_message(
-              "Annotation '{}' is not a valid annotation for URI {}.".format(
-                  annotation, ascii_url
-              ),
+              f"Annotation '{annotation}' is not a valid annotation for URI"
+              f" {ascii_url}.",
               [uri],
           )
       elif len(ann_elements) == 2:
@@ -1334,14 +1332,12 @@ class ValidURIAnnotation(base.BaseRule):
             or platform not in _TYPED_URI_PLATFORMS
         ):
           raise loggers.ElectionWarning.from_message(
-              "'{}' is not a valid annotation.".format(annotation), [uri]
+              f"'{annotation}' is not a valid annotation.", [uri]
           )
       else:
         # More than two implies an invalid annotation.
         raise loggers.ElectionError.from_message(
-            "Annotation '{}' is invalid for URI {}.".format(
-                annotation, ascii_url
-            ),
+            f"Annotation '{annotation}' is invalid for URI {ascii_url}.",
             [uri],
         )
       # Finally, check platform is in the URL.
@@ -1351,10 +1347,10 @@ class ValidURIAnnotation(base.BaseRule):
 class OfficesHaveJurisdictionID(base.BaseRule):
   """Each office must have a jurisdiction-id."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Office"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     jurisdiction_values = []
     post_office_split_jurisdiction_element = element.find("JurisdictionId")
     if rule_util.element_has_text(post_office_split_jurisdiction_element):
@@ -1379,19 +1375,19 @@ class OfficesHaveJurisdictionID(base.BaseRule):
 class ValidJurisdictionID(base.ValidReferenceRule):
   """Each jurisdiction id should refer to a valid GpUnit."""
 
-  def __init__(self, *args, **kwargs):
+  def __init__(self, *args, **kwargs) -> None:
     super(ValidJurisdictionID, self).__init__(
         *args, missing_element="GpUnit", **kwargs
     )
 
-  def _gather_reference_values(self):
+  def _gather_reference_values(self) -> set[str]:
     root = self.election_tree.getroot()
     jurisdiction_values = rule_util.get_entity_info_for_value_type(
         root, "jurisdiction-id"
     )
     return set(jurisdiction_values)
 
-  def _gather_defined_values(self):
+  def _gather_defined_values(self) -> set[str]:
     gp_unit_elements = self.election_tree.getroot().findall(".//GpUnit")
     return {elem.get("objectId") for elem in gp_unit_elements}
 
@@ -1399,10 +1395,10 @@ class ValidJurisdictionID(base.ValidReferenceRule):
 class OfficesHaveValidOfficeLevel(base.BaseRule):
   """Each office must have a valid office-level."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Office"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     office_levels = []
     post_office_split_office_level_element = element.find("Level")
     if rule_util.element_has_text(post_office_split_office_level_element):
@@ -1435,10 +1431,10 @@ class OfficesHaveValidOfficeLevel(base.BaseRule):
 class OfficesHaveValidOfficeRole(base.BaseRule):
   """Each office must have valid office role(s)."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Office"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     office_roles = [role.text for role in element.findall("Role")]
     if not office_roles:
       office_roles = [
@@ -1478,10 +1474,10 @@ class OfficesHaveValidOfficeRole(base.BaseRule):
 class DiplomaticOfficesHaveCorrespondingGpUnitsSet(base.BaseRule):
   """Offices with the 'diplomat' role must have a sending or receiving state."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Office"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     office_roles = (
         role.text.strip()
         for role in element.findall("Role")
@@ -1508,10 +1504,10 @@ class ValidPartyLeadershipDates(base.DateRule):
   End dates should not occur before the start date.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["PartyLeadership"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
     self.gather_dates(element)
     self.check_end_after_start()
@@ -1525,7 +1521,7 @@ class GpUnitsHaveInternationalizedName(base.BaseRule):
   def elements(self):
     return ["GpUnit"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     intl_names = element.findall("InternationalizedName")
     if intl_names is None or not intl_names or len(intl_names) > 1:
       raise loggers.ElectionError.from_message(
@@ -1564,10 +1560,10 @@ class MissingFieldsError(base.MissingFieldRule):
   and field in element_field_mapping.
   """
 
-  def get_severity(self):
+  def get_severity(self) -> int:
     return 2
 
-  def element_field_mapping(self):
+  def element_field_mapping(self) -> dict[str, list[str]]:
     return {
         "Person": [
             "FullName//Text",
@@ -1592,10 +1588,10 @@ class MissingFieldsWarning(base.MissingFieldRule):
   and field in element_field_mapping.
   """
 
-  def get_severity(self):
+  def get_severity(self) -> int:
     return 1
 
-  def element_field_mapping(self):
+  def element_field_mapping(self) -> dict[str, list[str]]:
     return {
         "Candidate": [
             "PartyId",
@@ -1610,10 +1606,10 @@ class MissingFieldsInfo(base.MissingFieldRule):
   and field in element_field_mapping.
   """
 
-  def get_severity(self):
+  def get_severity(self) -> int:
     return 0
 
-  def element_field_mapping(self):
+  def element_field_mapping(self) -> dict[str, list[str]]:
     return {}
 
 
@@ -1624,7 +1620,12 @@ class PartySpanMultipleCountries(base.BaseRule):
   sometimes correct, but we should flag it to double check.
   """
 
-  def __init__(self, election_tree, schema_tree=None, **kwargs):
+  def __init__(
+      self,
+      election_tree: etree._ElementTree,
+      schema_tree: etree._ElementTree | None = None,
+      **kwargs,
+  ) -> None:
     super(PartySpanMultipleCountries, self).__init__(
         election_tree, schema_tree, **kwargs
     )
@@ -1638,10 +1639,10 @@ class PartySpanMultipleCountries(base.BaseRule):
           country = country_match[0].split("/")[1]
           self.existing_gpunits[gpunit.get("objectId")] = country
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["PartyScopeGpUnitIds"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     if element.text is None:
       return
     referenced_country = dict()
@@ -1653,15 +1654,14 @@ class PartySpanMultipleCountries(base.BaseRule):
         referenced_country[country].append(gpunit_id)
 
     if len(referenced_country) > 1:
-      gpunit_country_mapping = " / ".join([
-          "%s -> %s" % (key, str(value))
-          for (key, value) in referenced_country.items()
-      ])
+      gpunit_country_mapping = " / ".join(
+          [f"{key} -> {value}" for (key, value) in referenced_country.items()]
+      )
 
       raise loggers.ElectionWarning.from_message(
           (
               "PartyScopeGpUnitIds refer to GpUnit from different countries:"
-              " {}. Please double check.".format(gpunit_country_mapping)
+              f" {gpunit_country_mapping}. Please double check."
           ),
           [element],
       )
@@ -1670,7 +1670,12 @@ class PartySpanMultipleCountries(base.BaseRule):
 class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
   """Ensure non-Head of Government/State Office elements have a government body defined."""
 
-  def __init__(self, election_tree, schema_tree=None, **kwargs):
+  def __init__(
+      self,
+      election_tree: etree._ElementTree,
+      schema_tree: etree._ElementTree | None = None,
+      **kwargs,
+  ) -> None:
     self.is_post_office_split_feed = False
     officeholder_tenure_collection_element = self.get_elements_by_class(
         election_tree, "OfficeHolderTenureCollection"
@@ -1679,10 +1684,10 @@ class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
     if officeholder_tenure_collection_element or role_element:
       self.is_post_office_split_feed = True
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Office"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     if not _is_executive_office(
         element, self.is_post_office_split_feed
     ) and not _has_government_body(element):
@@ -1696,7 +1701,12 @@ class NonExecutiveOfficeShouldHaveGovernmentBody(base.BaseRule):
 class ExecutiveOfficeShouldNotHaveGovernmentBody(base.BaseRule):
   """Ensure Head of Government/State Office elements do not have a government body defined."""
 
-  def __init__(self, election_tree, schema_tree=None, **kwargs):
+  def __init__(
+      self,
+      election_tree: etree._ElementTree,
+      schema_tree: etree._ElementTree | None = None,
+      **kwargs,
+  ) -> None:
     self.is_post_office_split_feed = False
     officeholder_tenure_collection_element = self.get_elements_by_class(
         election_tree, "OfficeHolderTenureCollection"
@@ -1705,10 +1715,10 @@ class ExecutiveOfficeShouldNotHaveGovernmentBody(base.BaseRule):
     if officeholder_tenure_collection_element or role_element:
       self.is_post_office_split_feed = True
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Office"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     if _is_executive_office(
         element, self.is_post_office_split_feed
     ) and _has_government_body(element):
@@ -1733,10 +1743,10 @@ class MissingOfficeSelectionMethod(base.BaseRule):
   -ex-officio
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Office"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     selection = element.find("SelectionMethod")
     if selection is None:
       raise loggers.ElectionWarning.from_message(
@@ -1747,10 +1757,10 @@ class MissingOfficeSelectionMethod(base.BaseRule):
 class AllInternationalizedTextHaveEnVersion(base.SchemaRule):
   """Checks for InternationalizedText elements missing an English version."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return list(self.get_element_names_for_type("InternationalizedText"))
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     language_map = rule_util.get_language_to_text_map(element)
     if "en" not in language_map:
       raise loggers.ElectionInfo.from_message(
@@ -1762,10 +1772,10 @@ class AllInternationalizedTextHaveEnVersion(base.SchemaRule):
 class MultipleInternationalizedTextWithSameLanguageCode(base.BaseRule):
   """Checks for multiple InternationalizedText with the same language code."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return _INTERNATIONALIZED_TEXT_ELEMENTS_WITH_ONLY_ONE_TEXT_PER_LANGUAGE
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     language_map = rule_util.get_language_to_text_map(element)
 
     for language, texts in language_map.items():
@@ -1782,7 +1792,7 @@ class DeprecatedPartyLeadershipSchema(base.BaseRule):
   def elements(self):
     return ["Party"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     if len(rule_util.get_external_id_values(element, "party-leader-id")) or len(
         rule_util.get_external_id_values(element, "party-chair-id")
     ):
@@ -1804,7 +1814,7 @@ _IDREF_EXTERNAL_IDENTIFIERS = frozenset(
 class ProhibitElectionData(base.TreeRule):
   """Ensure that election data is not provided for officeholder feeds."""
 
-  def check(self):
+  def check(self) -> None:
     root = self.election_tree.getroot()
     if root is not None and root.find("Election") is not None:
       raise loggers.ElectionError.from_message(
@@ -1826,12 +1836,12 @@ class UnreferencedEntitiesBase(base.TreeRule, base.SchemaRule):
 
   def __init__(
       self,
-      election_tree,
-      schema_tree,
-      top_level_entity_types,
-      warned_entity_types,
+      election_tree: etree._ElementTree,
+      schema_tree: etree._ElementTree,
+      top_level_entity_types: Collection[str],
+      warned_entity_types: Collection[str],
       **kwargs,
-  ):
+  ) -> None:
     super(UnreferencedEntitiesBase, self).__init__(
         election_tree, schema_tree, **kwargs
     )
@@ -1839,7 +1849,7 @@ class UnreferencedEntitiesBase(base.TreeRule, base.SchemaRule):
     self.top_level_entity_types = top_level_entity_types
     self.warned_entity_types = warned_entity_types
 
-  def _gather_referenced_entities(self):
+  def _gather_referenced_entities(self) -> set[str]:
     """Create a set of all entities referenced by either IDREF(S) elements or external identifiers."""
     referenced_entities = set()
     for external_id_type in _IDREF_EXTERNAL_IDENTIFIERS:
@@ -1853,7 +1863,7 @@ class UnreferencedEntitiesBase(base.TreeRule, base.SchemaRule):
         referenced_entities.update(element.text.split())
     return referenced_entities
 
-  def check(self):
+  def check(self) -> None:
     for _, element in etree.iterwalk(self.election_tree):
       element_name = element.tag
       # Skip anything without an object id.
@@ -1893,10 +1903,10 @@ class UnreferencedEntitiesBase(base.TreeRule, base.SchemaRule):
 class CoalitionParties(base.BaseRule):
   """Coalitions should always define the Party IDs."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Coalition"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     party_id = element.find("PartyIds")
     if party_id is None or not party_id.text or not party_id.text.strip():
       raise loggers.ElectionError.from_message(
@@ -1911,14 +1921,16 @@ class ValidatePartyCollection(base.BaseRule):
   contains basic checks.
   """
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["PartyCollection"]
 
-  def check_specific(self, parties):
+  def check_specific(
+      self, parties: Iterable[etree._Element]
+  ) -> list[loggers.LogEntry]:
     """Return a list of info log to be raised."""
     raise NotImplementedError
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     info_log = []
     parties = element.findall("Party")
     if len(parties) < 1:
@@ -1936,7 +1948,9 @@ class DuplicatedPartyAbbreviation(ValidatePartyCollection):
   within this class and returned to the user as an Info message.
   """
 
-  def check_specific(self, parties):
+  def check_specific(
+      self, parties: Iterable[etree._Element]
+  ) -> list[loggers.LogEntry]:
     info_log = []
     party_abbreviations_by_language = {}
     for party in parties:
@@ -1978,7 +1992,9 @@ class DuplicatedPartyName(ValidatePartyCollection):
   within this class and returned to the user as an Info message.
   """
 
-  def check_specific(self, parties):
+  def check_specific(
+      self, parties: Iterable[etree._Element]
+  ) -> list[loggers.LogEntry]:
     info_log = []
     party_names_by_language = {}
     for party in parties:
@@ -2017,7 +2033,9 @@ class MissingPartyAbbreviationTranslation(ValidatePartyCollection):
   class and returned to the user as an Info message.
   """
 
-  def check_specific(self, parties):
+  def check_specific(
+      self, parties: Iterable[etree._Element]
+  ) -> list[loggers.LogEntry]:
     info_log = []
     feed_languages = set()
     feed_party_ids = set()
@@ -2067,7 +2085,9 @@ class MissingPartyNameTranslation(ValidatePartyCollection):
   an Info message.
   """
 
-  def check_specific(self, parties):
+  def check_specific(
+      self, parties: Iterable[etree._Element]
+  ) -> list[loggers.LogEntry]:
     info_log = []
     feed_languages = set()
     feed_party_ids = set()
@@ -2109,10 +2129,10 @@ class MissingPartyNameTranslation(ValidatePartyCollection):
 class DateOfBirthIsInPast(base.DateRule):
   """Date of Birth should not be in the future."""
 
-  def elements(self):
+  def elements(self) -> list[str]:
     return ["Person"]
 
-  def check(self, element):
+  def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
     date_of_birth_element = element.find("DateOfBirth")
     if date_of_birth_element is not None and date_of_birth_element.text:
@@ -2127,11 +2147,11 @@ class DateOfBirthIsInPast(base.DateRule):
 class GpUnitsHaveSingleRoot(base.TreeRule):
   """Ensure that GpUnits form a single-rooted tree."""
 
-  def __init__(self, *args, **kwargs):
+  def __init__(self, *args, **kwargs) -> None:
     super(GpUnitsHaveSingleRoot, self).__init__(*args, **kwargs)
     self.error_log = []
 
-  def check(self):
+  def check(self) -> None:
     # Make sure there's at most one GpUnit as a root.
     # The root is defined as having ComposingGpUnitIds but
     # is not in the ComposingGpUnitIds of any other GpUnit.
@@ -2175,7 +2195,7 @@ class GpUnitsHaveSingleRoot(base.TreeRule):
     if self.error_log:
       raise loggers.ElectionError(self.error_log)
 
-  def _get_gpunit_collection(self):
+  def _get_gpunit_collection(self) -> etree._Element:
     """Returns the GpUnitCollection element, or the root if there is none."""
     root = self.election_tree.getroot()
     gpunit_collection = root.find("GpUnitCollection")
