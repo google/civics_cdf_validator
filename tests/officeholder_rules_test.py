@@ -4,7 +4,6 @@
 import datetime
 import hashlib
 import io
-from unittest.mock import MagicMock
 
 from absl.testing import absltest
 from civics_cdf_validator import loggers
@@ -1459,56 +1458,58 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
   def test_duplicate_start_dates_for_jurisdiction_and_role_succeeds(
       self,
   ):
-    start_counts = {
-        "abcdefg": {
-            "jurisdiction_id": "ru-gpu1",
-            "office_role": "Upper house",
-            "start_dates": {
-                "2020-01-01": {etree.fromstring("<Office></Office>")},
-            },
-        },
-        "zyxwtuv": {
-            "jurisdiction_id": "ru-gpu2",
-            "office_role": "Lower house",
-            "start_dates": {
-                "2020-01-02": {etree.fromstring("<Office></Office>")},
-            },
-        },
-    }
-    mock_counts = MagicMock(return_value=start_counts)
-    self.validator._count_start_dates_by_jurisdiction_role = mock_counts
-    office_coll = etree.fromstring("<OfficeCollection></OfficeCollection>")
+    office_collection = etree.fromstring("""
+      <OfficeCollection>
+        <Office>
+          <Term>
+            <StartDate>2020-01-01</StartDate>
+          </Term>
+          <AdditionalData type="jurisdiction-id">ru-gpu1</AdditionalData>
+          <AdditionalData type="office-role">Upper house</AdditionalData>
+        </Office>
+        <Office>
+          <Term>
+            <StartDate>2020-01-02</StartDate>
+          </Term>
+          <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          <AdditionalData type="office-role">Lower house</AdditionalData>
+        </Office>
+      </OfficeCollection>
+    """)
 
-    self.validator.check(office_coll)
+    self.validator.check(office_collection)
 
   def test_all_start_dates_for_jurisdiction_and_role_same_warns(
       self,
   ):
-    start_counts = {
-        "abcdefg": {
-            "jurisdiction_id": "ru-gpu1",
-            "office_role": "Upper house",
-            "start_dates": {
-                "2020-01-01": {etree.fromstring("<Office></Office>")},
-            },
-        },
-        "zyxwtuv": {
-            "jurisdiction_id": "ru-gpu2",
-            "office_role": "Lower house",
-            "start_dates": {
-                "2020-01-02": {
-                    etree.fromstring("<Office></Office>"),
-                    etree.fromstring("<Office></Office>"),
-                },
-            },
-        },
-    }
-    mock_counts = MagicMock(return_value=start_counts)
-    self.validator._count_start_dates_by_jurisdiction_role = mock_counts
-    office_coll = etree.fromstring("<OfficeCollection></OfficeCollection>")
+    office_collection = etree.fromstring("""
+      <OfficeCollection>
+        <Office>
+          <Term>
+            <StartDate>2020-01-01</StartDate>
+          </Term>
+          <AdditionalData type="jurisdiction-id">ru-gpu1</AdditionalData>
+          <AdditionalData type="office-role">Upper house</AdditionalData>
+        </Office>
+        <Office>
+          <Term>
+            <StartDate>2020-01-02</StartDate>
+          </Term>
+          <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          <AdditionalData type="office-role">Lower house</AdditionalData>
+        </Office>
+        <Office>
+          <Term>
+            <StartDate>2020-01-02</StartDate>
+          </Term>
+          <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          <AdditionalData type="office-role">Lower house</AdditionalData>
+        </Office>
+      </OfficeCollection>
+    """)
 
     with self.assertRaises(loggers.ElectionWarning) as context:
-      self.validator.check(office_coll)
+      self.validator.check(office_collection)
 
     self.assertEqual(
         context.exception.log_entry[0].message,
@@ -1522,31 +1523,40 @@ class UniqueStartDatesForOfficeRoleAndJurisdictionTest(absltest.TestCase):
   def test_allows_duplicates_as_long_as_duplicated_date_is_not_only_date_succeeds(
       self,
   ):
-    start_counts = {
-        "abcdefg": {
-            "jurisdiction_id": "ru-gpu1",
-            "office_role": "Upper house",
-            "start_dates": {
-                "2020-01-01": {etree.fromstring("<Office></Office>")},
-            },
-        },
-        "zyxwtuv": {
-            "jurisdiction_id": "ru-gpu2",
-            "office_role": "Lower house",
-            "start_dates": {
-                "2020-01-02": {
-                    etree.fromstring("<Office></Office>"),
-                    etree.fromstring("<Office></Office>"),
-                },
-                "2020-01-04": {etree.fromstring("<Office></Office>")},
-            },
-        },
-    }
-    mock_counts = MagicMock(return_value=start_counts)
-    self.validator._count_start_dates_by_jurisdiction_role = mock_counts
-    office_coll = etree.fromstring("<OfficeCollection></OfficeCollection>")
+    office_collection = etree.fromstring("""
+      <OfficeCollection>
+        <Office>
+          <Term>
+            <StartDate>2020-01-01</StartDate>
+          </Term>
+          <AdditionalData type="jurisdiction-id">ru-gpu1</AdditionalData>
+          <AdditionalData type="office-role">Upper house</AdditionalData>
+        </Office>
+        <Office>
+          <Term>
+            <StartDate>2020-01-02</StartDate>
+          </Term>
+          <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          <AdditionalData type="office-role">Lower house</AdditionalData>
+        </Office>
+        <Office>
+          <Term>
+            <StartDate>2020-01-02</StartDate>
+          </Term>
+          <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          <AdditionalData type="office-role">Lower house</AdditionalData>
+        </Office>
+        <Office>
+          <Term>
+            <StartDate>2020-01-04</StartDate>
+          </Term>
+          <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+          <AdditionalData type="office-role">Lower house</AdditionalData>
+        </Office>
+      </OfficeCollection>
+    """)
 
-    self.validator.check(office_coll)
+    self.validator.check(office_collection)
 
   @freezegun.freeze_time("2022-01-01")
   def test_same_start_dates_for_offices_with_past_end_dates_succeeds(self):
