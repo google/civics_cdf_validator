@@ -20,6 +20,7 @@ from lxml import etree
 
 _REQUIRED_CONTEST_RESULTS_FIELDS = (
     "CurrentResultsReportingStage",
+    "ResultsExpected",
     "ResultsReportingStageCollection",
 )
 
@@ -27,10 +28,10 @@ _SUB_UNITS_FIELD_NAMES = ("SubUnitsReported", "TotalSubUnits")
 
 
 class RequiredContestResultsFieldsSet(base.SchemaRule):
-  """Checks that every Contest sets its results reporting stage fields.
+  """Checks that every Contest sets its required results fields.
 
-  Election results feeds must set CurrentResultsReportingStage and
-  ResultsReportingStageCollection on every Contest.
+  Election results feeds must set CurrentResultsReportingStage, ResultsExpected,
+  and ResultsReportingStageCollection on every Contest.
   """
 
   def elements(self) -> list[str]:
