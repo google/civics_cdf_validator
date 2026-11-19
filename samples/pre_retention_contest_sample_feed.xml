@@ -193,11 +193,6 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>stable</OtherType>
           <Value>off-20006</Value>
         </ExternalIdentifier>
@@ -206,17 +201,14 @@
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru-0002</Value>
         </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>superior court</Value>
-        </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>false</IsPartisan>
+      <Level>administrative area 1</Level>
       <Name>
         <Text language="en">Justice of the Supreme Court of Virginia</Text>
       </Name>
+      <Role>superior court</Role>
       <SelectionMethod>appointed</SelectionMethod>
       <Term>
         <Type>full-term</Type>

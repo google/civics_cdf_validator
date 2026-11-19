@@ -723,10 +723,10 @@
       <xs:element minOccurs="0" name="GovernmentBodyIds" type="xs:IDREFS"/>
       <xs:element minOccurs="0" name="IsPartisan" type="xs:boolean"/>
       <xs:element minOccurs="0" name="JurisdictionId" type="xs:IDREF"/>
-      <xs:element minOccurs="0" name="Level" type="OfficeLevel"/>
+      <xs:element name="Level" type="OfficeLevel"/>
       <xs:element name="Name" type="InternationalizedText"/>
       <xs:element minOccurs="0" name="OfficeHolderPersonIds" type="xs:IDREFS"/>
-      <xs:element maxOccurs="unbounded" minOccurs="0" name="Role" type="OfficeRole"/>
+      <xs:element maxOccurs="2" name="Role" type="OfficeRole"/>
       <xs:element maxOccurs="1" minOccurs="0" name="SeatStatus" type="SeatStatus"/>
       <xs:element maxOccurs="unbounded" minOccurs="0" name="SelectionMethod" type="OfficeSelectionMethod"/>
       <xs:element minOccurs="0" name="Term">

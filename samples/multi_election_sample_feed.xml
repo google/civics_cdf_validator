@@ -683,24 +683,16 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>president</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Country</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru-united-states</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <IsPartisan>true</IsPartisan>
+      <Level>country</Level>
       <Name>
         <Text language="en">President of the United States</Text>
       </Name>
+      <Role>president</Role>
       <SelectionMethod>indirectly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -716,25 +708,17 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>state executive</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru-delaware</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2020-10-10</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative area 1</Level>
       <Name>
         <Text language="en">Governor of Delaware</Text>
       </Name>
+      <Role>state executive</Role>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>

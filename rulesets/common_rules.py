@@ -22,7 +22,6 @@ import re
 from civics_cdf_validator import base
 from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
-from civics_cdf_validator import office_utils
 from civics_cdf_validator.rulesets import rule_util
 import language_tags
 from lxml import etree
@@ -1344,71 +1343,19 @@ class ValidJurisdictionID(base.ValidReferenceRule):
     return {elem.get("objectId") for elem in gp_unit_elements}
 
 
-class OfficesHaveValidOfficeLevel(base.BaseRule):
-  """Each office must have a valid office-level."""
-
-  def elements(self) -> list[str]:
-    return ["Office"]
-
-  def check(self, element: etree._Element) -> None:
-    office_levels = []
-    post_office_split_office_level_element = element.find("Level")
-    if rule_util.element_has_text(post_office_split_office_level_element):
-      office_levels.append(post_office_split_office_level_element.text)
-    else:
-      office_levels = [
-          ol_id.strip()
-          for ol_id in rule_util.get_external_id_values(element, "office-level")
-          if ol_id.strip()
-      ]
-
-    if not office_levels:
-      raise loggers.ElectionError.from_message(
-          "Office is missing an office level.",
-          [element],
-      )
-    if len(office_levels) > 1:
-      raise loggers.ElectionError.from_message(
-          "Office has more than one office level.",
-          [element],
-      )
-    office_level = office_levels[0]
-    if office_level not in office_utils.VALID_OFFICE_LEVELS:
-      raise loggers.ElectionError.from_message(
-          f"Office has an invalid office level: '{office_level}'.",
-          [element],
-      )
-
-
 class OfficesHaveValidOfficeRole(base.BaseRule):
-  """Each office must have valid office role(s)."""
+  """Offices with multiple roles must use a valid role combination."""
 
   def elements(self) -> list[str]:
     return ["Office"]
 
   def check(self, element: etree._Element) -> None:
-    office_roles = [role.text for role in element.findall("Role")]
-    if not office_roles:
-      office_roles = [
-          office_role.strip()
-          for office_role in rule_util.get_external_id_values(
-              element, "office-role"
-          )
-      ]
-
-    if not office_roles:
-      raise loggers.ElectionError.from_message(
-          "Office is missing an office role.",
-          [element],
-      )
-    if len(office_roles) == 1:
-      office_role = office_roles[0]
-      if office_role not in office_utils.VALID_OFFICE_ROLES:
-        raise loggers.ElectionError.from_message(
-            f"Office has an invalid office role: '{office_role}'.",
-            [element],
-        )
-    elif len(office_roles) == 2:
+    office_roles = [
+        role.text.strip()
+        for role in element.findall("Role")
+        if rule_util.element_has_text(role)
+    ]
+    if len(office_roles) == 2:
       if set(office_roles) not in _VALID_OFFICE_ROLE_COMBINATIONS:
         raise loggers.ElectionError.from_message(
             "Office has an invalid combination of office roles: "
@@ -1416,11 +1363,6 @@ class OfficesHaveValidOfficeRole(base.BaseRule):
             f"{_VALID_OFFICE_ROLE_COMBINATIONS}.",
             [element],
         )
-    else:
-      raise loggers.ElectionError.from_message(
-          "Office has more than two office roles.",
-          [element],
-      )
 
 
 class DiplomaticOfficesHaveCorrespondingGpUnitsSet(base.BaseRule):
@@ -2136,7 +2078,6 @@ COMMON_RULES = (
     MultipleInternationalizedTextWithSameLanguageCode,
     NonExecutiveOfficeShouldHaveGovernmentBody,
     OfficesHaveJurisdictionID,
-    OfficesHaveValidOfficeLevel,
     OfficesHaveValidOfficeRole,
     OnlyOneCandidateImagePerPerson,
     OptionalAndEmpty,
