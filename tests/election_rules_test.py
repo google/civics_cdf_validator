@@ -44,15 +44,6 @@ class PercentSumTest(parameterized.TestCase):
   def setUp(self):
     super(PercentSumTest, self).setUp()
     self.validator = election_rules.PercentSum(schema_tree=_SUBTYPE_SCHEMA_TREE)
-    self.root_string = """
-      <Contest>
-        <BallotSelection>
-          <VoteCountsCollection>
-            {}
-          </VoteCountsCollection>
-        </BallotSelection>
-      </Contest>
-    """
 
   def test_contest_elements_succeeds(self):
     self.assertCountEqual(
@@ -67,49 +58,64 @@ class PercentSumTest(parameterized.TestCase):
     )
 
   def test_zero_percent_total_is_valid_succeeds(self):
-    vote_counts = """
-      <VoteCounts>
-        <OtherType>total-percent</OtherType>
-        <Count>0.0</Count>
-      </VoteCounts>
-      <VoteCounts>
-        <OtherType>total-percent</OtherType>
-        <Count>0.0</Count>
-      </VoteCounts>
+    element_string = """
+      <Contest>
+        <BallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>total-percent</OtherType>
+              <Count>0.0</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <OtherType>total-percent</OtherType>
+              <Count>0.0</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </BallotSelection>
+      </Contest>
     """
-    element_string = self.root_string.format(vote_counts)
     element = etree.fromstring(element_string)
 
     self.validator.check(element)
 
   def test_one_hundred_percent_total_is_valid_succeeds(self):
-    vote_counts = """
-      <VoteCounts>
-        <OtherType>total-percent</OtherType>
-        <Count>60.0</Count>
-      </VoteCounts>
-      <VoteCounts>
-        <OtherType>total-percent</OtherType>
-        <Count>40.0</Count>
-      </VoteCounts>
+    element_string = """
+      <Contest>
+        <BallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>total-percent</OtherType>
+              <Count>60.0</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <OtherType>total-percent</OtherType>
+              <Count>40.0</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </BallotSelection>
+      </Contest>
     """
-    element_string = self.root_string.format(vote_counts)
     element = etree.fromstring(element_string)
 
     self.validator.check(element)
 
   def test_invalid_percents_fails(self):
-    vote_counts = """
-      <VoteCounts>
-        <OtherType>total-percent</OtherType>
-        <Count>60.0</Count>
-      </VoteCounts>
-      <VoteCounts>
-        <OtherType>total-percent</OtherType>
-        <Count>20.0</Count>
-      </VoteCounts>
+    element_string = """
+      <Contest>
+        <BallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>total-percent</OtherType>
+              <Count>60.0</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <OtherType>total-percent</OtherType>
+              <Count>20.0</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </BallotSelection>
+      </Contest>
     """
-    element_string = self.root_string.format(vote_counts)
     element = etree.fromstring(element_string)
 
     with self.assertRaises(loggers.ElectionError):
@@ -118,33 +124,43 @@ class PercentSumTest(parameterized.TestCase):
   def test_only_use_count_for_other_type_total_percent_regular_type_succeeds(
       self,
   ):
-    vote_counts = """
-      <VoteCounts>
-        <Type>total-percent</Type>
-        <Count>60.0</Count>
-      </VoteCounts>
-      <VoteCounts>
-        <Type>total-percent</Type>
-        <Count>20.0</Count>
-      </VoteCounts>
+    element_string = """
+      <Contest>
+        <BallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>total-percent</Type>
+              <Count>60.0</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <Type>total-percent</Type>
+              <Count>20.0</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </BallotSelection>
+      </Contest>
     """
-    element_string = self.root_string.format(vote_counts)
     element = etree.fromstring(element_string)
 
     self.validator.check(element)
 
   def test_only_use_count_for_other_type_total_percent_invalid_succeeds(self):
-    vote_counts = """
-      <VoteCounts>
-        <OtherType>percent-sum</OtherType>
-        <Count>60.0</Count>
-      </VoteCounts>
-      <VoteCounts>
-        <OtherType>percent-sum</OtherType>
-        <Count>20.0</Count>
-      </VoteCounts>
+    element_string = """
+      <Contest>
+        <BallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>percent-sum</OtherType>
+              <Count>60.0</Count>
+            </VoteCounts>
+            <VoteCounts>
+              <OtherType>percent-sum</OtherType>
+              <Count>20.0</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </BallotSelection>
+      </Contest>
     """
-    element_string = self.root_string.format(vote_counts)
     element = etree.fromstring(element_string)
 
     self.validator.check(element)
@@ -282,17 +298,13 @@ class PercentSumTest(parameterized.TestCase):
 
 class PartisanPrimaryTest(absltest.TestCase):
 
-  _base_report = """
-    <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-      <Election>
-        {}
-      </Election>
-    </ElectionReport>
-  """
-
   # elements test
   def test_elections_succeeds(self):
-    election_string = PartisanPrimaryTest._base_report
+    election_string = """
+      <ElectionReport>
+        <Election/>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(election_string)
     validator = election_rules.PartisanPrimary(election_tree)
 
@@ -300,13 +312,16 @@ class PartisanPrimaryTest(absltest.TestCase):
 
   # check tests
   def test_party_ids_are_present_and_non_empty_succeeds(self):
-    election_details = """
-      <Type>primary</Type>
-      <Contest xsi:type="CandidateContest">
-        <PrimaryPartyIds>abc123</PrimaryPartyIds>
-      </Contest>
+    election_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <Type>primary</Type>
+          <Contest xsi:type="CandidateContest">
+            <PrimaryPartyIds>abc123</PrimaryPartyIds>
+          </Contest>
+        </Election>
+      </ElectionReport>
     """
-    election_string = PartisanPrimaryTest._base_report.format(election_details)
     root = etree.fromstring(election_string)
     election = root.find("Election")
 
@@ -315,13 +330,14 @@ class PartisanPrimaryTest(absltest.TestCase):
   def test_party_ids_do_not_exist_no_party_partisan_primary_warns(
       self,
   ):
-    election_details = """
-      <Type>partisan-primary-closed</Type>
-      <Contest xsi:type="CandidateContest">
-        <Name>2020 Election</Name>
-      </Contest>
+    election_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <Type>partisan-primary-closed</Type>
+          <Contest xsi:type="CandidateContest"/>
+        </Election>
+      </ElectionReport>
     """
-    election_string = PartisanPrimaryTest._base_report.format(election_details)
     root = etree.fromstring(election_string)
     election = root.find("Election")
     election.sourceline = 7
@@ -332,14 +348,16 @@ class PartisanPrimaryTest(absltest.TestCase):
   def test_party_ids_do_not_exist_empty_party_partisan_primary_warns(
       self,
   ):
-    election_details = """
-      <Type>partisan-primary-closed</Type>
-      <Contest xsi:type="CandidateContest">
-        <PrimaryPartyIds></PrimaryPartyIds>
-        <Name>2020 Election</Name>
-      </Contest>
+    election_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <Type>partisan-primary-closed</Type>
+          <Contest xsi:type="CandidateContest">
+            <PrimaryPartyIds></PrimaryPartyIds>
+          </Contest>
+        </Election>
+      </ElectionReport>
     """
-    election_string = PartisanPrimaryTest._base_report.format(election_details)
     root = etree.fromstring(election_string)
     election = root.find("Election")
     election.sourceline = 7
@@ -350,14 +368,16 @@ class PartisanPrimaryTest(absltest.TestCase):
   def test_party_ids_do_not_exist_white_space_partisan_primary_warns(
       self,
   ):
-    election_details = """
-      <Type>partisan-primary-closed</Type>
-      <Contest xsi:type="CandidateContest">
-        <PrimaryPartyIds>      </PrimaryPartyIds>
-        <Name>2020 Election</Name>
-      </Contest>
+    election_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <Type>partisan-primary-closed</Type>
+          <Contest xsi:type="CandidateContest">
+            <PrimaryPartyIds>      </PrimaryPartyIds>
+          </Contest>
+        </Election>
+      </ElectionReport>
     """
-    election_string = PartisanPrimaryTest._base_report.format(election_details)
     root = etree.fromstring(election_string)
     election = root.find("Election")
     election.sourceline = 7
@@ -368,13 +388,14 @@ class PartisanPrimaryTest(absltest.TestCase):
   def test_party_ids_do_not_exist_no_party_open_primary_election_warns(
       self,
   ):
-    election_details = """
-      <Type>partisan-primary-open</Type>
-      <Contest xsi:type="CandidateContest">
-        <Name>2020 Election</Name>
-      </Contest>
+    election_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <Type>partisan-primary-open</Type>
+          <Contest xsi:type="CandidateContest"/>
+        </Election>
+      </ElectionReport>
     """
-    election_string = PartisanPrimaryTest._base_report.format(election_details)
     root = etree.fromstring(election_string)
     election = root.find("Election")
     election.sourceline = 7
@@ -383,13 +404,14 @@ class PartisanPrimaryTest(absltest.TestCase):
       election_rules.PartisanPrimary(root).check(election)
 
   def test_missing_party_ids_general_election_succeeds(self):
-    election_details = """
-      <Type>general</Type>
-      <Contest xsi:type="CandidateContest">
-        <Name>2020 Election</Name>
-      </Contest>
+    election_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <Type>general</Type>
+          <Contest xsi:type="CandidateContest"/>
+        </Election>
+      </ElectionReport>
     """
-    election_string = PartisanPrimaryTest._base_report.format(election_details)
     root = etree.fromstring(election_string)
     election = root.find("Election")
     election.sourceline = 7
@@ -397,13 +419,14 @@ class PartisanPrimaryTest(absltest.TestCase):
     election_rules.PartisanPrimary(root).check(election)
 
   def test_missing_party_ids_nonpartisan_primary_succeeds(self):
-    election_details = """
-      <Type>primary</Type>
-      <Contest xsi:type="CandidateContest">
-        <Name>2020 Election</Name>
-      </Contest>
+    election_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <Type>primary</Type>
+          <Contest xsi:type="CandidateContest"/>
+        </Election>
+      </ElectionReport>
     """
-    election_string = PartisanPrimaryTest._base_report.format(election_details)
     root = etree.fromstring(election_string)
     election = root.find("Election")
     election.sourceline = 7
@@ -411,12 +434,13 @@ class PartisanPrimaryTest(absltest.TestCase):
     election_rules.PartisanPrimary(root).check(election)
 
   def test_missing_party_ids_no_election_type_succeeds(self):
-    election_details = """
-      <Contest xsi:type="CandidateContest">
-        <Name>2020 Election</Name>
-      </Contest>
+    election_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <Contest xsi:type="CandidateContest"/>
+        </Election>
+      </ElectionReport>
     """
-    election_string = PartisanPrimaryTest._base_report.format(election_details)
     root = etree.fromstring(election_string)
     election = root.find("Election")
     election.sourceline = 7
@@ -449,13 +473,16 @@ class PartisanPrimaryTest(absltest.TestCase):
       election_rules.PartisanPrimary(root).check(election)
 
   def test_partisan_primary_with_party_ids_succeeds(self):
-    election_details = """
-      <Type>partisan-primary-closed</Type>
-      <Contest xsi:type="CandidateContest">
-        <PrimaryPartyIds>par-fake</PrimaryPartyIds>
-      </Contest>
+    election_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <Type>partisan-primary-closed</Type>
+          <Contest xsi:type="CandidateContest">
+            <PrimaryPartyIds>par-fake</PrimaryPartyIds>
+          </Contest>
+        </Election>
+      </ElectionReport>
     """
-    election_string = PartisanPrimaryTest._base_report.format(election_details)
     root = etree.fromstring(election_string)
     election = root.find("Election")
     validator = election_rules.PartisanPrimary(root)
@@ -463,13 +490,14 @@ class PartisanPrimaryTest(absltest.TestCase):
     validator.check(election)
 
   def test_missing_party_ids_message_contains_election_type_warns(self):
-    election_details = """
-      <Type>partisan-primary-open</Type>
-      <Contest xsi:type="CandidateContest">
-        <Name>2020 Election</Name>
-      </Contest>
+    election_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <Type>partisan-primary-open</Type>
+          <Contest xsi:type="CandidateContest"/>
+        </Election>
+      </ElectionReport>
     """
-    election_string = PartisanPrimaryTest._base_report.format(election_details)
     root = etree.fromstring(election_string)
     election = root.find("Election")
     validator = election_rules.PartisanPrimary(root)
@@ -486,13 +514,14 @@ class PartisanPrimaryTest(absltest.TestCase):
 
   def test_tree_without_election_missing_party_ids_warns(self):
     election_tree = etree.fromstring("<ElectionReport/>")
-    election_details = """
-      <Type>partisan-primary-open</Type>
-      <Contest xsi:type="CandidateContest">
-        <Name>2020 Election</Name>
-      </Contest>
+    election_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <Type>partisan-primary-open</Type>
+          <Contest xsi:type="CandidateContest"/>
+        </Election>
+      </ElectionReport>
     """
-    election_string = PartisanPrimaryTest._base_report.format(election_details)
     election = etree.fromstring(election_string).find("Election")
     validator = election_rules.PartisanPrimary(election_tree)
 
@@ -502,35 +531,21 @@ class PartisanPrimaryTest(absltest.TestCase):
 
 class PartisanPrimaryHeuristicTest(absltest.TestCase):
 
-  _base_election_report = """
-    <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-      <Election>
-        {}
-      </Election>
-    </ElectionReport>
-  """
-
-  _general_candidate_contest = """
-    <Type>general</Type>
-    <Contest xsi:type="CandidateContest">
-      {}
-    </Contest>
-  """
-
-  _base_candidate_contest = _base_election_report.format(
-      _general_candidate_contest
-  )
-
   def test_elections_succeeds(self):
-    election_details = "<Name>2020 election</Name>"
-    election_string = self._base_election_report.format(election_details)
-    election_tree = etree.fromstring(election_string)
+    election_tree = etree.fromstring("<ElectionReport/>")
     validator = election_rules.PartisanPrimaryHeuristic(election_tree)
 
     self.assertEqual(validator.elements(), ["Election"])
 
   def test_contests_that_do_not_suggest_primary_no_name_succeeds(self):
-    root_string = self._base_candidate_contest
+    root_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <Type>general</Type>
+          <Contest xsi:type="CandidateContest"/>
+        </Election>
+      </ElectionReport>
+    """
     root = etree.fromstring(root_string)
     election = root.find("Election")
 
@@ -539,22 +554,32 @@ class PartisanPrimaryHeuristicTest(absltest.TestCase):
   def test_contests_that_do_not_suggest_primary_empty_name_succeeds(
       self,
   ):
-    contest_details = """
-      <Name></Name>
-      <PrimaryPartyIds>abc123</PrimaryPartyIds>
+    root_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <Type>general</Type>
+          <Contest xsi:type="CandidateContest">
+            <Name></Name>
+          </Contest>
+        </Election>
+      </ElectionReport>
     """
-    root_string = self._base_candidate_contest.format(contest_details)
     root = etree.fromstring(root_string)
     election = root.find("Election").find("Contest")
 
     election_rules.PartisanPrimaryHeuristic(root).check(election)
 
   def test_possible_primary_detected_dem_warns(self):
-    contest_details = """
-      <Name>Might Be Primary (dem)</Name>
-      <PrimaryPartyIds>abc123</PrimaryPartyIds>
+    root_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <Type>general</Type>
+          <Contest xsi:type="CandidateContest">
+            <Name>Might Be Primary (dem)</Name>
+          </Contest>
+        </Election>
+      </ElectionReport>
     """
-    root_string = self._base_candidate_contest.format(contest_details)
     root = etree.fromstring(root_string)
     election = root.find("Election")
     election.find("Contest").sourceline = 7
@@ -563,11 +588,16 @@ class PartisanPrimaryHeuristicTest(absltest.TestCase):
       election_rules.PartisanPrimaryHeuristic(root).check(election)
 
   def test_possible_primary_detected_rep_warns(self):
-    contest_details = """
-      <Name>Might Be Primary (rep)</Name>
-      <PrimaryPartyIds>abc123</PrimaryPartyIds>
+    root_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <Type>general</Type>
+          <Contest xsi:type="CandidateContest">
+            <Name>Might Be Primary (rep)</Name>
+          </Contest>
+        </Election>
+      </ElectionReport>
     """
-    root_string = self._base_candidate_contest.format(contest_details)
     root = etree.fromstring(root_string)
     election = root.find("Election")
     election.find("Contest").sourceline = 7
@@ -576,11 +606,16 @@ class PartisanPrimaryHeuristicTest(absltest.TestCase):
       election_rules.PartisanPrimaryHeuristic(root).check(election)
 
   def test_possible_primary_detected_lib_warns(self):
-    contest_details = """
-      <Name>Might Be Primary (lib)</Name>
-      <PrimaryPartyIds>abc123</PrimaryPartyIds>
+    root_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <Type>general</Type>
+          <Contest xsi:type="CandidateContest">
+            <Name>Might Be Primary (lib)</Name>
+          </Contest>
+        </Election>
+      </ElectionReport>
     """
-    root_string = self._base_candidate_contest.format(contest_details)
     root = etree.fromstring(root_string)
     election = root.find("Election")
     election.find("Contest").sourceline = 7
@@ -589,13 +624,16 @@ class PartisanPrimaryHeuristicTest(absltest.TestCase):
       election_rules.PartisanPrimaryHeuristic(root).check(election)
 
   def test_primary_election_with_party_text_in_contest_name_succeeds(self):
-    election_details = """
-      <Type>primary</Type>
-      <Contest xsi:type="CandidateContest">
-        <Name>Might Be Primary (dem)</Name>
-      </Contest>
+    root_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <Type>primary</Type>
+          <Contest xsi:type="CandidateContest">
+            <Name>Might Be Primary (dem)</Name>
+          </Contest>
+        </Election>
+      </ElectionReport>
     """
-    root_string = self._base_election_report.format(election_details)
     root = etree.fromstring(root_string)
     election = root.find("Election")
     validator = election_rules.PartisanPrimaryHeuristic(root)
@@ -603,8 +641,16 @@ class PartisanPrimaryHeuristicTest(absltest.TestCase):
     validator.check(election)
 
   def test_possible_primary_detected_message_contains_contest_name_warns(self):
-    contest_details = "<Name>Might Be Primary (rep)</Name>"
-    root_string = self._base_candidate_contest.format(contest_details)
+    root_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <Type>general</Type>
+          <Contest xsi:type="CandidateContest">
+            <Name>Might Be Primary (rep)</Name>
+          </Contest>
+        </Election>
+      </ElectionReport>
+    """
     root = etree.fromstring(root_string)
     election = root.find("Election")
     contest = election.find("Contest")
@@ -1751,63 +1797,23 @@ class SingularPartySelectionTest(absltest.TestCase):
 
 class ValidateDuplicateColorsTest(absltest.TestCase):
 
-  def setUp(self):
-    super(ValidateDuplicateColorsTest, self).setUp()
-    self.root_string = """
+  def test_contest_with_party_with_no_color_warns(self):
+    test_string = """
       <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <Election>
           <ContestCollection>
-            <Contest objectId="con1" xsi:type="PartyContest">
-              <BallotSelection objectId="ps1" xsi:type="PartySelection">
-                <PartyIds>par0001</PartyIds>
-              </BallotSelection>
-              <BallotSelection objectId="ps2" xsi:type="PartySelection">
-                <PartyIds>par0002</PartyIds>
-              </BallotSelection>
-            </Contest>
-            <Contest objectId="con2" xsi:type="PartyContest">
-              <BallotSelection objectId="ps3" xsi:type="PartySelection">
+            <Contest xsi:type="PartyContest">
+              <BallotSelection>
                 <PartyIds>par0003</PartyIds>
               </BallotSelection>
             </Contest>
           </ContestCollection>
         </Election>
         <PartyCollection>
-          <Party objectId="par0001">
-            <Name>
-              <Text language="en">Republican</Text>
-            </Name>
-            {0}
-          </Party>
-          <Party objectId="par0002">
-            <Name>
-              <Text language="en">Democratic</Text>
-            </Name>
-            {1}
-          </Party>
-          <Party objectId="par0003">
-            <Name>
-              <Text language="en">Green</Text>
-            </Name>
-            {2}
-          </Party>
+          <Party objectId="par0003"/>
         </PartyCollection>
       </ElectionReport>
     """
-    self._color_template = "<Color>{}</Color>"
-    self._colors_template = """
-      <Colors>
-        <DarkThemeColor>{dark_theme_color}</DarkThemeColor>
-        <LightThemeColor>{light_theme_color}</LightThemeColor>
-      </Colors>
-    """
-
-  def test_contest_with_party_with_no_color_warns(self):
-    test_string = self.root_string.format(
-        self._color_template.format("ff0000"),
-        self._color_template.format("0000ff"),
-        "",
-    )
     election_tree = etree.fromstring(test_string)
 
     with self.assertRaises(loggers.ElectionWarning) as context:
@@ -1821,11 +1827,26 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
   def test_contest_with_party_with_dark_theme_color_but_no_light_theme_color_warns(
       self,
   ):
-    test_string = self.root_string.format(
-        self._color_template.format("ff0000"),
-        self._color_template.format("0000ff"),
-        "<Colors><DarkThemeColor>000000</DarkThemeColor></Colors>",
-    )
+    test_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest xsi:type="PartyContest">
+              <BallotSelection>
+                <PartyIds>par0003</PartyIds>
+              </BallotSelection>
+            </Contest>
+          </ContestCollection>
+        </Election>
+        <PartyCollection>
+          <Party objectId="par0003">
+            <Colors>
+              <DarkThemeColor>000000</DarkThemeColor>
+            </Colors>
+          </Party>
+        </PartyCollection>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(test_string)
 
     with self.assertRaises(loggers.ElectionWarning) as context:
@@ -1839,11 +1860,26 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
   def test_contest_with_party_with_light_theme_color_but_no_dark_theme_color_warns(
       self,
   ):
-    test_string = self.root_string.format(
-        self._color_template.format("ff0000"),
-        self._color_template.format("0000ff"),
-        "<Colors><LightThemeColor>000000</LightThemeColor></Colors>",
-    )
+    test_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest xsi:type="PartyContest">
+              <BallotSelection>
+                <PartyIds>par0003</PartyIds>
+              </BallotSelection>
+            </Contest>
+          </ContestCollection>
+        </Election>
+        <PartyCollection>
+          <Party objectId="par0003">
+            <Colors>
+              <LightThemeColor>000000</LightThemeColor>
+            </Colors>
+          </Party>
+        </PartyCollection>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(test_string)
 
     with self.assertRaises(loggers.ElectionWarning) as context:
@@ -1855,11 +1891,38 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
     )
 
   def test_contest_with_parties_with_duplicate_colors_warns(self):
-    test_string = self.root_string.format(
-        self._color_template.format("ff0000"),
-        self._color_template.format("ff0000"),
-        self._color_template.format("ff0000"),
-    )
+    test_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest xsi:type="PartyContest">
+              <BallotSelection>
+                <PartyIds>par0001</PartyIds>
+              </BallotSelection>
+              <BallotSelection>
+                <PartyIds>par0002</PartyIds>
+              </BallotSelection>
+            </Contest>
+            <Contest xsi:type="PartyContest">
+              <BallotSelection>
+                <PartyIds>par0003</PartyIds>
+              </BallotSelection>
+            </Contest>
+          </ContestCollection>
+        </Election>
+        <PartyCollection>
+          <Party objectId="par0001">
+            <Color>ff0000</Color>
+          </Party>
+          <Party objectId="par0002">
+            <Color>ff0000</Color>
+          </Party>
+          <Party objectId="par0003">
+            <Color>ff0000</Color>
+          </Party>
+        </PartyCollection>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(test_string)
 
     with self.assertRaises(loggers.ElectionWarning) as context:
@@ -1876,27 +1939,73 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
     self.assertEqual(duplicated_parties, ["par0001", "par0002"])
 
   def test_contest_with_parties_with_unique_colors_succeeds(self):
-    test_string = self.root_string.format(
-        self._color_template.format("ff0000"),
-        self._color_template.format("0000ff"),
-        self._color_template.format("ff0000"),
-    )
+    test_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest xsi:type="PartyContest">
+              <BallotSelection>
+                <PartyIds>par0001</PartyIds>
+              </BallotSelection>
+              <BallotSelection>
+                <PartyIds>par0002</PartyIds>
+              </BallotSelection>
+            </Contest>
+            <Contest xsi:type="PartyContest">
+              <BallotSelection>
+                <PartyIds>par0003</PartyIds>
+              </BallotSelection>
+            </Contest>
+          </ContestCollection>
+        </Election>
+        <PartyCollection>
+          <Party objectId="par0001">
+            <Color>ff0000</Color>
+          </Party>
+          <Party objectId="par0002">
+            <Color>0000ff</Color>
+          </Party>
+          <Party objectId="par0003">
+            <Color>ff0000</Color>
+          </Party>
+        </PartyCollection>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(test_string)
 
     election_rules.ValidateDuplicateColors(election_tree).check()
 
   def test_contest_with_parties_with_duplicate_dark_theme_colors_warns(self):
-    test_string = self.root_string.format(
-        self._colors_template.format(
-            dark_theme_color="ff0000",
-            light_theme_color="0000ff",
-        ),
-        self._colors_template.format(
-            dark_theme_color="FF0000",
-            light_theme_color="00ff00",
-        ),
-        self._color_template.format("000000"),
-    )
+    test_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest xsi:type="PartyContest">
+              <BallotSelection>
+                <PartyIds>par0001</PartyIds>
+              </BallotSelection>
+              <BallotSelection>
+                <PartyIds>par0002</PartyIds>
+              </BallotSelection>
+            </Contest>
+          </ContestCollection>
+        </Election>
+        <PartyCollection>
+          <Party objectId="par0001">
+            <Colors>
+              <DarkThemeColor>ff0000</DarkThemeColor>
+              <LightThemeColor>0000ff</LightThemeColor>
+            </Colors>
+          </Party>
+          <Party objectId="par0002">
+            <Colors>
+              <DarkThemeColor>FF0000</DarkThemeColor>
+              <LightThemeColor>00ff00</LightThemeColor>
+            </Colors>
+          </Party>
+        </PartyCollection>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(test_string)
 
     with self.assertRaises(loggers.ElectionWarning) as context:
@@ -1913,17 +2022,36 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
     self.assertEqual(duplicated_parties, ["par0001", "par0002"])
 
   def test_contest_with_parties_with_duplicate_light_theme_colors_warns(self):
-    test_string = self.root_string.format(
-        self._colors_template.format(
-            dark_theme_color="0000ff",
-            light_theme_color="ff0000",
-        ),
-        self._colors_template.format(
-            dark_theme_color="00ff00",
-            light_theme_color="FF0000",
-        ),
-        self._color_template.format("000000"),
-    )
+    test_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest xsi:type="PartyContest">
+              <BallotSelection>
+                <PartyIds>par0001</PartyIds>
+              </BallotSelection>
+              <BallotSelection>
+                <PartyIds>par0002</PartyIds>
+              </BallotSelection>
+            </Contest>
+          </ContestCollection>
+        </Election>
+        <PartyCollection>
+          <Party objectId="par0001">
+            <Colors>
+              <DarkThemeColor>0000ff</DarkThemeColor>
+              <LightThemeColor>ff0000</LightThemeColor>
+            </Colors>
+          </Party>
+          <Party objectId="par0002">
+            <Colors>
+              <DarkThemeColor>00ff00</DarkThemeColor>
+              <LightThemeColor>FF0000</LightThemeColor>
+            </Colors>
+          </Party>
+        </PartyCollection>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(test_string)
 
     with self.assertRaises(loggers.ElectionWarning) as context:
@@ -1942,20 +2070,36 @@ class ValidateDuplicateColorsTest(absltest.TestCase):
   def test_contest_with_parties_with_unique_dark_and_light_theme_colors_succeeds(
       self,
   ):
-    test_string = self.root_string.format(
-        self._colors_template.format(
-            dark_theme_color="000000",
-            light_theme_color="111111",
-        ),
-        self._colors_template.format(
-            dark_theme_color="222222",
-            light_theme_color="333333",
-        ),
-        self._colors_template.format(
-            dark_theme_color="444444",
-            light_theme_color="555555",
-        ),
-    )
+    test_string = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest xsi:type="PartyContest">
+              <BallotSelection>
+                <PartyIds>par0001</PartyIds>
+              </BallotSelection>
+              <BallotSelection>
+                <PartyIds>par0002</PartyIds>
+              </BallotSelection>
+            </Contest>
+          </ContestCollection>
+        </Election>
+        <PartyCollection>
+          <Party objectId="par0001">
+            <Colors>
+              <DarkThemeColor>000000</DarkThemeColor>
+              <LightThemeColor>111111</LightThemeColor>
+            </Colors>
+          </Party>
+          <Party objectId="par0002">
+            <Colors>
+              <DarkThemeColor>222222</DarkThemeColor>
+              <LightThemeColor>333333</LightThemeColor>
+            </Colors>
+          </Party>
+        </PartyCollection>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(test_string)
 
     election_rules.ValidateDuplicateColors(election_tree).check()
@@ -1992,55 +2136,31 @@ class MultipleCandidatesPointToTheSamePersonInTheSameContestTest(
     absltest.TestCase
 ):
 
-  base_string_multiple_contest = """
-    <Election xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-          <CandidateCollection>
-            <Candidate objectId="can1">
-              <PersonId>{personid1}</PersonId>
-            </Candidate>
-            <Candidate objectId="can2">
-              <PersonId>{personid2}</PersonId>
-            </Candidate>
-            <Candidate objectId="can3">
-              <PersonId>{personid3}</PersonId>
-            </Candidate>
-            <Candidate objectId="can4">
-              <PersonId>{personid4}</PersonId>
-            </Candidate>
-          </CandidateCollection>
-          <ContestCollection>
-            <Contest xsi:type="CandidateContest" objectId="contest1">
-              <BallotSelection xsi:type="CandidateSelection" objectId="cs1">
-                <CandidateIds>can1</CandidateIds>
-              </BallotSelection>
-              <BallotSelection xsi:type="CandidateSelection" objectId="cs2">
-                <CandidateIds>can2</CandidateIds>
-              </BallotSelection>
-              <BallotSelection xsi:type="CandidateSelection" objectId="cs3">
-                <CandidateIds>can3</CandidateIds>
-              </BallotSelection>
-            </Contest>
-            <Contest xsi:type="CandidateContest" objectId="contest2">
-              <BallotSelection xsi:type="CandidateSelection" objectId="cs2b">
-                <CandidateIds>can2</CandidateIds>
-              </BallotSelection>
-              <BallotSelection xsi:type="CandidateSelection" objectId="cs3b">
-                <CandidateIds>can3</CandidateIds>
-              </BallotSelection>
-              <BallotSelection xsi:type="CandidateSelection" objectId="cs4b">
-                <CandidateIds>can4</CandidateIds>
-              </BallotSelection>
-            </Contest>
-          </ContestCollection>
-        </Election>
-    """
-
   def test_valid_multiple_candidates_not_point_to_the_same_person_in_same_contest_succeeds(
       self,
   ):
-    test_string = self.base_string_multiple_contest.format(
-        personid1="per1", personid2="per2", personid3="per3", personid4="per4"
-    )
+    test_string = """
+      <Election>
+        <CandidateCollection>
+          <Candidate objectId="can1">
+            <PersonId>per1</PersonId>
+          </Candidate>
+          <Candidate objectId="can2">
+            <PersonId>per2</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest>
+            <BallotSelection>
+              <CandidateIds>can1</CandidateIds>
+            </BallotSelection>
+            <BallotSelection>
+              <CandidateIds>can2</CandidateIds>
+            </BallotSelection>
+          </Contest>
+        </ContestCollection>
+      </Election>
+    """
     election_tree = etree.fromstring(test_string)
     validator = (
         election_rules.MultipleCandidatesPointToTheSamePersonInTheSameContest(
@@ -2053,9 +2173,28 @@ class MultipleCandidatesPointToTheSamePersonInTheSameContestTest(
   def test_invalid_multiple_candidates_point_to_the_same_person_in_same_contest_fails(
       self,
   ):
-    test_string = self.base_string_multiple_contest.format(
-        personid1="per1", personid2="per2", personid3="per3", personid4="per3"
-    )
+    test_string = """
+      <Election>
+        <CandidateCollection>
+          <Candidate objectId="can3">
+            <PersonId>per3</PersonId>
+          </Candidate>
+          <Candidate objectId="can4">
+            <PersonId>per3</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="contest2">
+            <BallotSelection>
+              <CandidateIds>can3</CandidateIds>
+            </BallotSelection>
+            <BallotSelection>
+              <CandidateIds>can4</CandidateIds>
+            </BallotSelection>
+          </Contest>
+        </ContestCollection>
+      </Election>
+    """
     election_tree = etree.fromstring(test_string)
     validator = (
         election_rules.MultipleCandidatesPointToTheSamePersonInTheSameContest(
@@ -2076,9 +2215,30 @@ class MultipleCandidatesPointToTheSamePersonInTheSameContestTest(
   def test_valid_multiple_candidates_different_person_in_different_contest_succeeds(
       self,
   ):
-    test_string = self.base_string_multiple_contest.format(
-        personid1="per1", personid2="per2", personid3="per3", personid4="per1"
-    )
+    test_string = """
+      <Election>
+        <CandidateCollection>
+          <Candidate objectId="can1">
+            <PersonId>per1</PersonId>
+          </Candidate>
+          <Candidate objectId="can4">
+            <PersonId>per1</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest>
+            <BallotSelection>
+              <CandidateIds>can1</CandidateIds>
+            </BallotSelection>
+          </Contest>
+          <Contest>
+            <BallotSelection>
+              <CandidateIds>can4</CandidateIds>
+            </BallotSelection>
+          </Contest>
+        </ContestCollection>
+      </Election>
+    """
     election_tree = etree.fromstring(test_string)
     validator = (
         election_rules.MultipleCandidatesPointToTheSamePersonInTheSameContest(
@@ -2091,9 +2251,39 @@ class MultipleCandidatesPointToTheSamePersonInTheSameContestTest(
   def test_invalid_multiple_candidates_point_to_the_same_person_in_same_contest_with_two_contests_fails(
       self,
   ):
-    test_string = self.base_string_multiple_contest.format(
-        personid1="per1", personid2="per2", personid3="per1", personid4="per1"
-    )
+    test_string = """
+      <Election>
+        <CandidateCollection>
+          <Candidate objectId="can1">
+            <PersonId>per1</PersonId>
+          </Candidate>
+          <Candidate objectId="can3">
+            <PersonId>per1</PersonId>
+          </Candidate>
+          <Candidate objectId="can4">
+            <PersonId>per1</PersonId>
+          </Candidate>
+        </CandidateCollection>
+        <ContestCollection>
+          <Contest objectId="contest1">
+            <BallotSelection>
+              <CandidateIds>can1</CandidateIds>
+            </BallotSelection>
+            <BallotSelection>
+              <CandidateIds>can3</CandidateIds>
+            </BallotSelection>
+          </Contest>
+          <Contest objectId="contest2">
+            <BallotSelection>
+              <CandidateIds>can3</CandidateIds>
+            </BallotSelection>
+            <BallotSelection>
+              <CandidateIds>can4</CandidateIds>
+            </BallotSelection>
+          </Contest>
+        </ContestCollection>
+      </Election>
+    """
     election_tree = etree.fromstring(test_string)
     validator = (
         election_rules.MultipleCandidatesPointToTheSamePersonInTheSameContest(
@@ -2217,25 +2407,18 @@ class DuplicateContestNamesTest(absltest.TestCase):
   def setUp(self):
     super(DuplicateContestNamesTest, self).setUp()
     self.validator = election_rules.DuplicateContestNames()
-    self._base_report = """
-          <ContestCollection>
-            <Contest objectId="cc11111">
-              {}
-            </Contest>
-            <Contest objectId="cc22222">
-              {}
-            </Contest>
-            <Contest objectId="cc33333">
-              {}
-            </Contest>
-          </ContestCollection>
-    """
 
   def test_every_contest_has_a_unique_name_succeeds(self):
-    pres = "<Name>President</Name>"
-    sec = "<Name>Secretary</Name>"
-    tres = "<Name>Treasurer</Name>"
-    root_string = self._base_report.format(pres, sec, tres)
+    root_string = """
+      <ContestCollection>
+        <Contest>
+          <Name>President</Name>
+        </Contest>
+        <Contest>
+          <Name>Secretary</Name>
+        </Contest>
+      </ContestCollection>
+    """
     election_tree = etree.fromstring(root_string)
 
     self.validator.check(election_tree)
@@ -2243,9 +2426,11 @@ class DuplicateContestNamesTest(absltest.TestCase):
   def test_contest_is_missing_name_or_name_is_empty_missing_fails(
       self,
   ):
-    pres = "<Name>President</Name>"
-    sec = "<Name>Secretary</Name>"
-    root_string = self._base_report.format(pres, sec, "")
+    root_string = """
+      <ContestCollection>
+        <Contest/>
+      </ContestCollection>
+    """
     election_tree = etree.fromstring(root_string)
 
     with self.assertRaises(loggers.ElectionError):
@@ -2254,20 +2439,29 @@ class DuplicateContestNamesTest(absltest.TestCase):
   def test_contest_is_missing_name_or_name_is_empty_empty_fails(
       self,
   ):
-    pres = "<Name>President</Name>"
-    sec = "<Name>Secretary</Name>"
-    empty = "<Name></Name>"
-    root_string = self._base_report.format(pres, sec, empty)
+    root_string = """
+      <ContestCollection>
+        <Contest>
+          <Name></Name>
+        </Contest>
+      </ContestCollection>
+    """
     election_tree = etree.fromstring(root_string)
 
     with self.assertRaises(loggers.ElectionError):
       self.validator.check(election_tree)
 
   def test_name_is_not_unique_fails(self):
-    pres = "<Name>President</Name>"
-    sec = "<Name>Secretary</Name>"
-    duplicate = "<Name>President</Name>"
-    root_string = self._base_report.format(pres, sec, duplicate)
+    root_string = """
+      <ContestCollection>
+        <Contest>
+          <Name>President</Name>
+        </Contest>
+        <Contest>
+          <Name>President</Name>
+        </Contest>
+      </ContestCollection>
+    """
     election_tree = etree.fromstring(root_string)
 
     with self.assertRaises(loggers.ElectionError):
@@ -2279,106 +2473,85 @@ class DuplicateBallotTitleSeatPairTest(absltest.TestCase):
   def setUp(self):
     super(DuplicateBallotTitleSeatPairTest, self).setUp()
     self.duplicate_validator = election_rules.DuplicateBallotTitleSeatPair()
-    self._base_report = """
-          <ContestCollection>
-            <Contest objectId="cc0001">
-              {}
-            </Contest>
-            <Contest objectId="cc0002">
-              {}
-            </Contest>
-            <Contest objectId="cc0003">
-              {}
-            </Contest>
-          </ContestCollection>
-    """
 
   def testEveryBallotTitleSeatPairIsUniqueBySeat(self):
-    seat1 = """
-        <BallotTitle>
+    root_string = """
+      <ContestCollection>
+        <Contest>
+          <BallotTitle>
             <Text language="en">Ballot Title same</Text>
-        </BallotTitle>
-        <Seat>seat different1</Seat>
-    """
-    seat2 = """
-        <BallotTitle>
+          </BallotTitle>
+          <Seat>seat different1</Seat>
+        </Contest>
+        <Contest>
+          <BallotTitle>
             <Text language="en">Ballot Title same</Text>
-        </BallotTitle>
-        <Seat>seat different2</Seat>
+          </BallotTitle>
+          <Seat>seat different2</Seat>
+        </Contest>
+      </ContestCollection>
     """
-    seat3 = """
-        <BallotTitle>
-            <Text language="en">Ballot Title same</Text>
-        </BallotTitle>
-        <Seat>seat different3</Seat>
-    """
-    root_string = self._base_report.format(seat1, seat2, seat3)
     election_tree = etree.fromstring(root_string)
     self.duplicate_validator.check(election_tree)
 
   def testEveryBallotTitleSeatPairIsUniqueByBallotTitle(self):
-    seat1 = """
-        <BallotTitle>
+    root_string = """
+      <ContestCollection>
+        <Contest>
+          <BallotTitle>
             <Text language="en">Ballot Title different1</Text>
-        </BallotTitle>
-        <Seat>seat same</Seat>
-    """
-    seat2 = """
-        <BallotTitle>
+          </BallotTitle>
+          <Seat>seat same</Seat>
+        </Contest>
+        <Contest>
+          <BallotTitle>
             <Text language="en">Ballot Title different2</Text>
-        </BallotTitle>
-        <Seat>seat same</Seat>
+          </BallotTitle>
+          <Seat>seat same</Seat>
+        </Contest>
+      </ContestCollection>
     """
-    seat3 = """
-        <BallotTitle>
-            <Text language="en">Ballot Title different3</Text>
-        </BallotTitle>
-        <Seat>seat same</Seat>
-    """
-    root_string = self._base_report.format(seat1, seat2, seat3)
     election_tree = etree.fromstring(root_string)
     self.duplicate_validator.check(election_tree)
 
   def testRaisesAnErrorIfBallotTitleSeatPairIsDuplicated(self):
-    seat1 = """
-        <BallotTitle>
+    root_string = """
+      <ContestCollection>
+        <Contest>
+          <BallotTitle>
             <Text language="en">Ballot Title same</Text>
-        </BallotTitle>
-        <Seat>seat1</Seat>
-    """
-    seat2 = """
-        <BallotTitle>
+          </BallotTitle>
+          <Seat>duplicate seat</Seat>
+        </Contest>
+        <Contest>
+          <BallotTitle>
             <Text language="en">Ballot Title same</Text>
-        </BallotTitle>
-        <Seat>duplicate seat</Seat>
+          </BallotTitle>
+          <Seat>duplicate seat</Seat>
+        </Contest>
+      </ContestCollection>
     """
-    seat_dupelicate = """
-        <BallotTitle>
-            <Text language="en">Ballot Title same</Text>
-        </BallotTitle>
-        <Seat>duplicate seat</Seat>
-    """
-    root_string = self._base_report.format(seat1, seat2, seat_dupelicate)
     election_tree = etree.fromstring(root_string)
     with self.assertRaises(loggers.ElectionError):
       self.duplicate_validator.check(election_tree)
 
   def test_duplicate_pair_message_names_duplicated_title_and_seat_fails(self):
-    duplicate_contest = """
-        <BallotTitle>
+    root_string = """
+      <ContestCollection>
+        <Contest objectId="cc0001">
+          <BallotTitle>
             <Text language="en">Ballot Title same</Text>
-        </BallotTitle>
-        <Seat>duplicate seat</Seat>
+          </BallotTitle>
+          <Seat>duplicate seat</Seat>
+        </Contest>
+        <Contest objectId="cc0002">
+          <BallotTitle>
+            <Text language="en">Ballot Title same</Text>
+          </BallotTitle>
+          <Seat>duplicate seat</Seat>
+        </Contest>
+      </ContestCollection>
     """
-    unique_contest = """
-        <BallotTitle>
-            <Text language="en">Ballot Title other</Text>
-        </BallotTitle>
-        <Seat>other seat</Seat>
-    """
-    root_string = self._base_report.format(
-        duplicate_contest, duplicate_contest, unique_contest
-    )
     election_tree = etree.fromstring(root_string)
 
     with self.assertRaises(loggers.ElectionError) as context:
@@ -2396,68 +2569,64 @@ class DuplicateBallotTitleSeatPairTest(absltest.TestCase):
     self.assertEqual(contest_ids, ["cc0001", "cc0002"])
 
   def testEmptyBallotTitleAndSeatIsValid(self):
-    seat1 = """
-        <BallotTitle>
-            <Text language="en">Ballot Title same</Text>
-        </BallotTitle>
-        <Seat>seat1</Seat>
+    root_string = """
+      <ContestCollection>
+        <Contest/>
+        <Contest/>
+      </ContestCollection>
     """
-    seat2 = """
-
-    """
-    seat3 = """
-
-    """
-    root_string = self._base_report.format(seat1, seat2, seat3)
     election_tree = etree.fromstring(root_string)
     self.duplicate_validator.check(election_tree)
 
   def testEmptyBallotTitleButDuplicateSeatIsValid(self):
-    seat1 = """
-        <BallotTitle>
-            <Text language="en">Ballot Title same</Text>
-        </BallotTitle>
-        <Seat>seat1</Seat>
+    root_string = """
+      <ContestCollection>
+        <Contest>
+          <Seat>duplicate seat</Seat>
+        </Contest>
+        <Contest>
+          <Seat>duplicate seat</Seat>
+        </Contest>
+      </ContestCollection>
     """
-    seat2 = """
-        <Seat>duplicate seat</Seat>
-    """
-    seat3 = """
-        <Seat>duplicate seat</Seat>
-    """
-    root_string = self._base_report.format(seat1, seat2, seat3)
     election_tree = etree.fromstring(root_string)
     self.duplicate_validator.check(election_tree)
 
 
 class ContestHasMultipleOfficesTest(absltest.TestCase):
 
-  base_string = """
-      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-        <Election>
-          <ContestCollection>
-            <Contest objectId="con123" xsi:type="CandidateContest">
-                {}
-             </Contest>
-          </ContestCollection>
-        </Election>
-      </ElectionReport>
-   """
-
   def setUp(self):
     super(ContestHasMultipleOfficesTest, self).setUp()
     self.validator = election_rules.ContestHasMultipleOffices()
 
   def test_one_office_valid_succeeds(self):
-    root_string = self.base_string.format("<OfficeIds>off-ar1-arb</OfficeIds>")
+    root_string = """
+      <ElectionReport>
+        <Election>
+          <ContestCollection>
+            <Contest>
+              <OfficeIds>off-ar1-arb</OfficeIds>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
     element = etree.fromstring(root_string)
 
     self.validator.check(element.find("Election//ContestCollection//Contest"))
 
   def test_multiple_offices_fail_warns(self):
-    root_string = self.base_string.format(
-        "<OfficeIds>off-ar1-ara off-ar1-arb</OfficeIds>"
-    )
+    root_string = """
+      <ElectionReport>
+        <Election>
+          <ContestCollection>
+            <Contest objectId="con123">
+              <OfficeIds>off-ar1-ara off-ar1-arb</OfficeIds>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
     element = etree.fromstring(root_string)
 
     with self.assertRaises(loggers.ElectionWarning) as context:
@@ -2472,7 +2641,17 @@ class ContestHasMultipleOfficesTest(absltest.TestCase):
     )
 
   def test_no_offices_fail_warns(self):
-    root_string = self.base_string.format("<OfficeIds></OfficeIds>")
+    root_string = """
+      <ElectionReport>
+        <Election>
+          <ContestCollection>
+            <Contest objectId="con123">
+              <OfficeIds></OfficeIds>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
     element = etree.fromstring(root_string)
 
     with self.assertRaises(loggers.ElectionWarning) as context:
@@ -2487,23 +2666,13 @@ class ContestHasMultipleOfficesTest(absltest.TestCase):
     )
 
 
-class VoteCountTypesCoherencyTest(absltest.TestCase):
+class VoteCountTypesCoherencyTest(parameterized.TestCase):
 
   def setUp(self):
     super(VoteCountTypesCoherencyTest, self).setUp()
     self.validator = election_rules.VoteCountTypesCoherency(
         schema_tree=_SUBTYPE_SCHEMA_TREE
     )
-    self.base_contest = """
-      <Contest objectId="pc1" xsi:type="{}"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-        <BallotSelection objectId="ps1-0">
-          <VoteCountsCollection>
-            {}
-          </VoteCountsCollection>
-        </BallotSelection>
-      </Contest>
-    """
 
   def test_elements_includes_subtypes(self):
     elements = self.validator.elements()
@@ -2520,123 +2689,138 @@ class VoteCountTypesCoherencyTest(absltest.TestCase):
     )
 
   def test_invalid_not_in_party_contest_succeeds(self):
-    vote_counts = """
-      <VoteCounts>
-        <OtherType>seats-leading</OtherType>
-      </VoteCounts>
-      <VoteCounts>
-        <OtherType>total-percent</OtherType>
-        <Count>0.0</Count>
-      </VoteCounts>
+    contest = """
+      <Contest xsi:type="PartyContest"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <BallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>seats-leading</OtherType>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </BallotSelection>
+      </Contest>
     """
-    contest = self.base_contest.format("PartyContest", vote_counts)
 
     self.validator.check(etree.fromstring(contest))
 
   def test_invalid_not_in_party_contest_fails(self):
-    vote_counts = """
-      <VoteCounts>
-        <OtherType>candidate-votes</OtherType>
-      </VoteCounts>
-      <VoteCounts>
-        <OtherType>total-percent</OtherType>
-        <Count>0.0</Count>
-      </VoteCounts>
+    contest = """
+      <Contest xsi:type="PartyContest"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <BallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>candidate-votes</OtherType>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </BallotSelection>
+      </Contest>
     """
-    contest = self.base_contest.format("PartyContest", vote_counts)
 
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(contest))
-    for vc_type in election_rules.VoteCountTypesCoherency.CAND_VC_TYPES:
-      self.assertIn(vc_type, context.exception.log_entry[0].message)
+    self.assertIn("candidate-votes", context.exception.log_entry[0].message)
 
   def test_invalid_not_in_candidate_contest_succeeds(self):
-    vote_counts = """
-      <VoteCounts>
-        <OtherType>candidate-votes</OtherType>
-      </VoteCounts>
-      <VoteCounts>
-        <OtherType>total-percent</OtherType>
-        <Count>0.0</Count>
-      </VoteCounts>
+    contest = """
+      <Contest xsi:type="CandidateContest"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <BallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>candidate-votes</OtherType>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </BallotSelection>
+      </Contest>
     """
-    contest = self.base_contest.format("CandidateContest", vote_counts)
 
     self.validator.check(etree.fromstring(contest))
 
   def test_non_invalid_vc_types_succeeds(self):
     # returns None if no VoteCount types
-    vote_counts = """
-      <VoteCounts>
-        <OtherType>total-percent</OtherType>
-        <Count>0.0</Count>
-      </VoteCounts>
-      <VoteCounts>
-        <OtherType>some-future-vote-count-type</OtherType>
-      </VoteCounts>
+    contest = """
+      <Contest xsi:type="CandidateContest"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <BallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>total-percent</OtherType>
+            </VoteCounts>
+            <VoteCounts>
+              <OtherType>some-future-vote-count-type</OtherType>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </BallotSelection>
+      </Contest>
     """
-    contest = self.base_contest.format("CandidateContest", vote_counts)
 
     self.assertIsNone(self.validator.check(etree.fromstring(contest)))
 
-  def test_invalid_not_in_candidate_contest_fails(self):
-    # Checks Candidate parsing fails on all party types
-    vote_counts = """
-      <VoteCounts>
-        <OtherType>seats-won</OtherType>
-      </VoteCounts>
-      <VoteCounts>
-        <OtherType>seats-leading</OtherType>
-      </VoteCounts>
-      <VoteCounts>
-        <OtherType>party-votes</OtherType>
-      </VoteCounts>
-      <VoteCounts>
-        <OtherType>seats-no-election</OtherType>
-      </VoteCounts>
-      <VoteCounts>
-        <OtherType>seats-total</OtherType>
-      </VoteCounts>
-      <VoteCounts>
-        <OtherType>seats-delta</OtherType>
-      </VoteCounts>
-      <VoteCounts>
-        <OtherType>seats-delta-mandate</OtherType>
-      </VoteCounts>
-      <VoteCounts>
-        <OtherType>seats-delta-institutional</OtherType>
-      </VoteCounts>
+  @parameterized.parameters(
+      "seats-won",
+      "seats-leading",
+      "party-votes",
+      "seats-no-election",
+      "seats-total",
+      "seats-delta",
+      "seats-delta-mandate",
+      "seats-delta-institutional",
+  )
+  def test_invalid_not_in_candidate_contest_fails(self, vc_type):
+    contest = f"""
+      <Contest objectId="pc1" xsi:type="CandidateContest"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <BallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>{vc_type}</OtherType>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </BallotSelection>
+      </Contest>
     """
-    contest = self.base_contest.format("CandidateContest", vote_counts)
 
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(contest))
-    for vc_type in election_rules.VoteCountTypesCoherency.PARTY_VC_TYPES:
-      self.assertIn(vc_type, context.exception.log_entry[0].message)
+    self.assertIn(vc_type, context.exception.log_entry[0].message)
     self.assertEqual(
         context.exception.log_entry[0].elements[0].get("objectId"), "pc1"
     )
 
   def test_ballot_measure_contest_with_candidate_votes_succeeds(self):
-    vote_counts = """
-      <VoteCounts>
-        <OtherType>candidate-votes</OtherType>
-      </VoteCounts>
-      <VoteCounts>
-        <OtherType>seats-won</OtherType>
-      </VoteCounts>
+    contest = """
+      <Contest xsi:type="BallotMeasureContest"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <BallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>candidate-votes</OtherType>
+            </VoteCounts>
+            <VoteCounts>
+              <OtherType>seats-won</OtherType>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </BallotSelection>
+      </Contest>
     """
-    contest = self.base_contest.format("BallotMeasureContest", vote_counts)
 
     self.validator.check(etree.fromstring(contest))
 
   def test_party_type_in_candidate_contest_message_fails(self):
-    vote_counts = """
-      <VoteCounts>
-        <OtherType>seats-won</OtherType>
-      </VoteCounts>
+    contest = """
+      <Contest xsi:type="CandidateContest"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <BallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>seats-won</OtherType>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </BallotSelection>
+      </Contest>
     """
-    contest = self.base_contest.format("CandidateContest", vote_counts)
 
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(contest))
@@ -2646,12 +2830,18 @@ class VoteCountTypesCoherencyTest(absltest.TestCase):
     )
 
   def test_candidate_type_in_party_contest_message_fails(self):
-    vote_counts = """
-      <VoteCounts>
-        <OtherType>candidate-votes</OtherType>
-      </VoteCounts>
+    contest = """
+      <Contest xsi:type="PartyContest"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <BallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>candidate-votes</OtherType>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </BallotSelection>
+      </Contest>
     """
-    contest = self.base_contest.format("PartyContest", vote_counts)
 
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(contest))
@@ -2686,13 +2876,18 @@ class VoteCountTypesCoherencyTest(absltest.TestCase):
     self.validator.check(etree.fromstring(contest))
 
   def test_vote_counts_without_other_type_succeeds(self):
-    vote_counts = """
-      <VoteCounts>
-        <Type>total</Type>
-        <Count>10</Count>
-      </VoteCounts>
+    contest = """
+      <Contest xsi:type="CandidateContest"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <BallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>total</Type>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </BallotSelection>
+      </Contest>
     """
-    contest = self.base_contest.format("CandidateContest", vote_counts)
 
     self.validator.check(etree.fromstring(contest))
 
@@ -3098,30 +3293,26 @@ class ElectionStartDatesTest(absltest.TestCase):
     super(ElectionStartDatesTest, self).setUp()
     self.validator = election_rules.ElectionStartDates()
     self.today = datetime.datetime.now(datetime.timezone.utc).date()
-    self.election_string = """
-    <Election>
-      <StartDate>{}</StartDate>
-      <EndDate>{}</EndDate>
-    </Election>
-    """
 
   def test_election_elements_succeeds(self):
     self.assertEqual(self.validator.elements(), ["Election"])
 
   def test_start_dates_are_not_flagged_if_not_in_the_past_succeeds(self):
-    election_string = self.election_string.format(
-        self.today + datetime.timedelta(days=1),
-        self.today + datetime.timedelta(days=2),
-    )
+    election_string = f"""
+      <Election>
+        <StartDate>{self.today + datetime.timedelta(days=1)}</StartDate>
+      </Election>
+    """
     election = etree.fromstring(election_string)
 
     self.validator.check(election)
 
   def test_a_warning_is_thrown_if_start_date_is_in_past_warns(self):
-    election_string = self.election_string.format(
-        self.today + datetime.timedelta(days=-1),
-        self.today + datetime.timedelta(days=2),
-    )
+    election_string = f"""
+      <Election>
+        <StartDate>{self.today + datetime.timedelta(days=-1)}</StartDate>
+      </Election>
+    """
     election = etree.fromstring(election_string)
 
     with self.assertRaises(loggers.ElectionWarning):
@@ -3136,12 +3327,16 @@ class ElectionStartDatesTest(absltest.TestCase):
 
   @freezegun.freeze_time("2022-01-01")
   def test_validator_reused_after_past_start_date_succeeds(self):
-    past_election_string = self.election_string.format(
-        "2021-01-01", "2023-01-02"
-    )
-    future_election_string = self.election_string.format(
-        "2023-01-01", "2023-01-02"
-    )
+    past_election_string = """
+      <Election>
+        <StartDate>2021-01-01</StartDate>
+      </Election>
+    """
+    future_election_string = """
+      <Election>
+        <StartDate>2023-01-01</StartDate>
+      </Election>
+    """
     with self.assertRaises(loggers.ElectionWarning):
       self.validator.check(etree.fromstring(past_election_string))
 
@@ -3156,12 +3351,6 @@ class ElectionEndDatesInThePastTest(absltest.TestCase):
     super(ElectionEndDatesInThePastTest, self).setUp()
     self.validator = election_rules.ElectionEndDatesInThePast()
     self.today = datetime.datetime.now(datetime.timezone.utc).date()
-    self.election_string = """
-    <Election>
-      <StartDate>{}</StartDate>
-      <EndDate>{}</EndDate>
-    </Election>
-    """
 
   @freezegun.freeze_time("2022-01-01")
   def test_subsequent_contest_id_is_not_present_end_date_not_in_past_succeeds(
@@ -3310,30 +3499,28 @@ class ElectionEndDatesOccurAfterStartDatesTest(absltest.TestCase):
     super(ElectionEndDatesOccurAfterStartDatesTest, self).setUp()
     self.validator = election_rules.ElectionEndDatesOccurAfterStartDates()
     self.today = datetime.datetime.now(datetime.timezone.utc).date()
-    self.election_string = """
-    <Election>
-      <StartDate>{}</StartDate>
-      <EndDate>{}</EndDate>
-    </Election>
-    """
 
   def test_election_elements_succeeds(self):
     self.assertEqual(self.validator.elements(), ["Election"])
 
   def test_end_dates_are_not_flagged_if_the_order_is_right_succeeds(self):
-    election_string = self.election_string.format(
-        self.today + datetime.timedelta(days=1),
-        self.today + datetime.timedelta(days=2),
-    )
+    election_string = f"""
+      <Election>
+        <StartDate>{self.today + datetime.timedelta(days=1)}</StartDate>
+        <EndDate>{self.today + datetime.timedelta(days=2)}</EndDate>
+      </Election>
+    """
     election = etree.fromstring(election_string)
 
     self.validator.check(election)
 
   def test_an_error_is_thrown_if_end_date_is_before_start_date_fails(self):
-    election_string = self.election_string.format(
-        self.today + datetime.timedelta(days=2),
-        self.today + datetime.timedelta(days=1),
-    )
+    election_string = f"""
+      <Election>
+        <StartDate>{self.today + datetime.timedelta(days=2)}</StartDate>
+        <EndDate>{self.today + datetime.timedelta(days=1)}</EndDate>
+      </Election>
+    """
     election = etree.fromstring(election_string)
 
     with self.assertRaises(loggers.ElectionError):
@@ -3349,12 +3536,18 @@ class ElectionEndDatesOccurAfterStartDatesTest(absltest.TestCase):
     self.validator.check(etree.fromstring(election_string))
 
   def test_validator_reused_after_end_date_before_start_date_succeeds(self):
-    invalid_election_string = self.election_string.format(
-        "2023-01-02", "2023-01-01"
-    )
-    valid_election_string = self.election_string.format(
-        "2023-01-01", "2023-01-02"
-    )
+    invalid_election_string = """
+      <Election>
+        <StartDate>2023-01-02</StartDate>
+        <EndDate>2023-01-01</EndDate>
+      </Election>
+    """
+    valid_election_string = """
+      <Election>
+        <StartDate>2023-01-01</StartDate>
+        <EndDate>2023-01-02</EndDate>
+      </Election>
+    """
     with self.assertRaises(loggers.ElectionError):
       self.validator.check(etree.fromstring(invalid_election_string))
 
@@ -3910,49 +4103,61 @@ class DateStatusTest(absltest.TestCase):
   def setUp(self):
     super(DateStatusTest, self).setUp()
     self.validator = election_rules.DateStatusMatches()
-    self.base_report = """
-      <Election objectId="el_1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-        {}
-        <ElectionDateStatus>{}</ElectionDateStatus>
-      </Election>
-    """
-    self.contest_collection = """
-      <ContestCollection>
-        <Contest xsi:type="CandidateContest">
-          <ContestDateStatus>{}</ContestDateStatus>
-        </Contest>
-        <Contest>
-          <ContestDateStatus>{}</ContestDateStatus>
-        </Contest>
-      </ContestCollection>
-    """
 
   def test_election_elements_succeeds(self):
     self.assertEqual(self.validator.elements(), ["Election"])
 
   def test_election_with_no_status_succeeds(self):
-    self.validator.check(etree.fromstring(self.base_report))
+    self.validator.check(etree.fromstring('<Election objectId="el_1"/>'))
 
   def test_election_with_no_contests_succeeds(self):
-    self.validator.check(
-        etree.fromstring(self.base_report.format("", "canceled"))
-    )
+    election_report = """
+      <Election>
+        <ElectionDateStatus>canceled</ElectionDateStatus>
+      </Election>
+    """
+
+    self.validator.check(etree.fromstring(election_report))
 
   def test_election_with_matching_contests_succeeds(self):
-    contest_collection = self.contest_collection.format("canceled", "canceled")
-    election_report = self.base_report.format(contest_collection, "canceled")
+    election_report = """
+      <Election>
+        <ContestCollection>
+          <Contest>
+            <ContestDateStatus>canceled</ContestDateStatus>
+          </Contest>
+        </ContestCollection>
+        <ElectionDateStatus>canceled</ElectionDateStatus>
+      </Election>
+    """
 
     self.validator.check(etree.fromstring(election_report))
 
   def test_handles_missing_status_as_confirmed_succeeds(self):
-    contest_collection = self.contest_collection.format("confirmed", "")
-    election_report = self.base_report.format(contest_collection, "confirmed")
+    election_report = """
+      <Election>
+        <ContestCollection>
+          <Contest>
+            <ContestDateStatus></ContestDateStatus>
+          </Contest>
+        </ContestCollection>
+        <ElectionDateStatus>confirmed</ElectionDateStatus>
+      </Election>
+    """
 
     self.validator.check(etree.fromstring(election_report))
 
   def test_postponed_election_with_empty_contest_statuses_warns(self):
-    contest_collection = self.contest_collection.format("", "")
-    election_report = self.base_report.format(contest_collection, "postponed")
+    election_report = """
+      <Election objectId="el_1">
+        <ContestCollection>
+          <Contest>
+            <ContestDateStatus></ContestDateStatus>
+          </Contest>
+        </ContestCollection>
+        <ElectionDateStatus>postponed</ElectionDateStatus>
+      </Election>
+    """
 
     with self.assertRaises(loggers.ElectionWarning) as context:
       self.validator.check(etree.fromstring(election_report))
@@ -3963,8 +4168,16 @@ class DateStatusTest(absltest.TestCase):
     )
 
   def test_confirmed_election_with_canceled_contests_warns(self):
-    contest_collection = self.contest_collection.format("canceled", "canceled")
-    election_report = self.base_report.format(contest_collection, "confirmed")
+    election_report = """
+      <Election objectId="el_1">
+        <ContestCollection>
+          <Contest>
+            <ContestDateStatus>canceled</ContestDateStatus>
+          </Contest>
+        </ContestCollection>
+        <ElectionDateStatus>confirmed</ElectionDateStatus>
+      </Election>
+    """
 
     with self.assertRaises(loggers.ElectionWarning) as context:
       self.validator.check(etree.fromstring(election_report))
@@ -3975,8 +4188,19 @@ class DateStatusTest(absltest.TestCase):
     )
 
   def test_contests_with_different_statuses_raises_info(self):
-    contest_collection = self.contest_collection.format("confirmed", "canceled")
-    election_report = self.base_report.format(contest_collection, "confirmed")
+    election_report = """
+      <Election objectId="el_1">
+        <ContestCollection>
+          <Contest>
+            <ContestDateStatus>confirmed</ContestDateStatus>
+          </Contest>
+          <Contest>
+            <ContestDateStatus>canceled</ContestDateStatus>
+          </Contest>
+        </ContestCollection>
+        <ElectionDateStatus>confirmed</ElectionDateStatus>
+      </Election>
+    """
 
     with self.assertRaises(loggers.ElectionInfo) as context:
       self.validator.check(etree.fromstring(election_report))
@@ -4407,42 +4631,6 @@ class BallotTitleTest(absltest.TestCase):
 
 class ImproperCandidateContestTest(absltest.TestCase):
 
-  _base_report = """
-    <xml>
-      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-        <Election>
-          <ContestCollection>
-            <Contest objectId="con987" xsi:type="CandidateContest">
-              <BallotSelection xsi:type="CandidateSelection">
-                <CandidateIds>can123</CandidateIds>
-              </BallotSelection>
-              <BallotSelection xsi:type="CandidateSelection">
-                <CandidateIds>can456</CandidateIds>
-              </BallotSelection>
-             </Contest>
-          </ContestCollection>
-          <CandidateCollection>
-            <Candidate objectId="can123">
-              <BallotName>
-                <Text language="en">{}</Text>
-              </BallotName>
-            </Candidate>
-            <Candidate objectId="can456">
-              <BallotName>
-                <Text language="en">{}</Text>
-              </BallotName>
-            </Candidate>
-            <Candidate objectId="can789">
-              <BallotName>
-                <Text language="es">No</Text>
-              </BallotName>
-            </Candidate>
-          </CandidateCollection>
-        </Election>
-      </ElectionReport>
-    </xml>
-  """
-
   # _gather_contest_candidates test
   def test_list_of_candidate_ids_in_given_contest_succeeds(self):
     contest = """
@@ -4466,7 +4654,29 @@ class ImproperCandidateContestTest(absltest.TestCase):
   def test_candidate_ids_that_appear_to_be_ballot_selections_succeeds(
       self,
   ):
-    candidate_election = self._base_report.format("Yes", "Larry David")
+    candidate_election = """
+      <ElectionReport>
+        <Election>
+          <CandidateCollection>
+            <Candidate objectId="can123">
+              <BallotName>
+                <Text language="en">Yes</Text>
+              </BallotName>
+            </Candidate>
+            <Candidate objectId="can456">
+              <BallotName>
+                <Text language="en">Larry David</Text>
+              </BallotName>
+            </Candidate>
+            <Candidate objectId="can789">
+              <BallotName>
+                <Text language="es">No</Text>
+              </BallotName>
+            </Candidate>
+          </CandidateCollection>
+        </Election>
+      </ElectionReport>
+    """
     root = etree.fromstring(candidate_election)
     validator = election_rules.ImproperCandidateContest(root)
     expected_cand = ["can123"]
@@ -4478,16 +4688,68 @@ class ImproperCandidateContestTest(absltest.TestCase):
   def test_candidates_dont_have_typical_ballot_selection_options_as_name_succeeds(
       self,
   ):
-    candidate_election = self._base_report.format(
-        "Jerry Seinfeld", "Larry David"
-    )
+    candidate_election = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest xsi:type="CandidateContest">
+              <BallotSelection>
+                <CandidateIds>can123</CandidateIds>
+              </BallotSelection>
+              <BallotSelection>
+                <CandidateIds>can456</CandidateIds>
+              </BallotSelection>
+            </Contest>
+          </ContestCollection>
+          <CandidateCollection>
+            <Candidate objectId="can123">
+              <BallotName>
+                <Text language="en">Jerry Seinfeld</Text>
+              </BallotName>
+            </Candidate>
+            <Candidate objectId="can456">
+              <BallotName>
+                <Text language="en">Larry David</Text>
+              </BallotName>
+            </Candidate>
+          </CandidateCollection>
+        </Election>
+      </ElectionReport>
+    """
     root = etree.fromstring(candidate_election)
     validator = election_rules.ImproperCandidateContest(root)
 
     validator.check()
 
   def test_candidates_with_ballot_selections_options_get_flagged_warns(self):
-    candidate_election = self._base_report.format("Yes", "No")
+    candidate_election = """
+      <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Election>
+          <ContestCollection>
+            <Contest objectId="con987" xsi:type="CandidateContest">
+              <BallotSelection>
+                <CandidateIds>can123</CandidateIds>
+              </BallotSelection>
+              <BallotSelection>
+                <CandidateIds>can456</CandidateIds>
+              </BallotSelection>
+            </Contest>
+          </ContestCollection>
+          <CandidateCollection>
+            <Candidate objectId="can123">
+              <BallotName>
+                <Text language="en">Yes</Text>
+              </BallotName>
+            </Candidate>
+            <Candidate objectId="can456">
+              <BallotName>
+                <Text language="en">No</Text>
+              </BallotName>
+            </Candidate>
+          </CandidateCollection>
+        </Election>
+      </ElectionReport>
+    """
     root = etree.fromstring(candidate_election)
     validator = election_rules.ImproperCandidateContest(root)
 
@@ -4757,39 +5019,6 @@ class WinnerCountLimitTest(absltest.TestCase):
 
 class SubsequentContestIdIsValidRelatedContestTest(absltest.TestCase):
 
-  _base_election_report = """
-    <ElectionReport  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-      <Election>
-        <ContestCollection>
-          <Contest objectId="cc_001" xsi:type="CandidateContest">
-            <OfficeIds>office1</OfficeIds>
-            <PrimaryPartyIds>party1</PrimaryPartyIds>
-          </Contest>
-        </ContestCollection>
-        <StartDate>2020-02-03</StartDate>
-        <EndDate>2020-02-03</EndDate>
-      </Election>
-      <Election>
-        <ContestCollection>
-          <Contest objectId="cc_123">
-            <SubsequentContestId>{}</SubsequentContestId>
-            <OfficeIds>office1</OfficeIds>
-            <PrimaryPartyIds>party1</PrimaryPartyIds>
-          </Contest>
-        </ContestCollection>
-        <StartDate>2020-03-03</StartDate>
-        <EndDate>2020-03-03</EndDate>
-      </Election>
-      <Election>
-        <ContestCollection>
-          {}
-        </ContestCollection>
-        <StartDate>2020-11-03</StartDate>
-        <EndDate>2020-11-03</EndDate>
-      </Election>
-    </ElectionReport>
-    """
-
   def test_contests_without_any_end_dates_do_not_compare_end_dates(self):
     root_string = """
       <ElectionReport>
@@ -4842,13 +5071,29 @@ class SubsequentContestIdIsValidRelatedContestTest(absltest.TestCase):
     validator.check(election_tree)
 
   def test_valid_subsequent_contest_succeeds(self):
-    contest_string = """
-          <Contest objectId="cc_456" xsi:type="CandidateContest">
-            <OfficeIds>office1</OfficeIds>
-            <PrimaryPartyIds>party1</PrimaryPartyIds>
-          </Contest>
-          """
-    root_string = self._base_election_report.format("cc_456", contest_string)
+    root_string = """
+      <ElectionReport>
+        <Election>
+          <ContestCollection>
+            <Contest objectId="cc_123">
+              <SubsequentContestId>cc_456</SubsequentContestId>
+              <OfficeIds>office1</OfficeIds>
+              <PrimaryPartyIds>party1</PrimaryPartyIds>
+            </Contest>
+          </ContestCollection>
+          <EndDate>2020-03-03</EndDate>
+        </Election>
+        <Election>
+          <ContestCollection>
+            <Contest objectId="cc_456">
+              <OfficeIds>office1</OfficeIds>
+              <PrimaryPartyIds>party1</PrimaryPartyIds>
+            </Contest>
+          </ContestCollection>
+          <EndDate>2020-11-03</EndDate>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(root_string)
     validator = election_rules.SubsequentContestIdIsValidRelatedContest(
         election_tree
@@ -4857,12 +5102,21 @@ class SubsequentContestIdIsValidRelatedContestTest(absltest.TestCase):
     validator.check(election_tree)
 
   def test_subsequent_contest_with_mismatched_office_ids_fails(self):
-    contest_string = """
-          <Contest objectId="cc_456">
-            <OfficeIds>office2</OfficeIds>
-          </Contest>
-          """
-    root_string = self._base_election_report.format("cc_456", contest_string)
+    root_string = """
+      <ElectionReport>
+        <Election>
+          <ContestCollection>
+            <Contest objectId="cc_123">
+              <SubsequentContestId>cc_456</SubsequentContestId>
+              <OfficeIds>office1</OfficeIds>
+            </Contest>
+            <Contest objectId="cc_456">
+              <OfficeIds>office2</OfficeIds>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(root_string)
     validator = election_rules.SubsequentContestIdIsValidRelatedContest(
         election_tree
@@ -4878,13 +5132,21 @@ class SubsequentContestIdIsValidRelatedContestTest(absltest.TestCase):
     )
 
   def test_subsequent_contest_with_mismatched_primary_party_ids_fails(self):
-    contest_string = """
-          <Contest objectId="cc_456" xsi:type="CandidateContest">
-            <OfficeIds>office1</OfficeIds>
-            <PrimaryPartyIds>party2</PrimaryPartyIds>
-          </Contest>
-          """
-    root_string = self._base_election_report.format("cc_456", contest_string)
+    root_string = """
+      <ElectionReport>
+        <Election>
+          <ContestCollection>
+            <Contest objectId="cc_123">
+              <SubsequentContestId>cc_456</SubsequentContestId>
+              <PrimaryPartyIds>party1</PrimaryPartyIds>
+            </Contest>
+            <Contest objectId="cc_456">
+              <PrimaryPartyIds>party2</PrimaryPartyIds>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(root_string)
     validator = election_rules.SubsequentContestIdIsValidRelatedContest(
         election_tree
@@ -4900,12 +5162,19 @@ class SubsequentContestIdIsValidRelatedContestTest(absltest.TestCase):
     )
 
   def test_subsequent_contest_with_no_primary_party_ids_succeeds(self):
-    contest_string = """
-          <Contest objectId="cc_456">
-            <OfficeIds>office1</OfficeIds>
-          </Contest>
-          """
-    root_string = self._base_election_report.format("cc_456", contest_string)
+    root_string = """
+      <ElectionReport>
+        <Election>
+          <ContestCollection>
+            <Contest objectId="cc_123">
+              <SubsequentContestId>cc_456</SubsequentContestId>
+              <PrimaryPartyIds>party1</PrimaryPartyIds>
+            </Contest>
+            <Contest objectId="cc_456"/>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(root_string)
     validator = election_rules.SubsequentContestIdIsValidRelatedContest(
         election_tree
@@ -4914,7 +5183,24 @@ class SubsequentContestIdIsValidRelatedContestTest(absltest.TestCase):
     validator.check(election_tree)
 
   def test_subsequent_contest_with_earlier_end_date_from_election_fails(self):
-    root_string = self._base_election_report.format("cc_001", "")
+    root_string = """
+      <ElectionReport>
+        <Election>
+          <ContestCollection>
+            <Contest objectId="cc_001"/>
+          </ContestCollection>
+          <EndDate>2020-02-03</EndDate>
+        </Election>
+        <Election>
+          <ContestCollection>
+            <Contest objectId="cc_123">
+              <SubsequentContestId>cc_001</SubsequentContestId>
+            </Contest>
+          </ContestCollection>
+          <EndDate>2020-03-03</EndDate>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(root_string)
     validator = election_rules.SubsequentContestIdIsValidRelatedContest(
         election_tree
@@ -4930,15 +5216,26 @@ class SubsequentContestIdIsValidRelatedContestTest(absltest.TestCase):
     )
 
   def test_subsequent_contest_with_earlier_end_date_from_contest_fails(self):
-    contest_string = """
-          <Contest objectId="cc_002" xsi:type="CandidateContest">
-            <OfficeIds>office1</OfficeIds>
-            <PrimaryPartyIds>party1</PrimaryPartyIds>
-            <StartDate>2020-02-03</StartDate>
-            <EndDate>2020-02-03</EndDate>
-          </Contest>
-          """
-    root_string = self._base_election_report.format("cc_002", contest_string)
+    root_string = """
+      <ElectionReport>
+        <Election>
+          <ContestCollection>
+            <Contest objectId="cc_123">
+              <SubsequentContestId>cc_002</SubsequentContestId>
+            </Contest>
+          </ContestCollection>
+          <EndDate>2020-03-03</EndDate>
+        </Election>
+        <Election>
+          <ContestCollection>
+            <Contest objectId="cc_002">
+              <EndDate>2020-02-03</EndDate>
+            </Contest>
+          </ContestCollection>
+          <EndDate>2020-11-03</EndDate>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(root_string)
     validator = election_rules.SubsequentContestIdIsValidRelatedContest(
         election_tree
@@ -4956,14 +5253,20 @@ class SubsequentContestIdIsValidRelatedContestTest(absltest.TestCase):
   def test_subsequent_contest_contains_original_in_composing_contest_ids_fails(
       self,
   ):
-    contest_string = """
-          <Contest objectId="cc_456" xsi:type="CandidateContest">
-            <ComposingContestIds>cc_123</ComposingContestIds>
-            <OfficeIds>office1</OfficeIds>
-            <PrimaryPartyIds>party1</PrimaryPartyIds>
-          </Contest>
-          """
-    root_string = self._base_election_report.format("cc_456", contest_string)
+    root_string = """
+      <ElectionReport>
+        <Election>
+          <ContestCollection>
+            <Contest objectId="cc_123">
+              <SubsequentContestId>cc_456</SubsequentContestId>
+            </Contest>
+            <Contest objectId="cc_456">
+              <ComposingContestIds>cc_123</ComposingContestIds>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(root_string)
     validator = election_rules.SubsequentContestIdIsValidRelatedContest(
         election_tree
@@ -4980,7 +5283,17 @@ class SubsequentContestIdIsValidRelatedContestTest(absltest.TestCase):
     )
 
   def test_subsequent_contest_does_not_exist_fails(self):
-    root_string = self._base_election_report.format("cc_missing", "")
+    root_string = """
+      <ElectionReport>
+        <Election>
+          <ContestCollection>
+            <Contest objectId="cc_123">
+              <SubsequentContestId>cc_missing</SubsequentContestId>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(root_string)
     validator = election_rules.SubsequentContestIdIsValidRelatedContest(
         election_tree
@@ -5135,39 +5448,28 @@ class SubsequentContestIdIsValidRelatedContestTest(absltest.TestCase):
 
 class ComposingContestIdsTest(absltest.TestCase):
 
-  _base_election_report = """
-    <ElectionReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-      <Election>
-        <ContestCollection>
-          {}
-        </ContestCollection>
-      </Election>
-      <Election>
-        <ContestCollection>
-          <Contest objectId="cc_123">
-            <ComposingContestIds>{}</ComposingContestIds>
-            <OfficeIds>office1</OfficeIds>
-            <PrimaryPartyIds>party1</PrimaryPartyIds>
-          </Contest>
-        </ContestCollection>
-      </Election>
-    </ElectionReport>
-    """
-
   def test_valid_composing_contests_succeeds(self):
-    contest_string = """
-          <Contest objectId="cc_456" xsi:type="CandidateContest">
-            <OfficeIds>office1</OfficeIds>
-            <PrimaryPartyIds>party1</PrimaryPartyIds>
-          </Contest>
-          <Contest objectId="cc_789">
-            <OfficeIds>office1</OfficeIds>
-            <PrimaryPartyIds>party1</PrimaryPartyIds>
-          </Contest>
-          """
-    root_string = self._base_election_report.format(
-        contest_string, "cc_456 cc_789"
-    )
+    root_string = """
+      <ElectionReport>
+        <Election>
+          <ContestCollection>
+            <Contest objectId="cc_456">
+              <OfficeIds>office1</OfficeIds>
+              <PrimaryPartyIds>party1</PrimaryPartyIds>
+            </Contest>
+            <Contest objectId="cc_789">
+              <OfficeIds>office1</OfficeIds>
+              <PrimaryPartyIds>party1</PrimaryPartyIds>
+            </Contest>
+            <Contest objectId="cc_123">
+              <ComposingContestIds>cc_456 cc_789</ComposingContestIds>
+              <OfficeIds>office1</OfficeIds>
+              <PrimaryPartyIds>party1</PrimaryPartyIds>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
 
     election_tree = etree.fromstring(root_string)
     validator = election_rules.ComposingContestIdsAreValidRelatedContests(
@@ -5177,18 +5479,21 @@ class ComposingContestIdsTest(absltest.TestCase):
     validator.check(election_tree)
 
   def test_composing_contest_appears_multiple_times_fails(self):
-    contest_string = """
-          <Contest objectId="cc_456" xsi:type="CandidateContest">
-            <OfficeIds>office1</OfficeIds>
-            <PrimaryPartyIds>party2</PrimaryPartyIds>
-          </Contest>
-          <Contest objectId="cc_789" xsi:type="CandidateContest">
-            <ComposingContestIds>cc_456</ComposingContestIds>
-            <OfficeIds>office1</OfficeIds>
-            <PrimaryPartyIds>party2</PrimaryPartyIds>
-          </Contest>
-          """
-    root_string = self._base_election_report.format(contest_string, "cc_456")
+    root_string = """
+      <ElectionReport>
+        <Election>
+          <ContestCollection>
+            <Contest objectId="cc_456"/>
+            <Contest objectId="cc_789">
+              <ComposingContestIds>cc_456</ComposingContestIds>
+            </Contest>
+            <Contest objectId="cc_123">
+              <ComposingContestIds>cc_456</ComposingContestIds>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(root_string)
     validator = election_rules.ComposingContestIdsAreValidRelatedContests(
         election_tree
@@ -5203,13 +5508,21 @@ class ComposingContestIdsTest(absltest.TestCase):
     )
 
   def test_composing_contest_with_mismatched_office_ids_fails(self):
-    contest_string = """
-          <Contest objectId="cc_456" xsi:type="CandidateContest">
-            <OfficeIds>office2</OfficeIds>
-            <PrimaryPartyIds>party1</PrimaryPartyIds>
-          </Contest>
-          """
-    root_string = self._base_election_report.format(contest_string, "cc_456")
+    root_string = """
+      <ElectionReport>
+        <Election>
+          <ContestCollection>
+            <Contest objectId="cc_456">
+              <OfficeIds>office2</OfficeIds>
+            </Contest>
+            <Contest objectId="cc_123">
+              <ComposingContestIds>cc_456</ComposingContestIds>
+              <OfficeIds>office1</OfficeIds>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(root_string)
     validator = election_rules.ComposingContestIdsAreValidRelatedContests(
         election_tree
@@ -5223,13 +5536,21 @@ class ComposingContestIdsTest(absltest.TestCase):
     )
 
   def test_composing_contest_with_mismatched_primary_party_ids_fails(self):
-    contest_string = """
-          <Contest objectId="cc_456">
-            <OfficeIds>office1</OfficeIds>
-            <PrimaryPartyIds>party2</PrimaryPartyIds>
-          </Contest>
-          """
-    root_string = self._base_election_report.format(contest_string, "cc_456")
+    root_string = """
+      <ElectionReport>
+        <Election>
+          <ContestCollection>
+            <Contest objectId="cc_456">
+              <PrimaryPartyIds>party2</PrimaryPartyIds>
+            </Contest>
+            <Contest objectId="cc_123">
+              <ComposingContestIds>cc_456</ComposingContestIds>
+              <PrimaryPartyIds>party1</PrimaryPartyIds>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(root_string)
     validator = election_rules.ComposingContestIdsAreValidRelatedContests(
         election_tree
@@ -5244,14 +5565,20 @@ class ComposingContestIdsTest(absltest.TestCase):
     )
 
   def test_composing_contests_reference_each_other_fails(self):
-    contest_string = """
-          <Contest objectId="cc_456" xsi:type="CandidateContest">
-            <ComposingContestIds>cc_123</ComposingContestIds>
-            <OfficeIds>office1</OfficeIds>
-            <PrimaryPartyIds>party1</PrimaryPartyIds>
-          </Contest>
-          """
-    root_string = self._base_election_report.format(contest_string, "cc_456")
+    root_string = """
+      <ElectionReport>
+        <Election>
+          <ContestCollection>
+            <Contest objectId="cc_456">
+              <ComposingContestIds>cc_123</ComposingContestIds>
+            </Contest>
+            <Contest objectId="cc_123">
+              <ComposingContestIds>cc_456</ComposingContestIds>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(root_string)
     validator = election_rules.ComposingContestIdsAreValidRelatedContests(
         election_tree
@@ -5266,7 +5593,17 @@ class ComposingContestIdsTest(absltest.TestCase):
     )
 
   def test_composing_contest_does_not_exist_fails(self):
-    root_string = self._base_election_report.format("", "cc_missing")
+    root_string = """
+      <ElectionReport>
+        <Election>
+          <ContestCollection>
+            <Contest objectId="cc_123">
+              <ComposingContestIds>cc_missing</ComposingContestIds>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
     election_tree = etree.fromstring(root_string)
     validator = election_rules.ComposingContestIdsAreValidRelatedContests(
         election_tree
