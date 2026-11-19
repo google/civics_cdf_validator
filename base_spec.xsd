@@ -134,14 +134,23 @@
   <xs:simpleType name="OfficeLevel">
     <xs:restriction base="xs:string">
       <xs:enumeration value="Administrative Area 1"/>
+      <xs:enumeration value="administrative area 1"/>
       <xs:enumeration value="Administrative Area 2"/>
+      <xs:enumeration value="administrative area 2"/>
       <xs:enumeration value="Country"/>
+      <xs:enumeration value="country"/>
       <xs:enumeration value="District"/>
+      <xs:enumeration value="district"/>
       <xs:enumeration value="International"/>
+      <xs:enumeration value="international"/>
       <xs:enumeration value="Municipality"/>
+      <xs:enumeration value="municipality"/>
       <xs:enumeration value="Neighbourhood"/>
+      <xs:enumeration value="neighbourhood"/>
       <xs:enumeration value="Region"/>
+      <xs:enumeration value="region"/>
       <xs:enumeration value="Ward"/>
+      <xs:enumeration value="ward"/>
     </xs:restriction>
   </xs:simpleType>
 </xs:schema>

@@ -6519,25 +6519,17 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru-0002</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>president</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative area 1</Level>
       <Name>
         <Text language="en">President</Text>
       </Name>
+      <Role>president</Role>
       <SelectionMethod>indirectly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -6553,25 +6545,17 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru-0002</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>vice president</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative area 1</Level>
       <Name>
         <Text language="en">Vice President</Text>
       </Name>
+      <Role>vice president</Role>
       <SelectionMethod>indirectly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -6587,25 +6571,17 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru-0002</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>state executive</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative area 1</Level>
       <Name>
         <Text language="en">Governor</Text>
       </Name>
+      <Role>state executive</Role>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -6621,25 +6597,17 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru-0002</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>deputy state executive</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative area 1</Level>
       <Name>
         <Text language="en">Lieutenant Governor</Text>
       </Name>
+      <Role>deputy state executive</Role>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -6650,18 +6618,8 @@
       <ExternalIdentifiers>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>state lower house</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>stable</OtherType>
           <Value>off-20100</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
@@ -6672,9 +6630,11 @@
       <FilingDeadline>2013-01-01</FilingDeadline>
       <GovernmentBodyIds>gb-1</GovernmentBodyIds>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative area 1</Level>
       <Name>
         <Text language="en">Virginia House of Delegates Member</Text>
       </Name>
+      <Role>state lower house</Role>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -6691,25 +6651,17 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru-0103</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>county council</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative area 1</Level>
       <Name>
         <Text language="en">Member Board of Supervisors - Scottsville</Text>
       </Name>
+      <Role>county council</Role>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -6725,25 +6677,17 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru-0054</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>county council</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative area 1</Level>
       <Name>
         <Text language="en">Member Board of Supervisors - Jack Jouett</Text>
       </Name>
+      <Role>county council</Role>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -6759,25 +6703,17 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru-0030</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>county council</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative area 1</Level>
       <Name>
         <Text language="en">Member Board of Supervisors - Samuel Miller</Text>
       </Name>
+      <Role>county council</Role>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -6793,25 +6729,17 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru-0081</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>county council</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative area 1</Level>
       <Name>
         <Text language="en">Member Board of Supervisors - Rio</Text>
       </Name>
+      <Role>county council</Role>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -6828,25 +6756,17 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru-0081</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>school board</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative area 1</Level>
       <Name>
         <Text language="en">Member School Board - Rio</Text>
       </Name>
+      <Role>school board</Role>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -6860,27 +6780,19 @@
           <OtherType>stable</OtherType>
           <Value>off-20473</Value>
         </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
        <ExternalIdentifier>
           <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru-0030</Value>
         </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>school board</Value>
-        </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative area 1</Level>
       <Name>
         <Text language="en">Member School Board - Samuel Miller</Text>
       </Name>
+      <Role>school board</Role>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
@@ -6896,25 +6808,17 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru-0054</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>school board</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2013-01-01</FilingDeadline>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative area 1</Level>
       <Name>
         <Text language="en">Member School Board - Jack Jouett</Text>
       </Name>
+      <Role>school board</Role>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>

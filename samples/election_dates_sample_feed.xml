@@ -124,17 +124,8 @@
           <OtherType>governmental-body</OtherType>
           <Value>National Assembly of the Republic of Mali</Value>
         </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Country</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>lower house</Value>
-        </ExternalIdentifier>
       </ExternalIdentifiers>
+      <Level>country</Level>
       <Name>
         <Text language="en">
 <![CDATA[Deputy of the National Assembly of Mali]]>
@@ -143,6 +134,7 @@
 <![CDATA[Député de l'Assemblée nationale du Mali]]>
         </Text>
       </Name>
+      <Role>lower house</Role>
       <SelectionMethod>directly-elected</SelectionMethod>
     </Office>
     <Office objectId="off-ml-3">
@@ -163,17 +155,8 @@
           <OtherType>governmental-body</OtherType>
           <Value>President of the Republic of Mali</Value>
         </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Country</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>president</Value>
-        </ExternalIdentifier>
       </ExternalIdentifiers>
+      <Level>country</Level>
       <Name>
         <Text language="en">
 <![CDATA[President of Mali]]>
@@ -182,6 +165,7 @@
 <![CDATA[Président de la République du Mali]]>
         </Text>
       </Name>
+      <Role>president</Role>
       <SelectionMethod>directly-elected</SelectionMethod>
     </Office>
   </OfficeCollection>

@@ -459,26 +459,18 @@
         </ExternalIdentifier>
         <ExternalIdentifier>
           <Type>other</Type>
-          <OtherType>office-level</OtherType>
-          <Value>Administrative Area 1</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
           <OtherType>jurisdiction-id</OtherType>
           <Value>ru-1234567890</Value>
-        </ExternalIdentifier>
-        <ExternalIdentifier>
-          <Type>other</Type>
-          <OtherType>office-role</OtherType>
-          <Value>taxes</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
       <FilingDeadline>2025-11-01</FilingDeadline>
       <GovernmentBodyIds>gb-777</GovernmentBodyIds>
       <IsPartisan>true</IsPartisan>
+      <Level>administrative area 1</Level>
       <Name>
         <Text language="en">Supreme</Text>
       </Name>
+      <Role>taxes</Role>
       <SelectionMethod>directly-elected</SelectionMethod>
       <Term>
         <Type>full-term</Type>
