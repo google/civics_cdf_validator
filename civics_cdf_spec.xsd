@@ -412,7 +412,10 @@
   </xs:complexType>
   <xs:complexType abstract="true" name="Contest">
     <xs:sequence>
-      <xs:element minOccurs="0" name="Abbreviation" type="xs:string"/>
+      <xs:choice>
+        <xs:element minOccurs="0" name="Abbreviation" type="xs:string"/>
+        <xs:element minOccurs="0" name="InternationalizedAbbreviation" type="InternationalizedText"/>
+      </xs:choice>
       <xs:element minOccurs="0" name="AggregateBallotSelection" type="SpecialBallotSelection"/>
       <xs:element maxOccurs="unbounded" minOccurs="0" name="BallotSelection" type="BallotSelection"/>
       <xs:element minOccurs="0" name="BallotSubTitle" type="InternationalizedText"/>

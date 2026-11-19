@@ -3,6 +3,9 @@
   <Election>
     <ContestCollection>
       <Contest objectId="c-0" xsi:type="BallotMeasureContest">
+        <InternationalizedAbbreviation>
+          <Text language="en">Proposition 1</Text>
+        </InternationalizedAbbreviation>
         <BallotSelection objectId="bms-00" xsi:type="BallotMeasureSelection">
           <ExternalIdentifiers>
             <ExternalIdentifier>
