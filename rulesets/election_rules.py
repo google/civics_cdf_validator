@@ -824,36 +824,6 @@ class ContestHasValidContestStage(base.SchemaRule):
         )
 
 
-class ElectionContainsStartAndEndDates(base.DateRule):
-  """Election elements should have start and end dates populated."""
-
-  def elements(self) -> list[str]:
-    return ["Election"]
-
-  def check(self, element: etree._Element) -> None:
-    self.reset_instance_vars()
-    self.gather_dates(element)
-
-    if self.start_elem is None:
-      self.error_log.append(
-          loggers.LogEntry(
-              f"Election {element.get('objectId')} is missing a start date.",
-              [element],
-          )
-      )
-
-    if self.end_elem is None:
-      self.error_log.append(
-          loggers.LogEntry(
-              f"Election {element.get('objectId')} is missing an end date.",
-              [element],
-          )
-      )
-
-    if self.error_log:
-      raise loggers.ElectionError(self.error_log)
-
-
 class ElectionStartDates(base.DateRule):
   """Election elements should contain valid start dates.
 
@@ -2461,7 +2431,6 @@ ELECTION_RULES = common_rules.COMMON_RULES + (
     DateStatusMatches,
     DuplicateBallotTitleSeatPair,
     DuplicateContestNames,
-    ElectionContainsStartAndEndDates,
     ElectionDatesSpanContestDates,
     ElectionEndDatesInThePast,
     ElectionEndDatesOccurAfterStartDates,
