@@ -2,6 +2,7 @@
 """Unit test for rule_util.py."""
 
 from absl.testing import absltest
+from absl.testing import parameterized
 from civics_cdf_validator.rulesets import rule_util
 from lxml import etree
 
@@ -229,31 +230,19 @@ class HelpersTest(absltest.TestCase):
 
 class GetAdditionalTypeValuesTest(absltest.TestCase):
 
-  def setUp(self):
-    super(GetAdditionalTypeValuesTest, self).setUp()
-    self.root_string = """
-    <OfficeCollection>
-      <Office>
-      {}
-      </Office>
-      <Office>
-      {}
-      </Office>
-    </OfficeCollection>
-    """
-
   def test_get_additional_type_values_with_no_elements_returns_empty_list(self):
-    root = etree.fromstring(self.root_string.format("", ""))
+    root = etree.fromstring("<Office></Office>")
     elements = rule_util.get_additional_type_values(
         root, "jurisdiction-id", return_elements=True
     )
     self.assertEmpty(elements, 0)
 
   def test_get_additional_type_values_with_no_values_returns_empty_list(self):
-    add_data = """
+    root = etree.fromstring("""
+      <Office>
         <AdditionalData type="jurisdiction-id"></AdditionalData>
-    """
-    root = etree.fromstring(self.root_string.format(add_data, ""))
+      </Office>
+    """)
     elements = rule_util.get_additional_type_values(root, "jurisdiction-id")
 
     self.assertEmpty(elements, 0)
@@ -261,10 +250,11 @@ class GetAdditionalTypeValuesTest(absltest.TestCase):
   def test_get_additional_type_values_with_whitespace_value_returns_empty_list(
       self,
   ):
-    add_data = """
+    root = etree.fromstring("""
+      <Office>
         <AdditionalData type="jurisdiction-id">      </AdditionalData>
-    """
-    root = etree.fromstring(self.root_string.format(add_data, ""))
+      </Office>
+    """)
     elements = rule_util.get_additional_type_values(root, "jurisdiction-id")
 
     self.assertEmpty(elements, 0)
@@ -272,10 +262,11 @@ class GetAdditionalTypeValuesTest(absltest.TestCase):
   def test_get_additional_type_values_with_no_type_attribute_returns_empty_list(
       self,
   ):
-    add_data = """
+    root = etree.fromstring("""
+      <Office>
         <AdditionalData>ru-gpu2</AdditionalData>
-    """
-    root = etree.fromstring(self.root_string.format(add_data, ""))
+      </Office>
+    """)
     elements = rule_util.get_additional_type_values(root, "jurisdiction-id")
 
     self.assertEmpty(elements, 0)
@@ -283,82 +274,64 @@ class GetAdditionalTypeValuesTest(absltest.TestCase):
   def test_get_additional_type_values_with_return_elements_returns_elements(
       self,
   ):
-    add_data_1 = """
-        <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
-        <AdditionalData type="government-body">US House</AdditionalData>
-        <AdditionalData type="office-level">Country</AdditionalData>
-        <AdditionalData type="office-role">Upper house</AdditionalData>
-    """
-    add_data_2 = """
-        <AdditionalData type="jurisdiction-id">ru-gpu3</AdditionalData>
-        <AdditionalData type="government-body">US Senate</AdditionalData>
-        <AdditionalData type="office-level">Country</AdditionalData>
-        <AdditionalData type="office-role">Lower house</AdditionalData>
-    """
-    root = etree.fromstring(self.root_string.format(add_data_1, add_data_2))
+    root = etree.fromstring("""
+      <OfficeCollection>
+        <Office>
+          <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+        </Office>
+        <Office>
+          <AdditionalData type="jurisdiction-id">ru-gpu3</AdditionalData>
+        </Office>
+      </OfficeCollection>
+    """)
     elements = rule_util.get_additional_type_values(
         root, "jurisdiction-id", return_elements=True
     )
+
     self.assertLen(elements, 2)
-    for el in elements:
-      self.assertNotIsInstance(el, str)
+    self.assertEqual(elements[0].text, "ru-gpu2")
+    self.assertEqual(elements[1].text, "ru-gpu3")
 
   def test_get_additional_type_values_returns_values(self):
-    values = {"ru-gpu2", "ru-gpu3"}
-    add_data_1 = """
-        <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
-        <AdditionalData type="government-body">US Senate</AdditionalData>
-        <AdditionalData type="office-level">Country</AdditionalData>
-        <AdditionalData type="office-role">Upper house</AdditionalData>
-    """
-    add_data_2 = """
-        <AdditionalData type="jurisdiction-id">ru-gpu3</AdditionalData>
-        <AdditionalData type="government-body">US House</AdditionalData>
-        <AdditionalData type="office-level">Country</AdditionalData>
-        <AdditionalData type="office-role">Lower house</AdditionalData>
-    """
-    root = etree.fromstring(self.root_string.format(add_data_1, add_data_2))
+    root = etree.fromstring("""
+      <OfficeCollection>
+        <Office>
+          <AdditionalData type="jurisdiction-id">ru-gpu2</AdditionalData>
+        </Office>
+        <Office>
+          <AdditionalData type="jurisdiction-id">ru-gpu3</AdditionalData>
+        </Office>
+      </OfficeCollection>
+    """)
     elements = rule_util.get_additional_type_values(root, "jurisdiction-id")
 
-    self.assertLen(elements, 2)
-    for el in elements:
-      self.assertIsInstance(el, str)
-      self.assertIn(el, values)
+    self.assertEqual(elements, ["ru-gpu2", "ru-gpu3"])
 
 
-class GetExternalIDValuesTest(absltest.TestCase):
-
-  def setUp(self):
-    super(GetExternalIDValuesTest, self).setUp()
-    self.gpunit = """
-      <GpUnit objectId="ru0002">
-        <ExternalIdentifiers>
-          {}
-        </ExternalIdentifiers>
-      </GpUnit>
-    """
+class GetExternalIDValuesTest(parameterized.TestCase):
 
   def test_get_external_id_values_with_empty_type_and_no_ids_returns_empty_list(
       self,
   ):
-    root = etree.fromstring(self.gpunit.format(""))
+    root = etree.fromstring("<ExternalIdentifiers></ExternalIdentifiers>")
     elements = rule_util.get_external_id_values(root, "")
 
     self.assertEmpty(elements, 0)
 
   def test_get_external_id_values_with_no_ids_returns_empty_list(self):
-    root = etree.fromstring(self.gpunit.format(""))
+    root = etree.fromstring("<ExternalIdentifiers></ExternalIdentifiers>")
     elements = rule_util.get_external_id_values(root, "ocd-id")
 
     self.assertEmpty(elements, 0)
 
   def test_get_external_id_values_when_no_type_element_returns_empty_list(self):
-    missing_type = """
-    <ExternalIdentifier>
-      <Value>ocd-division/country:us/state:va</Value>
-    </ExternalIdentifier>
-    """
-    root = etree.fromstring(self.gpunit.format(missing_type))
+    root = etree.fromstring("""
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Value>ocd-division/country:us/state:va</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """)
     elements = rule_util.get_external_id_values(root, "ocd-id")
 
     self.assertEmpty(elements, 0)
@@ -366,13 +339,14 @@ class GetExternalIDValuesTest(absltest.TestCase):
   def test_get_external_id_values_when_type_element_missing_text_returns_empty_list(
       self,
   ):
-    missing_text = """
-    <ExternalIdentifier>
-      <Type></Type>
-      <Value>ocd-division/country:us/state:va</Value>
-    </ExternalIdentifier>
-    """
-    root = etree.fromstring(self.gpunit.format(missing_text))
+    root = etree.fromstring("""
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type></Type>
+          <Value>ocd-division/country:us/state:va</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """)
     elements = rule_util.get_external_id_values(root, "ocd-id")
 
     self.assertEmpty(elements, 0)
@@ -380,13 +354,14 @@ class GetExternalIDValuesTest(absltest.TestCase):
   def test_get_external_id_values_when_type_element_is_whitespace_returns_empty_list(
       self,
   ):
-    missing_text = """
-    <ExternalIdentifier>
-      <Type>                   </Type>
-      <Value>ocd-division/country:us/state:va</Value>
-    </ExternalIdentifier>
-    """
-    root = etree.fromstring(self.gpunit.format(missing_text))
+    root = etree.fromstring("""
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>                   </Type>
+          <Value>ocd-division/country:us/state:va</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """)
     elements = rule_util.get_external_id_values(root, "ocd-id")
 
     self.assertEmpty(elements, 0)
@@ -394,13 +369,14 @@ class GetExternalIDValuesTest(absltest.TestCase):
   def test_get_external_id_values_when_type_element_value_is_missing_returns_empty_list(
       self,
   ):
-    missing_text = """
-    <ExternalIdentifier>
-      <Type>ocd-id</Type>
-      <Value></Value>
-    </ExternalIdentifier>
-    """
-    root = etree.fromstring(self.gpunit.format(missing_text))
+    root = etree.fromstring("""
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value></Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """)
     elements = rule_util.get_external_id_values(root, "ocd-id")
 
     self.assertEmpty(elements, 0)
@@ -408,13 +384,13 @@ class GetExternalIDValuesTest(absltest.TestCase):
   def test_get_external_id_values_with_empty_type_and_no_ids_returns_empty_elements(
       self,
   ):
-    root = etree.fromstring(self.gpunit.format(""))
+    root = etree.fromstring("<ExternalIdentifiers></ExternalIdentifiers>")
     elements = rule_util.get_external_id_values(root, "", return_elements=True)
 
     self.assertEmpty(elements, 0)
 
   def test_get_external_id_values_with_no_ids_returns_empty_elements(self):
-    root = etree.fromstring(self.gpunit.format(""))
+    root = etree.fromstring("<ExternalIdentifiers></ExternalIdentifiers>")
     elements = rule_util.get_external_id_values(
         root, "ocd-id", return_elements=True
     )
@@ -423,12 +399,13 @@ class GetExternalIDValuesTest(absltest.TestCase):
   def test_get_external_id_values_when_no_type_element_returns_empty_elements(
       self,
   ):
-    missing_type = """
-    <ExternalIdentifier>
-      <Value>ocd-division/country:us/state:va</Value>
-    </ExternalIdentifier>
-    """
-    root = etree.fromstring(self.gpunit.format(missing_type))
+    root = etree.fromstring("""
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Value>ocd-division/country:us/state:va</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """)
     elements = rule_util.get_external_id_values(
         root, "ocd-id", return_elements=True
     )
@@ -437,13 +414,14 @@ class GetExternalIDValuesTest(absltest.TestCase):
   def test_get_external_id_values_when_type_element_missing_text_returns_empty_elements(
       self,
   ):
-    missing_text = """
-    <ExternalIdentifier>
-      <Type></Type>
-      <Value>ocd-division/country:us/state:va</Value>
-    </ExternalIdentifier>
-    """
-    root = etree.fromstring(self.gpunit.format(missing_text))
+    root = etree.fromstring("""
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type></Type>
+          <Value>ocd-division/country:us/state:va</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """)
     elements = rule_util.get_external_id_values(
         root, "ocd-id", return_elements=True
     )
@@ -452,13 +430,14 @@ class GetExternalIDValuesTest(absltest.TestCase):
   def test_get_external_id_values_when_type_element_is_whitespace_returns_empty_elements(
       self,
   ):
-    missing_text = """
-    <ExternalIdentifier>
-      <Type>                   </Type>
-      <Value>ocd-division/country:us/state:va</Value>
-    </ExternalIdentifier>
-    """
-    root = etree.fromstring(self.gpunit.format(missing_text))
+    root = etree.fromstring("""
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>                   </Type>
+          <Value>ocd-division/country:us/state:va</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """)
     elements = rule_util.get_external_id_values(
         root, "ocd-id", return_elements=True
     )
@@ -467,13 +446,14 @@ class GetExternalIDValuesTest(absltest.TestCase):
   def test_get_external_id_values_when_type_element_value_is_missing_returns_empty_elements(
       self,
   ):
-    missing_text = """
-    <ExternalIdentifier>
-      <Type>ocd-id</Type>
-      <Value></Value>
-    </ExternalIdentifier>
-    """
-    root = etree.fromstring(self.gpunit.format(missing_text))
+    root = etree.fromstring("""
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value></Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """)
     elements = rule_util.get_external_id_values(
         root, "ocd-id", return_elements=True
     )
@@ -482,13 +462,14 @@ class GetExternalIDValuesTest(absltest.TestCase):
   def test_get_external_id_values_when_other_type_element_missing_returns_empty_list(
       self,
   ):
-    missing_element = """
-    <ExternalIdentifier>
-      <Type>other</Type>
-      <Value>ocd-division/country:us/state:va</Value>
-    </ExternalIdentifier>
-    """
-    root = etree.fromstring(self.gpunit.format(missing_element))
+    root = etree.fromstring("""
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <Value>ocd-division/country:us/state:va</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """)
     elements = rule_util.get_external_id_values(root, "something-else")
 
     self.assertEmpty(elements, 0)
@@ -496,14 +477,15 @@ class GetExternalIDValuesTest(absltest.TestCase):
   def test_get_external_id_values_when_other_type_element_missing_text_returns_empty_list(
       self,
   ):
-    missing_text = """
-    <ExternalIdentifier>
-      <Type>other</Type>
-      <OtherType></OtherType>
-      <Value>ocd-division/country:us/state:va</Value>
-    </ExternalIdentifier>
-    """
-    root = etree.fromstring(self.gpunit.format(missing_text))
+    root = etree.fromstring("""
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType></OtherType>
+          <Value>ocd-division/country:us/state:va</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """)
     elements = rule_util.get_external_id_values(root, "something-else")
 
     self.assertEmpty(elements, 0)
@@ -511,14 +493,15 @@ class GetExternalIDValuesTest(absltest.TestCase):
   def test_get_external_id_values_when_other_type_element_is_whitespace_returns_empty_list(
       self,
   ):
-    missing_text = """
-    <ExternalIdentifier>
-      <Type>other</Type>
-      <OtherType>          </OtherType>
-      <Value>ocd-division/country:us/state:va</Value>
-    </ExternalIdentifier>
-    """
-    root = etree.fromstring(self.gpunit.format(missing_text))
+    root = etree.fromstring("""
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>          </OtherType>
+          <Value>ocd-division/country:us/state:va</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """)
     elements = rule_util.get_external_id_values(root, "something-else")
 
     self.assertEmpty(elements, 0)
@@ -526,14 +509,15 @@ class GetExternalIDValuesTest(absltest.TestCase):
   def test_get_external_id_values_with_mismatched_other_type_returns_empty_list(
       self,
   ):
-    missing_text = """
-    <ExternalIdentifier>
-      <Type>other</Type>
-      <OtherType>ocd-id</OtherType>
-      <Value>ocd-division/country:us/state:va</Value>
-    </ExternalIdentifier>
-    """
-    root = etree.fromstring(self.gpunit.format(missing_text))
+    root = etree.fromstring("""
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>ocd-id</OtherType>
+          <Value>ocd-division/country:us/state:va</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """)
     elements = rule_util.get_external_id_values(root, "ocd-id")
 
     self.assertEmpty(elements, 0)
@@ -541,14 +525,15 @@ class GetExternalIDValuesTest(absltest.TestCase):
   def test_get_external_id_values_ignores_other_type_of_non_other_identifier(
       self,
   ):
-    non_other_identifier = """
-    <ExternalIdentifier>
-      <Type>ocd-id</Type>
-      <OtherType>fake-type</OtherType>
-      <Value>fake-value</Value>
-    </ExternalIdentifier>
-    """
-    root = etree.fromstring(self.gpunit.format(non_other_identifier))
+    root = etree.fromstring("""
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <OtherType>fake-type</OtherType>
+          <Value>fake-value</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """)
 
     values = rule_util.get_external_id_values(root, "fake-type")
 
@@ -557,124 +542,133 @@ class GetExternalIDValuesTest(absltest.TestCase):
   def test_get_external_id_values_when_value_is_whitespace_returns_non_empty_list(
       self,
   ):
-    has_whitespace = """
-    <ExternalIdentifier>
-      <Type>ocd-id</Type>
-      <Value>       </Value>
-    </ExternalIdentifier>
-    """
-    root = etree.fromstring(self.gpunit.format(has_whitespace))
+    root = etree.fromstring("""
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>ocd-id</Type>
+          <Value>       </Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """)
     elements = rule_util.get_external_id_values(root, "ocd-id")
 
     self.assertLen(elements, 1)
-    for el in elements:
-      self.assertIsInstance(el, str)
+    self.assertIsInstance(elements[0], str)
 
   def test_get_external_id_values_when_other_type_value_is_whitespace_returns_non_empty_list(
       self,
   ):
-    has_whitespace = """
-    <ExternalIdentifier>
-      <Type>other</Type>
-      <OtherType>something-else</OtherType>
-      <Value>    </Value>
-    </ExternalIdentifier>
-    """
-    root = etree.fromstring(self.gpunit.format(has_whitespace))
+    root = etree.fromstring("""
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>something-else</OtherType>
+          <Value>    </Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """)
     elements = rule_util.get_external_id_values(root, "something-else")
 
     self.assertLen(elements, 1)
-    for el in elements:
-      self.assertIsInstance(el, str)
+    self.assertIsInstance(elements[0], str)
 
-  def get_type_string(self):
-    type_string = """
-    <ExternalIdentifier>
-      <Type>{}</Type>
-      <Value>ocd-division/country:us/state:va</Value>
-    </ExternalIdentifier>
-    <ExternalIdentifier>
-      <Type>{}</Type>
-      <Value>ocd-division/country:us/state:ma</Value>
-    </ExternalIdentifier>
-    """
-    return type_string
-
-  def get_other_type_strings(self):
-    test_values = {"hi", "there"}
-    type_string = """
-    <ExternalIdentifier>
-      <Type>other</Type>
-      <OtherType>{}</OtherType>
-      <Value>hi</Value>
-    </ExternalIdentifier>
-    <ExternalIdentifier>
-      <Type>other</Type>
-      <OtherType>{}</OtherType>
-      <Value>there</Value>
-    </ExternalIdentifier>
-    """
-    return [test_values, type_string]
-
+  @parameterized.parameters(
+      "local-level", "national-level", "ocd-id", "state-level"
+  )
   def test_get_external_id_values_with_return_elements_returns_all_valid_elements(
-      self,
+      self, en_type
   ):
-    type_string = self.get_type_string()
-    for en_type in rule_util._IDENTIFIER_TYPES:
-      full_string = self.gpunit.format(type_string.format(en_type, en_type))
-      root = etree.fromstring(full_string)
-      elements = rule_util.get_external_id_values(
-          root, en_type, return_elements=True
-      )
-      self.assertLen(elements, 2)
-      for el in elements:
-        self.assertNotIsInstance(el, str)
+    root = etree.fromstring(f"""
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>{en_type}</Type>
+          <Value>ocd-division/country:us/state:va</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>{en_type}</Type>
+          <Value>ocd-division/country:us/state:ma</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """)
+    elements = rule_util.get_external_id_values(
+        root, en_type, return_elements=True
+    )
 
-  def test_get_external_id_values_returns_all_valid_values(self):
-    type_string = self.get_type_string()
-    test_values = {
-        "ocd-division/country:us/state:va",
-        "ocd-division/country:us/state:ma",
-    }
-    for en_type in rule_util._IDENTIFIER_TYPES:
-      full_string = self.gpunit.format(type_string.format(en_type, en_type))
-      root = etree.fromstring(full_string)
-      elements = rule_util.get_external_id_values(root, en_type)
+    self.assertLen(elements, 2)
+    self.assertEqual(elements[0].text, "ocd-division/country:us/state:va")
+    self.assertEqual(elements[1].text, "ocd-division/country:us/state:ma")
 
-      self.assertLen(elements, 2)
-      for el in elements:
-        self.assertIsInstance(el, str)
-        self.assertIn(el, test_values)
+  @parameterized.parameters(
+      "local-level", "national-level", "ocd-id", "state-level"
+  )
+  def test_get_external_id_values_returns_all_valid_values(self, en_type):
+    root = etree.fromstring(f"""
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>{en_type}</Type>
+          <Value>ocd-division/country:us/state:va</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>{en_type}</Type>
+          <Value>ocd-division/country:us/state:ma</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """)
+    elements = rule_util.get_external_id_values(root, en_type)
 
+    self.assertEqual(
+        elements,
+        [
+            "ocd-division/country:us/state:va",
+            "ocd-division/country:us/state:ma",
+        ],
+    )
+
+  @parameterized.parameters("hi", "there")
   def test_get_external_id_values_with_return_elements_returns_other_type_elements(
-      self,
+      self, other_type
   ):
-    test_values, other_type_str = self.get_other_type_strings()
-    for other_type in test_values:
-      full_string = self.gpunit.format(
-          other_type_str.format(other_type, other_type)
-      )
-      root = etree.fromstring(full_string)
-      elements = rule_util.get_external_id_values(
-          root, other_type, return_elements=True
-      )
-      self.assertLen(elements, 2)
-      for el in elements:
-        self.assertNotIsInstance(el, str)
+    root = etree.fromstring(f"""
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>{other_type}</OtherType>
+          <Value>hi</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>{other_type}</OtherType>
+          <Value>there</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """)
+    elements = rule_util.get_external_id_values(
+        root, other_type, return_elements=True
+    )
 
-  def test_get_external_id_values_returns_other_type_values(self):
-    test_values, other_type_str = self.get_other_type_strings()
-    for other_type in test_values:
-      full_string = self.gpunit.format(
-          other_type_str.format(other_type, other_type)
-      )
-      root = etree.fromstring(full_string)
-      elements = rule_util.get_external_id_values(root, other_type)
+    self.assertLen(elements, 2)
+    self.assertEqual(elements[0].text, "hi")
+    self.assertEqual(elements[1].text, "there")
 
-      self.assertLen(elements, 2)
-      for el in elements:
-        self.assertIsInstance(el, str)
-        self.assertIn(el, test_values)
+  @parameterized.parameters("hi", "there")
+  def test_get_external_id_values_returns_other_type_values(self, other_type):
+    root = etree.fromstring(f"""
+      <ExternalIdentifiers>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>{other_type}</OtherType>
+          <Value>hi</Value>
+        </ExternalIdentifier>
+        <ExternalIdentifier>
+          <Type>other</Type>
+          <OtherType>{other_type}</OtherType>
+          <Value>there</Value>
+        </ExternalIdentifier>
+      </ExternalIdentifiers>
+    """)
+    elements = rule_util.get_external_id_values(root, other_type)
+
+    self.assertEqual(elements, ["hi", "there"])
 
 
 class GetLanguageToTextMapTest(absltest.TestCase):
