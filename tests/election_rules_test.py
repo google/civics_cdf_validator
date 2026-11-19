@@ -12,12 +12,38 @@ import freezegun
 from lxml import etree
 import networkx
 
+_SUBTYPE_SCHEMA_TREE = etree.fromstring(b"""
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:complexType abstract="true" name="Contest"/>
+  <xs:complexType name="BallotMeasureContest">
+    <xs:complexContent>
+      <xs:extension base="Contest"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="CandidateContest">
+    <xs:complexContent>
+      <xs:extension base="Contest"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="PartyContest">
+    <xs:complexContent>
+      <xs:extension base="Contest"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="RetentionContest">
+    <xs:complexContent>
+      <xs:extension base="BallotMeasureContest"/>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:schema>
+""")
 
-class PercentSumTest(absltest.TestCase):
+
+class PercentSumTest(parameterized.TestCase):
 
   def setUp(self):
     super(PercentSumTest, self).setUp()
-    self.validator = election_rules.PercentSum()
+    self.validator = election_rules.PercentSum(schema_tree=_SUBTYPE_SCHEMA_TREE)
     self.root_string = """
       <Contest>
         <BallotSelection>
@@ -29,7 +55,16 @@ class PercentSumTest(absltest.TestCase):
     """
 
   def test_contest_elements_succeeds(self):
-    self.assertEqual(self.validator.elements(), ["Contest"])
+    self.assertCountEqual(
+        self.validator.elements(),
+        [
+            "Contest",
+            "BallotMeasureContest",
+            "CandidateContest",
+            "PartyContest",
+            "RetentionContest",
+        ],
+    )
 
   def test_zero_percent_total_is_valid_succeeds(self):
     vote_counts = """
@@ -110,6 +145,126 @@ class PercentSumTest(absltest.TestCase):
       </VoteCounts>
     """
     element_string = self.root_string.format(vote_counts)
+    element = etree.fromstring(element_string)
+
+    self.validator.check(element)
+
+  @parameterized.parameters(
+      "AggregateBallotSelection",
+      "BlankBallotSelection",
+      "NoneOfTheAboveBallotSelection",
+      "NullBallotSelection",
+  )
+  def test_special_ballot_selection_percent_counts_toward_total_succeeds(
+      self, tag
+  ):
+    element_string = f"""
+      <Contest>
+        <BallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>total-percent</OtherType>
+              <Count>60.0</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </BallotSelection>
+        <{tag}>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>total-percent</OtherType>
+              <Count>40.0</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </{tag}>
+      </Contest>
+    """
+    element = etree.fromstring(element_string)
+
+    self.validator.check(element)
+
+  @parameterized.parameters(
+      "AggregateBallotSelection",
+      "BlankBallotSelection",
+      "NoneOfTheAboveBallotSelection",
+      "NullBallotSelection",
+  )
+  def test_special_ballot_selection_percent_over_one_hundred_fails(self, tag):
+    element_string = f"""
+      <Contest>
+        <BallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>total-percent</OtherType>
+              <Count>100.0</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </BallotSelection>
+        <{tag}>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>total-percent</OtherType>
+              <Count>10.0</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </{tag}>
+      </Contest>
+    """
+    element = etree.fromstring(element_string)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(element)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Contest percents do not sum to 0 or 100: 110.000000",
+    )
+
+  def test_all_special_ballot_selection_percents_count_toward_total_succeeds(
+      self,
+  ):
+    element_string = """
+      <Contest>
+        <AggregateBallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>total-percent</OtherType>
+              <Count>10.0</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </AggregateBallotSelection>
+        <BallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>total-percent</OtherType>
+              <Count>60.0</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </BallotSelection>
+        <BlankBallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>total-percent</OtherType>
+              <Count>10.0</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </BlankBallotSelection>
+        <NoneOfTheAboveBallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>total-percent</OtherType>
+              <Count>10.0</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </NoneOfTheAboveBallotSelection>
+        <NullBallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>total-percent</OtherType>
+              <Count>10.0</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </NullBallotSelection>
+      </Contest>
+    """
     element = etree.fromstring(element_string)
 
     self.validator.check(element)
@@ -2336,9 +2491,12 @@ class VoteCountTypesCoherencyTest(absltest.TestCase):
 
   def setUp(self):
     super(VoteCountTypesCoherencyTest, self).setUp()
-    self.validator = election_rules.VoteCountTypesCoherency()
+    self.validator = election_rules.VoteCountTypesCoherency(
+        schema_tree=_SUBTYPE_SCHEMA_TREE
+    )
     self.base_contest = """
-      <Contest objectId="pc1" type="{}">
+      <Contest objectId="pc1" xsi:type="{}"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <BallotSelection objectId="ps1-0">
           <VoteCountsCollection>
             {}
@@ -2346,6 +2504,20 @@ class VoteCountTypesCoherencyTest(absltest.TestCase):
         </BallotSelection>
       </Contest>
     """
+
+  def test_elements_includes_subtypes(self):
+    elements = self.validator.elements()
+
+    self.assertCountEqual(
+        elements,
+        [
+            "Contest",
+            "BallotMeasureContest",
+            "CandidateContest",
+            "PartyContest",
+            "RetentionContest",
+        ],
+    )
 
   def test_invalid_not_in_party_contest_succeeds(self):
     vote_counts = """
@@ -2488,6 +2660,42 @@ class VoteCountTypesCoherencyTest(absltest.TestCase):
         "VoteCount types candidate-votes should not be nested in Party Contest",
     )
 
+  def test_contest_without_xsi_type_succeeds(self):
+    contest = """
+      <Contest objectId="pc1" type="PartyContest">
+        <BallotSelection objectId="ps1-0">
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>candidate-votes</OtherType>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </BallotSelection>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest))
+
+  def test_ballot_selection_without_vote_counts_collection_succeeds(self):
+    contest = """
+      <Contest objectId="pc1" xsi:type="CandidateContest"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <BallotSelection objectId="ps1-0"/>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest))
+
+  def test_vote_counts_without_other_type_succeeds(self):
+    vote_counts = """
+      <VoteCounts>
+        <Type>total</Type>
+        <Count>10</Count>
+      </VoteCounts>
+    """
+    contest = self.base_contest.format("CandidateContest", vote_counts)
+
+    self.validator.check(etree.fromstring(contest))
+
 
 class VoteCountValidSeatsDeltaTypesTest(parameterized.TestCase):
 
@@ -2515,6 +2723,32 @@ class VoteCountValidSeatsDeltaTypesTest(parameterized.TestCase):
             "NoneOfTheAboveBallotSelection",
             "NullBallotSelection",
         ],
+    )
+
+  def test_elements_includes_ballot_selection_subtypes(self):
+    schema_tree = etree.fromstring(b"""
+      <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:complexType abstract="true" name="BallotSelection"/>
+        <xs:complexType name="CandidateSelection">
+          <xs:complexContent>
+            <xs:extension base="BallotSelection"/>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="PartySelection">
+          <xs:complexContent>
+            <xs:extension base="BallotSelection"/>
+          </xs:complexContent>
+        </xs:complexType>
+      </xs:schema>
+    """)
+    validator = election_rules.VoteCountValidSeatsDeltaTypes(
+        schema_tree=schema_tree
+    )
+
+    elements = validator.elements()
+
+    self.assertCountEqual(
+        elements, ["BallotSelection", "CandidateSelection", "PartySelection"]
     )
 
   def test_multiple_seats_delta_types_succeeds(self):
@@ -2717,7 +2951,23 @@ class ContestHasValidContestStageTest(absltest.TestCase):
 
   def setUp(self):
     super(ContestHasValidContestStageTest, self).setUp()
-    self.validator = election_rules.ContestHasValidContestStage()
+    self.validator = election_rules.ContestHasValidContestStage(
+        schema_tree=_SUBTYPE_SCHEMA_TREE
+    )
+
+  def test_elements_includes_subtypes(self):
+    elements = self.validator.elements()
+
+    self.assertCountEqual(
+        elements,
+        [
+            "Contest",
+            "BallotMeasureContest",
+            "CandidateContest",
+            "PartyContest",
+            "RetentionContest",
+        ],
+    )
 
   def test_contest_has_valid_contest_stage_succeeds(self):
     root_string = """
@@ -3847,7 +4097,16 @@ class FullTextOrBallotTextTest(absltest.TestCase):
 
   def setUp(self):
     super(FullTextOrBallotTextTest, self).setUp()
-    self.validator = election_rules.FullTextOrBallotText()
+    self.validator = election_rules.FullTextOrBallotText(
+        schema_tree=_SUBTYPE_SCHEMA_TREE
+    )
+
+  def test_elements_includes_subtypes(self):
+    elements = self.validator.elements()
+
+    self.assertCountEqual(
+        elements, ["BallotMeasureContest", "RetentionContest"]
+    )
 
   def test_ballot_text_with_long_full_text_succeeds(self):
     contest_string = f"""
@@ -5061,8 +5320,24 @@ class ContestContainsValidStartDateTest(absltest.TestCase):
 
   def setUp(self):
     super(ContestContainsValidStartDateTest, self).setUp()
-    self.validator = election_rules.ContestContainsValidStartDate()
+    self.validator = election_rules.ContestContainsValidStartDate(
+        schema_tree=_SUBTYPE_SCHEMA_TREE
+    )
     self.today_date = datetime.datetime.now(datetime.timezone.utc)
+
+  def test_elements_includes_subtypes(self):
+    elements = self.validator.elements()
+
+    self.assertCountEqual(
+        elements,
+        [
+            "Contest",
+            "BallotMeasureContest",
+            "CandidateContest",
+            "PartyContest",
+            "RetentionContest",
+        ],
+    )
 
   def test_contest_with_no_start_date_succeeds(self):
     contest_string = """
@@ -5151,8 +5426,24 @@ class ContestContainsValidEndDateTest(absltest.TestCase):
 
   def setUp(self):
     super(ContestContainsValidEndDateTest, self).setUp()
-    self.validator = election_rules.ContestContainsValidEndDate()
+    self.validator = election_rules.ContestContainsValidEndDate(
+        schema_tree=_SUBTYPE_SCHEMA_TREE
+    )
     self.today_date = datetime.datetime.now(datetime.timezone.utc)
+
+  def test_elements_includes_subtypes(self):
+    elements = self.validator.elements()
+
+    self.assertCountEqual(
+        elements,
+        [
+            "Contest",
+            "BallotMeasureContest",
+            "CandidateContest",
+            "PartyContest",
+            "RetentionContest",
+        ],
+    )
 
   def test_contest_with_no_end_date_succeeds(self):
     contest_string = """
@@ -5241,8 +5532,24 @@ class ContestEndDateOccursAfterStartDateTest(absltest.TestCase):
 
   def setUp(self):
     super(ContestEndDateOccursAfterStartDateTest, self).setUp()
-    self.validator = election_rules.ContestEndDateOccursAfterStartDate()
+    self.validator = election_rules.ContestEndDateOccursAfterStartDate(
+        schema_tree=_SUBTYPE_SCHEMA_TREE
+    )
     self.today_date = datetime.datetime.now(datetime.timezone.utc)
+
+  def test_elements_includes_subtypes(self):
+    elements = self.validator.elements()
+
+    self.assertCountEqual(
+        elements,
+        [
+            "Contest",
+            "BallotMeasureContest",
+            "CandidateContest",
+            "PartyContest",
+            "RetentionContest",
+        ],
+    )
 
   def test_contest_with_no_dates_succeeds(self):
     contest_string = """
@@ -5524,7 +5831,23 @@ class ContestStartDateContainsCorrespondingEndDateTest(absltest.TestCase):
   def setUp(self):
     super(ContestStartDateContainsCorrespondingEndDateTest, self).setUp()
     self.validator = (
-        election_rules.ContestStartDateContainsCorrespondingEndDate()
+        election_rules.ContestStartDateContainsCorrespondingEndDate(
+            schema_tree=_SUBTYPE_SCHEMA_TREE
+        )
+    )
+
+  def test_elements_includes_subtypes(self):
+    elements = self.validator.elements()
+
+    self.assertCountEqual(
+        elements,
+        [
+            "Contest",
+            "BallotMeasureContest",
+            "CandidateContest",
+            "PartyContest",
+            "RetentionContest",
+        ],
     )
 
   def test_contest_with_no_dates_succeeds(self):
@@ -5701,7 +6024,23 @@ class ValidatePollsCloseDatetimesTest(absltest.TestCase):
 
   def setUp(self):
     super(ValidatePollsCloseDatetimesTest, self).setUp()
-    self.validator = election_rules.ValidatePollsCloseDatetimes()
+    self.validator = election_rules.ValidatePollsCloseDatetimes(
+        schema_tree=_SUBTYPE_SCHEMA_TREE
+    )
+
+  def test_elements_includes_subtypes(self):
+    elements = self.validator.elements()
+
+    self.assertCountEqual(
+        elements,
+        [
+            "Contest",
+            "BallotMeasureContest",
+            "CandidateContest",
+            "PartyContest",
+            "RetentionContest",
+        ],
+    )
 
   def test_latest_after_earliest_succeeds(self):
     contest_string = """
@@ -5824,7 +6163,23 @@ class ValidateResultsExpectedTest(absltest.TestCase):
 
   def setUp(self):
     super(ValidateResultsExpectedTest, self).setUp()
-    self.validator = election_rules.ValidateResultsExpected()
+    self.validator = election_rules.ValidateResultsExpected(
+        schema_tree=_SUBTYPE_SCHEMA_TREE
+    )
+
+  def test_elements_includes_subtypes(self):
+    elements = self.validator.elements()
+
+    self.assertCountEqual(
+        elements,
+        [
+            "Contest",
+            "BallotMeasureContest",
+            "CandidateContest",
+            "PartyContest",
+            "RetentionContest",
+        ],
+    )
 
   def test_missing_results_expected_succeeds(self):
     contest_string = """
@@ -6022,7 +6377,23 @@ class ValidateResultsEmbargoEndTest(absltest.TestCase):
 
   def setUp(self):
     super(ValidateResultsEmbargoEndTest, self).setUp()
-    self.validator = election_rules.ValidateResultsEmbargoEnd()
+    self.validator = election_rules.ValidateResultsEmbargoEnd(
+        schema_tree=_SUBTYPE_SCHEMA_TREE
+    )
+
+  def test_elements_includes_subtypes(self):
+    elements = self.validator.elements()
+
+    self.assertCountEqual(
+        elements,
+        [
+            "Contest",
+            "BallotMeasureContest",
+            "CandidateContest",
+            "PartyContest",
+            "RetentionContest",
+        ],
+    )
 
   def test_missing_results_embargo_end_succeeds(self):
     contest_string = """

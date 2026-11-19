@@ -59,11 +59,24 @@ def _get_type_or_other_type(element: etree._Element) -> str:
   return other_type_text if type_text == "other" else type_text
 
 
-class PercentSum(base.BaseRule):
-  """Check that Contest elements have percents summing to 0 or 100."""
+class PercentSum(base.SchemaRule):
+  """Check that Contest elements have percents summing to 0 or 100.
 
-  def elements(self):
-    return ["Contest"]
+  Sums the total-percent VoteCounts of every BallotSelection and of the
+  Contest's AggregateBallotSelection, BlankBallotSelection,
+  NoneOfTheAboveBallotSelection and NullBallotSelection.
+  """
+
+  _BALLOT_SELECTION_TAGS = (
+      "BallotSelection",
+      "AggregateBallotSelection",
+      "BlankBallotSelection",
+      "NoneOfTheAboveBallotSelection",
+      "NullBallotSelection",
+  )
+
+  def elements(self) -> list[str]:
+    return ["Contest"] + list(self.get_all_subtypes("Contest"))
 
   @staticmethod
   def fuzzy_equals(a: float, b: float, epsilon: float = 1e-6) -> bool:
@@ -71,9 +84,9 @@ class PercentSum(base.BaseRule):
 
   def check(self, element: etree._Element) -> None:
     sum_percents = 0.0
-    for ballot_selection in element.findall("BallotSelection"):
-      for vote_counts in ballot_selection.find("VoteCountsCollection").findall(
-          "VoteCounts"
+    for ballot_selection_tag in self._BALLOT_SELECTION_TAGS:
+      for vote_counts in element.findall(
+          f"{ballot_selection_tag}/VoteCountsCollection/VoteCounts"
       ):
         other_type = vote_counts.find("OtherType")
         if other_type is not None and other_type.text == "total-percent":
@@ -691,7 +704,7 @@ class ContestHasMultipleOffices(base.BaseRule):
       )
 
 
-class VoteCountTypesCoherency(base.BaseRule):
+class VoteCountTypesCoherency(base.SchemaRule):
   """Ensure VoteCount types describe the appropriate votable."""
 
   PARTY_VC_TYPES = {
@@ -707,27 +720,29 @@ class VoteCountTypesCoherency(base.BaseRule):
   # Ibid.
   CAND_VC_TYPES = {"candidate-votes"}
 
-  def elements(self):
-    return ["Contest"]
+  def elements(self) -> list[str]:
+    return ["Contest"] + list(self.get_all_subtypes("Contest"))
 
   def check(self, element: etree._Element) -> None:
     invalid_vc_types = None
     contest_type = ""
-    if element.get("type", "") == "CandidateContest":
+    element_class = self.get_element_class(element)
+    if element_class == "CandidateContest":
       invalid_vc_types = self.PARTY_VC_TYPES
       contest_type = "Candidate"
-    elif element.get("type", "") == "PartyContest":
+    elif element_class == "PartyContest":
       invalid_vc_types = self.CAND_VC_TYPES
       contest_type = "Party"
     if invalid_vc_types:
       errors = []
-      for ballot_selection in element.findall("BallotSelection"):
-        for vote_counts in ballot_selection.find(
-            "VoteCountsCollection"
-        ).findall("VoteCounts"):
-          vc_type = vote_counts.find("OtherType").text
-          if vc_type in invalid_vc_types:
-            errors.append(vc_type)
+      for other_type in element.findall(
+          "BallotSelection/VoteCountsCollection/VoteCounts/OtherType"
+      ):
+        if not rule_util.element_has_text(other_type):
+          continue
+        vc_type = other_type.text.strip()
+        if vc_type in invalid_vc_types:
+          errors.append(vc_type)
       if errors:
         msg = (
             f"VoteCount types {', '.join(errors)} should not be nested in"
@@ -740,8 +755,10 @@ class VoteCountValidSeatsDeltaTypes(base.SchemaRule):
   """Ensure VoteCount seats delta types are valid."""
 
   def elements(self) -> list[str]:
-    return ["BallotSelection"] + list(
-        self.get_element_names_for_type("SpecialBallotSelection")
+    return (
+        ["BallotSelection"]
+        + list(self.get_all_subtypes("BallotSelection"))
+        + list(self.get_element_names_for_type("SpecialBallotSelection"))
     )
 
   def check(self, element: etree._Element) -> None:
@@ -786,11 +803,11 @@ class OfficeHasjurisdictionSameAsElectoralDistrict(base.BaseRule):
       )
 
 
-class ContestHasValidContestStage(base.BaseRule):
+class ContestHasValidContestStage(base.SchemaRule):
   """Each Contest must have a valid contest-stage."""
 
-  def elements(self):
-    return ["CandidateContest", "PartyContest", "BallotMeasureContest"]
+  def elements(self) -> list[str]:
+    return ["Contest"] + list(self.get_all_subtypes("Contest"))
 
   def check(self, element: etree._Element) -> None:
     contest_stage_values = [
@@ -1171,13 +1188,15 @@ class FullTextMaxLength(base.BaseRule):
         raise loggers.ElectionWarning.from_message(msg, [element])
 
 
-class FullTextOrBallotText(base.BaseRule):
+class FullTextOrBallotText(base.SchemaRule):
   """Warn if BallotText is missing and FullText is short."""
 
   SUGGESTION_CUTOFF_LENGTH = 2500  # about 3 paragraphs, 250-300 words
 
-  def elements(self):
-    return ["BallotMeasureContest"]
+  def elements(self) -> list[str]:
+    return ["BallotMeasureContest"] + list(
+        self.get_all_subtypes("BallotMeasureContest")
+    )
 
   def check(self, element: etree._Element) -> None:
     full_text_map = rule_util.get_language_to_text_map(element.find("FullText"))
@@ -1607,15 +1626,15 @@ class ComposingContestIdsAreValidRelatedContests(base.BaseRule):
       raise loggers.ElectionError(error_log)
 
 
-class ContestContainsValidStartDate(base.DateRule):
+class ContestContainsValidStartDate(base.DateRule, base.SchemaRule):
   """Contest elements should contain valid start dates.
 
   A warning will be raised for start dates in the past. These dates are still
   valid because the validator could be run during an ongoing election.
   """
 
-  def elements(self):
-    return ["Contest"]
+  def elements(self) -> list[str]:
+    return ["Contest"] + list(self.get_all_subtypes("Contest"))
 
   def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
@@ -1628,15 +1647,15 @@ class ContestContainsValidStartDate(base.DateRule):
       raise loggers.ElectionWarning(self.error_log)
 
 
-class ContestContainsValidEndDate(base.DateRule):
+class ContestContainsValidEndDate(base.DateRule, base.SchemaRule):
   """Contest elements should contain valid end dates.
 
   A warning will be raised for end dates in the past. These dates are still
   valid because the validator could be run during an ongoing election.
   """
 
-  def elements(self):
-    return ["Contest"]
+  def elements(self) -> list[str]:
+    return ["Contest"] + list(self.get_all_subtypes("Contest"))
 
   def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
@@ -1649,11 +1668,11 @@ class ContestContainsValidEndDate(base.DateRule):
       raise loggers.ElectionWarning(self.error_log)
 
 
-class ContestEndDateOccursAfterStartDate(base.DateRule):
+class ContestEndDateOccursAfterStartDate(base.DateRule, base.SchemaRule):
   """Contest elements should have end dates that occur after the start dates."""
 
-  def elements(self):
-    return ["Contest"]
+  def elements(self) -> list[str]:
+    return ["Contest"] + list(self.get_all_subtypes("Contest"))
 
   def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
@@ -1717,15 +1736,17 @@ class ContestEndDateOccursBeforeSubsequentContestStartDate(base.DateRule):
       raise loggers.ElectionError(self.error_log)
 
 
-class ContestStartDateContainsCorrespondingEndDate(base.DateRule):
+class ContestStartDateContainsCorrespondingEndDate(
+    base.DateRule, base.SchemaRule
+):
   """Contest start dates must always have corresponding end dates.
 
   A Contest can either have both StartDate and EndDate populated or neither at
   all.
   """
 
-  def elements(self):
-    return ["Contest"]
+  def elements(self) -> list[str]:
+    return ["Contest"] + list(self.get_all_subtypes("Contest"))
 
   def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
@@ -1746,11 +1767,11 @@ class ContestStartDateContainsCorrespondingEndDate(base.DateRule):
       )
 
 
-class ValidatePollsCloseDatetimes(base.BaseRule):
+class ValidatePollsCloseDatetimes(base.SchemaRule):
   """Checks that LatestPollsClose is not before EarliestPollsClose."""
 
-  def elements(self):
-    return ["Contest"]
+  def elements(self) -> list[str]:
+    return ["Contest"] + list(self.get_all_subtypes("Contest"))
 
   def check(self, element: etree._Element) -> None:
     earliest_polls_close_element = element.find("EarliestPollsClose")
@@ -1787,15 +1808,15 @@ class ValidatePollsCloseDatetimes(base.BaseRule):
       )
 
 
-class ValidateResultsExpected(base.BaseRule):
+class ValidateResultsExpected(base.SchemaRule):
   """Checks that ResultsExpected is not before the first ResultsReportingStage.
 
   The ResultsExpected datetime must not be before the ExpectedStartDateTime
   of the earliest ResultsReportingStage excluding the no-results stage.
   """
 
-  def elements(self):
-    return ["Contest"]
+  def elements(self) -> list[str]:
+    return ["Contest"] + list(self.get_all_subtypes("Contest"))
 
   def check(self, element: etree._Element) -> None:
     results_expected_element = element.find("ResultsExpected")
@@ -1854,11 +1875,11 @@ class ValidateResultsExpected(base.BaseRule):
       )
 
 
-class ValidateResultsEmbargoEnd(base.BaseRule):
+class ValidateResultsEmbargoEnd(base.SchemaRule):
   """Checks that ResultsEmbargoEnd is not after the official ResultsReportingStage start."""
 
-  def elements(self):
-    return ["Contest"]
+  def elements(self) -> list[str]:
+    return ["Contest"] + list(self.get_all_subtypes("Contest"))
 
   def check(self, element: etree._Element) -> None:
     results_embargo_end_element = element.find("ResultsEmbargoEnd")

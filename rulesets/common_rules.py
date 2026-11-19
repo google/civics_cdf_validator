@@ -705,14 +705,14 @@ class BadCharactersInPersonFullName(base.BaseRule):
         )
 
 
-class IndependentPartyName(base.BaseRule):
+class IndependentPartyName(base.SchemaRule):
   """Warns on parties that contain common names indicating they are an independent party.
 
   These should instead supply the IsIndependent attribute.
   """
 
-  def elements(self):
-    return ["Party"]
+  def elements(self) -> list[str]:
+    return ["Party"] + list(self.get_all_subtypes("Party"))
 
   def check(self, party: etree._Element) -> None:
     is_independent_element = party.find("IsIndependent")
@@ -1786,11 +1786,11 @@ class MultipleInternationalizedTextWithSameLanguageCode(base.BaseRule):
         )
 
 
-class DeprecatedPartyLeadershipSchema(base.BaseRule):
+class DeprecatedPartyLeadershipSchema(base.SchemaRule):
   """Errors if the deprecated party leadership schema is used."""
 
-  def elements(self):
-    return ["Party"]
+  def elements(self) -> list[str]:
+    return ["Party"] + list(self.get_all_subtypes("Party"))
 
   def check(self, element: etree._Element) -> None:
     if len(rule_util.get_external_id_values(element, "party-leader-id")) or len(

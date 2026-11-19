@@ -17,6 +17,16 @@ _TEST_SCHEMA_TREE = etree.fromstring(
     b'<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"/>'
 )
 
+_SUBTYPE_SCHEMA_TREE = etree.fromstring(b"""
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:complexType name="Coalition">
+    <xs:complexContent>
+      <xs:extension base="Party"/>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:schema>
+""")
+
 
 class SchemaTest(absltest.TestCase):
 
@@ -1555,7 +1565,14 @@ class IndependentPartyNameTest(absltest.TestCase):
 
   def setUp(self):
     super(IndependentPartyNameTest, self).setUp()
-    self.validator = common_rules.IndependentPartyName()
+    self.validator = common_rules.IndependentPartyName(
+        schema_tree=_SUBTYPE_SCHEMA_TREE
+    )
+
+  def test_elements_includes_subtypes(self):
+    elements = self.validator.elements()
+
+    self.assertCountEqual(elements, ["Party", "Coalition"])
 
   def test_independent_party_warns(self):
     party = """
@@ -5993,7 +6010,14 @@ class DeprecatedPartyLeadershipSchemaTest(absltest.TestCase):
 
   def setUp(self):
     super(DeprecatedPartyLeadershipSchemaTest, self).setUp()
-    self.validator = common_rules.DeprecatedPartyLeadershipSchema()
+    self.validator = common_rules.DeprecatedPartyLeadershipSchema(
+        schema_tree=_SUBTYPE_SCHEMA_TREE
+    )
+
+  def test_elements_includes_subtypes(self):
+    elements = self.validator.elements()
+
+    self.assertCountEqual(elements, ["Party", "Coalition"])
 
   def test_new_party_leadership_schema_succeeds(self):
     party_string = """
