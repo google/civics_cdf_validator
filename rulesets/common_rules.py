@@ -1602,6 +1602,10 @@ class MissingFieldsWarning(base.MissingFieldRule):
         "Candidate": [
             "PartyId",
         ],
+        "PartyContest": [
+            "NumberElected",
+            "TotalSeats",
+        ],
     }
 
 

@@ -73,6 +73,7 @@ class RequiredContestResultsFieldsSetTest(parameterized.TestCase):
     contest_string = """
       <Contest objectId="con1">
         <CurrentResultsReportingStage>preliminary</CurrentResultsReportingStage>
+        <ResultsExpected>2026-11-03T21:00:00-05:00</ResultsExpected>
         <ResultsReportingStageCollection>
           <ResultsReportingStage>
             <StageType>preliminary</StageType>
@@ -88,6 +89,7 @@ class RequiredContestResultsFieldsSetTest(parameterized.TestCase):
     contest_string = """
       <Contest objectId="con1">
         <CurrentResultsReportingStage>preliminary</CurrentResultsReportingStage>
+        <ResultsExpected>2026-11-03T21:00:00-05:00</ResultsExpected>
         <ResultsReportingStageCollection>
           <InheritFromComposedContest>true</InheritFromComposedContest>
         </ResultsReportingStageCollection>
@@ -101,6 +103,7 @@ class RequiredContestResultsFieldsSetTest(parameterized.TestCase):
           "current_results_reporting_stage",
           """
           <Contest objectId="con1">
+            <ResultsExpected>2026-11-03T21:00:00-05:00</ResultsExpected>
             <ResultsReportingStageCollection>
               <ResultsReportingStage>
                 <StageType>preliminary</StageType>
@@ -112,10 +115,26 @@ class RequiredContestResultsFieldsSetTest(parameterized.TestCase):
           "CurrentResultsReportingStage",
       ),
       (
+          "results_expected",
+          """
+          <Contest objectId="con1">
+            <CurrentResultsReportingStage>preliminary</CurrentResultsReportingStage>
+            <ResultsReportingStageCollection>
+              <ResultsReportingStage>
+                <StageType>preliminary</StageType>
+                <ExpectedStartDateTime>2026-11-03T21:00:00-05:00</ExpectedStartDateTime>
+              </ResultsReportingStage>
+            </ResultsReportingStageCollection>
+          </Contest>
+          """,
+          "ResultsExpected",
+      ),
+      (
           "results_reporting_stage_collection",
           """
           <Contest objectId="con1">
             <CurrentResultsReportingStage>preliminary</CurrentResultsReportingStage>
+            <ResultsExpected>2026-11-03T21:00:00-05:00</ResultsExpected>
           </Contest>
           """,
           "ResultsReportingStageCollection",
@@ -133,7 +152,7 @@ class RequiredContestResultsFieldsSetTest(parameterized.TestCase):
         context.exception.log_entry[0].message,
         f"Contest con1 is missing required field(s) {missing_field}. Election"
         " results feeds must set CurrentResultsReportingStage,"
-        " ResultsReportingStageCollection on every Contest.",
+        " ResultsExpected, ResultsReportingStageCollection on every Contest.",
     )
     self.assertEqual(context.exception.log_entry[0].elements, [contest])
 
@@ -150,8 +169,9 @@ class RequiredContestResultsFieldsSetTest(parameterized.TestCase):
     self.assertEqual(
         context.exception.log_entry[0].message,
         "Contest con1 is missing required field(s)"
-        " CurrentResultsReportingStage, ResultsReportingStageCollection."
-        " Election results feeds must set CurrentResultsReportingStage,"
+        " CurrentResultsReportingStage, ResultsExpected,"
+        " ResultsReportingStageCollection. Election results feeds must set"
+        " CurrentResultsReportingStage, ResultsExpected,"
         " ResultsReportingStageCollection on every Contest.",
     )
 

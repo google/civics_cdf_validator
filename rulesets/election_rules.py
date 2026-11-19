@@ -1383,6 +1383,40 @@ class WinnerCountLimit(base.BaseRule):
       )
 
 
+class NumberElectedAndTotalSeatsSetTogether(base.SchemaRule):
+  """A PartyContest must set both or neither of NumberElected and TotalSeats.
+
+  Elections for fixed-size government bodies, whose seat totals are known in
+  advance, must set both. Elections for dynamically sized government bodies,
+  whose seat totals are not known until after the result of the election,
+  should set neither.
+  """
+
+  def elements(self) -> list[str]:
+    return ["PartyContest"] + list(self.get_all_subtypes("PartyContest"))
+
+  def check(self, element: etree._Element) -> None:
+    number_elected_set = rule_util.element_has_text(
+        element.find("NumberElected")
+    )
+    total_seats_set = rule_util.element_has_text(element.find("TotalSeats"))
+    if number_elected_set == total_seats_set:
+      return
+    if number_elected_set:
+      set_field, missing_field = "NumberElected", "TotalSeats"
+    else:
+      set_field, missing_field = "TotalSeats", "NumberElected"
+    raise loggers.ElectionError.from_message(
+        f"{self.get_element_class(element)} {element.get('objectId')} sets"
+        f" {set_field} but not {missing_field}. For elections for dynamically"
+        " sized government bodies whose seat totals are not known until after"
+        " the result of the election, neither should be set. For elections"
+        " for fixed-size government bodies whose seat totals are known in"
+        " advance, both must be set.",
+        [element],
+    )
+
+
 class SubsequentContestIdIsValidRelatedContest(base.DateRule):
   """Check that SubsequentContests are valid.
 
@@ -2473,6 +2507,7 @@ ELECTION_RULES = common_rules.COMMON_RULES + (
     ImproperCandidateContest,
     MultipleCandidatesPointToTheSamePersonInTheSameContest,
     NotEmptyUniqueDataSourceUris,
+    NumberElectedAndTotalSeatsSetTogether,
     OfficeHasjurisdictionSameAsElectoralDistrict,
     PartisanPrimary,
     PartisanPrimaryHeuristic,

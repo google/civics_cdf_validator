@@ -5017,6 +5017,113 @@ class WinnerCountLimitTest(absltest.TestCase):
     validator.check(election_tree.find(".//Contest"))
 
 
+class NumberElectedAndTotalSeatsSetTogetherTest(parameterized.TestCase):
+
+  def setUp(self):
+    super(NumberElectedAndTotalSeatsSetTogetherTest, self).setUp()
+    schema_tree = etree.fromstring(b"""
+      <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:complexType abstract="true" name="Contest"/>
+        <xs:complexType name="CandidateContest">
+          <xs:complexContent>
+            <xs:extension base="Contest"/>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="PartyContest">
+          <xs:complexContent>
+            <xs:extension base="Contest"/>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="PartyContestSubtype">
+          <xs:complexContent>
+            <xs:extension base="PartyContest"/>
+          </xs:complexContent>
+        </xs:complexType>
+      </xs:schema>
+    """)
+    self.validator = election_rules.NumberElectedAndTotalSeatsSetTogether(
+        schema_tree=schema_tree
+    )
+
+  def test_elements_includes_party_contest_subtypes(self):
+    elements = self.validator.elements()
+
+    self.assertCountEqual(elements, ["PartyContest", "PartyContestSubtype"])
+
+  def test_number_elected_and_total_seats_both_set_succeeds(self):
+    contest = etree.fromstring("""
+      <Contest objectId="con1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:type="PartyContest">
+        <TotalSeats>5</TotalSeats>
+        <NumberElected>2</NumberElected>
+      </Contest>
+    """)
+
+    self.validator.check(contest)
+
+  def test_number_elected_and_total_seats_both_missing_succeeds(self):
+    contest = etree.fromstring("""
+      <Contest objectId="con1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:type="PartyContest">
+        <Name>Parliament</Name>
+      </Contest>
+    """)
+
+    self.validator.check(contest)
+
+  @parameterized.parameters(
+      ("<NumberElected>2</NumberElected>", "NumberElected", "TotalSeats"),
+      ("<TotalSeats>5</TotalSeats>", "TotalSeats", "NumberElected"),
+      (
+          "<TotalSeats></TotalSeats><NumberElected>2</NumberElected>",
+          "NumberElected",
+          "TotalSeats",
+      ),
+  )
+  def test_only_one_of_number_elected_and_total_seats_set_fails(
+      self, seat_fields, set_field, missing_field
+  ):
+    contest = etree.fromstring(f"""
+      <Contest objectId="con1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:type="PartyContest">
+        {seat_fields}
+      </Contest>
+    """)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(contest)
+
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        f"PartyContest con1 sets {set_field} but not {missing_field}. For"
+        " elections for dynamically sized government bodies whose seat totals"
+        " are not known until after the result of the election, neither"
+        " should be set. For elections for fixed-size government bodies whose"
+        " seat totals are known in advance, both must be set.",
+    )
+    self.assertEqual(context.exception.log_entry[0].elements, [contest])
+
+  def test_party_contest_subtype_with_only_total_seats_fails(self):
+    contest = etree.fromstring("""
+      <Contest objectId="con1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:type="PartyContestSubtype">
+        <TotalSeats>5</TotalSeats>
+      </Contest>
+    """)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(contest)
+
+    self.assertStartsWith(
+        context.exception.log_entry[0].message,
+        "PartyContestSubtype con1 sets TotalSeats but not NumberElected.",
+    )
+
+
 class SubsequentContestIdIsValidRelatedContestTest(absltest.TestCase):
 
   def test_contests_without_any_end_dates_do_not_compare_end_dates(self):
