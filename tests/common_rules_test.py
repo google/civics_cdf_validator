@@ -5316,6 +5316,40 @@ class MissingFieldsWarningTest(absltest.TestCase):
         context.exception.log_entry[0].elements[0].get("objectId"), "123"
     )
 
+  def test_required_fields_are_present_party_contest_succeeds(self):
+    contest = etree.fromstring("""
+      <Contest objectId="con1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:type="PartyContest">
+        <TotalSeats>5</TotalSeats>
+        <NumberElected>2</NumberElected>
+      </Contest>
+    """)
+
+    self.validator.check(contest)
+
+  def test_missing_fields_party_contest_warns(self):
+    contest = etree.fromstring("""
+      <Contest objectId="con1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:type="PartyContest">
+        <TotalSeats></TotalSeats>
+      </Contest>
+    """)
+
+    with self.assertRaises(loggers.ElectionWarning) as context:
+      self.validator.check(contest)
+
+    self.assertEqual(
+        [entry.message for entry in context.exception.log_entry],
+        [
+            "The element PartyContest is missing field NumberElected.",
+            "The element PartyContest is missing field TotalSeats.",
+        ],
+    )
+    self.assertEqual(context.exception.log_entry[0].elements, [contest])
+    self.assertEqual(context.exception.log_entry[1].elements, [contest])
+
 
 class MissingFieldsInfoTest(absltest.TestCase):
 

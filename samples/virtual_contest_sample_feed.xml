@@ -313,7 +313,9 @@
         </ExternalIdentifiers>
         <Name>Supreme Summary Contest</Name>
         <SubUnitsReported>1</SubUnitsReported>
+        <TotalSeats>2</TotalSeats>
         <TotalSubUnits>2</TotalSubUnits>
+        <NumberElected>2</NumberElected>
         <OfficeIds>off-asfa567985thjkgh</OfficeIds>
       </Contest>
     </ContestCollection>
