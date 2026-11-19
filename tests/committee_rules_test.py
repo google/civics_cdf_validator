@@ -185,31 +185,35 @@ class EinMatchesFormatTest(absltest.TestCase):
 
   def setUp(self):
     super(EinMatchesFormatTest, self).setUp()
-    self.root_string = """
+    self.validator = committee_rules.EinMatchesFormat()
+
+  def test_valid_ein_id_succeeds(self):
+    test_string = """
       <Committee>
         <ExternalIdentifiers>
           <ExternalIdentifier>
-            <Type>{}</Type>
-            {}
-            <Value>{}</Value>
+            <Type>other</Type>
+            <OtherType>ein</OtherType>
+            <Value>12-3456789</Value>
           </ExternalIdentifier>
         </ExternalIdentifiers>
       </Committee>
     """
-    self.ein_string = "<OtherType>ein</OtherType>"
-    self.validator = committee_rules.EinMatchesFormat()
-
-  def test_valid_ein_id_succeeds(self):
-    test_string = self.root_string.format(
-        "other", self.ein_string, "12-3456789"
-    )
 
     self.validator.check(etree.fromstring(test_string))
 
   def test_invalid_ein_id_fails(self):
-    test_string = self.root_string.format(
-        "other", self.ein_string, "cand-2013-va-obama!"
-    )
+    test_string = """
+      <Committee>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>ein</OtherType>
+            <Value>cand-2013-va-obama!</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Committee>
+    """
 
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(test_string))
@@ -222,7 +226,17 @@ class EinMatchesFormatTest(absltest.TestCase):
     )
 
   def test_empty_ein_id_fails(self):
-    test_string = self.root_string.format("other", self.ein_string, "   ")
+    test_string = """
+      <Committee>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>ein</OtherType>
+            <Value>   </Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Committee>
+    """
 
     with self.assertRaises(loggers.ElectionError) as context:
       self.validator.check(etree.fromstring(test_string))
@@ -244,9 +258,17 @@ class EinMatchesFormatTest(absltest.TestCase):
     self.validator.check(etree.fromstring(committee_string))
 
   def test_committee_without_ein_external_identifier_succeeds(self):
-    test_string = self.root_string.format(
-        "other", "<OtherType>fec-id</OtherType>", "not-an-ein"
-    )
+    test_string = """
+      <Committee>
+        <ExternalIdentifiers>
+          <ExternalIdentifier>
+            <Type>other</Type>
+            <OtherType>fec-id</OtherType>
+            <Value>not-an-ein</Value>
+          </ExternalIdentifier>
+        </ExternalIdentifiers>
+      </Committee>
+    """
 
     self.validator.check(etree.fromstring(test_string))
 
