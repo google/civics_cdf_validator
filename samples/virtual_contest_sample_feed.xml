@@ -383,7 +383,9 @@
           <Value>secret-squirrel</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>New Zealand</Name>
+      <InternationalizedName>
+        <Text language="en">New Zealand</Text>
+      </InternationalizedName>
       <Type>country</Type>
     </GpUnit>
     <GpUnit objectId="ru-1234567890" xsi:type="ReportingUnit">
@@ -402,7 +404,9 @@
           <Value>secret-squirrel</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>Nor Sure</Name>
+      <InternationalizedName>
+        <Text language="en">Nor Sure</Text>
+      </InternationalizedName>
       <Type>state</Type>
       <VotersParticipated>30000000000</VotersParticipated>
     </GpUnit>
@@ -422,7 +426,9 @@
           <Value>secret-squirrel</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>Southland</Name>
+      <InternationalizedName>
+        <Text language="en">Southland</Text>
+      </InternationalizedName>
       <Type>state</Type>
       <VotersParticipated>40000000000</VotersParticipated>
     </GpUnit>

@@ -153,7 +153,9 @@
           <Value>51</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>United States Of America</Name>
+      <InternationalizedName>
+        <Text language="en">United States Of America</Text>
+      </InternationalizedName>
       <Type>country</Type>
     </GpUnit>
     <GpUnit objectId="ru-ca-1" xsi:type="ReportingUnit">
@@ -168,7 +170,9 @@
           <Value>ocd-division/country:us/state:ca</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>California</Name>
+      <InternationalizedName>
+        <Text language="en">California</Text>
+      </InternationalizedName>
       <Type>state</Type>
     </GpUnit>
   </GpUnitCollection>

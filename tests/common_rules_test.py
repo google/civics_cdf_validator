@@ -19,6 +19,17 @@ _TEST_SCHEMA_TREE = etree.fromstring(
 
 _SUBTYPE_SCHEMA_TREE = etree.fromstring(b"""
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:complexType abstract="true" name="GpUnit"/>
+  <xs:complexType name="ReportingDevice">
+    <xs:complexContent>
+      <xs:extension base="GpUnit"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ReportingUnit">
+    <xs:complexContent>
+      <xs:extension base="GpUnit"/>
+    </xs:complexContent>
+  </xs:complexType>
   <xs:complexType name="Coalition">
     <xs:complexContent>
       <xs:extension base="Party"/>
@@ -446,8 +457,14 @@ class GpUnitOcdIdTest(parameterized.TestCase):
         ocd_id_list=["ocd-division/country:us/state:va"],
     )
     self.gp_unit_ocd_id_validator = common_rules.GpUnitOcdId(
-        ocd_id_validator=self.ocd_id_validator
+        schema_tree=_SUBTYPE_SCHEMA_TREE,
+        ocd_id_validator=self.ocd_id_validator,
     )
+
+  def test_elements_includes_subtypes_except_reporting_device(self):
+    elements = self.gp_unit_ocd_id_validator.elements()
+
+    self.assertCountEqual(elements, ["GpUnit", "ReportingUnit"])
 
   def test_gp_unit_without_ocd_id_fails(self):
     ocd_id_string = """
@@ -515,16 +532,6 @@ class GpUnitOcdIdTest(parameterized.TestCase):
       </ExternalIdentifiers>
       <Name>Virginia</Name>
       <Type>state</Type>
-    </GpUnit>
-    """
-    elements = etree.fromstring(ocd_id_string)
-
-    self.gp_unit_ocd_id_validator.check(elements)
-
-  def test_reporting_device_without_ocd_id_succeeds(self):
-    ocd_id_string = """
-    <GpUnit objectId="1234567890" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ReportingDevice">
-      <Name>Reporting Device</Name>
     </GpUnit>
     """
     elements = etree.fromstring(ocd_id_string)
@@ -2090,13 +2097,31 @@ class AllCapsTest(absltest.TestCase):
 
   def test_listed_elements_succeeds(self):
     expected_elements = [
+        "BallotMeasureContest",
         "Candidate",
         "CandidateContest",
         "PartyContest",
         "Person",
+        "RetentionContest",
     ]
 
     self.assertEqual(self.validator.elements(), expected_elements)
+
+  def test_retention_contest_name_all_caps_warns(self):
+    contest = etree.fromstring("""
+      <Contest objectId="c-1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:type="RetentionContest">
+        <Name>RETAIN JUDGE FAKE</Name>
+      </Contest>
+    """)
+
+    with self.assertRaises(loggers.ElectionWarning) as context:
+      self.validator.check(contest)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "RetentionContest has Name in all upper case letters.",
+    )
 
   def test_candidate_ballot_names_not_all_caps_succeeds(
       self,
@@ -4886,7 +4911,7 @@ class ValidPartyLeadershipDatesTest(absltest.TestCase):
     self.today = datetime.datetime.now(datetime.timezone.utc).date()
 
   def test_party_leadership_elements_succeeds(self):
-    self.assertEqual(self.validator.elements(), ["PartyLeadership"])
+    self.assertEqual(self.validator.elements(), ["Leadership"])
 
   def test_invalid_start_date_fails(self):
     party_leadership_string = """
@@ -4972,7 +4997,16 @@ class GpUnitsHaveInternationalizedNameTest(absltest.TestCase):
 
   def setUp(self):
     super(GpUnitsHaveInternationalizedNameTest, self).setUp()
-    self.validator = common_rules.GpUnitsHaveInternationalizedName()
+    self.validator = common_rules.GpUnitsHaveInternationalizedName(
+        schema_tree=_SUBTYPE_SCHEMA_TREE
+    )
+
+  def test_elements_includes_subtypes(self):
+    elements = self.validator.elements()
+
+    self.assertCountEqual(
+        elements, ["GpUnit", "ReportingDevice", "ReportingUnit"]
+    )
 
   def test_has_exactly_one_internationalized_name_with_text_succeeds(self):
     root_string = """
@@ -5194,6 +5228,21 @@ class MissingFieldsErrorTest(absltest.TestCase):
     self.assertEqual(
         context.exception.log_entry[0].message,
         "The element Party is missing field PartyScopeGpUnitIds.",
+    )
+
+  def test_missing_field_coalition_fails(self):
+    coalition = etree.fromstring("""
+      <Party objectId="par-coalition"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:type="Coalition">
+      </Party>
+    """)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(coalition)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "The element Coalition is missing field PartyScopeGpUnitIds.",
     )
 
   def test_required_field_is_present_election_succeeds(self):

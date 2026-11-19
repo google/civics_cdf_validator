@@ -29,7 +29,9 @@
           <Value>ru-2lkjg1zsv9j</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>Texas</Name>
+      <InternationalizedName>
+        <Text language="en">Texas</Text>
+      </InternationalizedName>
       <Type>state</Type>
     </GpUnit>
     <GpUnit xsi:type="ReportingUnit" objectId="ru-gpu1">
@@ -63,7 +65,9 @@
           <Value>ru-2k3flj2kjf2</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>United States</Name>
+      <InternationalizedName>
+        <Text language="en">United States</Text>
+      </InternationalizedName>
       <Type>country</Type>
     </GpUnit>
   </GpUnitCollection>

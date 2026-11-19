@@ -1367,7 +1367,9 @@
           <Value>ocd-division/country:us/state:va/sldl:25</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>House of Delegates District - 025</Name>
+      <InternationalizedName>
+        <Text language="en">House of Delegates District - 025</Text>
+      </InternationalizedName>
       <Number>25</Number>
       <Type>state-house</Type>
     </GpUnit>
@@ -1383,7 +1385,9 @@
           <Value>ocd-division/country:us/state:va/sldl:57</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>House of Delegates District - 057</Name>
+      <InternationalizedName>
+        <Text language="en">House of Delegates District - 057</Text>
+      </InternationalizedName>
       <Number>57</Number>
       <Type>state-house</Type>
     </GpUnit>
@@ -1399,7 +1403,9 @@
           <Value>ocd-division/country:us/state:va/sldl:58</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>House of Delegates District - 058</Name>
+      <InternationalizedName>
+        <Text language="en">House of Delegates District - 058</Text>
+      </InternationalizedName>
       <Number>58</Number>
       <Type>state-house</Type>
     </GpUnit>
@@ -1415,7 +1421,9 @@
           <Value>ocd-division/country:us/state:va/sldl:59</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>House of Delegates District - 059</Name>
+      <InternationalizedName>
+        <Text language="en">House of Delegates District - 059</Text>
+      </InternationalizedName>
       <Number>59</Number>
       <Type>state-house</Type>
     </GpUnit>
@@ -1431,7 +1439,9 @@
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:samuel_miller</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>SAMUEL MILLER DISTRICT</Name>
+      <InternationalizedName>
+        <Text language="en">SAMUEL MILLER DISTRICT</Text>
+      </InternationalizedName>
       <Number>3</Number>
       <Type>county-council</Type>
     </GpUnit>
@@ -1447,7 +1457,9 @@
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:jack_jouett</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>JACK JOUETT DISTRICT</Name>
+      <InternationalizedName>
+        <Text language="en">JACK JOUETT DISTRICT</Text>
+      </InternationalizedName>
       <Number>2</Number>
       <Type>county-council</Type>
     </GpUnit>
@@ -1463,7 +1475,9 @@
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:rio</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>RIO DISTRICT</Name>
+      <InternationalizedName>
+        <Text language="en">RIO DISTRICT</Text>
+      </InternationalizedName>
       <Number>1</Number>
       <Type>county-council</Type>
     </GpUnit>
@@ -1479,7 +1493,9 @@
           <Value>ocd-division/country:us/state:va/county:albemarle/council_district:scottsville</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>SCOTTSVILLE DISTRICT</Name>
+      <InternationalizedName>
+        <Text language="en">SCOTTSVILLE DISTRICT</Text>
+      </InternationalizedName>
       <Number>4</Number>
       <Type>county-council</Type>
     </GpUnit>

@@ -423,13 +423,14 @@ class MissingFieldRule(BaseRule):
   def check(self, element: etree._Element) -> None:
     error_log = []
 
-    required_field_tags = self.element_field_mapping()[element.tag]
+    element_class = self.get_element_class(element)
+    required_field_tags = self.element_field_mapping()[element_class]
     for field_tag in required_field_tags:
       required_field = element.find(field_tag)
       if (required_field is None or required_field.text is None
           or not required_field.text.strip()):
         error_log.append(loggers.LogEntry(
-            f"The element {element.tag} is missing field {field_tag}.",
+            f"The element {element_class} is missing field {field_tag}.",
             [element]))
 
     if error_log:

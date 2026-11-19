@@ -409,16 +409,16 @@ class ValidStableID(base.BaseRule):
       raise loggers.ElectionError(error_log)
 
 
-class GpUnitOcdId(base.BaseRule):
+class GpUnitOcdId(base.SchemaRule):
   """All GpUnits MUST have a valid OCD ID."""
 
-  def elements(self):
-    return ["GpUnit", "ReportingUnit"]
+  def elements(self) -> list[str]:
+    # ReportingDevices are not expected to have OCD IDs.
+    return ["GpUnit"] + list(
+        self.get_all_subtypes("GpUnit") - {"ReportingDevice"}
+    )
 
   def check(self, element: etree._Element) -> None:
-    # ReportingDevices are not expected to have OCD IDs.
-    if self.get_element_class(element) == "ReportingDevice":
-      return
     type_element = element.find("Type")
     if (
         rule_util.element_has_text(type_element)
@@ -777,7 +777,7 @@ class UniqueStableID(base.TreeRule):
 
 
 class MissingStableIds(base.BaseRule):
-  """Check that each NIST object in the feed have a stable Id.
+  """Check that each CDF object in the feed have a stable Id.
 
   Add an error message if stable id is missing from the object.
   """
@@ -797,6 +797,7 @@ class MissingStableIds(base.BaseRule):
       "PartyContest",
       "Person",
       "ReportingUnit",
+      "RetentionContest",
   ]
 
   def elements(self) -> list[str]:
@@ -922,10 +923,12 @@ class AllCaps(base.BaseRule):
   """
 
   _element_field_mapping = {
+      "BallotMeasureContest": ["Name"],
       "Candidate": ["BallotName//Text"],
       "CandidateContest": ["Name"],
       "PartyContest": ["Name"],
       "Person": ["FullName//Text"],
+      "RetentionContest": ["Name"],
   }
 
   def elements(self) -> list[str]:
@@ -1505,7 +1508,7 @@ class ValidPartyLeadershipDates(base.DateRule):
   """
 
   def elements(self) -> list[str]:
-    return ["PartyLeadership"]
+    return ["Leadership"]
 
   def check(self, element: etree._Element) -> None:
     self.reset_instance_vars()
@@ -1515,11 +1518,11 @@ class ValidPartyLeadershipDates(base.DateRule):
       raise loggers.ElectionError(self.error_log)
 
 
-class GpUnitsHaveInternationalizedName(base.BaseRule):
+class GpUnitsHaveInternationalizedName(base.SchemaRule):
   """GpUnits must have at least one non-empty InternationlizedName element."""
 
-  def elements(self):
-    return ["GpUnit"]
+  def elements(self) -> list[str]:
+    return ["GpUnit"] + list(self.get_all_subtypes("GpUnit"))
 
   def check(self, element: etree._Element) -> None:
     intl_names = element.findall("InternationalizedName")
@@ -1576,6 +1579,9 @@ class MissingFieldsError(base.MissingFieldRule):
             "EndDate",
         ],
         "Party": [
+            "PartyScopeGpUnitIds",
+        ],
+        "Coalition": [
             "PartyScopeGpUnitIds",
         ],
     }

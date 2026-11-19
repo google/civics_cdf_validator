@@ -4256,7 +4256,16 @@ class BallotTitleTest(absltest.TestCase):
 
   def setUp(self):
     super(BallotTitleTest, self).setUp()
-    self.validator = election_rules.BallotTitle()
+    self.validator = election_rules.BallotTitle(
+        schema_tree=_SUBTYPE_SCHEMA_TREE
+    )
+
+  def test_elements_includes_subtypes(self):
+    elements = self.validator.elements()
+
+    self.assertCountEqual(
+        elements, ["BallotMeasureContest", "RetentionContest"]
+    )
 
   def test_ballot_title_shorter_than_ballot_text_succeeds(self):
     contest_string = """

@@ -76,6 +76,9 @@
           </ExternalIdentifier>
         </ExternalIdentifiers>
         <Name>Judicial Retention, Supreme Court</Name>
+        <BallotText>
+          <Text language="en">Shall Justice Dwayne Johnson of the Supreme Court of Virginia be retained in office?</Text>
+        </BallotText>
         <CandidateId>can-12345</CandidateId>
         <OfficeId>off-20006</OfficeId>
       </Contest>
@@ -134,7 +137,9 @@
           <Value>51</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>United States Of America</Name>
+      <InternationalizedName>
+        <Text language="en">United States Of America</Text>
+      </InternationalizedName>
       <Type>country</Type>
     </GpUnit>
     <GpUnit objectId="ru-0002" xsi:type="ReportingUnit">
@@ -153,7 +158,9 @@
           <Value>51</Value>
         </ExternalIdentifier>
       </ExternalIdentifiers>
-      <Name>Virginia</Name>
+      <InternationalizedName>
+        <Text language="en">Virginia</Text>
+      </InternationalizedName>
       <ElectionAdministration>
         <ContactInformation label="ci60000">
           <AddressLine>Washington Building First Floor</AddressLine>

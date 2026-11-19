@@ -1221,11 +1221,13 @@ class FullTextOrBallotText(base.SchemaRule):
         raise loggers.ElectionWarning.from_message(msg, [element])
 
 
-class BallotTitle(base.BaseRule):
+class BallotTitle(base.SchemaRule):
   """BallotTitle must exist and should usually be shorter than BallotText."""
 
-  def elements(self):
-    return ["BallotMeasureContest"]
+  def elements(self) -> list[str]:
+    return ["BallotMeasureContest"] + list(
+        self.get_all_subtypes("BallotMeasureContest")
+    )
 
   def check(self, element: etree._Element) -> None:
     ballot_title_map = rule_util.get_language_to_text_map(
