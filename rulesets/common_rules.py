@@ -262,27 +262,6 @@ class EmptyString(base.SchemaRule):
       )
 
 
-class DuplicateID(base.TreeRule):
-  """Check that the file does not contain duplicate object IDs."""
-
-  def check(self) -> None:
-    all_object_ids = set()
-    error_log = []
-    for _, element in etree.iterwalk(self.election_tree, events=("end",)):
-      if "objectId" not in element.attrib:
-        continue
-      else:
-        obj_id = element.get("objectId")
-        if not obj_id:
-          continue
-        if obj_id in all_object_ids:
-          error_log.append(loggers.LogEntry("duplicate object ID", element))
-        else:
-          all_object_ids.add(obj_id)
-    if error_log:
-      raise loggers.ElectionError(error_log)
-
-
 class ValidIDREF(base.BaseRule):
   """Check that IDREFs are valid.
 
@@ -1077,36 +1056,6 @@ class PartyLeadershipMustExist(base.ValidReferenceRule):
     return all_person_ids
 
 
-class PersonsHaveValidGender(base.BaseRule):
-  """Ensure that all Person objects have a valid gender identification."""
-
-  _VALID_GENDERS = {
-      "male",
-      "m",
-      "man",
-      "female",
-      "f",
-      "woman",
-      "o",
-      "x",
-      "other",
-      "nonbinary",
-  }
-
-  def elements(self) -> list[str]:
-    return ["Gender"]
-
-  def check(self, element: etree._Element) -> None:
-    if (
-        element.text is not None
-        and element.text.lower() not in self._VALID_GENDERS
-    ):
-      raise loggers.ElectionError.from_message(
-          f"Person object has invalid gender value: {element.text}",
-          [element],
-      )
-
-
 class URIValidator(base.BaseRule):
   """Basic URL validations.
 
@@ -1556,37 +1505,6 @@ class GpUnitsHaveInternationalizedName(base.SchemaRule):
       raise loggers.ElectionError(error_log)
 
 
-class MissingFieldsError(base.MissingFieldRule):
-  """Check for missing fields for given entity types and field names.
-
-  Raise error for missing fields. To add a field, include the entity
-  and field in element_field_mapping.
-  """
-
-  def get_severity(self) -> int:
-    return 2
-
-  def element_field_mapping(self) -> dict[str, list[str]]:
-    return {
-        "Person": [
-            "FullName//Text",
-        ],
-        "Candidate": [
-            "PersonId",
-        ],
-        "Election": [
-            "StartDate",
-            "EndDate",
-        ],
-        "Party": [
-            "PartyScopeGpUnitIds",
-        ],
-        "Coalition": [
-            "PartyScopeGpUnitIds",
-        ],
-    }
-
-
 class MissingFieldsWarning(base.MissingFieldRule):
   """Check for missing fields for given entity types and field names.
 
@@ -1607,20 +1525,6 @@ class MissingFieldsWarning(base.MissingFieldRule):
             "TotalSeats",
         ],
     }
-
-
-class MissingFieldsInfo(base.MissingFieldRule):
-  """Check for missing fields for given entity types and field names.
-
-  Raise info for missing fields. To add a field, include the entity
-  and field in element_field_mapping.
-  """
-
-  def get_severity(self) -> int:
-    return 0
-
-  def element_field_mapping(self) -> dict[str, list[str]]:
-    return {}
 
 
 class PartySpanMultipleCountries(base.BaseRule):
@@ -1908,20 +1812,6 @@ class UnreferencedEntitiesBase(base.TreeRule, base.SchemaRule):
               " referenced by anything else in the feed.",
               [element],
           )
-
-
-class CoalitionParties(base.BaseRule):
-  """Coalitions should always define the Party IDs."""
-
-  def elements(self) -> list[str]:
-    return ["Coalition"]
-
-  def check(self, element: etree._Element) -> None:
-    party_id = element.find("PartyIds")
-    if party_id is None or not party_id.text or not party_id.text.strip():
-      raise loggers.ElectionError.from_message(
-          "Coalition must define PartyIDs", [element]
-      )
 
 
 class ValidatePartyCollection(base.BaseRule):
@@ -2221,12 +2111,10 @@ COMMON_RULES = (
     AllLanguages,
     BadCharactersInPersonFullName,
     CandidateImageInContactInformation,
-    CoalitionParties,
     DateOfBirthIsInPast,
     DeprecatedPartyLeadershipSchema,
     DiplomaticOfficesHaveCorrespondingGpUnitsSet,
     DuplicateGpUnits,
-    DuplicateID,
     DuplicatedGpUnitOcdId,
     DuplicatedPartyAbbreviation,
     DuplicatedPartyName,
@@ -2240,8 +2128,6 @@ COMMON_RULES = (
     GpUnitsHaveSingleRoot,
     IndependentPartyName,
     LanguageCode,
-    MissingFieldsError,
-    MissingFieldsInfo,
     MissingFieldsWarning,
     MissingOfficeSelectionMethod,
     MissingPartyAbbreviationTranslation,
@@ -2258,7 +2144,6 @@ COMMON_RULES = (
     PartyLeadershipMustExist,
     PartySpanMultipleCountries,
     PersonHasUniqueFullName,
-    PersonsHaveValidGender,
     PersonsMissingPartyData,
     Schema,
     URIValidator,

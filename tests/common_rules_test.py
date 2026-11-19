@@ -412,40 +412,6 @@ class EmptyStringTest(absltest.TestCase):
     self.validator.check(element)
 
 
-class DuplicateIDTest(absltest.TestCase):
-
-  def test_valid_if_no_object_id_values_are_the_same_succeeds(self):
-    root_string = """
-      <Report objectId="1">
-        <Person>
-          <FirstName objectId="">Jerry</FirstName>
-          <LastName objectId="">Seinfeld</LastName>
-          <Age objectId="5">38</Age>
-        </Person>
-      </Report>
-    """
-    election_tree = etree.fromstring(root_string)
-    validator = common_rules.DuplicateID(election_tree)
-
-    validator.check()
-
-  def test_object_ids_are_the_same_fails(self):
-    root_string = """
-      <Report objectId="1">
-        <Person objectId="2">
-          <FirstName objectId="3">Jerry</FirstName>
-          <LastName objectId="4">Seinfeld</LastName>
-          <Age objectId="4">38</Age>
-        </Person>
-      </Report>
-    """
-    election_tree = etree.fromstring(root_string)
-    validator = common_rules.DuplicateID(election_tree)
-
-    with self.assertRaises(loggers.ElectionError):
-      validator.check()
-
-
 class GpUnitOcdIdTest(parameterized.TestCase):
   """GpUnit OCD ID validation tests."""
 
@@ -2734,49 +2700,6 @@ class ProhibitElectionDataTest(absltest.TestCase):
     self.assertIn(
         "Election data is prohibited", context.exception.log_entry[0].message
     )
-
-
-class PersonsHaveValidGenderTest(absltest.TestCase):
-
-  def setUp(self):
-    super(PersonsHaveValidGenderTest, self).setUp()
-    self.validator = common_rules.PersonsHaveValidGender()
-
-  def test_only_gender_elements_are_checked_succeeds(self):
-    self.assertEqual(self.validator.elements(), ["Gender"])
-
-  def test_all_persons_have_valid_gender_succeeds(self):
-    root_string = """
-      <Gender>Female</Gender>
-    """
-    gender_element = etree.fromstring(root_string)
-
-    self.validator.check(gender_element)
-
-  def test_validation_is_case_insensitive_succeeds(self):
-    root_string = """
-      <Gender>female</Gender>
-    """
-    gender_element = etree.fromstring(root_string)
-
-    self.validator.check(gender_element)
-
-  def test_empty_value_succeeds(self):
-    root_string = """
-      <Gender></Gender>
-    """
-    gender_element = etree.fromstring(root_string)
-
-    self.validator.check(gender_element)
-
-  def test_invalid_value_fails(self):
-    root_string = """
-      <Gender>blamo</Gender>
-    """
-    gender_element = etree.fromstring(root_string)
-
-    with self.assertRaises(loggers.ElectionError):
-      self.validator.check(gender_element)
 
 
 class URIValidatorTest(absltest.TestCase):
@@ -5146,140 +5069,6 @@ class GpUnitsHaveInternationalizedNameTest(absltest.TestCase):
     )
 
 
-class MissingFieldsErrorTest(absltest.TestCase):
-
-  def setUp(self):
-    super(MissingFieldsErrorTest, self).setUp()
-    self.validator = common_rules.MissingFieldsError()
-    self.validator.setup()
-
-  def test_get_severity_returns_error_level(self):
-    self.assertEqual(self.validator.get_severity(), 2)
-
-  def test_required_field_is_present_person_succeeds(self):
-    person = """
-      <Person objectId="123">
-        <FullName>
-          <Text>Chris Rock</Text>
-        </FullName>
-      </Person>
-    """
-
-    self.validator.check(etree.fromstring(person))
-
-  def test_missing_field_person_fails(self):
-    person = """
-      <Person objectId="123">
-      </Person>
-    """
-
-    with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(etree.fromstring(person))
-    self.assertEqual(
-        context.exception.log_entry[0].message,
-        "The element Person is missing field FullName//Text.",
-    )
-    self.assertEqual(
-        context.exception.log_entry[0].elements[0].get("objectId"), "123"
-    )
-
-  def test_required_field_is_present_candidate_succeeds(self):
-    candidate = """
-      <Candidate objectId="123">
-        <PersonId>per1</PersonId>
-      </Candidate>
-    """
-
-    self.validator.check(etree.fromstring(candidate))
-
-  def test_missing_field_candidate_fails(self):
-    candidate = """
-      <Candidate objectId="123">
-        <PersonId></PersonId>
-      </Candidate>
-    """
-
-    with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(etree.fromstring(candidate))
-    self.assertEqual(
-        context.exception.log_entry[0].message,
-        "The element Candidate is missing field PersonId.",
-    )
-    self.assertEqual(
-        context.exception.log_entry[0].elements[0].get("objectId"), "123"
-    )
-
-  def test_required_field_is_present_party_succeeds(self):
-    party = """
-      <Party objectId="par0">
-        <PartyScopeGpUnitIds>ru-gpu2</PartyScopeGpUnitIds>
-      </Party>
-    """
-
-    self.validator.check(etree.fromstring(party))
-
-  def test_missing_field_party_fails(self):
-    party = """
-      <Party objectId="par0">
-      </Party>
-    """
-    with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(etree.fromstring(party))
-    self.assertEqual(
-        context.exception.log_entry[0].message,
-        "The element Party is missing field PartyScopeGpUnitIds.",
-    )
-
-  def test_missing_field_coalition_fails(self):
-    coalition = etree.fromstring("""
-      <Party objectId="par-coalition"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:type="Coalition">
-      </Party>
-    """)
-
-    with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(coalition)
-    self.assertEqual(
-        context.exception.log_entry[0].message,
-        "The element Coalition is missing field PartyScopeGpUnitIds.",
-    )
-
-  def test_required_field_is_present_election_succeeds(self):
-    election = """
-      <Election objectId="123">
-        <StartDate>2020-01-01</StartDate>
-        <EndDate>2020-01-01</EndDate>
-      </Election>
-    """
-
-    self.validator.check(etree.fromstring(election))
-
-  def test_missing_field_election_fails(self):
-    election = """
-      <Election objectId="123">
-      </Election>
-    """
-
-    with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(etree.fromstring(election))
-
-    self.assertEqual(
-        context.exception.log_entry[0].message,
-        "The element Election is missing field StartDate.",
-    )
-    self.assertEqual(
-        context.exception.log_entry[0].elements[0].get("objectId"), "123"
-    )
-    self.assertEqual(
-        context.exception.log_entry[1].message,
-        "The element Election is missing field EndDate.",
-    )
-    self.assertEqual(
-        context.exception.log_entry[1].elements[0].get("objectId"), "123"
-    )
-
-
 class MissingFieldsWarningTest(absltest.TestCase):
 
   def setUp(self):
@@ -5349,17 +5138,6 @@ class MissingFieldsWarningTest(absltest.TestCase):
     )
     self.assertEqual(context.exception.log_entry[0].elements, [contest])
     self.assertEqual(context.exception.log_entry[1].elements, [contest])
-
-
-class MissingFieldsInfoTest(absltest.TestCase):
-
-  def setUp(self):
-    super(MissingFieldsInfoTest, self).setUp()
-    self.validator = common_rules.MissingFieldsInfo()
-    self.validator.setup()
-
-  def test_sets_severity_level_to_succeeds(self):
-    self.assertEqual(self.validator.get_severity(), 0)
 
 
 class PartySpanMultipleCountriesTest(absltest.TestCase):
@@ -6155,58 +5933,6 @@ class DeprecatedPartyLeadershipSchemaTest(absltest.TestCase):
         "Specifying party leadership via external identifiers is deprecated."
         " Please use the PartyLeadership element instead.",
     )
-
-
-class CoalitionPartiesTest(absltest.TestCase):
-
-  def test_each_coalition_has_defined_party_id_succeeds(self):
-    defined_party_string = """
-      <Coalition>
-        <PartyIds>abc123</PartyIds>
-      </Coalition>
-    """
-    element = etree.fromstring(defined_party_string)
-    validator = common_rules.CoalitionParties()
-
-    validator.check(element)
-
-  def test_coalition_does_not_define_party_id_no_party_id_fails(
-      self,
-  ):
-    no_party_string = "<Coalition/>"
-    element = etree.fromstring(no_party_string)
-    validator = common_rules.CoalitionParties()
-
-    with self.assertRaises(loggers.ElectionError):
-      validator.check(element)
-
-  def test_coalition_does_not_define_party_id_empty_party_id_fails(
-      self,
-  ):
-    empty_party_string = """
-      <Coalition>
-        <PartyIds></PartyIds>
-      </Coalition>
-    """
-    element = etree.fromstring(empty_party_string)
-    validator = common_rules.CoalitionParties()
-
-    with self.assertRaises(loggers.ElectionError):
-      validator.check(element)
-
-  def test_coalition_does_not_define_party_id_whitespace_fails(
-      self,
-  ):
-    all_space_party_string = """
-      <Coalition>
-        <PartyIds>     </PartyIds>
-      </Coalition>
-    """
-    element = etree.fromstring(all_space_party_string)
-    validator = common_rules.CoalitionParties()
-
-    with self.assertRaises(loggers.ElectionError):
-      validator.check(element)
 
 
 class DuplicatedPartyAbbreviationTest(absltest.TestCase):
