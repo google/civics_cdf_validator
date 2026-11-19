@@ -1022,8 +1022,10 @@
   <xs:complexType name="Affiliation">
     <xs:sequence>
       <xs:element maxOccurs="1" minOccurs="0" name="EndDate" type="PartialDate"/>
-      <xs:element maxOccurs="1" minOccurs="0" name="PartyId" type="xs:IDREF"/>
-      <xs:element maxOccurs="1" minOccurs="0" name="PersonId" type="xs:IDREF"/>
+      <xs:choice>
+        <xs:element name="PartyId" type="xs:IDREF"/>
+        <xs:element name="PersonId" type="xs:IDREF"/>
+      </xs:choice>
       <xs:element maxOccurs="1" minOccurs="0" name="StartDate" type="PartialDate"/>
     </xs:sequence>
   </xs:complexType>
