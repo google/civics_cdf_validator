@@ -5,7 +5,6 @@ from absl.testing import absltest
 from civics_cdf_validator import base
 from civics_cdf_validator import rules
 from civics_cdf_validator.rulesets import common_rules
-from civics_cdf_validator.rulesets import metadata_rules
 
 _EXCLUDED_BASE_OR_DISABLED_RULES = frozenset({
     base.TreeRule,
@@ -15,8 +14,6 @@ _EXCLUDED_BASE_OR_DISABLED_RULES = frozenset({
     base.SchemaRule,
     common_rules.ValidatePartyCollection,
     common_rules.UnreferencedEntitiesBase,
-    # TODO(b/555757644): Reenable this rule once we are ready to enforce it.
-    metadata_rules.SqsQueueNameIsFullyQualifiedArn,
 })
 
 

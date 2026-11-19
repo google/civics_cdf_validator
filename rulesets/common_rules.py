@@ -22,7 +22,6 @@ import re
 from civics_cdf_validator import base
 from civics_cdf_validator import gpunit_rules
 from civics_cdf_validator import loggers
-from civics_cdf_validator import office_utils
 from civics_cdf_validator.rulesets import rule_util
 import language_tags
 from lxml import etree
@@ -49,11 +48,6 @@ _EXECUTIVE_OFFICE_ROLES = frozenset([
     "deputy state executive",
     "deputy head of government",
     "mayor",
-])
-
-_VALID_OFFICE_ROLE_COMBINATIONS = frozenset([
-    frozenset(["head of government", "head of state"]),
-    frozenset(["cabinet member", "general purpose officer"]),
 ])
 
 _URI_USAGE_TYPES = frozenset([
@@ -260,27 +254,6 @@ class EmptyString(base.SchemaRule):
       raise loggers.ElectionError.from_message(
           "String field is empty", [element]
       )
-
-
-class DuplicateID(base.TreeRule):
-  """Check that the file does not contain duplicate object IDs."""
-
-  def check(self) -> None:
-    all_object_ids = set()
-    error_log = []
-    for _, element in etree.iterwalk(self.election_tree, events=("end",)):
-      if "objectId" not in element.attrib:
-        continue
-      else:
-        obj_id = element.get("objectId")
-        if not obj_id:
-          continue
-        if obj_id in all_object_ids:
-          error_log.append(loggers.LogEntry("duplicate object ID", element))
-        else:
-          all_object_ids.add(obj_id)
-    if error_log:
-      raise loggers.ElectionError(error_log)
 
 
 class ValidIDREF(base.BaseRule):
@@ -1077,36 +1050,6 @@ class PartyLeadershipMustExist(base.ValidReferenceRule):
     return all_person_ids
 
 
-class PersonsHaveValidGender(base.BaseRule):
-  """Ensure that all Person objects have a valid gender identification."""
-
-  _VALID_GENDERS = {
-      "male",
-      "m",
-      "man",
-      "female",
-      "f",
-      "woman",
-      "o",
-      "x",
-      "other",
-      "nonbinary",
-  }
-
-  def elements(self) -> list[str]:
-    return ["Gender"]
-
-  def check(self, element: etree._Element) -> None:
-    if (
-        element.text is not None
-        and element.text.lower() not in self._VALID_GENDERS
-    ):
-      raise loggers.ElectionError.from_message(
-          f"Person object has invalid gender value: {element.text}",
-          [element],
-      )
-
-
 class URIValidator(base.BaseRule):
   """Basic URL validations.
 
@@ -1395,85 +1338,6 @@ class ValidJurisdictionID(base.ValidReferenceRule):
     return {elem.get("objectId") for elem in gp_unit_elements}
 
 
-class OfficesHaveValidOfficeLevel(base.BaseRule):
-  """Each office must have a valid office-level."""
-
-  def elements(self) -> list[str]:
-    return ["Office"]
-
-  def check(self, element: etree._Element) -> None:
-    office_levels = []
-    post_office_split_office_level_element = element.find("Level")
-    if rule_util.element_has_text(post_office_split_office_level_element):
-      office_levels.append(post_office_split_office_level_element.text)
-    else:
-      office_levels = [
-          ol_id.strip()
-          for ol_id in rule_util.get_external_id_values(element, "office-level")
-          if ol_id.strip()
-      ]
-
-    if not office_levels:
-      raise loggers.ElectionError.from_message(
-          "Office is missing an office level.",
-          [element],
-      )
-    if len(office_levels) > 1:
-      raise loggers.ElectionError.from_message(
-          "Office has more than one office level.",
-          [element],
-      )
-    office_level = office_levels[0]
-    if office_level not in office_utils.VALID_OFFICE_LEVELS:
-      raise loggers.ElectionError.from_message(
-          f"Office has an invalid office level: '{office_level}'.",
-          [element],
-      )
-
-
-class OfficesHaveValidOfficeRole(base.BaseRule):
-  """Each office must have valid office role(s)."""
-
-  def elements(self) -> list[str]:
-    return ["Office"]
-
-  def check(self, element: etree._Element) -> None:
-    office_roles = [role.text for role in element.findall("Role")]
-    if not office_roles:
-      office_roles = [
-          office_role.strip()
-          for office_role in rule_util.get_external_id_values(
-              element, "office-role"
-          )
-      ]
-
-    if not office_roles:
-      raise loggers.ElectionError.from_message(
-          "Office is missing an office role.",
-          [element],
-      )
-    if len(office_roles) == 1:
-      office_role = office_roles[0]
-      if office_role not in office_utils.VALID_OFFICE_ROLES:
-        raise loggers.ElectionError.from_message(
-            f"Office has an invalid office role: '{office_role}'.",
-            [element],
-        )
-    elif len(office_roles) == 2:
-      if set(office_roles) not in _VALID_OFFICE_ROLE_COMBINATIONS:
-        raise loggers.ElectionError.from_message(
-            "Office has an invalid combination of office roles: "
-            f"{office_roles}. Valid combinations are "
-            f"{_VALID_OFFICE_ROLE_COMBINATIONS}.",
-            [element],
-        )
-    else:
-      raise loggers.ElectionError.from_message(
-          "Office has more than two office roles.",
-          [element],
-      )
-
-
 class DiplomaticOfficesHaveCorrespondingGpUnitsSet(base.BaseRule):
   """Offices with the 'diplomat' role must have a sending or receiving state."""
 
@@ -1556,37 +1420,6 @@ class GpUnitsHaveInternationalizedName(base.SchemaRule):
       raise loggers.ElectionError(error_log)
 
 
-class MissingFieldsError(base.MissingFieldRule):
-  """Check for missing fields for given entity types and field names.
-
-  Raise error for missing fields. To add a field, include the entity
-  and field in element_field_mapping.
-  """
-
-  def get_severity(self) -> int:
-    return 2
-
-  def element_field_mapping(self) -> dict[str, list[str]]:
-    return {
-        "Person": [
-            "FullName//Text",
-        ],
-        "Candidate": [
-            "PersonId",
-        ],
-        "Election": [
-            "StartDate",
-            "EndDate",
-        ],
-        "Party": [
-            "PartyScopeGpUnitIds",
-        ],
-        "Coalition": [
-            "PartyScopeGpUnitIds",
-        ],
-    }
-
-
 class MissingFieldsWarning(base.MissingFieldRule):
   """Check for missing fields for given entity types and field names.
 
@@ -1607,20 +1440,6 @@ class MissingFieldsWarning(base.MissingFieldRule):
             "TotalSeats",
         ],
     }
-
-
-class MissingFieldsInfo(base.MissingFieldRule):
-  """Check for missing fields for given entity types and field names.
-
-  Raise info for missing fields. To add a field, include the entity
-  and field in element_field_mapping.
-  """
-
-  def get_severity(self) -> int:
-    return 0
-
-  def element_field_mapping(self) -> dict[str, list[str]]:
-    return {}
 
 
 class PartySpanMultipleCountries(base.BaseRule):
@@ -1908,20 +1727,6 @@ class UnreferencedEntitiesBase(base.TreeRule, base.SchemaRule):
               " referenced by anything else in the feed.",
               [element],
           )
-
-
-class CoalitionParties(base.BaseRule):
-  """Coalitions should always define the Party IDs."""
-
-  def elements(self) -> list[str]:
-    return ["Coalition"]
-
-  def check(self, element: etree._Element) -> None:
-    party_id = element.find("PartyIds")
-    if party_id is None or not party_id.text or not party_id.text.strip():
-      raise loggers.ElectionError.from_message(
-          "Coalition must define PartyIDs", [element]
-      )
 
 
 class ValidatePartyCollection(base.BaseRule):
@@ -2221,12 +2026,10 @@ COMMON_RULES = (
     AllLanguages,
     BadCharactersInPersonFullName,
     CandidateImageInContactInformation,
-    CoalitionParties,
     DateOfBirthIsInPast,
     DeprecatedPartyLeadershipSchema,
     DiplomaticOfficesHaveCorrespondingGpUnitsSet,
     DuplicateGpUnits,
-    DuplicateID,
     DuplicatedGpUnitOcdId,
     DuplicatedPartyAbbreviation,
     DuplicatedPartyName,
@@ -2240,8 +2043,6 @@ COMMON_RULES = (
     GpUnitsHaveSingleRoot,
     IndependentPartyName,
     LanguageCode,
-    MissingFieldsError,
-    MissingFieldsInfo,
     MissingFieldsWarning,
     MissingOfficeSelectionMethod,
     MissingPartyAbbreviationTranslation,
@@ -2250,15 +2051,12 @@ COMMON_RULES = (
     MultipleInternationalizedTextWithSameLanguageCode,
     NonExecutiveOfficeShouldHaveGovernmentBody,
     OfficesHaveJurisdictionID,
-    OfficesHaveValidOfficeLevel,
-    OfficesHaveValidOfficeRole,
     OnlyOneCandidateImagePerPerson,
     OptionalAndEmpty,
     OtherType,
     PartyLeadershipMustExist,
     PartySpanMultipleCountries,
     PersonHasUniqueFullName,
-    PersonsHaveValidGender,
     PersonsMissingPartyData,
     Schema,
     URIValidator,

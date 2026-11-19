@@ -80,27 +80,9 @@ class EinMatchesFormat(base.BaseRule):
           )
 
 
-class AffiliationHasEitherPartyOrPerson(base.BaseRule):
-  """Affiliation should contain either a Party or a Person objectId."""
-
-  def elements(self) -> list[str]:
-    return ["Affiliation"]
-
-  def check(self, element: etree._Element) -> None:
-    party_id = element.find("PartyId")
-    person_id = element.find("PersonId")
-    if not ((party_id is None) ^ (person_id is None)):
-      raise loggers.ElectionError.from_message(
-          "Affiliation must have one of: PartyId, PersonId. Cannot include"
-          " both.",
-          [element],
-      )
-
-
 COMMITTEE_RULES = common_rules.COMMON_RULES + (
     # go/keep-sorted start
     AffiliationEndDateOccursAfterStartDate,
-    AffiliationHasEitherPartyOrPerson,
     CommitteeClassificationEndDateOccursAfterStartDate,
     EinMatchesFormat,
     common_rules.ProhibitElectionData,
