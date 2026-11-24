@@ -720,5 +720,33 @@ class GetLanguageToTextMapTest(absltest.TestCase):
     self.assertEmpty(language_map)
 
 
+class GetFloatTest(parameterized.TestCase):
+
+  @parameterized.named_parameters(
+      ("integer", "<Count>5</Count>", 5.0),
+      ("decimal", "<Count>12.5</Count>", 12.5),
+      ("negative", "<Count>-0.5</Count>", -0.5),
+      ("exponent", "<Count>1e3</Count>", 1000.0),
+      ("surrounding_whitespace", "<Count> 7.25 </Count>", 7.25),
+  )
+  def test_get_float_returns_float(self, element_string, expected_float):
+    element = etree.fromstring(element_string)
+
+    self.assertEqual(rule_util.get_float(element), expected_float)
+
+  @parameterized.named_parameters(
+      ("empty", "<Count/>"),
+      ("whitespace", "<Count> </Count>"),
+      ("word", "<Count>five</Count>"),
+  )
+  def test_get_float_without_float_text_returns_none(self, element_string):
+    element = etree.fromstring(element_string)
+
+    self.assertIsNone(rule_util.get_float(element))
+
+  def test_get_float_none_element_returns_none(self):
+    self.assertIsNone(rule_util.get_float(None))
+
+
 if __name__ == "__main__":
   absltest.main()

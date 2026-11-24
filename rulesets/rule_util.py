@@ -148,6 +148,16 @@ def element_has_text(element: etree._Element | None) -> bool:
   )
 
 
+def get_float(element: etree._Element | None) -> float | None:
+  """Returns the element's text as a float, or None if it isn't one."""
+  if not element_has_text(element):
+    return None
+  try:
+    return float(element.text.strip())
+  except ValueError:
+    return None
+
+
 def country_code_is_valid(country_code: str) -> bool:
   # EU is part of ISO 3166/MA
   return (

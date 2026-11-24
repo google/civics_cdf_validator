@@ -99,6 +99,31 @@ class PercentSumTest(parameterized.TestCase):
 
     self.validator.check(element)
 
+  @parameterized.named_parameters(
+      ("missing_count", ""),
+      ("count_not_a_number", "<Count>sixty</Count>"),
+  )
+  def test_percent_without_numeric_count_is_ignored_succeeds(self, count):
+    element_string = f"""
+      <Contest>
+        <BallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <OtherType>total-percent</OtherType>
+              {count}
+            </VoteCounts>
+            <VoteCounts>
+              <OtherType>total-percent</OtherType>
+              <Count>100.0</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </BallotSelection>
+      </Contest>
+    """
+    element = etree.fromstring(element_string)
+
+    self.validator.check(element)
+
   def test_invalid_percents_fails(self):
     element_string = """
       <Contest>
@@ -3034,6 +3059,134 @@ class VoteCountValidSeatsDeltaTypesTest(parameterized.TestCase):
     ballot_selection = '<BallotSelection objectId="bs-0" />'
 
     self.validator.check(etree.fromstring(ballot_selection))
+
+
+class VoteCountsNotNegativeTest(parameterized.TestCase):
+
+  def setUp(self):
+    super().setUp()
+    self.validator = election_rules.VoteCountsNotNegative()
+
+  def test_registered_in_election_rules(self):
+    self.assertIn(election_rules.VoteCountsNotNegative, rules.ELECTION_RULES)
+
+  def test_elements_returns_vote_counts(self):
+    self.assertEqual(self.validator.elements(), ["VoteCounts"])
+
+  @parameterized.parameters("0", "-0", "0.0", "12", " 45.5 ")
+  def test_zero_or_positive_count_succeeds(self, count):
+    vote_counts = f"""
+      <VoteCounts>
+        <Type>total</Type>
+        <Count>{count}</Count>
+      </VoteCounts>
+    """
+
+    self.validator.check(etree.fromstring(vote_counts))
+
+  @parameterized.parameters(
+      "seats-delta",
+      "seats-delta-mandate",
+      "seats-delta-institutional",
+  )
+  def test_negative_seats_delta_count_succeeds(self, other_type):
+    vote_counts = f"""
+      <VoteCounts>
+        <Type>other</Type>
+        <OtherType>{other_type}</OtherType>
+        <Count>-2</Count>
+      </VoteCounts>
+    """
+
+    self.validator.check(etree.fromstring(vote_counts))
+
+  @parameterized.parameters("total", "early", "election-day", "write-in")
+  def test_negative_count_fails(self, vote_count_type):
+    vote_counts = f"""
+      <VoteCounts>
+        <Type>{vote_count_type}</Type>
+        <Count>-3</Count>
+      </VoteCounts>
+    """
+    element = etree.fromstring(vote_counts)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(element)
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        f"VoteCounts of type '{vote_count_type}' has a negative Count of -3."
+        " Only seats-delta, seats-delta-institutional, seats-delta-mandate"
+        " VoteCounts can be negative.",
+    )
+    self.assertEqual(context.exception.log_entry[0].elements, [element])
+
+  @parameterized.parameters(
+      "seats-won",
+      "seats-leading",
+      "seats-no-election",
+      "seats-total",
+      "party-votes",
+      "candidate-votes",
+      "total-percent",
+  )
+  def test_negative_count_with_other_type_fails(self, other_type):
+    vote_counts = f"""
+      <VoteCounts>
+        <Type>other</Type>
+        <OtherType>{other_type}</OtherType>
+        <Count>-0.5</Count>
+      </VoteCounts>
+    """
+    element = etree.fromstring(vote_counts)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(element)
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        f"VoteCounts of type '{other_type}' has a negative Count of -0.5."
+        " Only seats-delta, seats-delta-institutional, seats-delta-mandate"
+        " VoteCounts can be negative.",
+    )
+    self.assertEqual(context.exception.log_entry[0].elements, [element])
+
+  def test_negative_seats_delta_other_type_without_type_other_fails(self):
+    vote_counts = """
+      <VoteCounts>
+        <Type>total</Type>
+        <OtherType>seats-delta-mandate</OtherType>
+        <Count>-1</Count>
+      </VoteCounts>
+    """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(vote_counts))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "VoteCounts of type 'total' has a negative Count of -1. Only"
+        " seats-delta, seats-delta-institutional, seats-delta-mandate"
+        " VoteCounts can be negative.",
+    )
+
+  def test_missing_count_succeeds(self):
+    vote_counts = """
+      <VoteCounts>
+        <Type>total</Type>
+      </VoteCounts>
+    """
+
+    self.validator.check(etree.fromstring(vote_counts))
+
+  def test_non_numeric_count_succeeds(self):
+    vote_counts = """
+      <VoteCounts>
+        <Type>total</Type>
+        <Count>-abc</Count>
+      </VoteCounts>
+    """
+
+    self.validator.check(etree.fromstring(vote_counts))
 
 
 class OfficeHasjurisdictionSameAsElectoralDistrictTest(absltest.TestCase):
@@ -7974,6 +8127,42 @@ class ValidateIncludeInAggregationBallotSelectionsTest(parameterized.TestCase):
           <VoteCountsCollection>
             <VoteCounts>
               <Type>total</Type>
+            </VoteCounts>
+            <VoteCounts>
+              <Type>total</Type>
+              <Count>5</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </{selection_tag}>
+      </Contest>
+    """
+
+    self.validator.check(etree.fromstring(contest))
+
+  @parameterized.parameters(
+      ("CandidateContest", "CandidateSelection"),
+      ("PartyContest", "PartySelection"),
+  )
+  def test_count_that_is_not_a_number_is_ignored_succeeds(
+      self, contest_type, selection_tag
+  ):
+    contest = f"""
+      <Contest objectId="con0" xsi:type="{contest_type}"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <AggregateBallotSelection>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>total</Type>
+              <Count>10</Count>
+            </VoteCounts>
+          </VoteCountsCollection>
+        </AggregateBallotSelection>
+        <{selection_tag} objectId="sel0">
+          <IncludedInAggregation>true</IncludedInAggregation>
+          <VoteCountsCollection>
+            <VoteCounts>
+              <Type>total</Type>
+              <Count>many</Count>
             </VoteCounts>
             <VoteCounts>
               <Type>total</Type>
