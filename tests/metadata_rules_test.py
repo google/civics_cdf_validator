@@ -422,6 +422,12 @@ class SqsQueueNameIsFullyQualifiedArnTest(absltest.TestCase):
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
 
+  def test_metadata_rules_include_sqs_queue_name_is_fully_qualified_arn(self):
+    self.assertIn(
+        metadata_rules.SqsQueueNameIsFullyQualifiedArn,
+        metadata_rules.METADATA_RULES,
+    )
+
 
 class SqsQueueNameRequiresS3SourceDirPathTest(absltest.TestCase):
 
@@ -484,6 +490,165 @@ class SqsQueueNameRequiresS3SourceDirPathTest(absltest.TestCase):
         " s3 path for feed test-feed.",
     )
     self.assertEqual(context.exception.log_entry[0].elements[0].tag, "Feed")
+
+
+class SqsQueueNamesAreUniqueTest(parameterized.TestCase):
+
+  def setUp(self):
+    super().setUp()
+    self.validator = metadata_rules.SqsQueueNamesAreUnique()
+
+  def test_elements_returns_feed_collection(self):
+    self.assertEqual(self.validator.elements(), ["FeedCollection"])
+
+  @parameterized.named_parameters(
+      dict(
+          testcase_name="unique_sqs_queue_names",
+          feed_collection_string="""
+            <FeedCollection>
+              <Feed>
+                <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:queue-1</SqsQueueName>
+              </Feed>
+              <Feed>
+                <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:queue-2</SqsQueueName>
+              </Feed>
+              <Feed>
+                <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:queue-3</SqsQueueName>
+              </Feed>
+            </FeedCollection>
+            """,
+      ),
+      dict(
+          testcase_name="case_sensitive_queue_names",
+          feed_collection_string="""
+            <FeedCollection>
+              <Feed>
+                <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:my-queue</SqsQueueName>
+              </Feed>
+              <Feed>
+                <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:My-Queue</SqsQueueName>
+              </Feed>
+            </FeedCollection>
+            """,
+      ),
+      dict(
+          testcase_name="feeds_without_or_empty_sqs_queue_names",
+          feed_collection_string="""
+            <FeedCollection>
+              <Feed>
+                <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:queue-1</SqsQueueName>
+              </Feed>
+              <Feed>
+                <FeedId>111</FeedId>
+              </Feed>
+              <Feed>
+                <FeedId>222</FeedId>
+                <SqsQueueName></SqsQueueName>
+              </Feed>
+              <Feed>
+                <FeedId>333</FeedId>
+                <SqsQueueName>   </SqsQueueName>
+              </Feed>
+            </FeedCollection>
+            """,
+      ),
+  )
+  def test_valid_sqs_queue_names_succeeds(self, feed_collection_string: str):
+    self.validator.check(etree.fromstring(feed_collection_string))
+
+  def test_duplicate_sqs_queue_names_fails(self):
+    feed_collection_string = """
+      <FeedCollection>
+        <Feed>
+          <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:queue-1</SqsQueueName>
+        </Feed>
+        <Feed>
+          <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:queue-2</SqsQueueName>
+        </Feed>
+        <Feed>
+          <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:queue-1</SqsQueueName>
+        </Feed>
+      </FeedCollection>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_collection_string))
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "SqsQueueName arn:aws:sqs:us-east-1:123456789012:queue-1 appears"
+        " multiple times in the metadata feed. SqsQueueNames must be unique.",
+    )
+
+  def test_duplicate_sqs_queue_names_with_whitespace_fails(self):
+    feed_collection_string = """
+      <FeedCollection>
+        <Feed>
+          <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:queue-1</SqsQueueName>
+        </Feed>
+        <Feed>
+          <SqsQueueName>
+            arn:aws:sqs:us-east-1:123456789012:queue-1
+          </SqsQueueName>
+        </Feed>
+      </FeedCollection>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_collection_string))
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "SqsQueueName arn:aws:sqs:us-east-1:123456789012:queue-1 appears"
+        " multiple times in the metadata feed. SqsQueueNames must be unique.",
+    )
+
+  def test_multiple_duplicates_report_each_duplicate_fails(self):
+    feed_collection_string = """
+      <FeedCollection>
+        <Feed>
+          <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:queue-1</SqsQueueName>
+        </Feed>
+        <Feed>
+          <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:queue-1</SqsQueueName>
+        </Feed>
+        <Feed>
+          <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:queue-1</SqsQueueName>
+        </Feed>
+      </FeedCollection>
+      """
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(etree.fromstring(feed_collection_string))
+    self.assertLen(context.exception.log_entry, 2)
+
+  def test_duplicate_sqs_queue_name_reports_feed_and_queue_elements(self):
+    feed_collection = etree.fromstring("""
+      <FeedCollection>
+        <Feed>
+          <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:queue-1</SqsQueueName>
+        </Feed>
+        <Feed>
+          <SqsQueueName>arn:aws:sqs:us-east-1:123456789012:queue-1</SqsQueueName>
+        </Feed>
+      </FeedCollection>
+      """)
+    duplicate_feed = feed_collection.findall("Feed")[1]
+    duplicate_sqs_queue_name = duplicate_feed.find("SqsQueueName")
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(feed_collection)
+    self.assertEqual(
+        context.exception.log_entry[0].elements,
+        [duplicate_feed, duplicate_sqs_queue_name],
+    )
+    self.assertEqual(context.exception.log_entry[0].lines, [6, 7])
+
+  def test_metadata_rules_include_sqs_queue_names_are_unique(self):
+    self.assertIn(
+        metadata_rules.SqsQueueNamesAreUnique,
+        metadata_rules.METADATA_RULES,
+    )
 
 
 class ElectionEventDatesAreSequentialTest(absltest.TestCase):

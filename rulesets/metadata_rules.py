@@ -197,6 +197,36 @@ class SqsQueueNameRequiresS3SourceDirPath(base.BaseRule):
       )
 
 
+class SqsQueueNamesAreUnique(base.BaseRule):
+  """All SqsQueueNames should be unique within a metadata feed."""
+
+  def elements(self) -> list[str]:
+    return ["FeedCollection"]
+
+  def check(self, element: etree._Element) -> None:
+    sqs_queue_names = set()
+    error_log = []
+    for feed_element in element.findall("Feed"):
+      sqs_queue_name_element = feed_element.find("SqsQueueName")
+      if not rule_util.element_has_text(sqs_queue_name_element):
+        continue
+      sqs_queue_name = sqs_queue_name_element.text.strip()
+      if not sqs_queue_name:
+        continue
+      if sqs_queue_name in sqs_queue_names:
+        error_log.append(
+            loggers.LogEntry(
+                f"SqsQueueName {sqs_queue_name} appears multiple times in the"
+                " metadata feed. SqsQueueNames must be unique.",
+                [feed_element, sqs_queue_name_element],
+            )
+        )
+      sqs_queue_names.add(sqs_queue_name)
+
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
 class ElectionEventDatesAreSequential(base.DateRule):
   """Dates in an ElectionEvent element should be sequential."""
 
@@ -464,9 +494,9 @@ METADATA_RULES = (
     OfficeholderSubFeedDatesAreSequential,
     SourceDirPathMustBeSetAfterInitialDeliveryDate,
     SourceDirPathsAreUnique,
-    # TODO(b/555757644): Reenable this rule once we are ready to enforce it.
-    # SqsQueueNameIsFullyQualifiedArn,
+    SqsQueueNameIsFullyQualifiedArn,
     SqsQueueNameRequiresS3SourceDirPath,
+    SqsQueueNamesAreUnique,
     common_rules.EmptyString,
     common_rules.EmptyText,
     common_rules.Encoding,
