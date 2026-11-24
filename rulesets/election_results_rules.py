@@ -257,8 +257,61 @@ class ValidateSeatsNoElection(base.SchemaRule):
       )
 
 
+class BlankNullAndNoneOfTheAboveTotalsRequired(base.BaseRule):
+  """Checks the vote totals of blank, null, and none of the above selections.
+
+  Election results feeds must report total VoteCounts for every
+  BlankBallotSelection, NullBallotSelection, and NoneOfTheAboveBallotSelection.
+  Those selections must also report total-percent VoteCounts when
+  CountedInTotal is true, and must not report them when it is false.
+  """
+
+  def elements(self) -> list[str]:
+    return [
+        "BlankBallotSelection",
+        "NoneOfTheAboveBallotSelection",
+        "NullBallotSelection",
+    ]
+
+  def check(self, element: etree._Element) -> None:
+    selection_name = f"{element.tag} {element.get('objectId')}"
+    vote_count_types = _get_vote_count_types(element)
+    error_log = []
+    if "total" not in vote_count_types:
+      error_log.append(
+          loggers.LogEntry(
+              f"{selection_name} is missing VoteCounts of type total.",
+              [element],
+          )
+      )
+    counted_in_total = element.find("CountedInTotal")
+    if rule_util.element_has_text(counted_in_total):
+      has_total_percent = "total-percent" in vote_count_types
+      if rule_util.is_xml_true(counted_in_total):
+        if not has_total_percent:
+          error_log.append(
+              loggers.LogEntry(
+                  f"{selection_name} is missing VoteCounts of type"
+                  " total-percent, which is required when CountedInTotal is"
+                  " true.",
+                  [element],
+              )
+          )
+      elif has_total_percent:
+        error_log.append(
+            loggers.LogEntry(
+                f"{selection_name} has VoteCounts of type total-percent, which"
+                " are not allowed when CountedInTotal is false.",
+                [element],
+            )
+        )
+    if error_log:
+      raise loggers.ElectionError(error_log)
+
+
 ELECTION_RESULTS_RULES = election_rules.ELECTION_RULES + (
     # go/keep-sorted start
+    BlankNullAndNoneOfTheAboveTotalsRequired,
     CandidateAndBallotMeasureSelectionTotalsRequired,
     DataSourcesRequired,
     PartySelectionSeatCountsRequired,

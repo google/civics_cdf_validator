@@ -920,5 +920,174 @@ class ValidateSeatsNoElectionTest(parameterized.TestCase):
     )
 
 
+_SPECIAL_SELECTION_TAGS = (
+    "BlankBallotSelection",
+    "NoneOfTheAboveBallotSelection",
+    "NullBallotSelection",
+)
+
+
+class BlankNullAndNoneOfTheAboveTotalsRequiredTest(parameterized.TestCase):
+
+  def setUp(self):
+    super().setUp()
+    self.validator = (
+        election_results_rules.BlankNullAndNoneOfTheAboveTotalsRequired()
+    )
+
+  def test_elements_returns_blank_null_and_none_of_the_above_selections(self):
+    elements = self.validator.elements()
+
+    self.assertCountEqual(elements, _SPECIAL_SELECTION_TAGS)
+
+  @parameterized.product(
+      tag=_SPECIAL_SELECTION_TAGS, counted_in_total=("true", "1")
+  )
+  def test_counted_in_total_with_total_and_total_percent_succeeds(
+      self, tag, counted_in_total
+  ):
+    selection_string = f"""
+      <{tag} objectId="sel1">
+        <VoteCountsCollection>
+          {_TOTAL_VOTE_COUNTS}
+          {_TOTAL_PERCENT_VOTE_COUNTS}
+        </VoteCountsCollection>
+        <CountedInTotal>{counted_in_total}</CountedInTotal>
+      </{tag}>
+    """
+
+    self.validator.check(etree.fromstring(selection_string))
+
+  @parameterized.product(
+      tag=_SPECIAL_SELECTION_TAGS, counted_in_total=("false", "0")
+  )
+  def test_not_counted_in_total_with_only_total_succeeds(
+      self, tag, counted_in_total
+  ):
+    selection_string = f"""
+      <{tag} objectId="sel1">
+        <VoteCountsCollection>
+          {_TOTAL_VOTE_COUNTS}
+        </VoteCountsCollection>
+        <CountedInTotal>{counted_in_total}</CountedInTotal>
+      </{tag}>
+    """
+
+    self.validator.check(etree.fromstring(selection_string))
+
+  @parameterized.named_parameters(
+      ("only_total", _TOTAL_VOTE_COUNTS),
+      (
+          "total_and_total_percent",
+          _TOTAL_VOTE_COUNTS + _TOTAL_PERCENT_VOTE_COUNTS,
+      ),
+  )
+  def test_without_counted_in_total_with_total_succeeds(self, vote_counts):
+    selection_string = f"""
+      <BlankBallotSelection objectId="sel1">
+        <VoteCountsCollection>
+          {vote_counts}
+        </VoteCountsCollection>
+      </BlankBallotSelection>
+    """
+
+    self.validator.check(etree.fromstring(selection_string))
+
+  @parameterized.parameters(*_SPECIAL_SELECTION_TAGS)
+  def test_missing_total_fails(self, tag):
+    selection = etree.fromstring(f"""
+      <{tag} objectId="sel1">
+        <CountedInTotal>false</CountedInTotal>
+      </{tag}>
+    """)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(selection)
+
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        f"{tag} sel1 is missing VoteCounts of type total.",
+    )
+    self.assertEqual(context.exception.log_entry[0].elements, [selection])
+
+  @parameterized.parameters("true", "1")
+  def test_counted_in_total_missing_total_percent_fails(self, counted_in_total):
+    selection = etree.fromstring(f"""
+      <NullBallotSelection objectId="sel1">
+        <VoteCountsCollection>
+          {_TOTAL_VOTE_COUNTS}
+        </VoteCountsCollection>
+        <CountedInTotal>{counted_in_total}</CountedInTotal>
+      </NullBallotSelection>
+    """)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(selection)
+
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "NullBallotSelection sel1 is missing VoteCounts of type total-percent,"
+        " which is required when CountedInTotal is true.",
+    )
+    self.assertEqual(context.exception.log_entry[0].elements, [selection])
+
+  @parameterized.parameters("false", "0")
+  def test_not_counted_in_total_with_total_percent_fails(
+      self, counted_in_total
+  ):
+    selection = etree.fromstring(f"""
+      <NoneOfTheAboveBallotSelection objectId="sel1">
+        <VoteCountsCollection>
+          {_TOTAL_VOTE_COUNTS}
+          {_TOTAL_PERCENT_VOTE_COUNTS}
+        </VoteCountsCollection>
+        <CountedInTotal>{counted_in_total}</CountedInTotal>
+      </NoneOfTheAboveBallotSelection>
+    """)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(selection)
+
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "NoneOfTheAboveBallotSelection sel1 has VoteCounts of type"
+        " total-percent, which are not allowed when CountedInTotal is false.",
+    )
+    self.assertEqual(context.exception.log_entry[0].elements, [selection])
+
+  def test_counted_in_total_without_vote_counts_reports_both_errors(self):
+    selection = etree.fromstring("""
+      <BlankBallotSelection objectId="sel1">
+        <CountedInTotal>true</CountedInTotal>
+      </BlankBallotSelection>
+    """)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(selection)
+
+    messages = [
+        log_entry.message for log_entry in context.exception.log_entry
+    ]
+    self.assertEqual(
+        messages,
+        [
+            "BlankBallotSelection sel1 is missing VoteCounts of type total.",
+            (
+                "BlankBallotSelection sel1 is missing VoteCounts of type"
+                " total-percent, which is required when CountedInTotal is true."
+            ),
+        ],
+    )
+
+  def test_election_results_rules_include_special_selection_totals(self):
+    self.assertIn(
+        election_results_rules.BlankNullAndNoneOfTheAboveTotalsRequired,
+        election_results_rules.ELECTION_RESULTS_RULES,
+    )
+
+
 if __name__ == "__main__":
   absltest.main()
