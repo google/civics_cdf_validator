@@ -16,6 +16,7 @@
 from civics_cdf_validator import base
 from civics_cdf_validator import loggers
 from civics_cdf_validator.rulesets import election_rules
+from civics_cdf_validator.rulesets import rule_util
 from lxml import etree
 
 _REQUIRED_CONTEST_RESULTS_FIELDS = (
@@ -25,6 +26,16 @@ _REQUIRED_CONTEST_RESULTS_FIELDS = (
 )
 
 _SUB_UNITS_FIELD_NAMES = ("SubUnitsReported", "TotalSubUnits")
+
+_VOTE_TOTAL_TYPES = ("total", "total-percent")
+
+
+def _get_vote_count_types(selection: etree._Element) -> set[str]:
+  """Returns the types of the VoteCounts in a ballot selection."""
+  return {
+      rule_util.get_type_or_other_type(vote_counts)
+      for vote_counts in selection.findall("VoteCountsCollection/VoteCounts")
+  }
 
 
 class RequiredContestResultsFieldsSet(base.SchemaRule):
@@ -100,8 +111,56 @@ class ValidatePercentReporting(base.SchemaRule):
       )
 
 
+class CandidateAndBallotMeasureSelectionTotalsRequired(base.SchemaRule):
+  """Checks that candidate and ballot measure selections report vote totals.
+
+  Election results feeds must report total and total-percent VoteCounts for
+  every CandidateSelection and BallotMeasureSelection, and for the
+  AggregateBallotSelection of every CandidateContest and BallotMeasureContest.
+  """
+
+  def setup(self) -> None:
+    self.aggregate_contest_types = {
+        "BallotMeasureContest",
+        "CandidateContest",
+        *self.get_all_subtypes("BallotMeasureContest"),
+        *self.get_all_subtypes("CandidateContest"),
+    }
+
+  def elements(self) -> list[str]:
+    return [
+        "AggregateBallotSelection",
+        "BallotMeasureSelection",
+        "CandidateSelection",
+        *self.get_all_subtypes("BallotMeasureSelection"),
+        *self.get_all_subtypes("CandidateSelection"),
+    ]
+
+  def check(self, element: etree._Element) -> None:
+    element_class = self.get_element_class(element)
+    if (
+        element_class == "AggregateBallotSelection"
+        and self.get_element_class(element.getparent())
+        not in self.aggregate_contest_types
+    ):
+      return
+    vote_count_types = _get_vote_count_types(element)
+    missing_types = [
+        vote_total_type
+        for vote_total_type in _VOTE_TOTAL_TYPES
+        if vote_total_type not in vote_count_types
+    ]
+    if missing_types:
+      raise loggers.ElectionError.from_message(
+          f"{element_class} {element.get('objectId')} is missing VoteCounts of"
+          f" type(s) {', '.join(missing_types)}.",
+          [element],
+      )
+
+
 ELECTION_RESULTS_RULES = election_rules.ELECTION_RULES + (
     # go/keep-sorted start
+    CandidateAndBallotMeasureSelectionTotalsRequired,
     DataSourcesRequired,
     RequiredContestResultsFieldsSet,
     ValidatePercentReporting,

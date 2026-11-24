@@ -49,23 +49,6 @@ _SEATS_DELTA_VOTE_COUNT_TYPES = frozenset([
 ])
 
 
-def _get_type_or_other_type(element: etree._Element) -> str:
-  """Returns the OtherType text if Type is "other", else the Type text."""
-  type_element = element.find("Type")
-  other_type_element = element.find("OtherType")
-  type_text = (
-      type_element.text.strip()
-      if rule_util.element_has_text(type_element)
-      else ""
-  )
-  other_type_text = (
-      other_type_element.text.strip()
-      if rule_util.element_has_text(other_type_element)
-      else ""
-  )
-  return other_type_text if type_text == "other" else type_text
-
-
 class PercentSum(base.SchemaRule):
   """Check that Contest elements have percents summing to 0 or 100.
 
@@ -97,9 +80,7 @@ class PercentSum(base.SchemaRule):
       ):
         other_type = vote_counts.find("OtherType")
         if other_type is not None and other_type.text == "total-percent":
-          count = rule_util.get_float(vote_counts.find("Count"))
-          if count is not None:
-            sum_percents += count
+          sum_percents += rule_util.get_float(vote_counts.find("Count")) or 0
     if not PercentSum.fuzzy_equals(
         sum_percents, 0
     ) and not PercentSum.fuzzy_equals(sum_percents, 100):
@@ -772,11 +753,8 @@ class VoteCountValidSeatsDeltaTypes(base.SchemaRule):
 
   def check(self, element: etree._Element) -> None:
     vote_count_types = set()
-    vote_counts_collection = element.find("VoteCountsCollection")
-    if vote_counts_collection is None:
-      return
-    for vote_counts in vote_counts_collection.findall("VoteCounts"):
-      vote_count_types.add(_get_type_or_other_type(vote_counts))
+    for vote_counts in element.findall("VoteCountsCollection/VoteCounts"):
+      vote_count_types.add(rule_util.get_type_or_other_type(vote_counts))
     if "seats-delta" in vote_count_types:
       raise loggers.ElectionError.from_message(
           "Legacy VoteCounts type seats-delta is no longer supported as of"
@@ -801,7 +779,7 @@ class VoteCountsNotNegative(base.BaseRule):
     count = rule_util.get_float(count_element)
     if count is None:
       return
-    vote_count_type = _get_type_or_other_type(element)
+    vote_count_type = rule_util.get_type_or_other_type(element)
     if count < 0 and vote_count_type not in _SEATS_DELTA_VOTE_COUNT_TYPES:
       raise loggers.ElectionError.from_message(
           f"VoteCounts of type '{vote_count_type}' has a negative Count of"
@@ -2365,16 +2343,12 @@ class ValidateIncludeInAggregationBallotSelections(base.BaseRule):
   ) -> collections.defaultdict[tuple[str, str], float]:
     """Gathers vote counts from a selection element grouped by type."""
     count_by_type_and_gp_unit = collections.defaultdict(float)
-    vote_counts_collection = element.find("VoteCountsCollection")
-    if vote_counts_collection is None:
-      return count_by_type_and_gp_unit
-
-    for vote_counts in vote_counts_collection.findall("VoteCounts"):
+    for vote_counts in element.findall("VoteCountsCollection/VoteCounts"):
       count = rule_util.get_float(vote_counts.find("Count"))
       if count is None:
         continue
 
-      vote_count_type = _get_type_or_other_type(vote_counts)
+      vote_count_type = rule_util.get_type_or_other_type(vote_counts)
       gp_unit_id_element = vote_counts.find("GpUnitId")
       gp_unit_id = (
           gp_unit_id_element.text.strip()

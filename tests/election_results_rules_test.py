@@ -7,6 +7,63 @@ from civics_cdf_validator import loggers
 from civics_cdf_validator.rulesets import election_results_rules
 from lxml import etree
 
+_SCHEMA_TREE = etree.fromstring(b"""
+  <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:complexType abstract="true" name="Contest"/>
+    <xs:complexType name="BallotMeasureContest">
+      <xs:complexContent>
+        <xs:extension base="Contest"/>
+      </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="CandidateContest">
+      <xs:complexContent>
+        <xs:extension base="Contest"/>
+      </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="PartyContest">
+      <xs:complexContent>
+        <xs:extension base="Contest"/>
+      </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="RetentionContest">
+      <xs:complexContent>
+        <xs:extension base="BallotMeasureContest"/>
+      </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType abstract="true" name="BallotSelection"/>
+    <xs:complexType name="BallotMeasureSelection">
+      <xs:complexContent>
+        <xs:extension base="BallotSelection"/>
+      </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="CandidateSelection">
+      <xs:complexContent>
+        <xs:extension base="BallotSelection"/>
+      </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="PartySelection">
+      <xs:complexContent>
+        <xs:extension base="BallotSelection"/>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:schema>
+""")
+
+_TOTAL_VOTE_COUNTS = """
+  <VoteCounts>
+    <Type>total</Type>
+    <Count>120</Count>
+  </VoteCounts>
+"""
+
+_TOTAL_PERCENT_VOTE_COUNTS = """
+  <VoteCounts>
+    <Type>other</Type>
+    <OtherType>total-percent</OtherType>
+    <Count>40</Count>
+  </VoteCounts>
+"""
+
 
 class RequiredContestResultsFieldsSetTest(parameterized.TestCase):
 
@@ -326,6 +383,191 @@ class ValidatePercentReportingTest(parameterized.TestCase):
   def test_election_results_rules_include_validate_percent_reporting(self):
     self.assertIn(
         election_results_rules.ValidatePercentReporting,
+        election_results_rules.ELECTION_RESULTS_RULES,
+    )
+
+
+class CandidateAndBallotMeasureSelectionTotalsRequiredTest(
+    parameterized.TestCase
+):
+
+  def setUp(self):
+    super().setUp()
+    self.validator = (
+        election_results_rules.CandidateAndBallotMeasureSelectionTotalsRequired(
+            schema_tree=_SCHEMA_TREE
+        )
+    )
+    self.validator.setup()
+
+  def test_elements_returns_candidate_and_ballot_measure_selections(self):
+    elements = self.validator.elements()
+
+    self.assertCountEqual(
+        elements,
+        [
+            "AggregateBallotSelection",
+            "BallotMeasureSelection",
+            "CandidateSelection",
+        ],
+    )
+
+  def test_elements_includes_selection_subtypes(self):
+    schema_tree = etree.fromstring(b"""
+      <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:complexType name="CandidateSelection">
+          <xs:complexContent>
+            <xs:extension base="BallotSelection"/>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="WriteInCandidateSelection">
+          <xs:complexContent>
+            <xs:extension base="CandidateSelection"/>
+          </xs:complexContent>
+        </xs:complexType>
+      </xs:schema>
+    """)
+    validator = (
+        election_results_rules.CandidateAndBallotMeasureSelectionTotalsRequired(
+            schema_tree=schema_tree
+        )
+    )
+
+    elements = validator.elements()
+
+    self.assertIn("WriteInCandidateSelection", elements)
+
+  @parameterized.parameters("BallotMeasureSelection", "CandidateSelection")
+  def test_selection_with_vote_totals_succeeds(self, selection_type):
+    selection_string = f"""
+      <BallotSelection objectId="bs1" xsi:type="{selection_type}"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <VoteCountsCollection>
+          {_TOTAL_VOTE_COUNTS}
+          {_TOTAL_PERCENT_VOTE_COUNTS}
+        </VoteCountsCollection>
+      </BallotSelection>
+    """
+
+    self.validator.check(etree.fromstring(selection_string))
+
+  @parameterized.named_parameters(
+      (
+          "no_vote_counts",
+          "CandidateSelection",
+          "",
+          "total, total-percent",
+      ),
+      (
+          "no_total",
+          "BallotMeasureSelection",
+          _TOTAL_PERCENT_VOTE_COUNTS,
+          "total",
+      ),
+      (
+          "no_total_percent",
+          "CandidateSelection",
+          _TOTAL_VOTE_COUNTS,
+          "total-percent",
+      ),
+  )
+  def test_selection_missing_vote_totals_fails(
+      self, selection_type, vote_counts, missing_types
+  ):
+    selection = etree.fromstring(f"""
+      <BallotSelection objectId="bs1" xsi:type="{selection_type}"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <VoteCountsCollection>
+          {vote_counts}
+        </VoteCountsCollection>
+      </BallotSelection>
+    """)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(selection)
+
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        f"{selection_type} bs1 is missing VoteCounts of type(s)"
+        f" {missing_types}.",
+    )
+    self.assertEqual(context.exception.log_entry[0].elements, [selection])
+
+  def test_selection_without_vote_counts_collection_fails(self):
+    selection = etree.fromstring("<CandidateSelection objectId='cs1'/>")
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(selection)
+
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "CandidateSelection cs1 is missing VoteCounts of type(s) total,"
+        " total-percent.",
+    )
+
+  @parameterized.parameters(
+      "BallotMeasureContest", "CandidateContest", "RetentionContest"
+  )
+  def test_aggregate_ballot_selection_with_vote_totals_succeeds(
+      self, contest_type
+  ):
+    contest = etree.fromstring(f"""
+      <Contest objectId="con1" xsi:type="{contest_type}"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <AggregateBallotSelection objectId="agg1">
+          <VoteCountsCollection>
+            {_TOTAL_VOTE_COUNTS}
+            {_TOTAL_PERCENT_VOTE_COUNTS}
+          </VoteCountsCollection>
+        </AggregateBallotSelection>
+      </Contest>
+    """)
+
+    self.validator.check(contest.find("AggregateBallotSelection"))
+
+  @parameterized.parameters(
+      "BallotMeasureContest", "CandidateContest", "RetentionContest"
+  )
+  def test_aggregate_ballot_selection_missing_vote_totals_fails(
+      self, contest_type
+  ):
+    contest = etree.fromstring(f"""
+      <Contest objectId="con1" xsi:type="{contest_type}"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <AggregateBallotSelection objectId="agg1">
+          <VoteCountsCollection>
+            {_TOTAL_VOTE_COUNTS}
+          </VoteCountsCollection>
+        </AggregateBallotSelection>
+      </Contest>
+    """)
+    aggregate_selection = contest.find("AggregateBallotSelection")
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(aggregate_selection)
+
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "AggregateBallotSelection agg1 is missing VoteCounts of type(s)"
+        " total-percent.",
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements, [aggregate_selection]
+    )
+
+  def test_aggregate_ballot_selection_in_party_contest_succeeds(self):
+    contest = etree.fromstring("""
+      <Contest objectId="con1" xsi:type="PartyContest"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <AggregateBallotSelection objectId="agg1"/>
+      </Contest>
+    """)
+
+    self.validator.check(contest.find("AggregateBallotSelection"))
+
+  def test_election_results_rules_include_selection_totals_required(self):
+    self.assertIn(
+        election_results_rules.CandidateAndBallotMeasureSelectionTotalsRequired,
         election_results_rules.ELECTION_RESULTS_RULES,
     )
 

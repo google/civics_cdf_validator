@@ -720,6 +720,57 @@ class GetLanguageToTextMapTest(absltest.TestCase):
     self.assertEmpty(language_map)
 
 
+class GetTypeOrOtherTypeTest(parameterized.TestCase):
+
+  @parameterized.named_parameters(
+      ("type", "<VoteCounts><Type>total</Type></VoteCounts>", "total"),
+      (
+          "other_type_when_type_is_other",
+          """
+          <VoteCounts>
+            <Type>other</Type>
+            <OtherType>seats-won</OtherType>
+          </VoteCounts>
+          """,
+          "seats-won",
+      ),
+      (
+          "type_when_type_is_not_other",
+          """
+          <VoteCounts>
+            <Type>total</Type>
+            <OtherType>seats-won</OtherType>
+          </VoteCounts>
+          """,
+          "total",
+      ),
+      (
+          "stripped_type_and_other_type",
+          """
+          <VoteCounts>
+            <Type> other </Type>
+            <OtherType> seats-won </OtherType>
+          </VoteCounts>
+          """,
+          "seats-won",
+      ),
+      (
+          "empty_when_type_is_missing",
+          "<VoteCounts><OtherType>seats-won</OtherType></VoteCounts>",
+          "",
+      ),
+      (
+          "empty_when_other_type_is_missing",
+          "<VoteCounts><Type>other</Type></VoteCounts>",
+          "",
+      ),
+  )
+  def test_get_type_or_other_type(self, element_string, expected_type):
+    element = etree.fromstring(element_string)
+
+    self.assertEqual(rule_util.get_type_or_other_type(element), expected_type)
+
+
 class GetFloatTest(parameterized.TestCase):
 
   @parameterized.named_parameters(
