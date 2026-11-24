@@ -163,6 +163,16 @@ def get_type_or_other_type(element: etree._Element) -> str:
   return other_type_text if type_text == "other" else type_text
 
 
+def get_integer(element: etree._Element | None) -> int | None:
+  """Returns the element's text as an integer, or None if it isn't one."""
+  if not element_has_text(element):
+    return None
+  try:
+    return int(element.text.strip())
+  except ValueError:
+    return None
+
+
 def get_float(element: etree._Element | None) -> float | None:
   """Returns the element's text as a float, or None if it isn't one."""
   if not element_has_text(element):

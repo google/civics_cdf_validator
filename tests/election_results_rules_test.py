@@ -79,6 +79,36 @@ def _other_type_vote_counts(*other_types: str) -> str:
   )
 
 
+def _party_contest(
+    contest_fields: str, *selection_other_types: tuple[str, ...]
+) -> etree._Element:
+  """Returns a PartyContest with a PartySelection for each OtherTypes tuple.
+
+  The PartySelections have objectIds ps1, ps2, and so on.
+
+  Args:
+    contest_fields: XML for the PartyContest fields, such as NumberElected.
+    *selection_other_types: The VoteCounts OtherTypes of each PartySelection.
+  """
+  selections = "".join(
+      f"""
+      <BallotSelection objectId="ps{index}" xsi:type="PartySelection">
+        <VoteCountsCollection>
+          {_other_type_vote_counts(*other_types)}
+        </VoteCountsCollection>
+      </BallotSelection>
+      """
+      for index, other_types in enumerate(selection_other_types, start=1)
+  )
+  return etree.fromstring(f"""
+    <Contest objectId="con1" xsi:type="PartyContest"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      {selections}
+      {contest_fields}
+    </Contest>
+  """)
+
+
 class RequiredContestResultsFieldsSetTest(parameterized.TestCase):
 
   def setUp(self):
@@ -702,6 +732,190 @@ class PartySelectionSeatCountsRequiredTest(parameterized.TestCase):
   def test_election_results_rules_include_seat_counts_required(self):
     self.assertIn(
         election_results_rules.PartySelectionSeatCountsRequired,
+        election_results_rules.ELECTION_RESULTS_RULES,
+    )
+
+
+class ValidateSeatsNoElectionTest(parameterized.TestCase):
+
+  def setUp(self):
+    super().setUp()
+    self.validator = election_results_rules.ValidateSeatsNoElection(
+        schema_tree=_SCHEMA_TREE
+    )
+    self.validator.setup()
+
+  def _aggregate_selection_in_party_contest(
+      self, number_elected: str, other_types: tuple[str, ...]
+  ) -> etree._Element:
+    """Returns the AggregateBallotSelection of a PartyContest with 5 seats."""
+    contest = etree.fromstring(f"""
+      <Contest objectId="con1" xsi:type="PartyContest"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <AggregateBallotSelection objectId="agg1">
+          <VoteCountsCollection>
+            {_other_type_vote_counts(*other_types)}
+          </VoteCountsCollection>
+        </AggregateBallotSelection>
+        <TotalSeats>5</TotalSeats>
+        <NumberElected>{number_elected}</NumberElected>
+      </Contest>
+    """)
+    return contest.find("AggregateBallotSelection")
+
+  def test_elements_returns_party_and_aggregate_selections(self):
+    elements = self.validator.elements()
+
+    self.assertCountEqual(
+        elements, ["AggregateBallotSelection", "PartySelection"]
+    )
+
+  def test_seats_not_up_for_election_with_seats_no_election_succeeds(self):
+    contest = _party_contest(
+        "<TotalSeats>5</TotalSeats><NumberElected>3</NumberElected>",
+        ("seats-won", "seats-no-election"),
+    )
+
+    self.validator.check(contest.find("BallotSelection"))
+
+  def test_seats_not_up_for_election_without_seats_no_election_fails(self):
+    contest = _party_contest(
+        "<TotalSeats>5</TotalSeats><NumberElected>3</NumberElected>",
+        ("seats-won",),
+    )
+    selection = contest.find("BallotSelection")
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(selection)
+
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "PartySelection ps1 is missing VoteCounts of type seats-no-election,"
+        " which is required because PartyContest con1 has a NumberElected (3)"
+        " different from its TotalSeats (5).",
+    )
+    self.assertEqual(context.exception.log_entry[0].elements, [selection])
+
+  def test_all_seats_up_for_election_without_seats_no_election_succeeds(self):
+    contest = _party_contest(
+        "<TotalSeats>5</TotalSeats><NumberElected>5</NumberElected>",
+        ("seats-won",),
+    )
+
+    self.validator.check(contest.find("BallotSelection"))
+
+  def test_all_seats_up_for_election_with_seats_no_election_fails(self):
+    contest = _party_contest(
+        "<TotalSeats>5</TotalSeats><NumberElected>5</NumberElected>",
+        ("seats-won", "seats-no-election"),
+    )
+    selection = contest.find("BallotSelection")
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(selection)
+
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "PartySelection ps1 has VoteCounts of type seats-no-election, but"
+        " PartyContest con1 has a NumberElected equal to its TotalSeats (5).",
+    )
+    self.assertEqual(context.exception.log_entry[0].elements, [selection])
+
+  @parameterized.named_parameters(
+      ("seats_not_up_for_election", "3", ("seats-won", "seats-no-election")),
+      ("all_seats_up_for_election", "5", ("seats-won",)),
+  )
+  def test_aggregate_ballot_selection_succeeds(
+      self, number_elected, other_types
+  ):
+    aggregate_selection = self._aggregate_selection_in_party_contest(
+        number_elected, other_types
+    )
+
+    self.validator.check(aggregate_selection)
+
+  @parameterized.named_parameters(
+      (
+          "seats_not_up_for_election_without_seats_no_election",
+          "3",
+          ("seats-won",),
+          (
+              "AggregateBallotSelection agg1 is missing VoteCounts of type"
+              " seats-no-election, which is required because PartyContest"
+              " con1 has a NumberElected (3) different from its TotalSeats"
+              " (5)."
+          ),
+      ),
+      (
+          "all_seats_up_for_election_with_seats_no_election",
+          "5",
+          ("seats-won", "seats-no-election"),
+          (
+              "AggregateBallotSelection agg1 has VoteCounts of type"
+              " seats-no-election, but PartyContest con1 has a NumberElected"
+              " equal to its TotalSeats (5)."
+          ),
+      ),
+  )
+  def test_aggregate_ballot_selection_fails(
+      self, number_elected, other_types, expected_message
+  ):
+    aggregate_selection = self._aggregate_selection_in_party_contest(
+        number_elected, other_types
+    )
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(aggregate_selection)
+
+    self.assertLen(context.exception.log_entry, 1)
+    self.assertEqual(context.exception.log_entry[0].message, expected_message)
+    self.assertEqual(
+        context.exception.log_entry[0].elements, [aggregate_selection]
+    )
+
+  def test_aggregate_ballot_selection_outside_party_contest_succeeds(self):
+    contest = etree.fromstring("""
+      <Contest objectId="con1" xsi:type="CandidateContest"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <AggregateBallotSelection objectId="agg1"/>
+        <TotalSeats>5</TotalSeats>
+        <NumberElected>3</NumberElected>
+      </Contest>
+    """)
+
+    self.validator.check(contest.find("AggregateBallotSelection"))
+
+  @parameterized.parameters("BallotMeasureContest", "CandidateContest")
+  def test_party_selection_outside_party_contest_succeeds(self, contest_type):
+    contest = etree.fromstring(f"""
+      <Contest objectId="con1" xsi:type="{contest_type}"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <BallotSelection objectId="ps1" xsi:type="PartySelection"/>
+        <TotalSeats>5</TotalSeats>
+        <NumberElected>3</NumberElected>
+      </Contest>
+    """)
+
+    self.validator.check(contest.find("BallotSelection"))
+
+  @parameterized.named_parameters(
+      ("no_number_elected", "<TotalSeats>5</TotalSeats>"),
+      ("no_total_seats", "<NumberElected>3</NumberElected>"),
+      (
+          "number_elected_not_an_integer",
+          "<TotalSeats>5</TotalSeats><NumberElected>three</NumberElected>",
+      ),
+  )
+  def test_contest_without_seat_numbers_succeeds(self, contest_fields):
+    contest = _party_contest(contest_fields, ("seats-won",))
+
+    self.validator.check(contest.find("BallotSelection"))
+
+  def test_election_results_rules_include_validate_seats_no_election(self):
+    self.assertIn(
+        election_results_rules.ValidateSeatsNoElection,
         election_results_rules.ELECTION_RESULTS_RULES,
     )
 

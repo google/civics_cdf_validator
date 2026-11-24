@@ -203,6 +203,60 @@ class PartySelectionSeatCountsRequired(base.SchemaRule):
       )
 
 
+class ValidateSeatsNoElection(base.SchemaRule):
+  """Checks that party selections report seats-no-election only when needed.
+
+  When a PartyContest's NumberElected differs from its TotalSeats, some seats
+  aren't up for election, so every PartySelection in it, and its
+  AggregateBallotSelection, must report seats-no-election VoteCounts. When the
+  two are equal, none of them may report them.
+  """
+
+  def setup(self) -> None:
+    self.party_contest_types = {
+        "PartyContest",
+        *self.get_all_subtypes("PartyContest"),
+    }
+
+  def elements(self) -> list[str]:
+    return [
+        "AggregateBallotSelection",
+        "PartySelection",
+        *self.get_all_subtypes("PartySelection"),
+    ]
+
+  def check(self, element: etree._Element) -> None:
+    contest = element.getparent()
+    if self.get_element_class(contest) not in self.party_contest_types:
+      return
+    number_elected = rule_util.get_integer(contest.find("NumberElected"))
+    total_seats = rule_util.get_integer(contest.find("TotalSeats"))
+    if number_elected is None or total_seats is None:
+      return
+    selection_name = (
+        f"{self.get_element_class(element)} {element.get('objectId')}"
+    )
+    contest_id = contest.get("objectId")
+    has_seats_no_election = "seats-no-election" in _get_vote_count_types(
+        element
+    )
+    if number_elected != total_seats and not has_seats_no_election:
+      raise loggers.ElectionError.from_message(
+          f"{selection_name} is missing VoteCounts of type"
+          " seats-no-election, which is required because PartyContest"
+          f" {contest_id} has a NumberElected ({number_elected}) different"
+          f" from its TotalSeats ({total_seats}).",
+          [element],
+      )
+    if number_elected == total_seats and has_seats_no_election:
+      raise loggers.ElectionError.from_message(
+          f"{selection_name} has VoteCounts of type"
+          f" seats-no-election, but PartyContest {contest_id} has a"
+          f" NumberElected equal to its TotalSeats ({total_seats}).",
+          [element],
+      )
+
+
 ELECTION_RESULTS_RULES = election_rules.ELECTION_RULES + (
     # go/keep-sorted start
     CandidateAndBallotMeasureSelectionTotalsRequired,
@@ -210,5 +264,6 @@ ELECTION_RESULTS_RULES = election_rules.ELECTION_RULES + (
     PartySelectionSeatCountsRequired,
     RequiredContestResultsFieldsSet,
     ValidatePercentReporting,
+    ValidateSeatsNoElection,
     # go/keep-sorted end
 )

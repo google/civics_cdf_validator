@@ -771,6 +771,34 @@ class GetTypeOrOtherTypeTest(parameterized.TestCase):
     self.assertEqual(rule_util.get_type_or_other_type(element), expected_type)
 
 
+class GetIntegerTest(parameterized.TestCase):
+
+  @parameterized.named_parameters(
+      ("positive", "<TotalSeats>5</TotalSeats>", 5),
+      ("zero", "<TotalSeats>0</TotalSeats>", 0),
+      ("negative", "<TotalSeats>-2</TotalSeats>", -2),
+      ("surrounding_whitespace", "<TotalSeats> 7 </TotalSeats>", 7),
+  )
+  def test_get_integer_returns_integer(self, element_string, expected_integer):
+    element = etree.fromstring(element_string)
+
+    self.assertEqual(rule_util.get_integer(element), expected_integer)
+
+  @parameterized.named_parameters(
+      ("empty", "<TotalSeats/>"),
+      ("whitespace", "<TotalSeats> </TotalSeats>"),
+      ("word", "<TotalSeats>five</TotalSeats>"),
+      ("decimal", "<TotalSeats>5.5</TotalSeats>"),
+  )
+  def test_get_integer_without_integer_text_returns_none(self, element_string):
+    element = etree.fromstring(element_string)
+
+    self.assertIsNone(rule_util.get_integer(element))
+
+  def test_get_integer_none_element_returns_none(self):
+    self.assertIsNone(rule_util.get_integer(None))
+
+
 class GetFloatTest(parameterized.TestCase):
 
   @parameterized.named_parameters(

@@ -1336,12 +1336,7 @@ class WinnerCountLimit(base.BaseRule):
     return ["CandidateContest"]
 
   def check(self, element: etree._Element) -> None:
-    number_elected_element = element.find("NumberElected")
-    number_elected = (
-        int(number_elected_element.text)
-        if rule_util.element_has_text(number_elected_element)
-        else 1
-    )
+    number_elected = rule_util.get_integer(element.find("NumberElected")) or 1
 
     candidate_ids_elements = element.findall("BallotSelection//CandidateIds")
     candidate_ids = set()

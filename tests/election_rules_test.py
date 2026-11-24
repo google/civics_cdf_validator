@@ -5043,6 +5043,44 @@ class WinnerCountLimitTest(absltest.TestCase):
         " 'projected-winner', which exceeds NumberElected: 1.",
     )
 
+  def test_number_elected_is_not_an_integer_uses_default_fails(self):
+    election_string = """
+      <ElectionReport>
+        <Election>
+          <CandidateCollection>
+            <Candidate objectId="can1">
+              <PostElectionStatus>winner</PostElectionStatus>
+            </Candidate>
+            <Candidate objectId="can2">
+              <PostElectionStatus>winner</PostElectionStatus>
+            </Candidate>
+          </CandidateCollection>
+          <ContestCollection>
+            <Contest objectId="cc1" type="CandidateContest">
+              <BallotSelection objectId="bs1" type="CandidateSelection">
+                <CandidateIds>can1</CandidateIds>
+              </BallotSelection>
+              <BallotSelection objectId="bs2" type="CandidateSelection">
+                <CandidateIds>can2</CandidateIds>
+              </BallotSelection>
+              <NumberElected>two</NumberElected>
+            </Contest>
+          </ContestCollection>
+        </Election>
+      </ElectionReport>
+    """
+    election_tree = etree.fromstring(election_string)
+    validator = election_rules.WinnerCountLimit(election_tree)
+    validator.setup()
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      validator.check(election_tree.find(".//Contest"))
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "Contest cc1 has 2 candidates with PostElectionStatus of 'winner' or"
+        " 'projected-winner', which exceeds NumberElected: 1.",
+    )
+
   def test_non_winner_statuses_succeeds(self):
     election_string = """
       <ElectionReport>
