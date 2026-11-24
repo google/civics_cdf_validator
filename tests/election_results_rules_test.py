@@ -65,6 +65,20 @@ _TOTAL_PERCENT_VOTE_COUNTS = """
 """
 
 
+def _other_type_vote_counts(*other_types: str) -> str:
+  """Returns a VoteCounts element string for each of the given OtherTypes."""
+  return "".join(
+      f"""
+      <VoteCounts>
+        <Type>other</Type>
+        <OtherType>{other_type}</OtherType>
+        <Count>3</Count>
+      </VoteCounts>
+      """
+      for other_type in other_types
+  )
+
+
 class RequiredContestResultsFieldsSetTest(parameterized.TestCase):
 
   def setUp(self):
@@ -568,6 +582,126 @@ class CandidateAndBallotMeasureSelectionTotalsRequiredTest(
   def test_election_results_rules_include_selection_totals_required(self):
     self.assertIn(
         election_results_rules.CandidateAndBallotMeasureSelectionTotalsRequired,
+        election_results_rules.ELECTION_RESULTS_RULES,
+    )
+
+
+class PartySelectionSeatCountsRequiredTest(parameterized.TestCase):
+
+  def setUp(self):
+    super().setUp()
+    self.validator = election_results_rules.PartySelectionSeatCountsRequired(
+        schema_tree=_SCHEMA_TREE
+    )
+    self.validator.setup()
+
+  def test_elements_returns_party_selection_and_aggregate_selection(self):
+    elements = self.validator.elements()
+
+    self.assertCountEqual(
+        elements, ["AggregateBallotSelection", "PartySelection"]
+    )
+
+  def test_party_selection_with_seat_counts_succeeds(self):
+    vote_counts = _other_type_vote_counts(
+        "seats-won", "seats-leading", "seats-total"
+    )
+    selection_string = f"""
+      <BallotSelection objectId="ps1" xsi:type="PartySelection"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <VoteCountsCollection>
+          {vote_counts}
+        </VoteCountsCollection>
+      </BallotSelection>
+    """
+
+    self.validator.check(etree.fromstring(selection_string))
+
+  @parameterized.named_parameters(
+      ("no_seat_counts", (), "seats-won, seats-leading, seats-total"),
+      ("only_seats_won", ("seats-won",), "seats-leading, seats-total"),
+      ("no_seats_total", ("seats-won", "seats-leading"), "seats-total"),
+  )
+  def test_party_selection_missing_seat_counts_fails(
+      self, seat_types, missing_types
+  ):
+    selection = etree.fromstring(f"""
+      <BallotSelection objectId="ps1" xsi:type="PartySelection"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <VoteCountsCollection>
+          {_TOTAL_VOTE_COUNTS}
+          {_other_type_vote_counts(*seat_types)}
+        </VoteCountsCollection>
+      </BallotSelection>
+    """)
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(selection)
+
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        f"PartySelection ps1 is missing VoteCounts of type(s) {missing_types}.",
+    )
+    self.assertEqual(context.exception.log_entry[0].elements, [selection])
+
+  def test_aggregate_ballot_selection_with_seat_counts_succeeds(self):
+    vote_counts = _other_type_vote_counts(
+        "seats-won", "seats-leading", "seats-total"
+    )
+    contest = etree.fromstring(f"""
+      <Contest objectId="con1" xsi:type="PartyContest"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <AggregateBallotSelection objectId="agg1">
+          <VoteCountsCollection>
+            {vote_counts}
+          </VoteCountsCollection>
+        </AggregateBallotSelection>
+      </Contest>
+    """)
+
+    self.validator.check(contest.find("AggregateBallotSelection"))
+
+  def test_aggregate_ballot_selection_missing_seat_counts_fails(self):
+    contest = etree.fromstring(f"""
+      <Contest objectId="con1" xsi:type="PartyContest"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <AggregateBallotSelection objectId="agg1">
+          <VoteCountsCollection>
+            {_other_type_vote_counts("seats-won")}
+          </VoteCountsCollection>
+        </AggregateBallotSelection>
+      </Contest>
+    """)
+    aggregate_selection = contest.find("AggregateBallotSelection")
+
+    with self.assertRaises(loggers.ElectionError) as context:
+      self.validator.check(aggregate_selection)
+
+    self.assertEqual(
+        context.exception.log_entry[0].message,
+        "AggregateBallotSelection agg1 is missing VoteCounts of type(s)"
+        " seats-leading, seats-total.",
+    )
+    self.assertEqual(
+        context.exception.log_entry[0].elements, [aggregate_selection]
+    )
+
+  @parameterized.parameters("BallotMeasureContest", "CandidateContest")
+  def test_aggregate_ballot_selection_in_other_contest_succeeds(
+      self, contest_type
+  ):
+    contest = etree.fromstring(f"""
+      <Contest objectId="con1" xsi:type="{contest_type}"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <AggregateBallotSelection objectId="agg1"/>
+      </Contest>
+    """)
+
+    self.validator.check(contest.find("AggregateBallotSelection"))
+
+  def test_election_results_rules_include_seat_counts_required(self):
+    self.assertIn(
+        election_results_rules.PartySelectionSeatCountsRequired,
         election_results_rules.ELECTION_RESULTS_RULES,
     )
 

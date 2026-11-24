@@ -29,6 +29,8 @@ _SUB_UNITS_FIELD_NAMES = ("SubUnitsReported", "TotalSubUnits")
 
 _VOTE_TOTAL_TYPES = ("total", "total-percent")
 
+_SEAT_COUNT_TYPES = ("seats-won", "seats-leading", "seats-total")
+
 
 def _get_vote_count_types(selection: etree._Element) -> set[str]:
   """Returns the types of the VoteCounts in a ballot selection."""
@@ -158,10 +160,54 @@ class CandidateAndBallotMeasureSelectionTotalsRequired(base.SchemaRule):
       )
 
 
+class PartySelectionSeatCountsRequired(base.SchemaRule):
+  """Checks that party selections report seat counts.
+
+  Election results feeds must report seats-won, seats-leading, and seats-total
+  VoteCounts for every PartySelection and for the AggregateBallotSelection of
+  every PartyContest.
+  """
+
+  def setup(self) -> None:
+    self.aggregate_contest_types = {
+        "PartyContest",
+        *self.get_all_subtypes("PartyContest"),
+    }
+
+  def elements(self) -> list[str]:
+    return [
+        "AggregateBallotSelection",
+        "PartySelection",
+        *self.get_all_subtypes("PartySelection"),
+    ]
+
+  def check(self, element: etree._Element) -> None:
+    element_class = self.get_element_class(element)
+    if (
+        element_class == "AggregateBallotSelection"
+        and self.get_element_class(element.getparent())
+        not in self.aggregate_contest_types
+    ):
+      return
+    vote_count_types = _get_vote_count_types(element)
+    missing_types = [
+        seat_count_type
+        for seat_count_type in _SEAT_COUNT_TYPES
+        if seat_count_type not in vote_count_types
+    ]
+    if missing_types:
+      raise loggers.ElectionError.from_message(
+          f"{element_class} {element.get('objectId')} is missing VoteCounts of"
+          f" type(s) {', '.join(missing_types)}.",
+          [element],
+      )
+
+
 ELECTION_RESULTS_RULES = election_rules.ELECTION_RULES + (
     # go/keep-sorted start
     CandidateAndBallotMeasureSelectionTotalsRequired,
     DataSourcesRequired,
+    PartySelectionSeatCountsRequired,
     RequiredContestResultsFieldsSet,
     ValidatePercentReporting,
     # go/keep-sorted end
