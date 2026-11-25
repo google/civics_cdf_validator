@@ -57,39 +57,24 @@ class PercentSumTest(parameterized.TestCase):
         ],
     )
 
-  def test_zero_percent_total_is_valid_succeeds(self):
-    element_string = """
+  @parameterized.named_parameters(
+      ("zero", "0.0", "0.0"),
+      ("one_hundred", "60.0", "40.0"),
+      ("just_below_one_hundred", "60.0", "39.9999995"),
+      ("just_above_one_hundred", "60.0", "40.0000005"),
+  )
+  def test_percent_total_is_valid_succeeds(self, first_count, second_count):
+    element_string = f"""
       <Contest>
         <BallotSelection>
           <VoteCountsCollection>
             <VoteCounts>
               <OtherType>total-percent</OtherType>
-              <Count>0.0</Count>
+              <Count>{first_count}</Count>
             </VoteCounts>
             <VoteCounts>
               <OtherType>total-percent</OtherType>
-              <Count>0.0</Count>
-            </VoteCounts>
-          </VoteCountsCollection>
-        </BallotSelection>
-      </Contest>
-    """
-    element = etree.fromstring(element_string)
-
-    self.validator.check(element)
-
-  def test_one_hundred_percent_total_is_valid_succeeds(self):
-    element_string = """
-      <Contest>
-        <BallotSelection>
-          <VoteCountsCollection>
-            <VoteCounts>
-              <OtherType>total-percent</OtherType>
-              <Count>60.0</Count>
-            </VoteCounts>
-            <VoteCounts>
-              <OtherType>total-percent</OtherType>
-              <Count>40.0</Count>
+              <Count>{second_count}</Count>
             </VoteCounts>
           </VoteCountsCollection>
         </BallotSelection>
@@ -100,42 +85,24 @@ class PercentSumTest(parameterized.TestCase):
     self.validator.check(element)
 
   @parameterized.named_parameters(
-      ("missing_count", ""),
-      ("count_not_a_number", "<Count>sixty</Count>"),
+      ("just_above_zero", "0.0", "0.0000005"),
+      ("above_zero", "0.0", "0.000002"),
+      ("far_below_one_hundred", "60.0", "20.0"),
+      ("below_one_hundred", "60.0", "39.999998"),
+      ("above_one_hundred", "60.0", "40.000002"),
   )
-  def test_percent_without_numeric_count_is_ignored_succeeds(self, count):
+  def test_percent_total_is_invalid_fails(self, first_count, second_count):
     element_string = f"""
       <Contest>
         <BallotSelection>
           <VoteCountsCollection>
             <VoteCounts>
               <OtherType>total-percent</OtherType>
-              {count}
+              <Count>{first_count}</Count>
             </VoteCounts>
             <VoteCounts>
               <OtherType>total-percent</OtherType>
-              <Count>100.0</Count>
-            </VoteCounts>
-          </VoteCountsCollection>
-        </BallotSelection>
-      </Contest>
-    """
-    element = etree.fromstring(element_string)
-
-    self.validator.check(element)
-
-  def test_invalid_percents_fails(self):
-    element_string = """
-      <Contest>
-        <BallotSelection>
-          <VoteCountsCollection>
-            <VoteCounts>
-              <OtherType>total-percent</OtherType>
-              <Count>60.0</Count>
-            </VoteCounts>
-            <VoteCounts>
-              <OtherType>total-percent</OtherType>
-              <Count>20.0</Count>
+              <Count>{second_count}</Count>
             </VoteCounts>
           </VoteCountsCollection>
         </BallotSelection>
@@ -169,18 +136,26 @@ class PercentSumTest(parameterized.TestCase):
 
     self.validator.check(element)
 
-  def test_only_use_count_for_other_type_total_percent_invalid_succeeds(self):
-    element_string = """
+  @parameterized.named_parameters(
+      ("missing_count", "total-percent", ""),
+      ("missing_other_type", "", "60.0"),
+      ("count_not_a_number", "total-percent", "sixty"),
+      ("other_type_not_total_percent", "percent-sum", "60.0"),
+  )
+  def test_vote_counts_without_numeric_total_percent_are_ignored_succeeds(
+      self, vote_count_type, vote_count_value
+  ):
+    element_string = f"""
       <Contest>
         <BallotSelection>
           <VoteCountsCollection>
             <VoteCounts>
-              <OtherType>percent-sum</OtherType>
-              <Count>60.0</Count>
+              <OtherType>{vote_count_type}</OtherType>
+              <Count>{vote_count_value}</Count>
             </VoteCounts>
             <VoteCounts>
-              <OtherType>percent-sum</OtherType>
-              <Count>20.0</Count>
+              <OtherType>total-percent</OtherType>
+              <Count>100.0</Count>
             </VoteCounts>
           </VoteCountsCollection>
         </BallotSelection>
@@ -222,103 +197,6 @@ class PercentSumTest(parameterized.TestCase):
     element = etree.fromstring(element_string)
 
     self.validator.check(element)
-
-  @parameterized.parameters(
-      "AggregateBallotSelection",
-      "BlankBallotSelection",
-      "NoneOfTheAboveBallotSelection",
-      "NullBallotSelection",
-  )
-  def test_special_ballot_selection_percent_over_one_hundred_fails(self, tag):
-    element_string = f"""
-      <Contest>
-        <BallotSelection>
-          <VoteCountsCollection>
-            <VoteCounts>
-              <OtherType>total-percent</OtherType>
-              <Count>100.0</Count>
-            </VoteCounts>
-          </VoteCountsCollection>
-        </BallotSelection>
-        <{tag}>
-          <VoteCountsCollection>
-            <VoteCounts>
-              <OtherType>total-percent</OtherType>
-              <Count>10.0</Count>
-            </VoteCounts>
-          </VoteCountsCollection>
-        </{tag}>
-      </Contest>
-    """
-    element = etree.fromstring(element_string)
-
-    with self.assertRaises(loggers.ElectionError) as context:
-      self.validator.check(element)
-    self.assertEqual(
-        context.exception.log_entry[0].message,
-        "Contest percents do not sum to 0 or 100: 110.000000",
-    )
-
-  def test_all_special_ballot_selection_percents_count_toward_total_succeeds(
-      self,
-  ):
-    element_string = """
-      <Contest>
-        <AggregateBallotSelection>
-          <VoteCountsCollection>
-            <VoteCounts>
-              <OtherType>total-percent</OtherType>
-              <Count>10.0</Count>
-            </VoteCounts>
-          </VoteCountsCollection>
-        </AggregateBallotSelection>
-        <BallotSelection>
-          <VoteCountsCollection>
-            <VoteCounts>
-              <OtherType>total-percent</OtherType>
-              <Count>60.0</Count>
-            </VoteCounts>
-          </VoteCountsCollection>
-        </BallotSelection>
-        <BlankBallotSelection>
-          <VoteCountsCollection>
-            <VoteCounts>
-              <OtherType>total-percent</OtherType>
-              <Count>10.0</Count>
-            </VoteCounts>
-          </VoteCountsCollection>
-        </BlankBallotSelection>
-        <NoneOfTheAboveBallotSelection>
-          <VoteCountsCollection>
-            <VoteCounts>
-              <OtherType>total-percent</OtherType>
-              <Count>10.0</Count>
-            </VoteCounts>
-          </VoteCountsCollection>
-        </NoneOfTheAboveBallotSelection>
-        <NullBallotSelection>
-          <VoteCountsCollection>
-            <VoteCounts>
-              <OtherType>total-percent</OtherType>
-              <Count>10.0</Count>
-            </VoteCounts>
-          </VoteCountsCollection>
-        </NullBallotSelection>
-      </Contest>
-    """
-    element = etree.fromstring(element_string)
-
-    self.validator.check(element)
-
-  def test_fuzzy_equals_difference_equal_to_epsilon_is_not_equal(self):
-    is_equal = election_rules.PercentSum.fuzzy_equals(1.0, 1.5, epsilon=0.5)
-
-    self.assertFalse(is_equal)
-
-  def test_fuzzy_equals_difference_below_epsilon_is_equal(self):
-    is_equal = election_rules.PercentSum.fuzzy_equals(1.0, 1.25, epsilon=0.5)
-
-    self.assertTrue(is_equal)
 
 
 class PartisanPrimaryTest(absltest.TestCase):

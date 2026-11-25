@@ -18,6 +18,7 @@ from __future__ import print_function
 import collections
 from collections.abc import Iterable, Mapping, Sequence
 import datetime
+import math
 
 from civics_cdf_validator import base
 from civics_cdf_validator import loggers
@@ -68,10 +69,6 @@ class PercentSum(base.SchemaRule):
   def elements(self) -> list[str]:
     return ["Contest"] + list(self.get_all_subtypes("Contest"))
 
-  @staticmethod
-  def fuzzy_equals(a: float, b: float, epsilon: float = 1e-6) -> bool:
-    return abs(a - b) < epsilon
-
   def check(self, element: etree._Element) -> None:
     sum_percents = 0.0
     for ballot_selection_tag in self._BALLOT_SELECTION_TAGS:
@@ -81,9 +78,9 @@ class PercentSum(base.SchemaRule):
         other_type = vote_counts.find("OtherType")
         if other_type is not None and other_type.text == "total-percent":
           sum_percents += rule_util.get_float(vote_counts.find("Count")) or 0
-    if not PercentSum.fuzzy_equals(
-        sum_percents, 0
-    ) and not PercentSum.fuzzy_equals(sum_percents, 100):
+    # Only a total of 100 can be off by rounding. In the zero state, all
+    # percentages should be 0 and add up to exactly 0.
+    if sum_percents != 0 and not math.isclose(sum_percents, 100, abs_tol=1e-6):
       raise loggers.ElectionError.from_message(
           f"Contest percents do not sum to 0 or 100: {sum_percents:f}",
           [element],
